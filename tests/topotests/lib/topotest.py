@@ -46,7 +46,8 @@ else:
 
 from mininet.topo import Topo
 from mininet.net import Mininet
-from mininet.node import Node, OVSSwitch, Host
+from mininet.node import Node, Host
+from mininet.nodelib import LinuxBridge
 from mininet.log import setLogLevel, info
 from mininet.cli import CLI
 from mininet.link import Intf
@@ -1954,11 +1955,11 @@ class FreeBSDRouter(Router):
         Router.__init__(self, name, **params)
 
 
-class LegacySwitch(OVSSwitch):
+class LegacySwitch(LinuxBridge):
     "A Legacy Switch without OpenFlow"
 
     def __init__(self, name, **params):
-        OVSSwitch.__init__(self, name, failMode="standalone", **params)
+        LinuxBridge.__init__(self, name, **params)
         self.switchIP = None
 
 
