@@ -22,7 +22,6 @@ from collections import OrderedDict
 from datetime import datetime, timedelta
 from time import sleep
 from copy import deepcopy
-from subprocess import call
 from subprocess import STDOUT as SUB_STDOUT
 from subprocess import PIPE as SUB_PIPE
 from subprocess import Popen
@@ -49,6 +48,8 @@ except ImportError:
 from lib.topolog import logger, logger_config
 from lib.topogen import TopoRouter, get_topogen
 from lib.topotest import interface_set_status, version_cmp, frr_unicode
+
+from lib.micronet_compat import Mininet
 
 FRRCFG_FILE = "frr_json.conf"
 FRRCFG_BKUP_FILE = "frr_json_initial.conf"
@@ -500,7 +501,7 @@ def reset_config_on_routers(tgen, routerName=None):
         command = "/usr/lib/frr/frr-reload.py --test --test-reset --input {} {} > {}".format(
             run_cfg_file, init_cfg_file, dname
         )
-        result = call(command, shell=True, stderr=SUB_STDOUT, stdout=SUB_PIPE)
+        result, stdout, stderr = Mininet.g_inst.cmd_status(command)
 
         # Assert if command fail
         if result > 0:
@@ -516,7 +517,7 @@ def reset_config_on_routers(tgen, routerName=None):
 
             err_cmd = ["/usr/bin/vtysh", "-m", "-f", run_cfg_file]
             result = Popen(err_cmd, stdout=SUB_PIPE, stderr=SUB_PIPE)
-            output = result.communicate()
+            output, errout = result.communicate()
             for out_data in output:
                 temp_data = out_data.decode("utf-8").lower()
                 for out_err in ERROR_LIST:
@@ -525,13 +526,11 @@ def reset_config_on_routers(tgen, routerName=None):
                             "Found errors while validating data in" " %s", run_cfg_file
                         )
                         raise InvalidCLIError(out_data)
-            raise InvalidCLIError("Unknown error in %s", output)
+            raise InvalidCLIError("Unknown error in output: %s stderr: %s" % (output, errout))
 
         delta = StringIO()
-        delta.write("configure terminal\n")
         with open(dname, "r") as f:
             delta.write(f.read())
-        delta.write("end\n")
 
         output = router.vtysh_multicmd(delta.getvalue(), pretty_output=False)
 

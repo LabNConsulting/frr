@@ -44,14 +44,8 @@ if sys.version_info[0] > 2:
 else:
     import ConfigParser as configparser
 
-from mininet.topo import Topo
-from mininet.net import Mininet
-from mininet.node import Node, Host
-from mininet.nodelib import LinuxBridge
-from mininet.log import setLogLevel, info
-from mininet.cli import CLI
-from mininet.link import Intf
-from mininet.term import makeTerm
+from lib.micronet import Bridge
+from lib.micronet_compat import Node
 
 g_extra_config = {}
 
@@ -1153,7 +1147,7 @@ class Router(Node):
         self.reportCores = True
         self.version = None
 
-        self.ns_cmd = "sudo nsenter -m -n -t {} ".format(self.pid)
+        self.ns_cmd = "sudo nsenter -at {} ".format(self.pid)
         try:
             # Allow escaping from running inside docker
             cgroup = open("/proc/1/cgroup").read()
@@ -1295,7 +1289,6 @@ class Router(Node):
                             )
                         )
                         self.cmd("kill -7 %s" % daemonpid)
-                        self.waitOutput()
                     self.cmd("rm -- {}".format(d.rstrip()))
 
         if not wait:
@@ -1332,22 +1325,23 @@ class Router(Node):
                 self.daemons_options[daemon] = param
             if source is None:
                 self.cmd("touch /etc/%s/%s.conf" % (self.routertype, daemon))
-                self.waitOutput()
             else:
                 self.cmd("cp %s /etc/%s/%s.conf" % (source, self.routertype, daemon))
-                self.waitOutput()
             self.cmd("chmod 640 /etc/%s/%s.conf" % (self.routertype, daemon))
-            self.waitOutput()
             self.cmd(
                 "chown %s:%s /etc/%s/%s.conf"
                 % (self.routertype, self.routertype, self.routertype, daemon)
             )
-            self.waitOutput()
             if (daemon == "snmpd") and (self.routertype == "frr"):
                 self.cmd('echo "agentXSocket /etc/frr/agentx" > /etc/snmp/frr.conf')
             if (daemon == "zebra") and (self.daemons["staticd"] == 0):
                 # Add staticd with zebra - if it exists
-                staticd_path = os.path.join(self.daemondir, "staticd")
+                try:
+                    staticd_path = os.path.join(self.daemondir, "staticd")
+                except:
+                    import pdb
+                    pdb.set_trace()
+
                 if os.path.isfile(staticd_path):
                     self.daemons["staticd"] = 1
                     self.daemons_options["staticd"] = ""
@@ -1593,7 +1587,7 @@ class Router(Node):
         # Fix Link-Local Addresses
         # Somehow (on Mininet only), Zebra removes the IPv6 Link-Local addresses on start. Fix this
         self.cmd(
-            "for i in `ls /sys/class/net/` ; do mac=`cat /sys/class/net/$i/address`; IFS=':'; set $mac; unset IFS; ip address add dev $i scope link fe80::$(printf %02x $((0x$1 ^ 2)))$2:${3}ff:fe$4:$5$6/64; done"
+            "for i in `ls /sys/class/net/` ; do echo $i; mac=`cat /sys/class/net/$i/address`; [ -z \"$mac\" ] && continue; IFS=':'; set $mac; unset IFS; echo ip address add dev $i scope link fe80::$(printf %02x $((0x$1 ^ 2)))$2:${3}ff:fe$4:$5$6/64; done"
         )
 
         # Now start all the other daemons
@@ -1635,7 +1629,6 @@ class Router(Node):
                                 )
                             )
                             self.cmd("kill -9 %s" % daemonpid)
-                            self.waitOutput()
                             if pid_exists(int(daemonpid)):
                                 numRunning += 1
                         if wait and numRunning > 0:
@@ -1662,7 +1655,6 @@ class Router(Node):
                                             )
                                         )
                                         self.cmd("kill -9 %s" % daemonpid)
-                                        self.waitOutput()
                                     self.cmd("rm -- {}".format(d.rstrip()))
                     if wait:
                         errors = self.checkRouterCores(reportOnce=True)
@@ -1953,14 +1945,6 @@ class FreeBSDRouter(Router):
 
     def __init__(self, name, **params):
         Router.__init__(self, name, **params)
-
-
-class LegacySwitch(LinuxBridge):
-    "A Legacy Switch without OpenFlow"
-
-    def __init__(self, name, **params):
-        LinuxBridge.__init__(self, name, **params)
-        self.switchIP = None
 
 
 def frr_unicode(s):
