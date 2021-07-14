@@ -44,7 +44,7 @@ from lib.topolog import logger
 from lib.snmptest import SnmpTester
 
 # Required to instantiate the topology builder class.
-from mininet.topo import Topo
+from lib.micronet_compat import Topo
 
 pytestmark = [pytest.mark.bgpd, pytest.mark.isisd, pytest.mark.snmp]
 
