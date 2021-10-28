@@ -59,6 +59,7 @@ static int static_path_list_create(struct nb_cb_create_args *args)
 		table_id = yang_dnode_get_uint32(args->dnode, "./table-id");
 		pn = static_add_path(rn, table_id, distance);
 		nb_running_set_entry(args->dnode, pn);
+		break;
 	}
 
 	return NB_OK;
@@ -665,6 +666,7 @@ int routing_control_plane_protocols_control_plane_protocol_staticd_route_list_pa
 	case NB_EV_VALIDATE:
 	case NB_EV_PREPARE:
 	case NB_EV_ABORT:
+		break;
 	case NB_EV_APPLY:
 		break;
 	}
@@ -682,6 +684,7 @@ int routing_control_plane_protocols_control_plane_protocol_staticd_route_list_pa
 	case NB_EV_VALIDATE:
 	case NB_EV_PREPARE:
 	case NB_EV_ABORT:
+		break;
 	case NB_EV_APPLY:
 		break;
 	}
@@ -696,6 +699,7 @@ int routing_control_plane_protocols_control_plane_protocol_staticd_route_list_pa
 	case NB_EV_VALIDATE:
 	case NB_EV_PREPARE:
 	case NB_EV_ABORT:
+		break;
 	case NB_EV_APPLY:
 		break;
 	}
@@ -714,6 +718,7 @@ int routing_control_plane_protocols_control_plane_protocol_staticd_route_list_pa
 	case NB_EV_VALIDATE:
 	case NB_EV_PREPARE:
 	case NB_EV_ABORT:
+		break;
 	case NB_EV_APPLY:
 		break;
 	}
@@ -728,6 +733,7 @@ int routing_control_plane_protocols_control_plane_protocol_staticd_route_list_pa
 	case NB_EV_VALIDATE:
 	case NB_EV_PREPARE:
 	case NB_EV_ABORT:
+		break;
 	case NB_EV_APPLY:
 		break;
 	}
@@ -972,7 +978,6 @@ int routing_control_plane_protocols_control_plane_protocol_staticd_route_list_sr
 	case NB_EV_APPLY:
 		if (static_nexthop_color_modify(args) != NB_OK)
 			return NB_ERR;
-
 		break;
 	}
 	return NB_OK;
@@ -1043,6 +1048,7 @@ int routing_control_plane_protocols_control_plane_protocol_staticd_route_list_sr
 	case NB_EV_VALIDATE:
 	case NB_EV_PREPARE:
 	case NB_EV_ABORT:
+		break;
 	case NB_EV_APPLY:
 		break;
 	}
@@ -1060,6 +1066,7 @@ int routing_control_plane_protocols_control_plane_protocol_staticd_route_list_sr
 	case NB_EV_VALIDATE:
 	case NB_EV_PREPARE:
 	case NB_EV_ABORT:
+		break;
 	case NB_EV_APPLY:
 		break;
 	}
@@ -1074,6 +1081,7 @@ int routing_control_plane_protocols_control_plane_protocol_staticd_route_list_sr
 	case NB_EV_VALIDATE:
 	case NB_EV_PREPARE:
 	case NB_EV_ABORT:
+		break;
 	case NB_EV_APPLY:
 		break;
 	}
@@ -1092,6 +1100,7 @@ int routing_control_plane_protocols_control_plane_protocol_staticd_route_list_sr
 	case NB_EV_VALIDATE:
 	case NB_EV_PREPARE:
 	case NB_EV_ABORT:
+		break;
 	case NB_EV_APPLY:
 		break;
 	}
@@ -1106,6 +1115,7 @@ int routing_control_plane_protocols_control_plane_protocol_staticd_route_list_sr
 	case NB_EV_VALIDATE:
 	case NB_EV_PREPARE:
 	case NB_EV_ABORT:
+		break;
 	case NB_EV_APPLY:
 		break;
 	}
