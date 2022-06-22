@@ -157,11 +157,94 @@ module frr-ospfd {
       }
       enum full {
         value "8";
-	description
-	  "Neighbor full state.";
+        description
+          "Neighbor full state.";
       }
     }
     description "OSPF neighbor state type.";
+  }
+
+  typedef gr-restart-reason {
+    type enumeration {
+      enum unknown-restart {
+        value "0";
+        description "Uknown restart.";
+      }
+      enum sw-restart {
+        value "1";
+        description "Software restart.";
+      }
+      enum sw-upgrade {
+        value "2";
+        description "Software reload/upgrade.";
+      }
+      enum switch-redundant-card {
+        value "3";
+        description "Switch to redundant control processor.";
+      }
+      enum invalid-reason-code {
+        value "4";
+        description "Invalid restart.";
+      }
+    }
+  }
+
+  typedef gr-exit-reason {
+    type enumeration {
+      enum exit-none {
+        value "0";
+        description "No exit reason.";
+      }
+      enum inprogress {
+        value "1";
+        description "Graceful restart in progress.";
+      }
+      enum topo-chg {
+        value "2";
+        descripton "Topology has changed.";
+      }
+      enum grace-timeout {
+        value "3";
+        description "Grace period expired.";
+      }
+      enum completed {
+        value "4";
+        description "Graceful restart completed.";
+      }
+    }
+  }
+
+  typedef gr-reject-reason {
+    type enumeration {
+      enum rejected-none {
+        value "0";
+	description "No reject reason.";
+      }
+      enum support-disabled {
+        value "1";
+	description "Graceful restart is not supported.";
+      }
+      enum not-a-valid-neighbour {
+        value "2";
+	description "Not a valud neighbour.";
+      }
+      enum planned-only-restart {
+        value "3";
+	description "Can only support planned graceful restarts";
+      }
+      enum topo-change-rtxmt-list {
+        value "4";
+	descriprion "...";
+      }
+      enum lsa-age-more {
+        value "5";
+	description "Link state advertisments must age more";
+      }
+      enum restarting {
+        value "6";
+	description "Currently restarting";
+      }
+    }
   }
 
   grouping nssa-grouping {
@@ -1122,14 +1205,14 @@ module frr-ospfd {
       type int64;
       units "MSec";
       description
-        "The uptime of the neighbor over this link in MSec.";
+        "The uptime of the neighbor over this interface in MSec.";
     }
 
     leaf nbr-downtime {
       type int64;
       units "MSec";
       description
-        "The downtime of the neighbor connection in MSec.";
+        "The downtime of the neighbor over this interface in MSec.";
     }
 
     container nsm {
@@ -1209,13 +1292,64 @@ module frr-ospfd {
     }
 
     container threads {
-      description "Status of threads";
-      leaf TODO-thread-status-on-or-off {}
+      description "Status of frr-required threads.";
+      leaf inactivity-timer {
+        type boolean;
+        description "Status of the inactivity timer thread.";
+      }
+
+      leaf database-description-retransmission {
+        type boolean;
+        description "Status of the database description retransmission thread.";
+      }
+
+      leaf link-state-request-retransmission {
+        type boolean;
+        description "Status of the link state request retranmission thread.";
+      }
+
+      leaf link-state-update-retransmission {
+        type boolean;
+        description "Status of the link state update retransmission thread.";
+      }
+
+/*
+      leaf hello-reply {
+        type boolean;
+        description "Status of the hello reply thread.";
+      }
+// Note: This thread was found in ospf_neighbor.h but didn't appear from clicmd:
+// show ip ospf neighbor detail json
+*/
     }
 
     container graceful-restart-helper {
       description "Status of graceful restart helper";
-      leaf TODO-graceful-restart-helper-status {}
+
+      leaf grace-period {
+        type uint32;
+        description "The grace interval for this gr helper.";
+      }
+
+      leaf restart-reason {
+        type gr-restart-reason;
+	description "The reason for a graceful restart.";
+      }
+
+      leaf helper-status {
+        type uint32;
+        description "The gr helper's status.";
+      }
+
+      leaf helper-exit-reason {
+        type gr-exit-reason;
+        description "The reason for a gr helper exiting.";
+      }
+
+      leaf helper-rejected-reason {
+        type gr-reject-reason;
+        description "The reason a gr helper was rejected.";
+      }
     }
   }
 
@@ -1280,9 +1414,11 @@ module frr-ospfd {
         uses neighbor-state;
       }
     }
-/*
+    
     container database {
       description "Link-scope Link State Database.";
+      leaf TODO-lsa-link-state-database {}
+/*
       list link-scope-lsa-type {
         key "lsa-type";
         description
@@ -1299,8 +1435,8 @@ module frr-ospfd {
           }
         }
       }
-    }
 */
+    }
   }
 
   grouping interface-ospf-group {
