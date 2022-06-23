@@ -201,7 +201,7 @@ module frr-ospfd {
       }
       enum topo-chg {
         value "2";
-        descripton "Topology has changed.";
+        description "Topology has changed.";
       }
       enum grace-timeout {
         value "3";
@@ -234,7 +234,7 @@ module frr-ospfd {
       }
       enum topo-change-rtxmt-list {
         value "4";
-	descriprion "...";
+	description "...";
       }
       enum lsa-age-more {
         value "5";
@@ -1190,7 +1190,7 @@ module frr-ospfd {
     }
 
     leaf nbr-request-qlen {
-      type yang:guage32;
+      type yang:gauge32;
       description
         "The current length of the LSA request queue. (Rqstl)";
     }
@@ -1417,7 +1417,7 @@ module frr-ospfd {
     
     container database {
       description "Link-scope Link State Database.";
-      leaf TODO-lsa-link-state-database {}
+      leaf TODO-lsa-link-state-database {type boolean;}
 /*
       list link-scope-lsa-type {
         key "lsa-type";
