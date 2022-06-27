@@ -14,11 +14,7 @@ module frr-ospfd {
   import ietf-routing-types {
     prefix rt-types;
   }
-/*
-  import ietf-routing {
-    prefix "rt";
-  }
-*/
+
   import ietf-yang-types {
     prefix "yang";
   }
@@ -110,7 +106,9 @@ module frr-ospfd {
    }
 
   /*
-   * Operational state data types
+   * ----------------------------------------------
+   * Link State Database (LSD) Types and Identities
+   * ----------------------------------------------
    */
 
   typedef if-state-type {
@@ -286,12 +284,6 @@ module frr-ospfd {
       }
     }
   }
-
-  /*
-   * -------------------------------------------------------
-   * Link State Database (LSD) Required Types and Identities
-   * -------------------------------------------------------
-   */
 
   typedef opaque-id {
     type uint32 {
@@ -2023,7 +2015,9 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
   }
 
   /*
+   * ----------------------------
    * End of LSD Operational State
+   * ----------------------------
    */
 
   grouping nssa-grouping {
@@ -3011,16 +3005,18 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
 
       leaf last-progressive {
         type int64;
-	units "MSec";
+	units "millisecond";
         description
-          "Time since the last progressive NSM state change in MSec.";
+          "Time since the last progressive NSM state change in
+           milliseconds.";
       }
 
       leaf last-regressive {
         type int64;
-	units "MSec";
+	units "millisecond";
         description
-          "Time since the last regressive NSM state change in MSec.";
+          "Time since the last regressive NSM state change in
+           milliseconds.";
       }
     }
   }
@@ -3060,10 +3056,11 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
     }
 /*
     leaf cost {
-      // XXX check if present in OSPF model
+      // While present in the OSPF yang model code, it does not appear
+      // in the OSPF yang tree diagram
       type ospf-link-metric;
       description "Cost to reach neighbor for Point-to-Multipoint and Hybrid
-                   networkd.";
+                   networks.";
     }
 */
     leaf dead-timer {
@@ -3220,8 +3217,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
             uses lsa-key;
             uses lsa {
               refine "version/ospfv2/ospfv2" {
-/*
-XXX Remove if unnecessary
+/* XXX Remove if unnecessary
                 must "derived-from-or-self( "
                    + "../../../../../../../../../../"
                    + "frr-rt:type, 'ospf')" {
@@ -3233,8 +3229,7 @@ XXX Remove if unnecessary
                  + "frr-rt:control-plane-protocol/frr-rt:type, 'ospf')" {
                  description "OSPFv2 LSA. (ospfd)";
                 }
-/*
-XXX Is ospfv3 necessary? (should belong ospf6d model?)
+/* XXX Is ospfv3 necessary? (should belong to ospf6d model?)
               refine "version/ospfv3/ospfv3" {
                 must "derived-from-or-self( "
                    + "../../../../../../../../../../"
@@ -3346,7 +3341,6 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
   /*
    * Per-interface operational state data
    */
-
   augment "/frr-interface:lib/frr-interface:interface/frr-interface:state" {
     container ospf {
       description
@@ -3356,8 +3350,11 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
   }
 
   /*
-   * Remote Procedure Calls
+   * ----------------------------
+   * Remote Procedure Calls (RPC)
+   * ----------------------------
    */
+   
   rpc clear-ospf-interface {
     description
       "Clears OSPF interfaces from instances of OSPF.";
