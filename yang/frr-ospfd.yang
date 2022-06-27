@@ -288,9 +288,9 @@ module frr-ospfd {
   }
 
   /*
-   * ----------------------------------------
-   * Link State Database (LSD) Required Types
-   * ----------------------------------------
+   * -------------------------------------------------------
+   * Link State Database (LSD) Required Types and Identities
+   * -------------------------------------------------------
    */
 
   typedef opaque-id {
@@ -347,11 +347,20 @@ module frr-ospfd {
       "OSPF Metric - 24-bit unsigned integer.";
   }
 
-  /*
-   * -------------------------------------------
-   * Link State Database (LSD) Operational State
-   * -------------------------------------------
-   */
+  typedef pce-domain-type {
+    type enumeration {
+      enum ospf-area-id {
+        value 1;
+        description
+          "Indicates that the visible domain type is an OSPF Area.";
+      }
+      enum as-number {
+        value 2;
+        description
+          "Indicates that the visible domain type is an AS";
+      }
+    }
+  }
 
   identity ospfv3-lsa-type {
     base ospf-lsa-type;
@@ -655,6 +664,120 @@ module frr-ospfd {
        to a CE, the DN bit must be set. See RFC 4576.";
   }
 
+  identity pce-path-scope-bit {
+    description
+      "The base identity for a PCE Path scope flags.";
+  }
+
+  identity intra-area-bit {
+    base pce-path-scope-bit;
+    description
+      "L bit (0th bit). When set, means can computer intra-area
+       paths.";
+  }
+
+  identity inter-area-bit {
+    base pce-path-scope-bit;
+    description
+      "R bit (1st bit). When set, means can act as PCE for inter-area TE
+       LSP computation.";
+  }
+
+  identity inter-area-default-bit {
+    base pce-path-scope-bit;
+    description
+      "Rd bit (2nd bit). When set, means can act as a default PCE for
+       inter-area TE LSP computation.";
+  }
+
+  identity inter-as-bit {
+    base pce-path-scope-bit;
+    description
+      "S bit (3rd bit). When set, means can act as PCE for inter-AS TE LSP
+       computation.";
+  }
+
+  identity inter-as-default-bit {
+    base pce-path-scope-bit;
+    description
+      "Sd bit (4th bit). When set, means can act as a default PCE for inter-AS
+       TE LSP computation.";
+  }
+
+  identity inter-layer-bit {
+    base pce-path-scope-bit;
+    description
+      "Y bit (5th bit). When set, means can act as PCE for inter-layer TE LSP
+       computation.";
+  }
+
+  identity pce-capabilities-bit {
+    description
+      "Base identity for PCE capability flags.";
+  }
+
+  identity gmpls-link-bit {
+    base pce-capabilities-bit;
+    description
+      "0th bit. When set, means that can compute paths with GMPLS link
+       constraints.";
+  }
+
+  identity bidirectional-bit {
+    base pce-capabilities-bit;
+    description
+      "1st bit. When set, means that can compute bidirectional paths.";
+  }
+
+  identity diverse-path-bit {
+    base pce-capabilities-bit;
+    description
+      "2nd bit. When set, means that can compute diverse paths.";
+  }
+
+  identity load-balance-bit {
+    base pce-capabilities-bit;
+    description
+      "3rd bit. When set, means that can compute load-balanced paths.";
+  }
+
+  identity synchronized-bit {
+    base pce-capabilities-bit;
+    description
+      "4th bit. When set, means that can compute synchronized paths.";
+  }
+
+  identity objectives-bit {
+    base pce-capabilities-bit;
+    description
+      "5th bit. When set, means that can support multiple objective functons.";
+  }
+
+  identity additive-bit {
+    base pce-capabilities-bit;
+    description
+      "6th bit. When set, means that can support additive path constraints.";
+  }
+
+  identity prioritization-bit {
+    base pce-capabilities-bit;
+    description
+      "7th bit. When set, means that can support requests for prioritization.";
+  }
+
+  identity multiple-req-bit {
+    base pce-capabilities-bit;
+    description
+      "8th bit. When set, means that can support multiple requests per
+       message";
+  }
+
+  /*
+   * -------------------------------------------
+   * Link State Database (LSD) Operational State
+   * -------------------------------------------
+   */
+
   grouping tlv {
     description
       "Type-Length-Value (TLV)";
@@ -688,8 +811,9 @@ module frr-ospfd {
   grouping extended-tlvs {
   // frr specific model
     description
-      "subTLVs implemented in frr beyond the default type 1-9";
-    container local-and-remote-router-id {
+      "subTLVs implemented in frr beyond the default types 1-9";
+      
+    container local-and-remote-te-router-id {
       leaf local-router-id {
         type union {
           type inet:ipv4-address;
@@ -707,13 +831,19 @@ module frr-ospfd {
           "Remote TR Router ID.";
       }
       description
-        "Type 10 subTLVs. If specified, ignore link-id subTLVs and use instead.";
+        "Type 10 subTLVs. Local/Remote router Identifiers. If specified,
+     	 ignore link-id subTLVs and use instead.";
     }
 
-    leaf link-local-remote-id {
-    /* XXX implement, see rfc 4203*/
+    container link-local-remote-id {
+      leaf link-local-id {
+        type uint32;
+      }
+      leaf link-remote-id {
+        type uint32;
+      }
       description
-        "Type subTLV 11.";
+        "Type subTLV 11. Link Local/Remote Identifiers";
     }
 
     leaf remote-as-number {
@@ -728,54 +858,181 @@ module frr-ospfd {
         type yang:dotted-quad;
       }
       description
-        "Type 22 subTLVs. Specifies the ASBR address of the previously
+        "Type 22 subTLVs. Specifies the ASBR Ip address of the previously
          specified AS";
     }
 
-    /* Determine and implement from ospf_te.c:
-     *  TE_LINK_SUBTLV_RSC_CLSCLR
-     *  TE_LINK_SUBTLV_LLRID
-     *  TE_LINK_SUBTLV_LLRI
-     */
-
-    /* XXX complete 27-33 */
-
     leaf unidirectional-link-delay {
+      type uint32 {
+        range "0..16777215";
+      }
+      units "Microsecond";
       description
-        "Type 27 subTLVs.";
+        "Type 27 subTLVs. Delay in Microseconds.";
     }
 
-    leaf min-max-unidirectional-link-delay {
+    container min-max-unidirectional-link-delay {
+      leaf min-delay {
+        type uint32 {
+          range "0..16777215";
+        }
+        units "Microsecond";
+        description
+          "Minimum delay in Microseconds";
+      }
+      leaf max-delay {
+        type uint32 {
+          range "0..16777215";
+        }
+        units "Microsecond";
+        description
+          "Maximum delay in Microseconds.";
+      }
       description
         "Type 28 subTLVs.";
     }
 
     leaf unidirectional-delay-variation {
+      type uint32 {
+        range "0..16777215";
+      }
+      units "Microsecond";
       description
-        "Type 29 subTLVs.";
+        "Type 29 subTLVs. Link delay variation in Microseconds.";
     }
 
     leaf unidirectional-link-loss {
+      type uint32 {
+        range "0..16777214";
+      }
       description
-        "Type 20 subTLVs.";
+        "Type 20 subTLVs. Percentage loss of link packets on a link. Basic unit
+         is 0.000003%, leading to a maximum 50.331642%.";
     }
 
     leaf unidirectional-residual-bandwidth {
+      type decimal64 {
+        fraction-digits 2;
+      }
+      units "Bytes/Sec";
       description
-        "Type 31 subTLVs.";
+        "Type 31 subTLVs. Residual unidirectional bandwidth in IEEE floating
+         point format with units of Bytes/Sec.";
     }
 
     leaf unidirectional-available-bandwidth {
+      type decimal64 {
+        fraction-digits 2;
+      }
+      units "Bytes/Sec";
       description
-        "Type 32 subTLVs.";
+        "Type 32 subTLVs. Available unidirectional bandwidth in IEEE floating
+         point format with units of Bytes/Sec.";
     }
 
     leaf unidirectional-utilized-bandwidth {
+      type decimal64 {
+        fraction-digits 2;
+      }
+      units "Bytes/Sec";
       description
-        "Type 33 subTLVs.";
+        "Type 33 subTLVs. Utilized unidirectional bandwidth in IEEE floating
+         point format with units of Bytes/Sec.";
     }
   }
- 
+
+  grouping pced-tlv {
+    // frr specific model
+    
+    leaf pce-address {
+      type inet:ipv4-address;
+      description
+        "Type 1 subTLV. Ip address to reach the PCE.";
+    }
+
+    container path-scope {
+      leaf-list scope-flags {
+        type identityref {
+          base pce-path-scope-bit;
+        }
+	description
+          "List of PCE path scope flags";  
+      }
+      
+      leaf pref-l {
+        type uint8 {
+          range "0..7";
+        }
+        description
+          "PCE's preference for intra-area TE LSP computation.";
+      }
+      
+      leaf pref-r {
+        type uint8 {
+          range "0..7";
+        }
+        description
+          "PCE's preference for inter-area TE LSP computation.";
+      }
+      
+      leaf pref-s {
+        type uint8 {
+          range "0..7";
+        }
+        description
+          "PCE's preference for inter-AS TE LSP computation.";
+      }
+      
+      leaf pref-y {
+        type uint8 {
+          range "0..7";
+        }
+        description
+          "PCE's preference for inter-layer TE LSP computation.";
+      }
+      
+      description
+        "Type 2 subTLV. PCE path computation scope.";
+    }
+
+    container domain {
+      leaf domain-type {
+        type pce-domain-type;
+      }
+      leaf domain-id {
+        type uint32;
+	description "PCE domain ID.";
+      }
+      description
+        "Type 3 subTLV. PCE domain type and ID.";
+    }
+
+    container neighbor {
+      leaf domain-type {
+        type pce-domain-type;
+      }
+      leaf domain-id {
+        type uint32;
+        description
+          "PCE domain ID. Either an Area ID or As depending on domain-type";
+      }
+      description
+        "Type 4 subTLV. Neighbor's PCE domain type and ID.";
+    }
+
+    container capabilities {
+      leaf-list capabilities-flags {
+        type identityref {
+          base pce-capabilities-bit;
+        }
+        description
+          "List of PCE capability flags.";
+      }
+      description
+        "Type 5 subTLV. Indicates PCE capabilities.";
+    }
+  }
+
   grouping node-tag-tlv {
     description "OSPF Node Admin Tag TLV grouping.";
     list node-tag {
@@ -805,6 +1062,7 @@ module frr-ospfd {
       description
          "OSPF Router Informational Flag Definitions.";
     }
+/*
     list informational-capabilities-flags {
       leaf informational-flag {
         type uint32;
@@ -827,6 +1085,7 @@ module frr-ospfd {
          return all the 32-bit functional flags irrespective
          of whether or not they are known to the device.";
     }
+*/
   }
 
   grouping dynamic-hostname-tlv {
@@ -1085,20 +1344,23 @@ module frr-ospfd {
             uses node-tag-tlv;
           }
         }
-
         container dynamic-hostname-tlv {
           description "OSPF Dynamic Hostname";
           uses dynamic-hostname-tlv;
         }
-
         container sbfd-discriminator-tlv {
           description "OSPF S-BFD Discriminators";
           uses sbfd-discriminator-tlv;
         }
-*/
         container maximum-sid-depth-tlv {
           description "OSPF Maximum SID Depth (MSD) values";
           uses maximum-sid-depth-tlv;
+        }
+*/
+        container pced-tlv {
+          uses pced-tlv;
+	  description
+	    "The PCE discovery tlv.";
         }
         uses unknown-tlvs;
       }
