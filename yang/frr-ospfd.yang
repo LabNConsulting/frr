@@ -3014,57 +3014,50 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
       type yang:counter32;
       description "Hello message input count.";
     }
-
     leaf hello-out {
       type yang:counter32;
       description "Hello message output count.";
     }
-
     leaf db-desc-in {
       type yang:counter32;
       description "Database desc. message input count.";
     }
-
     leaf db-desc-out {
       type yang:counter32;
       description "Database desc. message output count.";
     }
-
     leaf ls-req-in {
       type yang:counter32;
       description "LS request message input count.";
     }
-
     leaf ls-req-out {
       type yang:counter32;
       description "LS request message output count.";
     }
-
     leaf ls-upd-in {
       type yang:counter32;
       description "LS update message input count.";
     }
-
     leaf ls-upt-out {
       type yang:counter32;
       description "LS update message output count.";
     }
-
     leaf ls-ack-in {
       type yang:counter32;
       description "LS ack message input count.";
     }
-
     leaf ls-ack-out {
       type yang:counter32;
       description "LS ack message output count.";
     }
-
     leaf discarded {
       type yang:counter32;
       description "Discarded input count by error.";
     }
-
+    leaf nbrs {
+      type yang:counter32;
+      description "Number of neighbors on this interface.";
+    }
     leaf full-nbrs {
       type yang:counter32;
       description "Number of full neighbors on this interface.";
