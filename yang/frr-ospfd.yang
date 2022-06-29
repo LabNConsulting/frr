@@ -2951,6 +2951,12 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
   grouping frr-area-stat {
     // frr specific model
     description "Additional Per-area statistics kept track of in frr.";
+
+    leaf spf-timestamp {
+      // XXX yang:timestamp isn't logically equivalent to C's timeval struct
+      type yang:timestamp;
+      description "Timestamp of last spf calculations.";
+    }
     leaf active-interfaces {
       type yang:counter32;
       description "The number of active interfaces in this area.";
@@ -3050,6 +3056,8 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
       }
     }
 */
+
+   /* XXX Should the Shortest Path Tree be modeled? */
 
     uses frr-area-stat;
   }
@@ -3437,7 +3445,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
       
       container hello {
         presence "Present if the hello thread is running.";
-        leaf countdown {
+        leaf timer {
           type int64;
           units "millisecond";
           description "Time left until next hello in milliseconds.";
