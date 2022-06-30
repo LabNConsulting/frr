@@ -354,49 +354,192 @@ module frr-ospfd {
     }
   }
 
+  typedef route-type {
+    type enumeration {
+      enum intra-area {
+        description "OSPF intra-area route.";
+      }
+      enum inter-area {
+        description "OSPF inter-area route.";
+      }
+      enum external-1 {
+        description "OSPF type 1 external route.";
+      }
+      enum external-2 {
+        description "OSPF type 2 external route.";
+      }
+      enum nssa-1 {
+        description "OSPF type 1 NSSA route.";
+      }
+      enum nssa-2 {
+        description "OSPF type 2 NSSA route.";
+      }
+    }
+    description "OSPF route type.";
+  }
+
+  identity ospf-lsa-type {
+    description
+      "Base identity for OSPFv2 and OSPFv3
+       Link State Advertisement (LSA) types";
+  }  
+  identity ospfv2-lsa-type {
+    base ospf-lsa-type;
+    description
+      "OSPFv2 LSA types";
+  }
+  identity ospfv2-router-lsa {
+    base ospfv2-lsa-type;
+    description
+      "OSPFv2 Router LSA - Type 1";
+  }
+  identity ospfv2-network-lsa {
+    base ospfv2-lsa-type;
+    description
+      "OSPFv2 Network LSA - Type 2";
+  }
+  identity ospfv2-summary-lsa-type {
+    base ospfv2-lsa-type;
+    description
+      "OSPFv2 Summary LSA types";
+  }
+
+  identity ospfv2-lsa-option {
+    description
+      "Base identity for OSPFv2 LSA option flags.";
+  }
+  identity mt-bit {
+    base ospfv2-lsa-option;
+    description
+      "MT bit, When set, the router supports multi-topology as
+       in RFC 4915.";
+  }
+  identity v2-dc-bit {
+    base ospfv2-lsa-option;
+    description
+      "DC bit, When set, the router supports demand circuits.";
+  }
+  identity v2-p-bit {
+    base ospfv2-lsa-option;
+    description
+      "P bit, wnly used in type-7 LSA. When set, an NSSA
+       border router should translate the type-7 LSA
+       to a type-5 LSA.";
+  }
+  identity mc-flag {
+    base ospfv2-lsa-option;
+    description
+      "MC Bit, when set, the router supports MOSPF.";
+  }
+  identity v2-e-flag {
+    base ospfv2-lsa-option;
+    description
+      "E Bit, this bit describes the way AS-external LSAs
+       are flooded.";
+  }
+  identity o-bit {
+    base ospfv2-lsa-option;
+    description
+      "O bit, when set, the router is opaque-capable as in
+       RFC 5250.";
+  }
+  identity v2-dn-bit {
+    base ospfv2-lsa-option;
+    description
+      "DN bit, when a type 3, 5 or 7 LSA is sent from a PE
+       to a CE, the DN bit must be set. See RFC 4576.";
+  }
+
+  identity ospfv3-lsa-option {
+    description
+      "Base identity for OSPF LSA options flags.";
+  }
+  identity af-bit {
+    base ospfv3-lsa-option;
+    description
+      "AF bit, when set, the router supports OSPFv3 Address
+       Families as in RFC5838.";
+  }
+  identity dc-bit {
+    base ospfv3-lsa-option;
+    description
+      "DC bit, when set, the router supports demand circuits.";
+  }
+  identity r-bit {
+    base ospfv3-lsa-option;
+    description
+      "R bit, when set, the originator is an active router.";
+  }
+  identity n-bit {
+    base ospfv3-lsa-option;
+    description
+      "N bit, when set, the router is attached to an NSSA";
+  }
+  identity e-bit {
+    base ospfv3-lsa-option;
+    description
+      "E bit, this bit describes the way AS-external LSAs
+       are flooded";
+  }
+  identity v6-bit {
+    base ospfv3-lsa-option;
+    description
+      "V6 bit, if clear, the router/link should be excluded
+       from IPv6 routing calculation";
+  }
+  
   identity ospfv3-lsa-type {
     base ospf-lsa-type;
     description
       "OSPFv3 LSA types.";
   }
-
   identity ospfv3-router-lsa {
     base ospfv3-lsa-type;
     description
       "OSPFv3 Router LSA - Type 0x2001";
   }
-
   identity ospfv3-network-lsa {
     base ospfv3-lsa-type;
     description
       "OSPFv3 Network LSA - Type 0x2002";
   }
-
   identity ospfv3-summary-lsa-type {
     base ospfv3-lsa-type;
     description
       "OSPFv3 Summary LSA types";
   }
-
+  identity ospfv3-inter-area-prefix-lsa {
+    base ospfv3-summary-lsa-type;
+    description
+      "OSPFv3 Inter-area Prefix LSA - Type 0x2003";
+  }
+  identity ospfv3-inter-area-router-lsa {
+    base ospfv3-summary-lsa-type;
+    description
+      "OSPFv3 Inter-area Router LSA - Type 0x2004";
+  }
+  identity ospfv3-external-lsa-type {
+    base ospfv3-lsa-type;
+    description
+      "OSPFv3 External LSA types";
+  }
+  
   identity ospfv3-prefix-option {
     description
       "Base identity for OSPFv3 Prefix Options.";
   }
-
   identity nu-bit {
     base ospfv3-prefix-option;
     description
       "NU Bit, when set, the prefix should be excluded
        from IPv6 unicast calculations.";
   }
-
   identity la-bit {
     base ospfv3-prefix-option;
     description
       "LA bit, when set, the prefix is actually an IPv6
        interface address of the Advertising Router.";
   }
-
   identity p-bit {
     base ospfv3-prefix-option;
     description
@@ -404,7 +547,6 @@ module frr-ospfd {
        translated to an AS External LSA and advertised
        by the translating NSSA Border Router.";
   }
-
   identity dn-bit {
     base ospfv3-prefix-option;
     description
@@ -412,56 +554,52 @@ module frr-ospfd {
        AS-external LSA prefix has been advertised as an
        L3VPN prefix.";
   }
-
-  identity ospfv3-lsa-option {
+  
+  identity pce-path-scope-bit {
     description
-      "Base identity for OSPF LSA options flags.";
+      "The base identity for a PCE Path scope flags.";
   }
-
-  identity af-bit {
-    base ospfv3-lsa-option;
+  identity intra-area-bit {
+    base pce-path-scope-bit;
     description
-      "AF bit, when set, the router supports OSPFv3 Address
-       Families as in RFC5838.";
+      "L bit (0th bit). When set, means can computer intra-area
+       paths.";
   }
-
-  identity dc-bit {
-    base ospfv3-lsa-option;
+  identity inter-area-bit {
+    base pce-path-scope-bit;
     description
-      "DC bit, when set, the router supports demand circuits.";
+      "R bit (1st bit). When set, means can act as PCE for inter-area TE
+       LSP computation.";
   }
-
-  identity r-bit {
-    base ospfv3-lsa-option;
+  identity inter-area-default-bit {
+    base pce-path-scope-bit;
     description
-      "R bit, when set, the originator is an active router.";
+      "Rd bit (2nd bit). When set, means can act as a default PCE for
+       inter-area TE LSP computation.";
   }
-
-  identity n-bit {
-    base ospfv3-lsa-option;
+  identity inter-as-bit {
+    base pce-path-scope-bit;
     description
-      "N bit, when set, the router is attached to an NSSA";
+      "S bit (3rd bit). When set, means can act as PCE for inter-AS TE LSP
+       computation.";
   }
-
-  identity e-bit {
-    base ospfv3-lsa-option;
+  identity inter-as-default-bit {
+    base pce-path-scope-bit;
     description
-      "E bit, this bit describes the way AS-external LSAs
-       are flooded";
+      "Sd bit (4th bit). When set, means can act as a default PCE for inter-AS
+       TE LSP computation.";
   }
-
-  identity v6-bit {
-    base ospfv3-lsa-option;
+  identity inter-layer-bit {
+    base pce-path-scope-bit;
     description
-      "V6 bit, if clear, the router/link should be excluded
-       from IPv6 routing calculation";
-  }
+      "Y bit (5th bit). When set, means can act as PCE for inter-layer TE LSP
+       computation.";
+  }  
 
   identity ospfv2-extended-prefix-flag {
     description
       "Base identity for extended prefix TLV flag.";
   }
-
   identity a-flag {
     base ospfv2-extended-prefix-flag;
     description
@@ -469,7 +607,6 @@ module frr-ospfd {
        corresponds and a route what is directly connected to
        the advertising router..";
   }
-
   identity node-flag {
     base ospfv2-extended-prefix-flag;
     description
@@ -478,11 +615,34 @@ module frr-ospfd {
        address.";
   }
 
+  identity lsa-log-reason {
+    description
+      "Base identity for an LSA log reason.";
+  }
+  identity lsa-refresh {
+    base lsa-log-reason;
+    description
+      "Identity used when the LSA is logged
+       as a result of receiving a refresh LSA.";
+  }
+  identity lsa-content-change {
+    base lsa-log-reason;
+    description
+      "Identity used when the LSA is logged
+       as a result of a change in the content
+       of the LSA.";
+  }
+  identity lsa-purge {
+    base lsa-log-reason;
+    description
+      "Identity used when the LSA is logged
+       as a result of being purged.";
+  }
+  
   identity informational-capability {
     description
       "Base identity for router informational capabilities.";
   }
-
   identity graceful-restart {
     base informational-capability;
     description
@@ -491,7 +651,6 @@ module frr-ospfd {
     reference "RFC 3623: Graceful OSPF Restart
                RFC 5187: OSPFv3 Graceful Restart";
   }
-
   identity graceful-restart-helper {
     base informational-capability;
     description
@@ -500,7 +659,6 @@ module frr-ospfd {
     reference "RFC 3623: Graceful OSPF Restart
                RFC 5187: OSPFv3 Graceful Restart";
   }
-
   identity stub-router {
     base informational-capability;
     description
@@ -508,7 +666,6 @@ module frr-ospfd {
        an OSPF Stub Router.";
     reference "RFC 6987: OSPF Stub Router Advertisement";
   }
-
   identity traffic-engineering {
     base informational-capability;
     description
@@ -519,7 +676,6 @@ module frr-ospfd {
                RFC 5329: Traffic Engineering (TE) Extensions
                to OSPF Version 3";
   }
-
   identity p2p-over-lan {
     base informational-capability;
     description
@@ -528,7 +684,6 @@ module frr-ospfd {
     reference "RFC 5309: Point-to-Point Operation over LAN
                in Link State Routing Protocols";
   }
-
   identity experimental-te {
     base informational-capability;
     description
@@ -543,28 +698,24 @@ module frr-ospfd {
     description
       "Base identity for Router-LSA bits.";
   }
-
   identity vlink-end-bit {
     base router-lsa-bit;
     description
       "V bit, when set, the router is an endpoint of one or
        more virtual links.";
   }
-
   identity asbr-bit {
     base router-lsa-bit;
     description
       "E bit, when set, the router is an AS Boundary
        Router (ASBR).";
   }
-
   identity abr-bit {
     base router-lsa-bit;
     description
       "B bit, when set, the router is an Area Border
        Router (ABR).";
   }
-
   identity nssa-bit {
     base router-lsa-bit;
     description
@@ -572,198 +723,59 @@ module frr-ospfd {
        that is unconditionally translating NSSA LSAs into
        AS-external LSAs.";
   }
-
-  identity ospf-lsa-type {
-    description
-      "Base identity for OSPFv2 and OSPFv3
-       Link State Advertisement (LSA) types";
-  }
-
-  identity ospfv2-lsa-type {
-    base ospf-lsa-type;
-    description
-      "OSPFv2 LSA types";
-  }
-
-  identity ospfv2-router-lsa {
-    base ospfv2-lsa-type;
-    description
-      "OSPFv2 Router LSA - Type 1";
-  }
-
-  identity ospfv2-network-lsa {
-    base ospfv2-lsa-type;
-    description
-      "OSPFv2 Network LSA - Type 2";
-  }
-
-  identity ospfv2-summary-lsa-type {
-    base ospfv2-lsa-type;
-    description
-      "OSPFv2 Summary LSA types";
-  }
-
-  identity ospfv2-lsa-option {
-    description
-      "Base identity for OSPFv2 LSA option flags.";
-  }
-
-  identity mt-bit {
-    base ospfv2-lsa-option;
-    description
-      "MT bit, When set, the router supports multi-topology as
-       in RFC 4915.";
-  }
-
-  identity v2-dc-bit {
-    base ospfv2-lsa-option;
-    description
-      "DC bit, When set, the router supports demand circuits.";
-  }
-
-  identity v2-p-bit {
-    base ospfv2-lsa-option;
-    description
-      "P bit, wnly used in type-7 LSA. When set, an NSSA
-       border router should translate the type-7 LSA
-       to a type-5 LSA.";
-  }
-
-  identity mc-flag {
-    base ospfv2-lsa-option;
-    description
-      "MC Bit, when set, the router supports MOSPF.";
-  }
-
-  identity v2-e-flag {
-    base ospfv2-lsa-option;
-    description
-      "E Bit, this bit describes the way AS-external LSAs
-       are flooded.";
-  }
-
-  identity o-bit {
-    base ospfv2-lsa-option;
-    description
-      "O bit, when set, the router is opaque-capable as in
-       RFC 5250.";
-  }
-
-  identity v2-dn-bit {
-    base ospfv2-lsa-option;
-    description
-      "DN bit, when a type 3, 5 or 7 LSA is sent from a PE
-       to a CE, the DN bit must be set. See RFC 4576.";
-  }
-
-  identity pce-path-scope-bit {
-    description
-      "The base identity for a PCE Path scope flags.";
-  }
-
-  identity intra-area-bit {
-    base pce-path-scope-bit;
-    description
-      "L bit (0th bit). When set, means can computer intra-area
-       paths.";
-  }
-
-  identity inter-area-bit {
-    base pce-path-scope-bit;
-    description
-      "R bit (1st bit). When set, means can act as PCE for inter-area TE
-       LSP computation.";
-  }
-
-  identity inter-area-default-bit {
-    base pce-path-scope-bit;
-    description
-      "Rd bit (2nd bit). When set, means can act as a default PCE for
-       inter-area TE LSP computation.";
-  }
-
-  identity inter-as-bit {
-    base pce-path-scope-bit;
-    description
-      "S bit (3rd bit). When set, means can act as PCE for inter-AS TE LSP
-       computation.";
-  }
-
-  identity inter-as-default-bit {
-    base pce-path-scope-bit;
-    description
-      "Sd bit (4th bit). When set, means can act as a default PCE for inter-AS
-       TE LSP computation.";
-  }
-
-  identity inter-layer-bit {
-    base pce-path-scope-bit;
-    description
-      "Y bit (5th bit). When set, means can act as PCE for inter-layer TE LSP
-       computation.";
-  }
-
+  
   identity pce-capabilities-bit {
     description
       "Base identity for PCE capability flags.";
   }
-
   identity gmpls-link-bit {
     base pce-capabilities-bit;
     description
       "0th bit. When set, means that can compute paths with GMPLS link
        constraints.";
   }
-
   identity bidirectional-bit {
     base pce-capabilities-bit;
     description
       "1st bit. When set, means that can compute bidirectional paths.";
   }
-
   identity diverse-path-bit {
     base pce-capabilities-bit;
     description
       "2nd bit. When set, means that can compute diverse paths.";
   }
-
   identity load-balance-bit {
     base pce-capabilities-bit;
     description
       "3rd bit. When set, means that can compute load-balanced paths.";
   }
-
   identity synchronized-bit {
     base pce-capabilities-bit;
     description
       "4th bit. When set, means that can compute synchronized paths.";
   }
-
   identity objectives-bit {
     base pce-capabilities-bit;
     description
       "5th bit. When set, means that can support multiple objective functons.";
   }
-
   identity additive-bit {
     base pce-capabilities-bit;
     description
       "6th bit. When set, means that can support additive path constraints.";
   }
-
   identity prioritization-bit {
     base pce-capabilities-bit;
     description
       "7th bit. When set, means that can support requests for prioritization.";
   }
-
   identity multiple-req-bit {
     base pce-capabilities-bit;
     description
       "8th bit. When set, means that can support multiple requests per
-       message";
+       message.";
   }
-
+  
   /*
    * -------------------------------------------
    * Link State Database (LSD) Operational State
@@ -2252,6 +2264,8 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
             "Link state transmit delay.";
         }
       }
+
+      /* XXX Implement a virtual link's operational state? */
     }
   }
 
@@ -2321,52 +2335,10 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
         container state {
           /* XXX The ietf model has no container for it's area state.
            * Should a container be avoided in this case? */
-          description "Area-scope operational state .";
+          description "Area-scope operational state container.";
           config false;
 
-          container threads {
-            // frr specific model
-            description "All Area-scope threads run by frr.";
-
-            container stub-router {
-              presence "Present if the stub-router thread is running.";
-              leaf timer {
-                type int64;
-                units "millisecond";
-                description "XXX.";
-              }
-            }
-            container opaque-lsa-self {
-              presence
-                "Present if type-10 opaque LSAs origin thread is running";
-            }
-          }
-          
-          container statistics {
-            description "Area-scope operational statistics.";
-            uses area-stat;
-          }
-          
-          container database {
-            description "Area-scope Link State Database.";
-            list area-scope-lsa-type {
-              key "lsa-type";
-              description "List OSPF area-scope LSAs.";
-              leaf lsa-type {
-                type uint16;
-                description "OSPF area-scope LSA type";
-              }
-              container area-scope-lsas {
-                description
-                  "All area-scope LSAs of an area-scope LSA type.";
-                list area-scope-lsa {
-                  key "lsa-id adv-router";
-                  description "List of OSPF area-scope LSAs";
-                  uses lsa-database;
-                }
-              } 
-            }
-          }
+          uses area-state;
         }
         
         uses virtual-link-group;
@@ -2948,6 +2920,453 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
     }
   }
 
+  grouping local-rib {
+    description "Local-rib - RIB for Routes computed by the local
+                 OSPF routing instance.";
+    container local-rib {
+      config false;
+      description "Local-rib.";
+      list route {
+        key "prefix";
+        description "Routes";
+        leaf prefix {
+          type inet:ip-prefix;
+          description "Destination prefix.";
+        }
+        container next-hops {
+          description "Next hops for the route.";
+          list next-hop {
+            key "next-hop";
+            description "List of next hops for the route";
+            leaf outgoing-interface {
+              type frr-interface:interface-ref;
+              description
+                "Name of the outgoing interface.";
+            }
+            leaf next-hop {
+             type inet:ip-address;
+             description "Next hop address.";
+            }
+          }
+        }
+        leaf metric {
+          type uint32;
+          description "Metric for this route.";
+        }
+        leaf route-type {
+          type route-type;
+          description "Route type for this route.";
+        }
+        leaf route-tag {
+          type uint32;
+          description "Route tag for this route.";
+        }
+      }
+    }
+  }
+
+  grouping instance-fast-reroute-state {
+    description "IP-FRR state data grouping";
+
+    container protected-routes {
+      //if-feature fast-reroute;
+      config false;
+      description "Instance protection statistics";
+
+      list address-family-stats {
+//        key "address-family prefix alternate";
+        key "prefix alternate";
+        description
+          "Per Address Family protected prefix information";
+/*
+        leaf address-family {
+          type iana-rt-types:address-family;
+          description
+            "Address-family";
+        }
+*/
+        leaf prefix {
+          type inet:ip-prefix;
+          description
+            "Protected prefix.";
+        }
+        leaf alternate {
+          type inet:ip-address;
+          description
+            "Alternate next hop for the prefix.";
+        }
+        leaf alternate-type {
+          type enumeration {
+            enum equal-cost {
+              description
+                "ECMP alternate.";
+            }
+            enum lfa {
+              description
+                "LFA alternate.";
+            }
+            enum remote-lfa {
+              description
+                "Remote LFA alternate.";
+            }
+            enum tunnel {
+              description
+                "Tunnel based alternate
+                 (like RSVP-TE or GRE).";
+            }
+            enum ti-lfa {
+              description
+                "TI-LFA alternate.";
+            }
+            enum mrt {
+              description
+                "MRT alternate.";
+            }
+            enum other {
+              description
+                "Unknown alternate type.";
+            }
+          }
+          description
+            "Type of alternate.";
+        }
+        leaf best {
+          type boolean;
+          description
+            "Indicates that this alternate is preferred.";
+        }
+        leaf non-best-reason {
+          type string {
+            length "1..255";
+          }
+          description
+            "Information field to describe why the alternate
+             is not best.";
+        }
+        leaf protection-available {
+          type bits {
+            bit node-protect {
+              position 0;
+              description
+                "Node protection available.";
+            }
+            bit link-protect {
+              position 1;
+              description
+                "Link protection available.";
+            }
+            bit srlg-protect {
+              position 2;
+              description
+                "SRLG protection available.";
+            }
+            bit downstream-protect {
+              position 3;
+              description
+                "Downstream protection available.";
+            }
+            bit other {
+              position 4;
+              description
+                "Other protection available.";
+            }
+          }
+          description "Protection provided by the alternate.";
+        }
+        leaf alternate-metric1 {
+          type uint32;
+          description
+            "Metric from Point of Local Repair (PLR) to
+             destination through the alternate path.";
+        }
+        leaf alternate-metric2 {
+          type uint32;
+          description
+            "Metric from PLR to the alternate node";
+        }
+        leaf alternate-metric3 {
+          type uint32;
+          description
+            "Metric from alternate node to the destination";
+        }
+      }
+    }
+  }
+  
+  grouping instance-stat {
+    description "Per-instance statistics";
+    leaf discontinuity-time {
+      type yang:date-and-time;
+      description
+        "The time on the most recent occasion at which any one or
+         more of this OSPF instance's counters suffered a
+         discontinuity.  If no such discontinuities have occurred
+         since the OSPF instance was last re-initialized, then
+         this node contains the time the OSPF instance was
+         re-initialized which normally occurs when it was
+         created.";
+    }
+    leaf originate-new-lsa-count {
+      type yang:counter32;
+      description
+        "The number of new LSAs originated. Discontinuities in the
+         value of this counter can occur when the OSPF instance is
+         re-initialized.";
+    }
+    leaf rx-new-lsas-count {
+      type yang:counter32;
+      description
+        "The number of new LSAs received. Discontinuities in the
+         value of this counter can occur when the OSPF instance is
+         re-initialized.";
+    }
+    leaf as-scope-lsa-count {
+      type yang:gauge32;
+      description "The number of AS-scope LSAs.";
+    }
+    leaf as-scope-lsa-chksum-sum {
+      type uint32;
+      description
+        "The module 2**32 sum of the LSA checksums
+         for AS-scope LSAs. The value should be treated as
+         unsigned when comparing two sums of checksums. While
+         differing checksums indicate a different combination
+         of LSAs, equivalent checksums don't guarantee that the
+         LSAs are the same given that multiple combinations of
+         LSAs can result in the same checksum.";
+    }
+    container database {
+      description "Container for per AS-scope LSA statistics.";
+      list as-scope-lsa-type {
+        description "List of AS-scope LSA statistics";
+        leaf lsa-type {
+          type uint16;
+          description "AS-Scope LSA type.";
+        }
+        leaf lsa-count {
+          type yang:gauge32;
+          description "The number of LSAs of the LSA type.";
+        }
+        leaf lsa-cksum-sum {
+          type uint32;
+          description
+            "The module 2**32 sum of the LSA checksums
+             for the LSAs of this type. The value should be
+             treated as unsigned when comparing two sums of
+             checksums. While differing checksums indicate a
+             different combination of LSAs, equivalent checksums
+             don't guarantee that the LSAs are the same given that
+             multiple combinations of LSAs can result in the same
+             checksum.";
+        }
+      }
+    }
+    uses instance-fast-reroute-state;
+  }
+  
+  grouping lsa-identifiers {
+    description
+      "The parameters that uniquely identify an LSA.";
+    leaf area-id {
+      type ospf-area-id;
+      description
+        "Area ID";
+    }
+    leaf type {
+      type uint16;
+      description
+        "LSA type.";
+    }
+    leaf lsa-id {
+      type union {
+        type inet:ipv4-address;
+        type yang:dotted-quad;
+      }
+      description "Link-State ID.";
+    }
+    leaf adv-router {
+      type rt-types:router-id;
+      description
+        "LSA advertising router.";
+    }
+    leaf seq-num {
+      type uint32;
+      description
+        "LSA sequence number.";
+    }
+  }
+  
+  grouping spf-log {
+    description
+      "Grouping for SPF log.";
+    container spf-log {
+      config false;
+      description
+        "This container lists the SPF log.";
+      list event {
+        key id;
+        description
+          "List of SPF log entries represented
+           as a wrapping buffer in chronological
+           order with the oldest entry returned
+           first.";
+        leaf id {
+          type uint32;
+          description
+            "Event identifier - Purely internal value.";
+        }
+        leaf spf-type {
+          type enumeration {
+            enum full {
+              description
+                "SPF computation was a Full SPF.";
+            }
+            enum intra {
+              description
+                "SPF computation was only for intra-area routes.";
+            }
+            enum inter {
+              description
+                "SPF computation was only for inter-area
+                 summary routes.";
+            }
+            enum external {
+              description
+                "SPF computation was only for AS external routes.";
+            }
+          }
+          description
+            "The SPF computation type for the SPF log entry.";
+        }
+        leaf schedule-timestamp {
+          type yang:timestamp;
+          description
+            "This is the timestamp when the computation was
+             scheduled.";
+        }
+        leaf start-timestamp {
+          type yang:timestamp;
+          description
+            "This is the timestamp when the computation was
+             started.";
+        }
+        leaf end-timestamp {
+          type yang:timestamp;
+          description
+            "This the timestamp when the computation was
+             completed.";
+        }
+        list trigger-lsa {
+          description
+            "The list of LSAs that triggered the computation.";
+          uses lsa-identifiers;
+        }
+      }
+    }
+  }
+
+  grouping lsa-log {
+    description
+      "Grouping for the LSA log.";
+    container lsa-log {
+      config false;
+      description
+        "This container lists the LSA log.
+         Local LSA modifications are also included
+         in the list.";
+      list event {
+        key id;
+        description
+          "List of LSA log entries represented
+           as a wrapping buffer in chronological order
+           with the oldest entries returned first.";
+        leaf id {
+          type uint32;
+          description
+            "Event identifier - purely internal value.";
+        }
+        container lsa {
+          description
+            "This container describes the logged LSA.";
+          uses lsa-identifiers;
+        }
+        leaf received-timestamp {
+          type yang:timestamp;
+          description
+            "This is the timestamp when the LSA was received.
+             In case of local LSA update, the timestamp refers
+             to the LSA origination time.";
+        }
+        leaf reason {
+          type identityref {
+            base lsa-log-reason;
+          }
+          description
+            "This reason for the LSA log entry.";
+        }
+      }
+    }
+  }
+
+  grouping frr-ospf-state {
+    description "Additional frr statistics for the OSPF router
+      operational state.";
+
+    container flags {
+      description "ASR/ASBR internal flags.";
+      
+      leaf-list router-flags {
+        type identityref {
+          base router-lsa-bit;
+        }
+      }
+    }
+  }
+  
+  grouping ospf-state {
+    description "OSPF router operational state.";
+
+    leaf router-id {
+      type rt-types:router-id;
+      config false;
+      description
+        "Defined in RFC 2328. A 32-bit number
+         that uniquely identifies the router.";
+    }
+
+    uses frr-ospf-state;
+    uses local-rib;
+
+    container statistics {
+      config false;
+      description "Per-instance statistics";
+      uses instance-stat;
+    }
+
+    container database {
+      config false;
+      description "AS-scope Link State Database.";
+      list as-scope-lsa-type {
+        key "lsa-type";
+        description "List OSPF AS-scope LSAs.";
+        leaf lsa-type {
+          type uint16;
+          description "OSPF AS scope LSA type.";
+        }
+        container as-scope-lsas {
+          description "All AS-scope of LSA of this LSA type.";
+          list as-scope-lsa {
+            key "lsa-id adv-router";
+            description "List of OSPF AS-scope LSAs";
+            uses lsa-database;
+          }
+        }
+      }
+    }
+    uses spf-log;
+    uses lsa-log;
+  }
+  
   grouping frr-area-stat {
     // frr specific model
     description "Additional Per-area statistics kept track of in frr.";
@@ -3060,6 +3479,54 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
    /* XXX Should the Shortest Path Tree be modeled? */
 
     uses frr-area-stat;
+  }
+
+  grouping area-state {
+    description "OSPF area operational state";
+
+    container threads {
+      // frr specific model
+      description "All Area-scope threads run by frr.";
+
+      container stub-router {
+        presence "Present if the stub-router thread is running.";
+        leaf timer {
+          type int64;
+          units "millisecond";
+          description "XXX.";
+        }
+      }
+      container opaque-lsa-self {
+        presence
+          "Present if type-10 opaque LSAs origin thread is running";
+      }
+    }
+    
+    container statistics {
+      description "Area-scope operational statistics.";
+      uses area-stat;
+    }
+    
+    container database {
+      description "Area-scope Link State Database.";
+      list area-scope-lsa-type {
+        key "lsa-type";
+        description "List OSPF area-scope LSAs.";
+        leaf lsa-type {
+          type uint16;
+          description "OSPF area-scope LSA type";
+        }
+        container area-scope-lsas {
+          description
+            "All area-scope LSAs of an area-scope LSA type.";
+          list area-scope-lsa {
+            key "lsa-id adv-router";
+            description "List of OSPF area-scope LSAs";
+            uses lsa-database;
+          }
+        } 
+      }
+    }
   }
 
   grouping frr-interface-stat {
@@ -3642,6 +4109,14 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
       uses segment-routing-group;
 
       uses ospf-list-group;
+
+      container state {
+      /* XXX ietf model doesn't have a defined container for state */
+        description "Container for Router-scope operational state.";
+        config false;
+        
+        uses ospf-state;
+      }
 
       uses area-groupings;
     }
