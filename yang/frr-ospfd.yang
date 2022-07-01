@@ -356,28 +356,82 @@ module frr-ospfd {
 
   typedef route-type {
     type enumeration {
+      enum min {
+        value 0;
+        description "OSPF min path.";
+      }
       enum intra-area {
+        value 1;
         description "OSPF intra-area route.";
       }
       enum inter-area {
+        value 2;
         description "OSPF inter-area route.";
       }
       enum external-1 {
+        value 3;
         description "OSPF type 1 external route.";
       }
       enum external-2 {
+        value 4;
         description "OSPF type 2 external route.";
       }
+      enum max {
+        value 5;
+        description "OSPF mac path.";
+      }
+/*
       enum nssa-1 {
         description "OSPF type 1 NSSA route.";
       }
       enum nssa-2 {
         description "OSPF type 2 NSSA route.";
       }
+*/
     }
-    description "OSPF route type.";
+    description "OSPF path/route type.";
   }
 
+  typedef destination-type {
+    type enumeration {
+      enum router {
+        value 1;
+        description "Destination is a router.";
+      }
+      enum network {
+        value 2;
+        description "Destination is a network.";
+      }
+      enum discard {
+        value 3;
+        description "Destination is to be discarded.";
+      }
+    }
+    description "The destination type of a route.";
+  }
+  
+  typedef area-type {
+    type enumeration {
+      enum default {
+        value 0;
+        description "Default area type.";
+      }
+      enum stub {
+        value 1;
+        description "Stub area type.";
+      }
+      enum nssa {
+        value 2;
+        description "Not so stubby area type.";
+      }
+      enum max {
+        value 3;
+        description "Max area type.";
+      }
+    }
+    description "The type of an area.";
+  }
+  
   identity ospf-lsa-type {
     description
       "Base identity for OSPFv2 and OSPFv3
@@ -722,6 +776,12 @@ module frr-ospfd {
       "Nt bit, when set, the router is an NSSA border router
        that is unconditionally translating NSSA LSAs into
        AS-external LSAs.";
+  }
+  identity shortcut-bit {
+    base router-lsa-bit;
+    /* XXX find defined name of bit */
+    description
+      "? bit, when set, the router is shortcut-ABR enabled.";
   }
   
   identity pce-capabilities-bit {
@@ -2920,47 +2980,144 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
     }
   }
 
+  grouping ospf-route-standard {
+    // frr specific model
+    description "Standard OSPF route parameters.";
+
+    /* XXX There is also a pointer to a struct lsa_header */
+    leaf area-id {
+      type inet:ipv4-address;
+      description "The area this route belongs to.";
+    }
+    leaf area-type {
+      type area-type;
+      description "Area type.";
+    }
+    container options {
+      leaf-list lsa-options {
+        type identityref {
+          base ospfv2-lsa-option;
+        }
+      }
+      description "Optional capabilities.";
+    }
+    container flags {
+      leaf-list router-flags {
+        type identityref {
+          base router-lsa-bit;
+        }
+      }
+      description "Router lsa type flags.";
+    }
+  }
+  
+  grouping frr-ospf-route {
+    // frr specific model
+    description "Additional OSPF route parameters in frr.";
+    
+    leaf destination-type {
+      type destination-type;
+      description "Destination type.";
+    }
+    leaf changed {
+      type boolean;
+      description "Whether or not this route has changes recently.";
+    }
+  }
+  
+  grouping ospf-route {
+    description "OSPF Route";
+    leaf prefix {
+      type inet:ip-prefix;
+      description "Destination prefix.";
+    }
+    container next-hops {
+      description "Next hops for the route.";
+      list next-hop {
+        key "next-hop";
+        description "List of next hops for the route";
+        leaf outgoing-interface {
+          type frr-interface:interface-ref;
+          description
+            "Name of the outgoing interface.";
+        }
+        leaf next-hop {
+         type inet:ip-address;
+         description "Next hop address.";
+        }
+      }
+    }
+    leaf metric {
+      type uint32;
+      description "Metric for this route.";
+    }
+    
+    leaf route-type {
+      type route-type;
+      description "Route type for this route.";
+    }
+/*
+// Route tag is only stored for external routes in ospf
+    leaf route-tag {
+      type uint32;
+      description "Route tag for this route.";
+    }
+*/
+    uses frr-ospf-route;
+  }
+
+  grouping ospf-route-external {
+    // frr specific model
+    description "External OSPF route parameters.";
+
+    leaf ls-cost {
+      type uint32;
+      description "Type 2 Link State cost.";
+    }
+    leaf route-tag {
+      type uint32;
+      description "Route tag for this route.";
+    }
+    container asbr {
+      uses ospf-route;
+      uses ospf-route-standard;
+      description "route to ASBR.";
+    }
+  }
+  
   grouping local-rib {
     description "Local-rib - RIB for Routes computed by the local
                  OSPF routing instance.";
     container local-rib {
       config false;
       description "Local-rib.";
-      list route {
+      list network {
+        // frr specific model
         key "prefix";
-        description "Routes";
-        leaf prefix {
-          type inet:ip-prefix;
-          description "Destination prefix.";
-        }
-        container next-hops {
-          description "Next hops for the route.";
-          list next-hop {
-            key "next-hop";
-            description "List of next hops for the route";
-            leaf outgoing-interface {
-              type frr-interface:interface-ref;
-              description
-                "Name of the outgoing interface.";
-            }
-            leaf next-hop {
-             type inet:ip-address;
-             description "Next hop address.";
-            }
-          }
-        }
-        leaf metric {
-          type uint32;
-          description "Metric for this route.";
-        }
-        leaf route-type {
-          type route-type;
-          description "Route type for this route.";
-        }
-        leaf route-tag {
-          type uint32;
-          description "Route tag for this route.";
-        }
+        uses ospf-route;
+        uses ospf-route-standard;
+        description "Network routes.";
+      }
+      list router {
+        // frr specific model
+        key "prefix";
+        uses ospf-route;
+        uses ospf-route-standard;
+        description "Router routes.";
+      }
+      list border {
+        // frr specific model
+        key "prefix";
+        uses ospf-route;
+        uses ospf-route-standard;
+        description "ABR/ASBR routes.";
+      }
+      list external {
+        // frr specific model
+        key "prefix";
+        uses ospf-route;
+        uses ospf-route-external;
+        description "External routes.";
       }
     }
   }
