@@ -72,14 +72,15 @@ module frr-ospfd {
     }
     description "OSPF Area ID.";
   }
-
+  /* XXX Currently unused since cost's are commented out in (virtual) links
   typedef ospf-link-metric {
     type uint16 {
       range "0 .. 65535";
     }
     description "OSPF Link Metric - 16-bit unsigned integer.";
   }
-
+  */
+  
   /*
    * RPC data types
    */
@@ -2325,7 +2326,11 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
         }
       }
 
-      /* XXX Implement a virtual link's operational state? */
+      container state {
+        description "Operational state of all virtual links";
+        config false;
+        uses virtual-link-state;
+      }
     }
   }
 
@@ -3648,7 +3653,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
   
   grouping ospf-state {
     description "OSPF router operational state.";
-
+    /* XXX Potentially remove if duplicate of config data */
     leaf router-id {
       type rt-types:router-id;
       config false;
@@ -3688,6 +3693,20 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
     }
 //    uses spf-log;
 //    uses lsa-log;
+  }
+
+  grouping virtual-link-state {
+    description
+      "OSPF virtual link operational state.";
+/* XXX Not used by frr
+    leaf cost {
+      type ospf-link-metric;
+      config false;
+      description
+        "Virtual link interface cost.";
+    }
+*/
+    uses interface-common-state;
   }
   
   grouping frr-area-stat {
@@ -3802,7 +3821,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
 
     uses frr-area-stat;
   }
-
+  
   grouping area-state {
     description "OSPF area operational state";
 
