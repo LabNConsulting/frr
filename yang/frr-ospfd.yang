@@ -16,7 +16,7 @@ module frr-ospfd {
   }
 
   import ietf-yang-types {
-    prefix "yang";
+    prefix yang;
   }
 
   import frr-interface {
@@ -72,7 +72,8 @@ module frr-ospfd {
     }
     description "OSPF Area ID.";
   }
-  /* XXX Currently unused since cost's are commented out in (virtual) links
+  /* 
+   XXX Currently unused since cost's are commented out in (virtual) links
   typedef ospf-link-metric {
     type uint16 {
       range "0 .. 65535";
@@ -880,18 +881,12 @@ module frr-ospfd {
       
     container local-and-remote-te-router-id {
       leaf local-router-id {
-        type union {
-          type inet:ipv4-address;
-          type yang:dotted-quad;
-        }
+        type inet:ipv4-address;
         description
           "Local TE Router ID.";
       }
       leaf remote-router-id {
-        type union {
-          type inet:ipv4-address;
-          type yang:dotted-quad;
-        }
+        type inet:ipv4-address;
         description
           "Remote TR Router ID.";
       }
@@ -918,10 +913,7 @@ module frr-ospfd {
     }
 
     leaf ipv4-remote-asbr-id {
-      type union {
-        type inet:ipv4-address;
-        type yang:dotted-quad;
-      }
+      type inet:ipv4-address;
       description
         "Type 22 subTLVs. Specifies the ASBR Ip address of the previously
          specified AS";
@@ -976,9 +968,7 @@ module frr-ospfd {
     }
 
     leaf unidirectional-residual-bandwidth {
-      type decimal64 {
-        fraction-digits 2;
-      }
+      type rt-types:bandwidth-ieee-float32;
       units "Bytes/Sec";
       description
         "Type 31 subTLVs. Residual unidirectional bandwidth in IEEE floating
@@ -986,9 +976,7 @@ module frr-ospfd {
     }
 
     leaf unidirectional-available-bandwidth {
-      type decimal64 {
-        fraction-digits 2;
-      }
+      type rt-types:bandwidth-ieee-float32;
       units "Bytes/Sec";
       description
         "Type 32 subTLVs. Available unidirectional bandwidth in IEEE floating
@@ -996,9 +984,7 @@ module frr-ospfd {
     }
 
     leaf unidirectional-utilized-bandwidth {
-      type decimal64 {
-        fraction-digits 2;
-      }
+      type rt-types:bandwidth-ieee-float32;
       units "Bytes/Sec";
       description
         "Type 33 subTLVs. Utilized unidirectional bandwidth in IEEE floating
@@ -1218,17 +1204,11 @@ module frr-ospfd {
   grouping ospfv2-router-link {
     description "OSPFv2 router link.";
     leaf link-id {
-      type union {
-        type inet:ipv4-address;
-        type yang:dotted-quad;
-      }
+      type inet:ipv4-address;
       description "Router-LSA Link ID";
     }
     leaf link-data {
-      type union {
-        type inet:ipv4-address;
-        type uint32;
-      }
+      type inet:ipv4-address;
       description "Router-LSA Link data.";
     }
     leaf type {
@@ -1453,10 +1433,7 @@ module frr-ospfd {
             description "Link type.";
           }
           leaf link-id {
-            type union {
-              type inet:ipv4-address;
-              type yang:dotted-quad;
-            }
+            type inet:ipv4-address;
             mandatory true;
             description "Link ID.";
           }
@@ -1559,7 +1536,7 @@ module frr-ospfd {
             description "Prefix Flags.";
           }
           leaf prefix {
-            type inet:ip-prefix;
+            type inet:ipv4-prefix;
             description "Address prefix.";
           }
           uses unknown-tlvs;
@@ -1602,7 +1579,7 @@ module frr-ospfd {
       "OSPFv3 LSA prefix.";
 
     leaf prefix {
-      type inet:ip-prefix;
+      type inet:ipv4-prefix;
       description
         "LSA Prefix.";
     }
@@ -2989,7 +2966,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
     // frr specific model
     description "Standard OSPF route parameters.";
 
-    /* XXX There is also a pointer to a struct lsa_header which I did not model */
+    /* XXX There is also a pointer to a struct lsa_header which is not modeled */
     leaf area-id {
       type inet:ipv4-address;
       description "The area this route belongs to.";
@@ -3033,7 +3010,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
   grouping ospf-route {
     description "OSPF Route";
     leaf prefix {
-      type inet:ip-prefix;
+      type inet:ipv4-prefix;
       description "Destination prefix.";
     }
     container next-hops {
@@ -3047,7 +3024,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
             "Name of the outgoing interface.";
         }
         leaf next-hop {
-         type inet:ip-address;
+         type inet:ipv4-address;
          description "Next hop address.";
         }
       }
@@ -3148,12 +3125,12 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
         }
 */
         leaf prefix {
-          type inet:ip-prefix;
+          type inet:ipv4-prefix;
           description
             "Protected prefix.";
         }
         leaf alternate {
-          type inet:ip-address;
+          type inet:ipv4-address;
           description
             "Alternate next hop for the prefix.";
         }
@@ -3361,10 +3338,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
         "LSA type.";
     }
     leaf lsa-id {
-      type union {
-        type inet:ipv4-address;
-        type yang:dotted-quad;
-      }
+      type inet:ipv4-address;
       description "Link-State ID.";
     }
     leaf adv-router {
@@ -3698,7 +3672,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
   grouping virtual-link-state {
     description
       "OSPF virtual link operational state.";
-/* XXX Not used by frr
+/*
     leaf cost {
       type ospf-link-metric;
       config false;
@@ -3821,7 +3795,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
 
     uses frr-area-stat;
   }
-  
+
   grouping area-state {
     description "OSPF area operational state";
 
@@ -4335,7 +4309,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
     }
 
     leaf bdr-ip-addr {
-      type inet:ip-address;
+      type inet:ipv4-address;
       description "Backup Designated Router (BDR) IP Address.";
     }
 
