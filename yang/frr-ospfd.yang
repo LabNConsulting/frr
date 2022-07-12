@@ -3,10 +3,6 @@ module frr-ospfd {
   namespace "http://frrouting.org/yang/ospfd";
   prefix frr-ospfd;
 
-  import frr-routing {
-    prefix frr-rt;
-  }
-
   import ietf-inet-types {
     prefix inet;
   }
@@ -19,6 +15,14 @@ module frr-ospfd {
     prefix yang;
   }
 
+  import frr-vrf {
+    prefix frr-vrf;
+  }
+  
+  import frr-routing {
+    prefix frr-rt;
+  }
+
   import frr-interface {
     prefix frr-interface;
   }
@@ -29,10 +33,6 @@ module frr-ospfd {
 
   import frr-route-types {
     prefix frr-route-types;
-  }
-
-  import frr-vrf {
-    prefix frr-vrf;
   }
 
   organization
@@ -444,12 +444,12 @@ module frr-ospfd {
     description
       "OSPFv2 LSA types";
   }
-  identity ospfv2-router-lsa {
+  identity ospfv2-router-lsa-type {
     base ospfv2-lsa-type;
     description
       "OSPFv2 Router LSA - Type 1";
   }
-  identity ospfv2-network-lsa {
+  identity ospfv2-network-lsa-type {
     base ospfv2-lsa-type;
     description
       "OSPFv2 Network LSA - Type 2";
@@ -458,6 +458,16 @@ module frr-ospfd {
     base ospfv2-lsa-type;
     description
       "OSPFv2 Summary LSA types";
+  }
+  identity ospfv2-external-lsa-type {
+    base ospfv2-lsa-type;
+    description
+      "OSPFv2 External LSA type";
+  }
+  identity ospfv2-opaque-lsa-type {
+    base ospfv2-lsa-type;
+    description
+      "OSPFv2 Opaque LSA type";
   }
 
   identity ospfv2-lsa-option {
@@ -1185,7 +1195,7 @@ module frr-ospfd {
 
   grouping ospf-router-lsa-bits {
     container router-bits {
-      leaf-list rtr-lsa-bits {
+      leaf-list rtr-lsa-bit {
         type identityref {
           base router-lsa-bit;
         }
@@ -1208,6 +1218,13 @@ module frr-ospfd {
       description "Router-LSA Link ID";
     }
     leaf link-data {
+      /*
+        XXX uint43 from OSPFv3 not supported
+      type union {
+        type inet:ipv4-address;
+        type uint32;
+      }
+      */
       type inet:ipv4-address;
       description "Router-LSA Link data.";
     }
@@ -1221,7 +1238,7 @@ module frr-ospfd {
     description "OSPFv2 LSA body.";
     container router {
       when "derived-from-or-self(../../header/type, "
-          + "'ospfv2-router-lsa')" {
+          + "'ospfv2-router-lsa-type')" {
         description
           "Only applies to Router-LSAs.";
       }
@@ -1259,7 +1276,7 @@ module frr-ospfd {
     }
     container network {
       when "derived-from-or-self(../../header/type, "
-          + "'ospfv2-network-lsa')" {
+          + "'ospfv2-network-lsa-type')" {
         description
           "Only applies to Network LSAs.";
       }
@@ -1280,7 +1297,7 @@ module frr-ospfd {
       }
     }
     container summary {
-      when "derived-from(../../header/type, "
+      when "derived-from-or-self(../../header/type, "
          + "'ospfv2-summary-lsa-type')" {
         description
           "Only applies to Summary LSAs.";
@@ -1311,7 +1328,7 @@ module frr-ospfd {
       }
     }
     container external {
-      when "derived-from(../../header/type, "
+      when "derived-from-or-self(../../header/type, "
          + "'ospfv2-external-lsa-type')" {
         description
           "Only applies to AS-external LSAs and NSSA LSAs.";
@@ -1362,7 +1379,7 @@ module frr-ospfd {
       }
     }
     container opaque {
-      when "derived-from(../../header/type, "
+      when "derived-from-or-self(../../header/type, "
          + "'ospfv2-opaque-lsa-type')" {
         description
           "Only applies to Opaque LSAs.";
@@ -1933,10 +1950,10 @@ module frr-ospfd {
          tuple with the sequence number differentiating
          LSA instances.";
     container header {
-      must "(derived-from(type, "
+      must "(derived-from-or-self(type, "
          + "'ospfv2-opaque-lsa-type') and "
          + "opaque-id and opaque-type) or "
-         + "(not(derived-from(type, "
+         + "(not(derived-from-or-self(type, "
          + "'ospfv2-opaque-lsa-type')) "
          + "and not(opaque-id) and not(opaque-type))" {
         description
@@ -1946,7 +1963,7 @@ module frr-ospfd {
         "Decoded OSPFv2 LSA header data.";
 
       container lsa-options {
-        leaf-list lsa-options {
+        leaf-list lsa-option {
           type identityref {
             base ospfv2-lsa-option;
           }
@@ -2029,10 +2046,14 @@ module frr-ospfd {
       "OSPF LSA key - the database key for each LSA of a given
        type in the Link State DataBase (LSDB).";
     leaf lsa-id {
+      /*
+      XXX uint32 is included for OSPFv3, which is not supported under ospfd
       type union {
         type yang:dotted-quad;
         type uint32;
       }
+      */
+      type yang:dotted-quad;
       description
         "Link-State ID.";
     }
@@ -2068,20 +2089,23 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
     uses lsa-key;
     uses lsa {
       refine "version/ospfv2/ospfv2" {
-/* XXX Remove if unnecessary
-        must "derived-from-or-self( "
-          + "../../../../../../../../../../"
-          + "frr-rt:type, 'ospf')" {
-            description "OSPFv2 LSA.";
-          }
-*/
         must "derived-from-or-self( "
           + "/frr-rt:routing/frr-rt:control-plane-protocols/"
           + "frr-rt:control-plane-protocol/frr-rt:type, 'ospf')" {
           description "OSPFv2 LSA. (ospfd)";
         }
+/*
+XXX Remove if unnecessary
+        must "derived-from-or-self( "
+          + "../../../../../../../../../../"
+          + "frr-rt:type, 'ospfv2')" {
+            description "OSPFv2 LSA.";
+          }
+*/
       }
-/* XXX Is ospfv3 necessary? (should belong to ospf6d model?)
+      
+/* 
+XXX Is ospfv3 necessary? (should belong to ospf6d model?)
       refine "version/ospfv3/ospfv3" {
         must "derived-from-or-self( "
            + "../../../../../../../../../../"
@@ -2457,9 +2481,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
 
   grouping metric-common-group {
     leaf metric {
-      type uint32 {
-        range "0..16777214";
-      }
+      type ospf-metric;
       description
         "OSPF default metric.";
     }
@@ -2968,7 +2990,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
 
     /* XXX There is also a pointer to a struct lsa_header which is not modeled */
     leaf area-id {
-      type inet:ipv4-address;
+      type ospf-area-id;
       description "The area this route belongs to.";
     }
     leaf area-type {
@@ -3030,7 +3052,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
       }
     }
     leaf metric {
-      type uint32;
+      type ospf-metric;
       description "Metric for this route.";
     }
     
@@ -3470,11 +3492,6 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
     description "Additional frr statistics for the OSPF router
       operational state.";
 
-    leaf vrf {
-      type frr-vrf:vrf-ref;
-      description
-        "VRF name identifying a specific OSPF instace.";
-    }
     container router-flags {
       description "ASR/ASBR internal flags.";
 
@@ -3621,20 +3638,13 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
       leaf last-exit-reason {
         type uint32;
         description "The last Helper exit reason.";
+        /* XXX potentially convert to enum */
       }
     }
   }
   
   grouping ospf-state {
     description "OSPF router operational state.";
-    /* XXX Potentially remove if duplicate of config data */
-    leaf router-id {
-      type rt-types:router-id;
-      config false;
-      description
-        "Defined in RFC 2328. A 32-bit number
-         that uniquely identifies the router.";
-    }
 
     uses frr-ospf-state;
     uses local-rib;
@@ -3881,7 +3891,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
       type yang:counter32;
       description "LS update message input count.";
     }
-    leaf ls-upt-out {
+    leaf ls-upd-out {
       type yang:counter32;
       description "LS update message output count.";
     }
@@ -4137,7 +4147,16 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
         description "The reason for a graceful restart.";
       }
       leaf helper-status {
-        type uint32;
+        type enumeration {
+          enum "not-helper" {
+            value "0";
+            description "gr helper is not active.";
+          }
+          enum "active-helper" {
+            value "1";
+            description "gr helper is active";
+          }
+        }
         description "The gr helper's status.";
       }
       leaf helper-exit-reason {
