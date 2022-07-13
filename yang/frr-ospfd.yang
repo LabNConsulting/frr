@@ -72,15 +72,13 @@ module frr-ospfd {
     }
     description "OSPF Area ID.";
   }
-  /* 
-   XXX Currently unused since cost's are commented out in (virtual) links
+
   typedef ospf-link-metric {
     type uint16 {
       range "0 .. 65535";
     }
     description "OSPF Link Metric - 16-bit unsigned integer.";
   }
-  */
   
   /*
    * RPC data types
@@ -620,47 +618,6 @@ module frr-ospfd {
        AS-external LSA prefix has been advertised as an
        L3VPN prefix.";
   }
-  
-  identity pce-path-scope-bit {
-    description
-      "The base identity for a PCE Path scope flags.";
-  }
-  identity intra-area-bit {
-    base pce-path-scope-bit;
-    description
-      "L bit (0th bit). When set, means can computer intra-area
-       paths.";
-  }
-  identity inter-area-bit {
-    base pce-path-scope-bit;
-    description
-      "R bit (1st bit). When set, means can act as PCE for inter-area TE
-       LSP computation.";
-  }
-  identity inter-area-default-bit {
-    base pce-path-scope-bit;
-    description
-      "Rd bit (2nd bit). When set, means can act as a default PCE for
-       inter-area TE LSP computation.";
-  }
-  identity inter-as-bit {
-    base pce-path-scope-bit;
-    description
-      "S bit (3rd bit). When set, means can act as PCE for inter-AS TE LSP
-       computation.";
-  }
-  identity inter-as-default-bit {
-    base pce-path-scope-bit;
-    description
-      "Sd bit (4th bit). When set, means can act as a default PCE for inter-AS
-       TE LSP computation.";
-  }
-  identity inter-layer-bit {
-    base pce-path-scope-bit;
-    description
-      "Y bit (5th bit). When set, means can act as PCE for inter-layer TE LSP
-       computation.";
-  }  
 
   identity ospfv2-extended-prefix-flag {
     description
@@ -791,61 +748,9 @@ module frr-ospfd {
   }
   identity shortcut-bit {
     base router-lsa-bit;
-    /* XXX find defined name of bit */
+    /* XXX Unknown bit name */
     description
       "? bit, when set, the router is shortcut-ABR enabled.";
-  }
-  
-  identity pce-capabilities-bit {
-    description
-      "Base identity for PCE capability flags.";
-  }
-  identity gmpls-link-bit {
-    base pce-capabilities-bit;
-    description
-      "0th bit. When set, means that can compute paths with GMPLS link
-       constraints.";
-  }
-  identity bidirectional-bit {
-    base pce-capabilities-bit;
-    description
-      "1st bit. When set, means that can compute bidirectional paths.";
-  }
-  identity diverse-path-bit {
-    base pce-capabilities-bit;
-    description
-      "2nd bit. When set, means that can compute diverse paths.";
-  }
-  identity load-balance-bit {
-    base pce-capabilities-bit;
-    description
-      "3rd bit. When set, means that can compute load-balanced paths.";
-  }
-  identity synchronized-bit {
-    base pce-capabilities-bit;
-    description
-      "4th bit. When set, means that can compute synchronized paths.";
-  }
-  identity objectives-bit {
-    base pce-capabilities-bit;
-    description
-      "5th bit. When set, means that can support multiple objective functons.";
-  }
-  identity additive-bit {
-    base pce-capabilities-bit;
-    description
-      "6th bit. When set, means that can support additive path constraints.";
-  }
-  identity prioritization-bit {
-    base pce-capabilities-bit;
-    description
-      "7th bit. When set, means that can support requests for prioritization.";
-  }
-  identity multiple-req-bit {
-    base pce-capabilities-bit;
-    description
-      "8th bit. When set, means that can support multiple requests per
-       message.";
   }
   
   /*
@@ -982,7 +887,7 @@ module frr-ospfd {
       units "Bytes/Sec";
       description
         "Type 31 subTLVs. Residual unidirectional bandwidth in IEEE floating
-         point format with units of Bytes/Sec.";
+         point format.";
     }
 
     leaf unidirectional-available-bandwidth {
@@ -990,7 +895,7 @@ module frr-ospfd {
       units "Bytes/Sec";
       description
         "Type 32 subTLVs. Available unidirectional bandwidth in IEEE floating
-         point format with units of Bytes/Sec.";
+         point format.";
     }
 
     leaf unidirectional-utilized-bandwidth {
@@ -998,7 +903,7 @@ module frr-ospfd {
       units "Bytes/Sec";
       description
         "Type 33 subTLVs. Utilized unidirectional bandwidth in IEEE floating
-         point format with units of Bytes/Sec.";
+         point format.";
     }
   }
 
@@ -1010,14 +915,43 @@ module frr-ospfd {
       description
         "Type 1 subTLV. Ip address to reach the PCE.";
     }
-
+    
     container path-scope {
-      leaf-list scope-flags {
-        type identityref {
-          base pce-path-scope-bit;
+      leaf scope-flags {
+        type  bits{
+          bit L {
+            position 0;
+            description
+              "PCE intra-area path computation bit.";
+          }
+          bit R {
+            position 1;
+            description
+              "PCE inter-area TE LSP computation bit.";
+          }
+          bit Rd {
+            position 2;
+            description
+              "Default PCE inter-area TE LSP computation bit.";
+          }
+          bit S {
+            position 3;
+            description
+              "PCE inter-as TE LSP computation bit.";
+          }
+          bit Sd {
+            position 4;
+            description
+              "Default PCE inter-as TE LSP computation bit.";
+          }
+          bit Y {
+            position 5;
+            description
+              "PCE inter-layer TE LSP computation bit.";
+          }
         }
         description
-          "List of PCE path scope flags";  
+          "PCE path scope flags bitfield";  
       }
       
       leaf pref-l {
@@ -1081,16 +1015,111 @@ module frr-ospfd {
         "Type 4 subTLV. Neighbor's PCE domain type and ID.";
     }
 
-    container capabilities {
-      leaf-list capabilities-flags {
-        type identityref {
-          base pce-capabilities-bit;
+    /*
+      
+  identity pce-capabilities-bit {
+    description
+      "Base identity for PCE capability flags.";
+  }
+  identity gmpls-link-bit {
+    base pce-capabilities-bit;
+    description
+      "0th bit. When set, means that can compute paths with GMPLS link
+       constraints.";
+  }
+  identity bidirectional-bit {
+    base pce-capabilities-bit;
+    description
+      "1st bit. When set, means that can compute bidirectional paths.";
+  }
+  identity diverse-path-bit {
+    base pce-capabilities-bit;
+    description
+      "2nd bit. When set, means that can compute diverse paths.";
+  }
+  identity load-balance-bit {
+    base pce-capabilities-bit;
+    description
+      "3rd bit. When set, means that can compute load-balanced paths.";
+  }
+  identity synchronized-bit {
+    base pce-capabilities-bit;
+    description
+      "4th bit. When set, means that can compute synchronized paths.";
+  }
+  identity objectives-bit {
+    base pce-capabilities-bit;
+    description
+      "5th bit. When set, means that can support multiple objective functons.";
+  }
+  identity additive-bit {
+    base pce-capabilities-bit;
+    description
+      "6th bit. When set, means that can support additive path constraints.";
+  }
+  identity prioritization-bit {
+    base pce-capabilities-bit;
+    description
+      "7th bit. When set, means that can support requests for prioritization.";
+  }
+  identity multiple-req-bit {
+    base pce-capabilities-bit;
+    description
+      "8th bit. When set, means that can support multiple requests per
+       message.";
+  }
+     */
+    
+    leaf capabilities {
+      type bits {
+        bit gmpls-link {
+          position 0;
+          description
+            "Means that can compute paths with GMPLS link constraints.";
         }
-        description
-          "List of PCE capability flags.";
+        bit bidirectional {
+          position 1;
+          description
+            "Means that can compute bidirectional paths.";
+        }
+        bit diverse-path {
+          position 2;
+          description
+            "Means that can compute diverse paths.";
+        }
+        bit load-balance {
+          position 3;
+          description
+            "Means that can compute load-balanced paths.";
+        }
+        bit synchronized {
+          position 4;
+          description
+            "Means that can compute synchronized paths.";
+        }
+        bit objectives {
+          position 5;
+          description
+            "Means that can support multiple objective functons.";
+        }
+        bit additive {
+          position 6;
+          description
+            "Means that can support additive path constraints.";
+        }
+        bit prioritization {
+          position 7;
+          description
+            "Means that can support requests for prioritization.";
+        }
+        bit multiple-req {
+          position 8;
+          description
+            "Means that can support multiple requests per message.";
+        }
       }
       description
-        "Type 5 subTLV. Indicates PCE capabilities.";
+        "Type 5 subTlv. Indicates a list of PCE capability flags.";
     }
   }
 
@@ -1195,7 +1224,7 @@ module frr-ospfd {
 
   grouping ospf-router-lsa-bits {
     container router-bits {
-      leaf-list rtr-lsa-bit {
+      leaf-list rtr-lsa-bits {
         type identityref {
           base router-lsa-bit;
         }
@@ -1219,7 +1248,7 @@ module frr-ospfd {
     }
     leaf link-data {
       /*
-        XXX uint43 from OSPFv3 not supported
+        XXX uint32 from OSPFv3 not supported
       type union {
         type inet:ipv4-address;
         type uint32;
@@ -1266,7 +1295,7 @@ module frr-ospfd {
                    the link.";
               }
               leaf metric {
-                type uint16;
+                type ospf-link-metric;
                 description "Metric for the topology.";
               }
             }
@@ -1710,8 +1739,8 @@ module frr-ospfd {
                                     4 - Virtual Link";
           }
           leaf metric {
-            type uint16;
-              description "Link Metric.";
+            type ospf-link-metric;
+            description "Link Metric.";
           }
         }
       }
@@ -2076,7 +2105,7 @@ module frr-ospfd {
         uses ospfv2-lsa;
       }
 /*
-XXX Is ospfv3 necessary? (should belong ospf6d model?) 
+XXX Is ospfv3 necessary? (should belong to ospf6d model?) 
       container ospfv3 {
         description "OSPFv3 LSA";
         uses ospfv3-lsa;
@@ -2094,16 +2123,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
           + "frr-rt:control-plane-protocol/frr-rt:type, 'ospf')" {
           description "OSPFv2 LSA. (ospfd)";
         }
-/*
-XXX Remove if unnecessary
-        must "derived-from-or-self( "
-          + "../../../../../../../../../../"
-          + "frr-rt:type, 'ospfv2')" {
-            description "OSPFv2 LSA.";
-          }
-*/
       }
-      
 /* 
 XXX Is ospfv3 necessary? (should belong to ospf6d model?)
       refine "version/ospfv3/ospfv3" {
@@ -2399,8 +2419,6 @@ XXX Is ospfv3 necessary? (should belong to ospf6d model?)
         uses shortcut-grouping;
 
         container state {
-          /* XXX The ietf model has no container for it's area state.
-           * Should a container be avoided in this case? */
           description "Area-scope operational state container.";
           config false;
 
@@ -3636,9 +3654,8 @@ XXX Is ospfv3 necessary? (should belong to ospf6d model?)
           "The number of active restarters for which this router is a helper.";
       }
       leaf last-exit-reason {
-        type uint32;
+        type gr-exit-reason;
         description "The last Helper exit reason.";
-        /* XXX potentially convert to enum */
       }
     }
   }
@@ -4455,7 +4472,7 @@ XXX Is ospfv3 necessary? (should belong to ospf6d model?)
       uses ospf-list-group;
 
       container state {
-      /* XXX ietf model doesn't have a defined container for state */
+      /* XXX ietf model doesn't have a defined container for state, but instead intermixes it */
         description "Container for Router-scope operational state.";
         config false;
         
