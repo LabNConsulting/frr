@@ -452,22 +452,62 @@ module frr-ospfd {
     description
       "OSPFv2 Network LSA - Type 2";
   }
-  identity ospfv2-summary-lsa {
+  identity ospfv2-summary-lsa-type {
     base ospfv2-lsa-type;
     description
       "OSPFv2 Summary LSA types";
   }
-  identity ospfv2-external-lsa {
+  identity ospfv3-network-summary-lsa {
+    base ospfv2-summary-lsa-type;
+    description
+      "OSPFv2 Network Summary LSA - Type 3";
+  }
+  identity ospfv2-asbr-summary-lsa {
+    base ospfv2-summary-lsa-type;
+    description
+      "OSPFv2 AS Boundary Router (ASBR) Summary LSA - Type 4";
+  }
+  identity ospfv2-external-lsa-type {
     base ospfv2-lsa-type;
     description
-      "OSPFv2 External LSA type";
+      "OSPFv2 External LSA types";
   }
-  identity ospfv2-opaque-lsa {
+  identity ospfv2-as-external-lsa {
+    base ospfv2-external-lsa-type;
+    description
+      "OSPFv2 AS External LSA - Type 5";
+  }
+  identity ospfv2-nssa-lsa {
+    base ospfv2-external-lsa-type;
+    description
+      "OSPFv2 Not-So-Stubby-Area (NSSA) LSA - Type 7";
+  }
+  identity ospfv2-opaque-lsa-type {
     base ospfv2-lsa-type;
     description
-      "OSPFv2 Opaque LSA type";
+      "OSPFv2 Opaque LSA types";
   }
-
+  identity ospfv2-link-scope-opaque-lsa {
+    base ospfv2-opaque-lsa-type;
+    description
+      "OSPFv2 Link-Scoped Opaque LSA - Type 9";
+  }
+  identity ospfv2-area-scope-opaque-lsa {
+    base ospfv2-opaque-lsa-type;
+    description
+      "OSPFv2 Area-Scoped Opaque LSA - Type 10";
+  }
+  identity ospfv2-as-scope-opaque-lsa {
+    base ospfv2-opaque-lsa-type;
+    description
+      "OSPFv2 AS-Scoped Opaque LSA - Type 11";
+  }
+  identity ospfv2-unknown-lsa-type {
+    base ospfv2-lsa-type;
+    description
+      "OSPFv2 Unknown LSA type";
+  }
+  
   identity ospfv2-lsa-option {
     description
       "Base identity for OSPFv2 LSA option flags.";
@@ -586,6 +626,37 @@ module frr-ospfd {
     base ospfv3-lsa-type;
     description
       "OSPFv3 External LSA types";
+  }
+  identity ospfv3-as-external-lsa {
+    base ospfv3-external-lsa-type;
+    description
+      "OSPFv3 AS-External LSA - Type 0x4005";
+  }
+  identity ospfv3-nssa-lsa {
+    base ospfv3-external-lsa-type;
+    description
+      "OSPFc3 Not-So-Stubby-Area (NSSA) LSA - Type 0x2007";
+  }
+  identity ospfv3-link-lsa {
+    base ospfv3-lsa-type;
+    description
+      "OSPFv3 Link LSA - Type 0x0008";
+  }
+  identity ospfv3-intra-area-prefix-lsa {
+    base ospfv3-lsa-type;
+    description
+      "OSPFv3 Intra-area Prefix LSA - Type 0x2009";
+  }
+  identity ospfv3-router-information-lsa {
+    base ospfv3-lsa-type;
+    description
+      "OSPFv3 Router Information LSA - Types 0x800C,
+       0xA00C, and 0xC00C";
+  }
+  identity ospfv3-unknown-lsa-type {
+    base ospfv3-lsa-type;
+    description
+      "OSPFv3 Unknown LSA type";
   }
   
   identity ospfv3-prefix-option {
@@ -1271,8 +1342,8 @@ module frr-ospfd {
       }
     }
     container summary {
-      when "derived-from-or-self(../../header/type, "
-         + "'ospfv2-summary-lsa')" {
+      when "derived-from(../../header/type, "
+         + "'ospfv2-summary-lsa-type')" {
         description
           "Only applies to Summary LSAs.";
       }
@@ -1302,8 +1373,8 @@ module frr-ospfd {
       }
     }
     container external {
-      when "derived-from-or-self(../../header/type, "
-         + "'ospfv2-external-lsa')" {
+      when "derived-from(../../header/type, "
+         + "'ospfv2-external-lsa-type')" {
         description
           "Only applies to AS-external LSAs and NSSA LSAs.";
       }
@@ -1353,8 +1424,8 @@ module frr-ospfd {
       }
     }
     container opaque {
-      when "derived-from-or-self(../../header/type, "
-         + "'ospfv2-opaque-lsa')" {
+      when "derived-from(../../header/type, "
+         + "'ospfv2-opaque-lsa-type')" {
         description
           "Only applies to Opaque LSAs.";
       }
@@ -1450,10 +1521,12 @@ module frr-ospfd {
           }
           leaf max-bandwidth {
             type rt-types:bandwidth-ieee-float32;
+            units "Bytes/Sec";
             description "Maximum bandwidth.";
           }
           leaf max-reservable-bandwidth {
             type rt-types:bandwidth-ieee-float32;
+            units "Bytes/Sec";
             description "Maximum reservable bandwidth.";
           }
           container unreserved-bandwidths {
@@ -1467,6 +1540,7 @@ module frr-ospfd {
               }
               leaf unreserved-bandwidth {
                 type rt-types:bandwidth-ieee-float32;
+                units "Bytes/Sec";
                 description "Unreserved bandwidth.";
               }
               description
@@ -1924,11 +1998,11 @@ module frr-ospfd {
          tuple with the sequence number differentiating
          LSA instances.";
     container header {
-      must "(derived-from-or-self(type, "
-         + "'ospfv2-opaque-lsa') and "
+      must "(derived-from(type, "
+         + "'ospfv2-opaque-lsa-type') and "
          + "opaque-id and opaque-type) or "
-         + "(not(derived-from-or-self(type, "
-         + "'ospfv2-opaque-lsa')) "
+         + "(not(derived-from(type, "
+         + "'ospfv2-opaque-lsa-type')) "
          + "and not(opaque-id) and not(opaque-type))" {
         description
           "Opaque type and ID only apply to Opaque LSAs.";
@@ -2050,7 +2124,7 @@ module frr-ospfd {
         uses ospfv2-lsa;
       }
 /*
-XXX Is ospfv3 necessary? (should belong to ospf6d model?) 
+ * ospfv3 version unsupported by ospfd (needs ospf6d)
       container ospfv3 {
         description "OSPFv3 LSA";
         uses ospfv3-lsa;
@@ -2062,6 +2136,7 @@ XXX Is ospfv3 necessary? (should belong to ospf6d model?)
   grouping lsa-database {
     uses lsa-key;
     uses lsa {
+      /*
       refine "version/ospfv2/ospfv2" {
         must "derived-from-or-self( "
           + "/frr-rt:routing/frr-rt:control-plane-protocols/"
@@ -2069,13 +2144,13 @@ XXX Is ospfv3 necessary? (should belong to ospf6d model?)
           description "OSPFv2 LSA. (ospfd)";
         }
       }
+      */
 /* 
-XXX Is ospfv3 necessary? (should belong to ospf6d model?)
       refine "version/ospfv3/ospfv3" {
         must "derived-from-or-self( "
-           + "../../../../../../../../../../"
-           + "rt:type, 'ospfv3')" {
-          description "OSPFv3 LSA.";
+           + "/frr-rt:routing/frr-rt:control-plane-protocols/"
+           + "frr-rt:control-plane-protocol/frr-rt:type, 'ospf6')" {
+          description "OSPFv3 LSA. (ospf6d)";
         }
       }
 */
@@ -2994,6 +3069,7 @@ XXX Is ospfv3 necessary? (should belong to ospf6d model?)
   
   grouping ospf-route {
     description "OSPF Route";
+    // Derived from 'grouping local-rib' in ietf ospf model
     leaf prefix {
       type inet:ipv4-prefix;
       description "Destination prefix.";
@@ -3451,7 +3527,7 @@ XXX Is ospfv3 necessary? (should belong to ospf6d model?)
   }
 
   grouping frr-ospf-state {
-    //frr specific model
+    // frr specific model
     description "Additional frr statistics for the OSPF router
       operational state.";
 
@@ -3772,7 +3848,6 @@ XXX Is ospfv3 necessary? (should belong to ospf6d model?)
     description "OSPF area operational state";
 
     container threads{
-      // frr specific model
       description "All Area-scope threads run by frr.";
 
       container stub-router {
@@ -3952,26 +4027,22 @@ XXX Is ospfv3 necessary? (should belong to ospf6d model?)
     description "Additional frr Per-neighbor statistics.";
 
     leaf nbr-request-qlen {
-      // frr specific model
       type yang:gauge32;
      description
         "The current length of the LSA request queue. (Rqstl)";
     }
     leaf nbr-summary-len {
-      // frr specific model
       type int16;
       description
         "The current length of the database summary list. (DBsml)";
     }
     leaf nbr-uptime {
-      // frr specific model
       type int64;
       units "usec";
       description
         "The uptime of the neighbor over this interface in microseconds.";
     }
     leaf nbr-downtime {
-      // frr specific model
       type int64;
       units "usec";
       description
@@ -3979,7 +4050,6 @@ XXX Is ospfv3 necessary? (should belong to ospf6d model?)
     }
     
     container nsm {
-      // frr specific model
       description
         "Neighbor state machine related statistics.";
 
@@ -4037,12 +4107,11 @@ XXX Is ospfv3 necessary? (should belong to ospf6d model?)
   }
 
   grouping frr-neighbor-state {
-    //frr specific model
+    // frr specific model
     description "Additional information frr uses to keep track of OSPF's
       neighbor operational state.";
       
     container threads {
-      // frr specific model, see ospf_neighbor in ospf_neighbor.h 
       description "Status of frr-required neighbor threads.";
       /*
        * Some core functionality that relies on threads is already present
