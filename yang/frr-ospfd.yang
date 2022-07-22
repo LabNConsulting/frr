@@ -431,6 +431,58 @@ module frr-ospfd {
     }
     description "The type of an area.";
   }
+
+  typedef pce-capabilitites {
+    type bits {
+      bit gmpls-link {
+        position 0;
+        description
+          "Means that can compute paths with GMPLS link constraints.";
+      }
+      bit bidirectional {
+        position 1;
+        description
+          "Means that can compute bidirectional paths.";
+      }
+      bit diverse-path {
+        position 2;
+        description
+          "Means that can compute diverse paths.";
+      }
+      bit load-balance {
+        position 3;
+        description
+          "Means that can compute load-balanced paths.";
+      }
+      bit synchronized {
+        position 4;
+        description
+          "Means that can compute synchronized paths.";
+      }
+      bit objectives {
+        position 5;
+        description
+          "Means that can support multiple objective functons.";
+      }
+      bit additive {
+        position 6;
+        description
+          "Means that can support additive path constraints.";
+      }
+      bit prioritization {
+        position 7;
+        description
+          "Means that can support requests for prioritization.";
+      }
+      bit multiple-req {
+        position 8;
+        description
+          "Means that can support multiple requests per message.";
+      }
+    }
+    description
+      "PCE capabilitites";
+  }
   
   identity ospf-lsa-type {
     description
@@ -978,6 +1030,77 @@ module frr-ospfd {
     }
   }
 
+  grouping pce-bitfield {
+    leaf scope-flags {
+      type  bits{
+        bit L {
+          position 0;
+          description
+            "PCE intra-area path computation bit.";
+        }
+        bit R {
+          position 1;
+          description
+            "PCE inter-area TE LSP computation bit.";
+        }
+        bit Rd {
+          position 2;
+          description
+            "Default PCE inter-area TE LSP computation bit.";
+        }
+        bit S {
+          position 3;
+          description
+            "PCE inter-as TE LSP computation bit.";
+        }
+        bit Sd {
+          position 4;
+          description
+            "Default PCE inter-as TE LSP computation bit.";
+        }
+        bit Y {
+          position 5;
+          description
+            "PCE inter-layer TE LSP computation bit.";
+        }
+      }
+      description
+        "PCE path scope flags bitfield";  
+    }
+    
+    leaf pref-l {
+      type uint8 {
+        range "0..7";
+      }
+      description
+        "PCE's preference for intra-area TE LSP computation.";
+    }
+    
+    leaf pref-r {
+      type uint8 {
+        range "0..7";
+      }
+      description
+        "PCE's preference for inter-area TE LSP computation.";
+    }
+    
+    leaf pref-s {
+      type uint8 {
+        range "0..7";
+      }
+      description
+        "PCE's preference for inter-AS TE LSP computation.";
+    }
+    
+    leaf pref-y {
+      type uint8 {
+        range "0..7";
+      }
+      description
+        "PCE's preference for inter-layer TE LSP computation.";
+    }
+  }
+  
   grouping pced-tlv {
     // frr specific model
     
@@ -988,75 +1111,7 @@ module frr-ospfd {
     }
     
     container path-scope {
-      leaf scope-flags {
-        type  bits{
-          bit L {
-            position 0;
-            description
-              "PCE intra-area path computation bit.";
-          }
-          bit R {
-            position 1;
-            description
-              "PCE inter-area TE LSP computation bit.";
-          }
-          bit Rd {
-            position 2;
-            description
-              "Default PCE inter-area TE LSP computation bit.";
-          }
-          bit S {
-            position 3;
-            description
-              "PCE inter-as TE LSP computation bit.";
-          }
-          bit Sd {
-            position 4;
-            description
-              "Default PCE inter-as TE LSP computation bit.";
-          }
-          bit Y {
-            position 5;
-            description
-              "PCE inter-layer TE LSP computation bit.";
-          }
-        }
-        description
-          "PCE path scope flags bitfield";  
-      }
-      
-      leaf pref-l {
-        type uint8 {
-          range "0..7";
-        }
-        description
-          "PCE's preference for intra-area TE LSP computation.";
-      }
-      
-      leaf pref-r {
-        type uint8 {
-          range "0..7";
-        }
-        description
-          "PCE's preference for inter-area TE LSP computation.";
-      }
-      
-      leaf pref-s {
-        type uint8 {
-          range "0..7";
-        }
-        description
-          "PCE's preference for inter-AS TE LSP computation.";
-      }
-      
-      leaf pref-y {
-        type uint8 {
-          range "0..7";
-        }
-        description
-          "PCE's preference for inter-layer TE LSP computation.";
-      }
-      
+      uses pce-bitfield;
       description
         "Type 2 subTLV. PCE path computation scope.";
     }
@@ -1087,53 +1142,7 @@ module frr-ospfd {
     }
     
     leaf capabilities {
-      type bits {
-        bit gmpls-link {
-          position 0;
-          description
-            "Means that can compute paths with GMPLS link constraints.";
-        }
-        bit bidirectional {
-          position 1;
-          description
-            "Means that can compute bidirectional paths.";
-        }
-        bit diverse-path {
-          position 2;
-          description
-            "Means that can compute diverse paths.";
-        }
-        bit load-balance {
-          position 3;
-          description
-            "Means that can compute load-balanced paths.";
-        }
-        bit synchronized {
-          position 4;
-          description
-            "Means that can compute synchronized paths.";
-        }
-        bit objectives {
-          position 5;
-          description
-            "Means that can support multiple objective functons.";
-        }
-        bit additive {
-          position 6;
-          description
-            "Means that can support additive path constraints.";
-        }
-        bit prioritization {
-          position 7;
-          description
-            "Means that can support requests for prioritization.";
-        }
-        bit multiple-req {
-          position 8;
-          description
-            "Means that can support multiple requests per message.";
-        }
-      }
+      type pce-capabilitites;
       description
         "Type 5 subTlv. Indicates a list of PCE capability flags.";
     }
@@ -2452,15 +2461,6 @@ module frr-ospfd {
 
   /* router ospf attributes */
   grouping route-ospf-leaf-attributes {
-    leaf auto-cost-reference-bandwidth {
-      type uint32 {
-        range "1..4294967";
-      }
-      units "Mbits/Sec";
-      description
-        "The reference bandwidth in terms of Mbits per second.";
-    }
-
     leaf use-arp {
       type boolean;
       default "true";
@@ -2468,6 +2468,12 @@ module frr-ospfd {
         "ARP for neighbor table entry.";
     }
 
+    leaf explicit-router-id {
+        type inet:ipv4-address;
+        description
+          "Router-id for the OSPF process.";
+    }
+    
     leaf capability-opaque {
       type boolean;
       default "false";
@@ -2496,9 +2502,38 @@ module frr-ospfd {
       description
         "Maximum number of interfaces serviced per write.";
     }
+    
+    leaf abr-type {
+      type enumeration {
+        enum "cisco" {
+          value 1;
+          description
+            "Alternative ABR, Cisco implementation.";
+        }
+        enum "ibm" {
+          value 2;
+          description
+            "Alternative ABR,  IBM implementation.";
+        }
+        enum "shortcut" {
+          value 3;
+          description
+            "Shortcut ABR.";
+        }
+        enum "standard" {
+          value 4;
+          description
+            "Standard behavior (RFC2328).";
+        }
+      }
+    }
 
     container router-info {
-      choice router-info {
+      /*
+       * XXX In frr (ospfd.h), no router capabilitites config information is
+       * actually stored in the ospf data structure. 
+       */
+      choice type {
         case as {
           leaf as {
             type boolean;
@@ -2510,13 +2545,117 @@ module frr-ospfd {
           leaf area {
             type ospf-area-id;
             description
-            "Enable the Router Information functionality with Area flooding scope.";
+              "Enable the Router Information functionality with Area flooding scope.";
           }
+        }
+      }
+
+      container pce {
+        // frr specific model
+        description
+          "Path Computational Element (PCE) RI information.";
+        leaf address {
+          type inet:ipv4-address;
+          description
+            "Stable ID address of the PCE.";
+        }
+        container scope {
+          uses pce-bitfield;
+          description
+            "PCE scope bitfield.";
+        }
+        container as {
+          leaf domain {
+            type uint32 {
+              range "0..65535";
+            }
+            description
+              "AS number where the PCE AS visibility for path computation.";
+          }
+          leaf neighbor {
+            type uint32 {
+              range "0..65535";
+            }
+            description
+              "AS number of PCE neighbors.";
+          }
+        }
+        leaf capabilities {
+          type pce-capabilitites;
         }
       }
     }
   }
 
+  /* OSPF Auto cost config attributes */
+  grouping auto-cost-group {
+    container auto-cost {
+      leaf reference-bandwidth {
+        type uint32 {
+          range "1..4294967";
+        }
+        units "Mbits/Sec";
+        description
+          "The reference bandwidth in terms of Mbits per second.";
+      }
+    }
+  }
+  
+  /* OSPF Graceful restart config attributes */
+  grouping graceful-restart-group {
+    container graceful-restart {
+      description
+        "Graceful restart config state.";
+      reference "RFC 3623: OSPF Graceful Restart
+                 RFC 5187: OSPFv3 Graceful Restart";
+/*
+      leaf enable {
+        type boolean;
+        description
+          "Enable/Disable graceful restart as defined in RFC 3623
+           for OSPFv2 and RFC 5187 for OSPFv3.";
+      }
+*/
+      leaf helper-enable {
+        type boolean;
+        description
+          "Enable graceful restart helper support for restarting
+           routers (RFC 3623 Section 3).";
+      }
+      leaf restart-interval {
+        type uint16 {
+           range "1..1800";
+        }
+        units seconds;
+        default "120";
+        description
+          "Interval to attempt graceful restart prior
+           to failing (RFC 3623 Section B.1) (seconds)";
+      }
+      leaf helper-strict-lsa-checking {
+        type boolean;
+        description
+          "Terminate graceful restart when an LSA topology change
+           is detected (RFC 3623 Section B.2).";
+      }
+      leaf helper-only-planned-restart {
+        // frr specific model
+        type boolean;
+        description
+          "Only support as Helper in the case of planned restarts";
+      }
+      leaf supported-grace-time {
+        // frr specific model
+        type uint16 {
+          range "10..1800";
+        }
+        units seconds;
+        description
+          "Support as Helper for this configured grace period";
+      }
+    }
+  }
+  
   grouping metric-common-group {
     leaf metric {
       type ospf-metric;
@@ -2545,13 +2684,7 @@ module frr-ospfd {
   }
 
   grouping default-info-group {
-    container default-information {
-      leaf originate {
-        type boolean;
-        description
-          "Advertise a default route";
-      }
-
+    container default-information-originate {
       leaf always {
         type boolean;
         description
@@ -2575,58 +2708,71 @@ module frr-ospfd {
     }
   }
 
-  grouping distance-group {
-    container distance {
-      leaf admin-value {
-        type uint8 {
-          range "1..255";
-        }
+  grouping preference-group {
+    description
+      "Route preference configuration. In the frr
+       implementations, preference is also  referred to as
+       administrative distance.";
+    reference
+      "RFC 8349: A YANG Data Model for Routing Management
+       (NMDA Version)";
+    container preference {
+      choice scope {
         description
-          "Admin value.";
-      }
-
-      container ospf {
-        leaf external {
-          type uint8 {
-            range "1..255";
+          "Options for expressing preference
+           as single or multiple values.";
+        case single-value {
+          leaf all {
+            type uint8 {
+              range "1..255";
+            }
+            description
+              "Admin value. Preference for intra-area, inter-area, and
+           external routes.";
           }
-          description
-            "Distance for external routes.";
         }
-
-        leaf inter-area {
-          type uint8 {
-            range "1..255";
+        case multi-values {
+          leaf external {
+            type uint8 {
+              range "1..255";
+            }
+            description
+              "Preference/Distance for external routes.";
           }
-          description
-            "Distance for inter-area routes.";
-        }
-
-        leaf intra-area {
-          type uint8 {
-            range "1..255";
+          leaf inter-area {
+            type uint8 {
+              range "1..255";
+            }
+            description
+              "Preference/Distance for inter-area routes.";
           }
-          description
-            "Distance for intra-area routes.";
+          leaf intra-area {
+            type uint8 {
+              range "1..255";
+            }
+            description
+              "Preference/Distance for intra-area routes.";
+          }
         }
       }
     }
   }
 
-  grouping distribute-list-group {
-    container distribute-list {
-      list dlist {
-        key "name protocol";
+  grouping distribute-zebra-group {
+    /* XXX Cannot be configured? Change to augment? */
+    container distribute-from-zebra {
+      list distribute {
+        key "name route-type";
         leaf name {
           type string;
           description
             "Filter networks in routing updates.";
         }
 
-        leaf protocol {
+        leaf route-type {
           type frr-route-types:frr-route-types-v4;
           description
-            "Out protocol.";
+            "Out route type from Zebra.";
         }
       }
     }
@@ -2637,10 +2783,10 @@ module frr-ospfd {
       container router-lsa {
         description
           "Advertise own Router-LSA with infinite distance (stub router).";
-        leaf administrative {
+        leaf always {
           type boolean;
           description
-            "Administratively applied, for an indefinite period.";
+            "Administratively (always) applied, for an indefinite period.";
         }
 
         leaf on-shutdown {
@@ -2663,90 +2809,213 @@ module frr-ospfd {
   }
 
   grouping mpls-te-group {
-    container mpls-te {
-      leaf on {
-        type boolean;
-        description
-          "Enable the MPLS-TE functionality.";
-      }
-
-      leaf router-address {
-        type inet:ipv4-address;
-        description
-          "Stable IP address of the advertising router.";
-      }
-
-      container inter-as {
-        leaf as {
+    container mpls {
+      container te {
+        leaf on {
+          // frr specific model
           type boolean;
           description
-            "AS native mode self originate INTER-AS LSA with Type 11 (as flooding scope).";
+            "Enable the MPLS-TE functionality.";
         }
-
-        leaf area {
-          type ospf-area-id;
+        leaf rid {
+          type inet:ipv4-address;
           description
-            "AREA native mode self originate INTER-AS LSA with Type 10 (area flooding scope).";
+            "Stable IP address of the advertising router.";
+        }
+        
+        container inter-as {
+          // frr specific model
+          leaf as {
+            type boolean;
+            description
+              "AS native mode self originate INTER-AS LSA with Type 11 (as flooding scope).";
+          }
+          
+          leaf area {
+            type ospf-area-id;
+            description
+              "AREA native mode self originate INTER-AS LSA with Type 10 (area flooding scope).";
+          }
+        }
+      }
+
+      container ldp {
+        leaf igp-sync {
+          type boolean;
+          description
+            "Enable LDP IGP synchronization.";
+        }
+        leaf holddown {
+          // frr specific model
+          type uint16 {
+            range "0..10000";
+          }
+          units "sec";
+          description "LDP Holddown timer";
         }
       }
     }
   }
-
-  grouping ospf-group {
-    container ospf {
-      leaf abr-type {
-        type enumeration {
-          enum "cisco" {
-            value 1;
+  /*
+      container spf {
+          leaf delay {
+            type uint32 {
+              range "0..600000";
+            }
+            units "msec";
             description
-              "Alternative ABR, Cisco implementation.";
+              "Delay from first change received till SPF calculation.";
           }
-          enum "ibm" {
-            value 2;
+          leaf initial-holdtime {
+            type uint32 {
+              range "0..600000";
+            }
+            units "msec";
             description
-              "Alternative ABR,  IBM implementation.";
+              "Initial hold time (msec) between consecutive SPF calculations";
           }
-          enum "shortcut" {
-            value 3;
+          leaf max-holdtime {
+            type uint32 {
+              range "0..600000";
+            }
+            units "msec";
             description
-              "Shortcut ABR.";
-          }
-          enum "standard" {
-            value 4;
-            description
-              "Standard behavior (RFC2328).";
+              "";
           }
         }
-      }
 
-      leaf opaque-lsa {
-        type boolean;
-        description
-          "Enable the Opaque-LSA capability (RFC2370)";
+   */
+  
+  grouping ietf-spf-delay {
+    leaf delay {
+      // frr specific model
+      type uint32 {
+        range "0..600000";
       }
-
-      leaf rfc1583compatibility {
-        type boolean;
-        description
-          "Enable the RFC 1583 compatibility flag.";
+      units "msec";
+      description
+        "Delay from first change received till SPF calculation.";
+    }
+    leaf initital-holdtime {
+      // frr specific model
+      type uint32 {
+        range "0..600000";
       }
-
-      leaf router-id {
-        type inet:ipv4-address;
-        description
-          "Router-id for the OSPF process.";
+      units "msec";
+      description
+        "Initial hold time (msec) between consecutive SPF calculations.";
+    }
+    leaf max-holdtime {
+      // frr specific model
+      type uint32 {
+        range "0..600000";
       }
-
-      leaf write-multiplier {
-        type uint8 {
-          range "1..100";
+      units "msec";
+      description
+        "Maximum hold time (msec).";
+    }
+/*
+    leaf initial-delay {
+      type uint32;
+      units milliseconds;
+      description
+        "Delay used while in QUIET state (milliseconds).";
+    }
+    leaf short-delay {
+      type uint32;
+      units milliseconds;
+      description
+        "Delay used while in SHORT_WAIT state (milliseconds).";
+    }
+    leaf long-delay {
+      type uint32;
+      units milliseconds;
+      description
+        "Delay used while in LONG_WAIT state (milliseconds).";
+    }
+    leaf hold-down {
+      type uint32;
+      units milliseconds;
+      description
+        "Timer used to consider an IGP stability period
+         (milliseconds).";
+    }
+    leaf time-to-learn {
+      type uint32;
+      units milliseconds;
+      description
+        "Duration used to learn all the IGP events
+         related to a single component failure (milliseconds).";
+    }
+    leaf current-state {
+      type enumeration {
+        enum "quiet" {
+          description "QUIET state";
+        }
+        enum "short-wait" {
+          description "SHORT_WAIT state";
+        }
+        enum "long-wait" {
+          description "LONG_WAIT state";
+        }
+      }
+      config false;
+      description
+        "Current SPF back-off algorithm state.";
+    }
+    leaf remaining-time-to-learn {
+      type rt-types:timer-value-milliseconds;
+      config false;
+      description
+        "Remaining time until time-to-learn timer fires.";
+    }
+    leaf remaining-hold-down {
+      type rt-types:timer-value-milliseconds;
+      config false;
+      description
+        "Remaining time until hold-down timer fires.";
+    }
+    leaf last-event-received {
+      type yang:timestamp;
+      config false;
+      description
+        "Time of last SPF triggering event.";
+    }
+    leaf next-spf-time {
+      type yang:timestamp;
+      config false;
+      description
+        "Time when next SPF has been scheduled.";
+    }
+    leaf last-spf-time {
+      type yang:timestamp;
+      config false;
+      description
+        "Time of last SPF computation.";
+      }
+*/
+    description
+      "Grouping for IETF SPF delay configuration and state";
+  }
+  
+  grouping spf-group {
+    container spf-control {
+      leaf paths {
+        type uint16 {
+          range "1..65535";
         }
         description
-          "Write multiplier.";
+          "Maximum number of Equal-Cost Multi-Path (ECMP) paths.";
+      }
+      container ietf-spf-delay {
+        uses ietf-spf-delay;
+        description
+          "SPF delay algorithm configuration.";
       }
     }
+    description "SPF calculation control.";      
   }
-
+  
   grouping timer-group {
     container timers {
       leaf refresh-interval {
@@ -2768,31 +3037,20 @@ module frr-ospfd {
           "Minimum delay in receiving new version of an LSA.";
       }
 
-      container throttle {
-        leaf lsa-all {
-          type uint16 {
-            range "0..5000";
-          }
-          units "msec";
-          description
-            "LSA delay between transmissions.";
+      leaf lsa-min-interval {
+        type uint16 {
+          range "0..5000";
         }
-
-        leaf spf {
-          type uint32 {
-            range "0..600000";
-          }
-          units "msec";
-          description
-            "Delay from first change received till SPF calculation.";
-        }
+        units "msec";
+        description
+          "Minimum delay between LSA transmissions.";
       }
     }
   }
 
   grouping segment-routing-group {
-    container segment-routing {
-      container global-block {
+    container sr-mpls {
+      container srgb {
         description
           "Segment Routing Global Block label range.";
         leaf lower-bound {
@@ -2845,105 +3103,121 @@ module frr-ospfd {
           "Enable Segment Routing.";
       }
 
-      list prefix-sid {
-        key "index";
-        leaf index {
-          type uint16;
+      container bindings {
+        description
+          "List of bindings.";
+        container connected-prefix-sid-map {
           description
-            "SID index for this prefix.";
-        }
-
-        leaf prefix {
-          type inet:ipv4-prefix;
-          description
-            "Prefix SID.";
-        }
-
-        leaf last-hop-behavior {
-          type enumeration {
-            enum "explicit-null" {
-              value 0;
+            "Prefix SID configuration.";
+          list connected-prefix-sid {
+            description
+              "List of prefix SID mapped to IPv4 local prefixes.";
+            key "prefix";
+            leaf value-type {
+              type enumeration {
+                enum index {
+                  description
+                    "The value will be interpreted as an index.";
+                }
+                enum absolute {
+                  description
+                    "The value will become interpreted as an absolute value.";
+                }
+              }
+              default "index";
               description
-                "Use explicit-null for the SID.";
+                "This leaf defines how the sid-value must be interpreted.";
             }
-            enum "no-php" {
-              value 1;
+            leaf sid-value {
+              type uint32;
+              mandatory true;
               description
-                "Do not use Penultimate Hop Popping (PHP)
+                "SID value for this prefix. See value-type for how to
+                 inerpret it.";
+            }
+            
+            leaf prefix {
+              type inet:ipv4-prefix;
+              description
+                "Prefix SID.";
+            }
+            
+            leaf last-hop-behavior {
+              type enumeration {
+                enum "explicit-null" {
+                  value 0;
+                  description
+                    "Use explicit-null for the SID.";
+                }
+                enum "no-php" {
+                  value 1;
+                  description
+                    "Do not use Penultimate Hop Popping (PHP)
                    for the SID.";
-             }
-             enum "php" {
-               value 2;
-               description
-                 "Use PHP for the SID.";
-             }
-           }
-           default "php";
-             description
-               "Configure last hop behavior.";
+                }
+                enum "php" {
+                  value 2;
+                  description
+                    "Use PHP for the SID.";
+                }
+              }
+              default "php";
+              description
+                "Configure last hop behavior.";
+            }
+          }
         }
       }
     }
   }
 
   grouping ospf-list-group {
-    list neighbor {
-      key "ip";
+    container nbma-neighbors {
       description
-        "Neighbor list.";
-      leaf ip {
-        type inet:ipv4-address;
+        "Non-Broadcast Multiple Access (NBMA) neighbors.";
+      list neighbor {
+        key "ip";
         description
-          "Neighbor IP address.";
-      }
-
-      leaf priority {
-        type uint8;
-        description
-          "Neighbor Priority.";
-      }
-
-      leaf poll-interval {
-        type uint16 {
-          range "1..65535";
+          "Neighbor list.";
+        leaf ip {
+          type inet:ipv4-address;
+          description
+            "Neighbor IP address.";
         }
-        units "sec";
-        description
-          "Dead Neighbor Polling interval.";
+        
+        leaf priority {
+          type uint8;
+          description
+            "Neighbor Priority.";
+        }
+        
+        leaf poll-interval {
+          type uint16 {
+            range "1..65535";
+          }
+          units "sec";
+          description
+            "Dead Neighbor Polling interval.";
+        }
       }
     }
 
-    list network {
-      key "prefix";
-      description
-        "Enable routing on list of IP network.";
-      leaf prefix {
-        type inet:ipv4-prefix;
+    container ip-networks {
+      list network {
+        key "prefix";
         description
-          "Prefix on which routing needs to be enabled.";
-      }
-
-      leaf area {
-        type ospf-area-id;
-        description
-          "Area ID for this network.";
-      }
-    }
-
-    list passive-interface {
-      key "interface";
-      description
-        "Suppress routing updates on list interface.";
-      leaf interface {
-        type frr-interface:interface-ref;
-        description
-          "Suppress routing updates on an interface.";
-      }
-
-      leaf address {
-        type inet:ipv4-address;
-        description
-          "Interface address.";
+          "Enable routing on list of IP network.";
+        leaf prefix {
+          type inet:ipv4-prefix;
+          description
+            "Prefix on which routing needs to be enabled.";
+        }
+        
+        leaf area {
+          type ospf-area-id;
+          description
+            "Area ID for this network.";
+        }
       }
     }
   }
@@ -4447,21 +4721,25 @@ module frr-ospfd {
       }
 
       uses route-ospf-leaf-attributes;
+      
+      uses graceful-restart-group;
 
+      uses auto-cost-group;
+      
       uses default-info-group;
 
       uses redistribute-group;
 
-      uses distance-group;
+      uses preference-group;
 
-      uses distribute-list-group;
+      uses distribute-zebra-group;
 
       uses max-metric-group;
 
       uses mpls-te-group;
 
-      uses ospf-group;
-
+      uses spf-group;
+      
       uses timer-group;
 
       uses segment-routing-group;
@@ -4501,7 +4779,7 @@ module frr-ospfd {
       uses interface-common-state;
     }
   }
-
+  
   /*
    * ----------------------------
    * Remote Procedure Calls (RPC)
