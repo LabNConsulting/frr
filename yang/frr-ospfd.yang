@@ -1032,7 +1032,7 @@ module frr-ospfd {
 
   grouping pce-bitfield {
     leaf scope-flags {
-      type  bits{
+      type  bits {
         bit L {
           position 0;
           description
@@ -2460,7 +2460,7 @@ module frr-ospfd {
   }
 
   /* router ospf attributes */
-  grouping route-ospf-leaf-attributes {
+  grouping route-ospf-attributes {
     leaf use-arp {
       type boolean;
       default "true";
@@ -2487,6 +2487,23 @@ module frr-ospfd {
         "Compatible with RFC 1583.";
     }
 
+    container log-adjacency-changes {
+      // frr specific model
+      presence "Log adjacency changes.";
+      leaf detail {
+        type boolean;
+        mandatory true;
+        description
+          "Log additional detail.";
+      }
+    }
+
+    leaf send-extra-data-zebra {
+      type boolean;
+      description
+        "Send extra data to the Zebra daemon.";
+    }
+    
     leaf default-metric {
       type uint32 {
         range "0..16777214";
@@ -2503,6 +2520,12 @@ module frr-ospfd {
         "Maximum number of interfaces serviced per write.";
     }
     
+    leaf passive-interface-default {
+      type boolean;
+      description
+        "Suppress routing updates on interfaces by default.";
+    }
+
     leaf abr-type {
       type enumeration {
         enum "cisco" {
@@ -2696,18 +2719,60 @@ module frr-ospfd {
   }
 
   grouping redistribute-group {
-    list redistribute {
-      key "protocol";
-      leaf protocol {
-        type frr-route-types:frr-route-types-v4;
-        description
-          "Protocol.";
+    container redistribute {
+      list routes { 
+        key "type";
+        leaf type {
+          type frr-route-types:frr-route-types-v4;
+          description
+            "Protocol.";
+        }
+        
+        uses metric-common-group;
       }
-
-      uses metric-common-group;
     }
   }
 
+  grouping summary-group {
+    // frr specific model
+    container route-aggregation {
+      container summary-routes {
+        list summary {
+          key "prefix";
+          leaf prefix {
+            type inet:ipv4-address;
+            description
+              "External summary address.";
+          }
+          leaf tag {
+            type uint32 {
+              range "1..4294967295";
+            }
+            description
+              "Router tag value";
+          }
+          leaf no-advertise {
+            type boolean;
+            default "false";
+            description
+              "Don't advertise this summary route.";
+          }
+        }
+        description
+          "Summaries of external routes that will be propogated by an ASBR.";
+      }
+      leaf timer {
+        type uint16 {
+          range "5..1800";
+        }
+        description
+          "Aggregation delay timer.";
+      }
+      description
+        "External route aggregation.";
+    }
+  }
+  
   grouping preference-group {
     description
       "Route preference configuration. In the frr
@@ -2808,7 +2873,7 @@ module frr-ospfd {
     }
   }
 
-  grouping mpls-te-group {
+  grouping mpls-group {
     container mpls {
       container te {
         leaf on {
@@ -2856,35 +2921,31 @@ module frr-ospfd {
       }
     }
   }
-  /*
-      container spf {
-          leaf delay {
-            type uint32 {
-              range "0..600000";
-            }
-            units "msec";
-            description
-              "Delay from first change received till SPF calculation.";
-          }
-          leaf initial-holdtime {
-            type uint32 {
-              range "0..600000";
-            }
-            units "msec";
-            description
-              "Initial hold time (msec) between consecutive SPF calculations";
-          }
-          leaf max-holdtime {
-            type uint32 {
-              range "0..600000";
-            }
-            units "msec";
-            description
-              "";
-          }
-        }
 
-   */
+  grouping fast-reroute-group {
+    description
+      "This group defines global configuration of IP
+       Fast ReRoute (FRR).";
+    container fast-reroute {
+      description
+        "IP-FRR parameters.";
+      container ti-lfa {
+        description
+          "Global parameters for Topology-Independent Loop-Free Alternatives
+           (TI-LFA)";
+        leaf protection {
+          type enumeration {
+            enum undefined;
+            enum link;
+            enum node;
+          }
+          default "link";
+          description
+            "TI-LFA Node protection type.";
+        }
+      }
+    }
+  }
   
   grouping ietf-spf-delay {
     leaf delay {
@@ -4121,7 +4182,7 @@ module frr-ospfd {
   grouping area-state {
     description "OSPF area operational state";
 
-    container threads{
+    container threads {
       description "All Area-scope threads run by frr.";
 
       container stub-router {
@@ -4720,7 +4781,7 @@ module frr-ospfd {
            protocol.";
       }
 
-      uses route-ospf-leaf-attributes;
+      uses route-ospf-attributes;
       
       uses graceful-restart-group;
 
@@ -4730,14 +4791,18 @@ module frr-ospfd {
 
       uses redistribute-group;
 
+      uses summary-group;
+
       uses preference-group;
 
       uses distribute-zebra-group;
 
       uses max-metric-group;
 
-      uses mpls-te-group;
+      uses mpls-group;
 
+      uses fast-reroute-group;
+      
       uses spf-group;
       
       uses timer-group;
