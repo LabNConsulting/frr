@@ -79,6 +79,24 @@ module frr-ospfd {
     }
     description "OSPF Link Metric - 16-bit unsigned integer.";
   }
+
+  typedef auth-type {
+    type enumeration {
+      enum null {
+        value "0";
+        description "Use null authentication.";
+      }
+      enum simple {
+        value "1";
+        description "Use simple authentication.";
+      }
+      enum cryptographic {
+        value "2";
+        description "Use message-digest authentication.";
+      }
+    }
+    description "Authentication type.";
+  }
   
   /*
    * RPC data types
@@ -104,7 +122,7 @@ module frr-ospfd {
      description
        "Reference to an OSPF instance ID.";
    }
-
+   
   /*
    * ----------------------------------------------
    * Link State Database (LSD) Types and Identities
@@ -2253,102 +2271,146 @@ module frr-ospfd {
 
   grouping authentication-group {
     container authentication {
-      presence "Enable authentication.";
       description
-        "Enable authentication on this virtual link.";
-      leaf message-digest {
-        type boolean;
-        description
-          "Use message-digest authentication.";
+        "Enable authentication on this link.";
+      leaf type {
+        type auth-type;
+        default "null";
       }
 
-      leaf null {
-        type boolean;
-        description
-          "Use null authentication.";
-      }
-    }
-
-    list message-digest-key {
-      key "key-id";
-      leaf key-id {
-        type uint8;
-        description
-          "Key id";
-      }
-
-      leaf mds-key {
+      leaf simple-key {
+        when "enum-value(../type) = 1" {
+          description
+            "A simple key consists of only a simple password.";
+        }
         type string;
         description
           "The OSPF password.";
       }
-    }
 
-    leaf authentication-key {
-      type string;
-      description
-        "The OSPF password.";
+      container mds-keys {
+        when "enum-value(../type) = 2" {
+          description
+            "A message digest key set consists of an id and password.";
+        }
+        list mds-key {
+          key "id key";
+          leaf id {
+            type uint8;
+            description
+              "Key id";
+          }
+          
+          leaf key {
+            type string;
+            description
+              "The OSPF password.";
+          }
+        }
+      }
     }
   }
 
-  grouping virtual-link-group {
-    list virtual-link {
-      key "neighbor area-id";
+  grouping interface-common-attributes {
+    description
+      "Common configuration for all types of interfaces,
+       including virtual links.";
+
+    leaf hello-interval {
+      type uint16 {
+        range "1..65535";
+      }
+      units seconds;
       description
-        "Virtual link parameters.";
-      leaf neighbor {
-        type inet:ipv4-address;
+        "Interval between hello packets (seconds). It must
+         be the same for all routers on the same network.
+         Different networks, implementations, and deployments
+         will use different hello-intervals. A sample value
+         for a LAN network would be 10 seconds.";
+      reference "RFC 2328: OSPF Version 2, Appendix C.3";
+    }
+
+    leaf retransmit-interval {
+      type uint16 {
+         range "1..65535";
+         /* IETF max was 3000 */
+      }
+      units seconds;
+      description
+        "Interval between retransmitting unacknowledged Link
+         State Advertisements (LSAs) (seconds). This should
+         be well over the round-trip transmit delay for
+         any two routers on the network. A sample value
+         would be 5 seconds.";
+       reference "RFC 2328: OSPF Version 2, Appendix C.3";
+    }
+
+    leaf transmit-delay {
+      type uint16 {
+        range "1..65535";
+      }
+      units seconds;
+      description
+        "Estimated time needed to transmit Link State Update
+         (LSU) packets on the interface (seconds). LSAs have
+         their age incremented by this amount when advertised
+         on the interface. A sample value would be 1 second.";
+       reference "RFC 2328: OSPF Version 2, Appendix C.3";
+    }
+
+    uses authentication-group;
+  }
+  
+  grouping virtual-link-group {
+    container virtual-links {
+      list virtual-link {
+        key "transit-area-id router-id";
         description
-          "Router ID of the remote ABR.";
-      }
-
-      leaf area-id {
-        mandatory true;
-        type ospf-area-id;
-      }
-
-      uses authentication-group;
-
-      container timers {
+          "Virtual link parameters.";
+        
+        leaf transit-area-id {
+          type leafref {
+            path "../../../../area/area-id";
+          }
+          must "derived-from-or-self("
+            + "../../../../area[area-id=current()]/area-type, 'normal-area')"
+            + " and "
+            + "../../../../area[area-id=current()]/area-id != '0.0.0.0'" {
+            error-message "Virtual link transit area must be non-zero.";
+            description "Virtual-link transit area must be non-zero area.";
+          }
+        }
+        
+        leaf router-id {
+          type inet:ipv4-address;
+          description
+            "Router ID of the remote ABR.";
+        }
+        
         leaf dead-interval {
           type uint16;
-          units "sec";
-          description
-            "Interval time after which a neighbor is declared down.";
-        }
-
-        leaf hello-interval {
-          type uint16 {
-            range "1..65535";
+          units seconds;
+          must "../dead-interval > ../hello-interval" {
+            error-message "The dead interval must be "
+              + "larger than the hello interval";
+            description
+              "The value must be greater than the 'hello-interval'.";
           }
-          units "sec";
           description
-            "Time between HELLO packets.";
+            "Interval after which a neighbor is declared down
+         (seconds) if hello packets are not received. It is
+         typically 3 or 4 times the hello-interval. A typical
+         value for LAN networks is 40 seconds.";
+          reference "RFC 2328: OSPF Version 2, Appendix C.3";
         }
-
-        leaf retransmit-interval {
-          type uint16 {
-            range "1..65535";
-          }
-          units "sec";
-          description
-            "Time between retransmitting lost link state advertisements.";
+        
+        uses interface-common-attributes;
+        
+        container state {
+          description "Operational state of all virtual links";
+          config false;
+          uses virtual-link-state;
         }
-
-        leaf transmit-delay {
-          type uint16 {
-            range "1..65535";
-          }
-          units "sec";
-          description
-            "Link state transmit delay.";
-        }
-      }
-
-      container state {
-        description "Operational state of all virtual links";
-        config false;
-        uses virtual-link-state;
       }
     }
   }
@@ -2376,18 +2438,8 @@ module frr-ospfd {
           presence "Enable authentication.";
           description "Enable authentication in this area.";
           leaf type {
-            type enumeration {
-              enum null {
-                description "Use null authentication.";
-              }
-              enum simple {
-                description "Use simple authentication.";
-              }
-              enum cryptographic {
-                description "Use message-digest authentication.";
-              }
-            }
-            default "simple";
+            type auth-type;
+            default "null";
           }
         }
         
@@ -3317,8 +3369,6 @@ module frr-ospfd {
         "OSPF area ID.";
     }
 
-    uses authentication-group;
-
     leaf cost {
       type uint16 {
         range "1..65535";
@@ -3344,33 +3394,8 @@ module frr-ospfd {
       }
     }
 
-    leaf hello-interval {
-      type uint16 {
-        range "1..65535";
-      }
-      units "sec";
-      description
-        "Time between HELLO packets.";
-    }
-
-    leaf retransmit-interval {
-      type uint16 {
-        range "1..65535";
-      }
-      units "sec";
-      description
-        "Time between retransmitting lost link state advertisements.";
-    }
-
-    leaf transmit-delay {
-      type uint16 {
-        range "1..65535";
-      }
-      units "sec";
-      description
-        "Link state transmit delay.";
-    }
-
+    uses interface-common-attributes;
+    
     leaf mtu-ignore {
       type boolean;
       description
