@@ -483,6 +483,32 @@ module frr-ospfd {
     description
       "PCE capabilitites";
   }
+
+  identity area-type {
+    description "Base identity for OSPF area type.";
+  }
+
+  identity normal-area {
+    base area-type;
+    description "OSPF normal area.";
+  }
+
+  identity stub-nssa-area {
+    base area-type;
+    description "OSPF stub or NSSA area.";
+  }
+
+  identity stub-area {
+    base stub-nssa-area;
+    description "OSPF stub area.";
+  }
+
+  identity nssa-area {
+    base stub-nssa-area;
+    description "OSPF Not-So-Stubby Area (NSSA).";
+    reference "RFC 3101: The OSPF Not-So-Stubby Area
+               (NSSA) Option";
+  }
   
   identity ospf-lsa-type {
     description
@@ -2172,39 +2198,6 @@ module frr-ospfd {
    * ----------------------------
    */
 
-  grouping nssa-grouping {
-    container nssa {
-      presence "Present if the nssa is enabled";
-      leaf no-summary {
-        type boolean;
-        default "false";
-        description
-          "Do not inject inter-area routes into nssa";
-      }
-
-      leaf translate-always {
-        type boolean;
-        default "false";
-        description
-          "NSSA-ABR to always translate";
-      }
-
-      leaf translate-candidate {
-        type boolean;
-        default "false";
-        description
-          "NSSA-ABR for translate election";
-      }
-
-      leaf translate-never {
-        type boolean;
-        default "false";
-        description
-          "NSSA-ABR to never translate";
-      }
-    }
-  }
-
   grouping range-grouping {
     container ranges {
       list range {
@@ -2219,21 +2212,13 @@ module frr-ospfd {
 
         leaf advertise {
           type boolean;
+          default "true";
           description
             "Advertise this range";
         }
 
-        leaf not-advertise {
-          type boolean;
-          default "false";
-          description
-            "Do not advertise this range";
-        }
-
         leaf cost {
-          type uint32 {
-            range "0..16777215";
-          }
+          type ospf-metric;
           description
             "Metric for this range";
         }
@@ -2247,38 +2232,22 @@ module frr-ospfd {
     }
   }
 
-  grouping stub-grouping {
-    container stub {
-      presence "Present when area is stub";
-      leaf no-summary {
-        type boolean;
-        default "false";
-        description
-          "Do not inject inter-area routes into stub";
-      }
-    }
-  }
-
   grouping shortcut-grouping {
     container shortcut {
-      leaf default {
-        type boolean;
-        default "false";
-        description
-          "Default shortcutting behavior";
+      leaf configuration {
+        type enumeration {
+          enum default {
+            description "Default shortcutting behavior";
+          }
+          enum disable {
+            description "Disable shortcutting through the area";
+          }
+          enum enable {
+            description "Enable shortcutting through the area";
+          }
+        }
       }
-
-      leaf disable {
-        type boolean;
-        description
-          "Disable shortcutting through the area";
-      }
-
-      leaf enable {
-        type boolean;
-        description
-          "Enable shortcutting through the area";
-      }
+      description "Shortcut configuration.";
     }
   }
 
@@ -2394,23 +2363,83 @@ module frr-ospfd {
           type ospf-area-id;
         }
 
-        container authentication {
-          presence "Enable authentication";
-          leaf message-digest {
-            type boolean;
-            description
-              "Use message-digest authentication";
+        leaf area-type {
+          type identityref {
+            base area-type;
           }
+          default normal-area;
+          description
+            "Area type.";
+        }
+        
+        container authentication {
+          presence "Enable authentication.";
+          description "Enable authentication in this area.";
+          leaf type {
+            type enumeration {
+              enum null {
+                description "Use null authentication.";
+              }
+              enum simple {
+                description "Use simple authentication.";
+              }
+              enum cryptographic {
+                description "Use message-digest authentication.";
+              }
+            }
+            default "simple";
+          }
+        }
+        
+        leaf summary {
+          when "derived-from(../area-type,'stub-nssa-area')" {
+            description
+              "Summary advertisement into the stub/NSSA area.";
+          }
+          type boolean;
+          description
+            "Enable/Disable summary advertisement into the stub or NSSA area.";
         }
 
         leaf default-cost {
-          type uint32 {
-            range "0..16777215";
+          when "derived-from(../area-type,'stub-nssa-area')" {
+            description
+              "Cost for LSA default route advertised into the
+               stub or NSSA area.";
           }
+          type ospf-metric;
           description
-            "Advertised default summary cost";
+            "Set the summary default route cost for a stub or NSSA area.";
         }
 
+        container nssa {
+          when "derived-from-or-self(../area-type,'nssa-area')" {
+            description
+              "NSSA only config parameters.";
+          }
+          leaf translate {
+            type enumeration {
+              enum never {
+                description "NSSA-ABR to never translate.";
+              }
+              enum candidate {
+                description "NSSA-ABR for translate election.";
+              }
+              enum always {
+                description "NSSA-ABR to always translate.";
+              }
+            }
+            default candidate;
+            description
+              "NSSA translator role.";
+          }
+          leaf suppress-fa {
+            type boolean;
+            description
+              "Suppress forwarding address.";
+          }
+        }
+        
         leaf export-list {
           type access-list-ref;
           description
@@ -2420,30 +2449,28 @@ module frr-ospfd {
         leaf import-list {
           type access-list-ref;
           description
-            "Filter for networks from other areas announced to the specified one.";
+            "Filter for networks from other areas announced to the specified 
+             one.";
         }
 
         container filter-list {
-          leaf prefix {
-            type plist-ref;
-            description
-              "Filter networks between OSPF areas.";
+          container in {
+            leaf prefix {
+              type plist-ref;
+              description
+                "Filter networks being advertised by other OSPF areas.";
+            }
           }
-
-          leaf in {
-            type boolean;
-          }
-
-          leaf out {
-            type boolean;
+          container out {
+            leaf prefix {
+              type plist-ref;
+              description
+                "Filter networks being advertised by this OSPF area.";
+            }
           }
         }
 
-        uses nssa-grouping;
-
         uses range-grouping;
-
-        uses stub-grouping;
 
         uses shortcut-grouping;
 
