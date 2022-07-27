@@ -1219,7 +1219,7 @@ module frr-ospfd {
   
   grouping pced-tlv {
     // frr specific model
-    
+    description "PCE Discovery TLV.";
     leaf pce-address {
       type inet:ipv4-address;
       description
@@ -1244,23 +1244,25 @@ module frr-ospfd {
         "Type 3 subTLV. PCE domain type and ID.";
     }
 
-    container neighbor {
-      leaf type {
-        type pce-domain-type;
-      }
-      leaf id {
-        type uint32;
-        description
-          "PCE domain ID. Either an Area ID or As depending on domain-type";
+    container neighbors {
+      list neighbor {
+        leaf type {
+          type pce-domain-type;
+        }
+        leaf id {
+          type uint32;
+          description
+            "PCE domain ID. Either an Area ID or As depending on domain-type";
+        }
       }
       description
-        "Type 4 subTLV. Neighbor's PCE domain type and ID.";
+        "Type 4 subTLV. List of Neighbor's PCE domain types and IDs.";
     }
     
     leaf capabilities {
       type pce-capabilitites;
       description
-        "Type 5 subTlv. Indicates a list of PCE capability flags.";
+        "Type 5 subTLV. Indicates a list of PCE capability flags.";
     }
   }
 
@@ -1320,6 +1322,44 @@ module frr-ospfd {
     
   }
 
+  grouping grace-lsa-opaque {
+    // frr specific model
+    /* XXX TLVS should have link-local scope only */
+    container grace-lsa-opaque {
+      description "OSPFv2 Graceful Restart opaque LSA.";
+      reference "RFC 3623: Graceful OSPF Restart Appendex-A";
+      container grace-period-tlv {
+        description "Type 1 tlv.";
+        leaf grace-period {
+          type uint32;
+          mandatory true;
+          description
+            "The number of seconds that a neighbor should be advertised as
+             fully adjacent despite the state of database synchronization.";
+        }
+      }
+      container restart-reason-tlv {
+        description "Type 2 tlv.";
+        leaf restart-reason {
+          type gr-restart-reason;
+          mandatory true;
+          description
+            "The graceful restart reason.";
+        }
+      }
+      container if-address-tlv {
+        description "Type 3 tlv.";
+        leaf if-address {
+          type inet:ipv4-address;
+          /* XXX Set up condition for mandatory true? */
+          description
+            "IP address of subnet associated with grace-LSA. Required on all
+             but point-to-point segments.";
+        }
+      }
+    }
+  }
+  
   grouping sid-sub-tlv {
     description "SID/Label sub-TLV grouping.";
     container sid-sub-tlv {
@@ -1909,6 +1949,8 @@ module frr-ospfd {
         }
       }
 
+      uses grace-lsa-opaque;
+      
       container extended-prefix-opaque {
         description "All extended prefix TLVs in the LSA.";
         list extended-prefix-tlv {
@@ -1971,6 +2013,13 @@ module frr-ospfd {
             uses maximum-sid-depth-tlv;
           }
           uses adj-sid-sub-tlvs;
+          leaf remote-if-address {
+            // frr specific model
+            type inet:ipv4-address;
+            description
+              "Type 32768 subTLV for experimental Cisco use. Remote interface
+               Address";
+          }
           uses unknown-tlvs;
         }
       }
@@ -3220,6 +3269,8 @@ module frr-ospfd {
           description
             "Out route type from Zebra.";
         }
+        description
+          "Distribute List for Zebra";
       }
     }
   }
