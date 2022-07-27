@@ -233,7 +233,7 @@ module frr-ospfd {
     base ospfv3-lsa-option;
     description
       "AF bit, when set, the router supports OSPFv3 Address
-       Families as in RFC5838.";
+       Families as in RFC 5838.";
   }
 
   identity dc-bit {
@@ -2556,7 +2556,7 @@ module frr-ospfd {
       when "derived-from-or-self(../../header/type, "
          + "'ospfv3-router-information-lsa')" {
         description
-          "Only applies to Router Information LSAs (RFC7770).";
+          "Only applies to Router Information LSAs (RFC 7770).";
       }
       description
         "Router Information LSA.";
@@ -3195,7 +3195,7 @@ module frr-ospfd {
         enum standard {
           value 4;
           description
-            "Standard behavior (RFC2328).";
+            "Standard behavior (RFC 2328).";
         }
       }
     }
@@ -3557,7 +3557,7 @@ module frr-ospfd {
           type uint16 {
             range "0..10000";
           }
-          units "sec";
+          units "seconds";
           description
             "LDP Holddown timer";
         }
@@ -3727,7 +3727,7 @@ module frr-ospfd {
         type uint16 {
           range "10..1800";
         }
-        units "sec";
+        units "seconds";
         description
           "The maximum time between distinct originations of any particular
            LSA, value in units seconds.";
@@ -3890,7 +3890,7 @@ module frr-ospfd {
           type uint16 {
             range "1..65535";
           }
-          units "sec";
+          units "seconds";
           description
             "Dead Neighbor Polling interval.";
         }
@@ -3940,7 +3940,7 @@ module frr-ospfd {
         type uint16 {
           range "1..65535";
         }
-        units "sec";
+        units "seconds";
       }
       container minimal {
         leaf hello-multiplier {
