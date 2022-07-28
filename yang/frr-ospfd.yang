@@ -256,31 +256,31 @@ module frr-ospfd {
     type enumeration {
       enum rejected-none {
         value "0";
-	description "No reject reason.";
+        description "No reject reason.";
       }
       enum support-disabled {
         value "1";
-	description "Graceful restart is not supported.";
+        description "Graceful restart is not supported.";
       }
       enum not-a-valid-neighbour {
         value "2";
-	description "Not a valud neighbour.";
+        description "Not a valud neighbour.";
       }
       enum planned-only-restart {
         value "3";
-	description "Can only support planned graceful restarts";
+        description "Can only support planned graceful restarts";
       }
       enum topo-change-rtxmt-list {
         value "4";
-	description "Topology change in retransmit list";
+        description "Topology change in retransmit list";
       }
       enum lsa-age-more {
         value "5";
-	description "Link state advertisments are older than grace period";
+        description "Link state advertisments are older than grace period";
       }
       enum restarting {
         value "6";
-	description "Currently restarting";
+        description "Currently restarting";
       }
     }
   }
@@ -810,7 +810,7 @@ module frr-ospfd {
         type union {
           type inet:ipv4-address;
           type yang:dotted-quad;
-      	}
+        }
         description
           "Local TE Router ID.";
       }
@@ -824,7 +824,7 @@ module frr-ospfd {
       }
       description
         "Type 10 subTLVs. Local/Remote router Identifiers. If specified,
-     	 ignore link-id subTLVs and use instead.";
+         ignore link-id subTLVs and use instead.";
     }
 
     container link-local-remote-id {
@@ -947,7 +947,7 @@ module frr-ospfd {
         type identityref {
           base pce-path-scope-bit;
         }
-	description
+        description
           "List of PCE path scope flags";  
       }
       
@@ -993,7 +993,7 @@ module frr-ospfd {
       }
       leaf domain-id {
         type uint32;
-	description "PCE domain ID.";
+        description "PCE domain ID.";
       }
       description
         "Type 3 subTLV. PCE domain type and ID.";
@@ -1351,8 +1351,8 @@ module frr-ospfd {
 */
         container pced-tlv {
           uses pced-tlv;
-	  description
-	    "The PCE discovery tlv.";
+          description
+            "The PCE discovery tlv.";
         }
         uses unknown-tlvs;
       }
@@ -2913,12 +2913,12 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
           type uint16;
           description "Link scope LSA type.";
         }
-	
+        
         leaf lsa-count {
           type yang:gauge32;
           description "The number of LSAs of the LSA type.";
         }
-	
+
         leaf lsa-cksum-sum {
           type uint32;
           description
@@ -2973,7 +2973,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
       // frr specific model
       type int16;
       description
-	"The current length of the database summary list. (DBsml)";
+        "The current length of the database summary list. (DBsml)";
     }
 
     leaf nbr-uptime {
@@ -3005,7 +3005,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
 
       leaf last-progressive {
         type int64;
-	units "millisecond";
+        units "millisecond";
         description
           "Time since the last progressive NSM state change in
            milliseconds.";
@@ -3013,7 +3013,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
 
       leaf last-regressive {
         type int64;
-	units "millisecond";
+        units "millisecond";
         description
           "Time since the last regressive NSM state change in
            milliseconds.";
@@ -3116,7 +3116,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
 
       leaf restart-reason {
         type gr-restart-reason;
-	description "The reason for a graceful restart.";
+        description "The reason for a graceful restart.";
       }
 
       leaf helper-status {
@@ -3137,7 +3137,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
   }
 
   grouping interface-common-state {
-    description "Common operation state of an frr OSPF interface.";
+    description "OSPF interface common operational state.";
 
     leaf state {
       type if-state-type;
@@ -3155,7 +3155,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
       type rt-types:timer-value-seconds16;
       description
         "This timer tracks the remaining time before the interface exits
-      	 the waiting state.";
+         the waiting state.";
     }
 */
     leaf dr-router-id {
