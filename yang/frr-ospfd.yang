@@ -111,7 +111,7 @@ module frr-ospfd {
    * ----------------------------------------------
    */
 
-  typedef if-state-type {
+  typedef if-state {
     type enumeration {
       enum down {
         value "1";
@@ -153,7 +153,7 @@ module frr-ospfd {
       "OSPF interface state type.";
   }
 
-  typedef nbr-state-type {
+  typedef nbr-state {
     type enumeration {
       enum down {
         value "1";
@@ -442,27 +442,27 @@ module frr-ospfd {
     description
       "OSPFv2 LSA types";
   }
-  identity ospfv2-router-lsa-type {
+  identity ospfv2-router-lsa {
     base ospfv2-lsa-type;
     description
       "OSPFv2 Router LSA - Type 1";
   }
-  identity ospfv2-network-lsa-type {
+  identity ospfv2-network-lsa {
     base ospfv2-lsa-type;
     description
       "OSPFv2 Network LSA - Type 2";
   }
-  identity ospfv2-summary-lsa-type {
+  identity ospfv2-summary-lsa {
     base ospfv2-lsa-type;
     description
       "OSPFv2 Summary LSA types";
   }
-  identity ospfv2-external-lsa-type {
+  identity ospfv2-external-lsa {
     base ospfv2-lsa-type;
     description
       "OSPFv2 External LSA type";
   }
-  identity ospfv2-opaque-lsa-type {
+  identity ospfv2-opaque-lsa {
     base ospfv2-lsa-type;
     description
       "OSPFv2 Opaque LSA type";
@@ -991,10 +991,10 @@ module frr-ospfd {
     }
 
     container domain {
-      leaf domain-type {
+      leaf type {
         type pce-domain-type;
       }
-      leaf domain-id {
+      leaf id {
         type uint32;
         description "PCE domain ID.";
       }
@@ -1003,10 +1003,10 @@ module frr-ospfd {
     }
 
     container neighbor {
-      leaf domain-type {
+      leaf type {
         type pce-domain-type;
       }
-      leaf domain-id {
+      leaf id {
         type uint32;
         description
           "PCE domain ID. Either an Area ID or As depending on domain-type";
@@ -1014,61 +1014,6 @@ module frr-ospfd {
       description
         "Type 4 subTLV. Neighbor's PCE domain type and ID.";
     }
-
-    /*
-      
-  identity pce-capabilities-bit {
-    description
-      "Base identity for PCE capability flags.";
-  }
-  identity gmpls-link-bit {
-    base pce-capabilities-bit;
-    description
-      "0th bit. When set, means that can compute paths with GMPLS link
-       constraints.";
-  }
-  identity bidirectional-bit {
-    base pce-capabilities-bit;
-    description
-      "1st bit. When set, means that can compute bidirectional paths.";
-  }
-  identity diverse-path-bit {
-    base pce-capabilities-bit;
-    description
-      "2nd bit. When set, means that can compute diverse paths.";
-  }
-  identity load-balance-bit {
-    base pce-capabilities-bit;
-    description
-      "3rd bit. When set, means that can compute load-balanced paths.";
-  }
-  identity synchronized-bit {
-    base pce-capabilities-bit;
-    description
-      "4th bit. When set, means that can compute synchronized paths.";
-  }
-  identity objectives-bit {
-    base pce-capabilities-bit;
-    description
-      "5th bit. When set, means that can support multiple objective functons.";
-  }
-  identity additive-bit {
-    base pce-capabilities-bit;
-    description
-      "6th bit. When set, means that can support additive path constraints.";
-  }
-  identity prioritization-bit {
-    base pce-capabilities-bit;
-    description
-      "7th bit. When set, means that can support requests for prioritization.";
-  }
-  identity multiple-req-bit {
-    base pce-capabilities-bit;
-    description
-      "8th bit. When set, means that can support multiple requests per
-       message.";
-  }
-     */
     
     leaf capabilities {
       type bits {
@@ -1267,7 +1212,7 @@ module frr-ospfd {
     description "OSPFv2 LSA body.";
     container router {
       when "derived-from-or-self(../../header/type, "
-          + "'ospfv2-router-lsa-type')" {
+          + "'ospfv2-router-lsa')" {
         description
           "Only applies to Router-LSAs.";
       }
@@ -1305,7 +1250,7 @@ module frr-ospfd {
     }
     container network {
       when "derived-from-or-self(../../header/type, "
-          + "'ospfv2-network-lsa-type')" {
+          + "'ospfv2-network-lsa')" {
         description
           "Only applies to Network LSAs.";
       }
@@ -1327,7 +1272,7 @@ module frr-ospfd {
     }
     container summary {
       when "derived-from-or-self(../../header/type, "
-         + "'ospfv2-summary-lsa-type')" {
+         + "'ospfv2-summary-lsa')" {
         description
           "Only applies to Summary LSAs.";
       }
@@ -1358,7 +1303,7 @@ module frr-ospfd {
     }
     container external {
       when "derived-from-or-self(../../header/type, "
-         + "'ospfv2-external-lsa-type')" {
+         + "'ospfv2-external-lsa')" {
         description
           "Only applies to AS-external LSAs and NSSA LSAs.";
       }
@@ -1409,7 +1354,7 @@ module frr-ospfd {
     }
     container opaque {
       when "derived-from-or-self(../../header/type, "
-         + "'ospfv2-opaque-lsa-type')" {
+         + "'ospfv2-opaque-lsa')" {
         description
           "Only applies to Opaque LSAs.";
       }
@@ -1980,10 +1925,10 @@ module frr-ospfd {
          LSA instances.";
     container header {
       must "(derived-from-or-self(type, "
-         + "'ospfv2-opaque-lsa-type') and "
+         + "'ospfv2-opaque-lsa') and "
          + "opaque-id and opaque-type) or "
          + "(not(derived-from-or-self(type, "
-         + "'ospfv2-opaque-lsa-type')) "
+         + "'ospfv2-opaque-lsa')) "
          + "and not(opaque-id) and not(opaque-type))" {
         description
           "Opaque type and ID only apply to Opaque LSAs.";
@@ -4309,9 +4254,9 @@ XXX Is ospfv3 necessary? (should belong to ospf6d model?)
 
   grouping interface-common-state {
     description "OSPF interface common operational state.";
-
+    
     leaf state {
-      type if-state-type;
+      type if-state;
       description "Interface state.";
     }
 
