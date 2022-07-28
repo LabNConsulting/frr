@@ -3180,6 +3180,64 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
     uses frr-interface-stat;
   }
 
+  grouping frr-neighbor-stat {
+    // frr specific model
+    description "Additional frr Per-neighbor statistics.";
+
+    leaf nbr-request-qlen {
+      // frr specific model
+      type yang:gauge32;
+     description
+        "The current length of the LSA request queue. (Rqstl)";
+    }
+    leaf nbr-summary-len {
+      // frr specific model
+      type int16;
+      description
+        "The current length of the database summary list. (DBsml)";
+    }
+    leaf nbr-uptime {
+      // frr specific model
+      type int64;
+      units "MSec";
+      description
+        "The uptime of the neighbor over this interface in MSec.";
+    }
+    leaf nbr-downtime {
+      // frr specific model
+      type int64;
+      units "MSec";
+      description
+        "The downtime of the neighbor over this interface in MSec.";
+    }
+    
+    container nsm {
+      // frr specific model
+      description
+        "Neighbor state machine related statistics.";
+
+      leaf state-changes {
+        type uint32;
+        description
+          "The number of NSM state changes that have occured.";
+      }
+      leaf last-progressive {
+        type int64;
+        units "millisecond";
+        description
+          "Time since the last progressive NSM state change in
+           milliseconds.";
+      }
+      leaf last-regressive {
+        type int64;
+        units "millisecond";
+        description
+          "Time since the last regressive NSM state change in
+           milliseconds.";
+      }
+    }
+  }
+
   grouping neighbor-stat {
     description "Per-neighbor statistics.";
 /*
@@ -3208,61 +3266,92 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
         "The current length of the LSA retransmission queue. (RXmtl)";
     }
 
-    leaf nbr-request-qlen {
-      // frr specific model
-      type yang:gauge32;
-      description
-        "The current length of the LSA request queue. (Rqstl)";
+    uses frr-neighbor-stat;
+  }
+
+  grouping frr-neighbor-state {
+    //frr specific model
+    description "Additional information frr uses to keep track of OSPF's
+      neighbor operational state.";
+      
+    container threads {
+      // frr specific model, see ospf_neighbor in ospf_neighbor.h 
+      description "Status of frr-required neighbor threads.";
+      
+      container inactivity {
+        presence "Present when inactivity timer thread is running";
+        leaf timer {
+          type int64;
+          units "millisecond";
+          description "The remaining time an inactive neighbor has before they
+            are declared dead.";
+        }
+      }
+      container db-desc-retransmission {
+        presence
+          "Present when the database retransmission timer thread is running.";
+        leaf timer {
+          type int64;
+          units "milliseconds";
+          description
+            "Database description retranmission timer in milliseconds";
+        }
+      }
+      container ls-request-retransmission {
+        presence
+          "Present when the LS request retransmission timer thread is running.";
+        leaf timer {
+          type int64;
+          units "milliseconds";
+          description "LS request retransmission timer in milliseconds.";
+        }
+      }
+      container ls-update-retransmission {
+        presence
+          "Present when the LS update retranmission timer thread is running.";
+        leaf timer {
+          type int64;
+          units "milliseconds";
+          description "LS update retransmission timer in milliseconds.";
+        }
+      }
+      container hello-reply {
+        // XXX This thread was found in ospf_neighbor.h but didn't appear from
+        // clicmd: 'show ip ospf neighbor detail json'
+        presence
+          "Present when the hello reply timer thread is running.";
+        leaf timer {
+          type int64;
+          units "milliseconds";
+          description "Time left for a neighbor to respond to a hello request, as
+            measured by the hello reply thread.";
+        }
+      }
     }
 
-    leaf nbr-summary-len {
-      // frr specific model
-      type int16;
-      description
-        "The current length of the database summary list. (DBsml)";
-    }
+    container graceful-restart-helper {
+      // frr specific model, see ospf_helper_info in ospf_gr.h
+      description "Status of graceful restart helper";
 
-    leaf nbr-uptime {
-      // frr specific model
-      type int64;
-      units "MSec";
-      description
-        "The uptime of the neighbor over this interface in MSec.";
-    }
-
-    leaf nbr-downtime {
-      // frr specific model
-      type int64;
-      units "MSec";
-      description
-        "The downtime of the neighbor over this interface in MSec.";
-    }
-
-    container nsm {
-      // frr specific model
-      description
-        "Neighbor state machine related statistics.";
-
-      leaf state-changes {
+      leaf grace-period {
         type uint32;
-        description
-          "The number of NSM state changes that have occured.";
+        description "The grace interval for this gr helper.";
       }
-
-      leaf last-progressive {
-        type int64;
-        units "millisecond";
-        description
-          "Time since the last progressive NSM state change in
-           milliseconds.";
+      leaf restart-reason {
+        type gr-restart-reason;
+        description "The reason for a graceful restart.";
       }
-
-      leaf last-regressive {
-        type int64;
-        units "millisecond";
-        description
-          "Time since the last regressive NSM state change in
-           milliseconds.";
+      leaf helper-status {
+        type uint32;
+        description "The gr helper's status.";
+      }
+      leaf helper-exit-reason {
+        type gr-exit-reason;
+        description "The reason for a gr helper exiting.";
+      }
+      leaf helper-rejected-reason {
+        type gr-reject-reason;
+        description "The reason a gr helper was rejected.";
       }
     }
   }
@@ -3274,27 +3363,22 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
       type inet:ipv4-address;
       description "Neighbor address.";
     }
-
     leaf dr-router-id {
       type rt-types:router-id;
       description "Neighbor's Designated Router (DR) Router ID.";
     }
-
     leaf dr-ip-addr {
       type inet:ipv4-address;
       description "Neighbor's Designated Router (DR) IP address.";
     }
-
     leaf bdr-router-id {
       type rt-types:router-id;
       description "Neighbor's Backup Designated Router (BDR) Router ID.";
     }
-
     leaf bdr-ip-addr {
       type inet:ipv4-address;
       description "Neighbor's Backup Designated Router (BDR) IP Address.";
     }
-
     leaf state {
       type nbr-state-type;
       description
@@ -3322,76 +3406,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
       uses neighbor-stat;
     }
 
-    container threads {
-      // frr specific model, see ospf_neighbor in ospf_neighbor.h 
-      description "Status of frr-required neighbor threads.";
-      leaf inactivity-timer {
-        type int64;
-        units "millisecond";
-        description "The remaining time an inactive neighbor has before they
-          are declared dead. This is tracked by this inactivity timer thread";
-      }
-
-      leaf db-desc-retransmission {
-        type int64;
-        units "milliseconds";
-        description "Database description retranmission timer in milliseconds,
-          as measured by the database retransmission thread.";
-      }
-
-      leaf ls-request-retransmission {
-        type int64;
-        units "milliseconds";
-        description "LS request retransmission timer in milliseconds, as
-          measured by the link state request retransmission thread.";
-      }
-
-      leaf ls-update-retransmission {
-        type int64;
-        units "milliseconds";
-        description "LS update retransmission timer in milliseconds, as
-          measured by the link state update retransmission thread.";
-      }
-
-      leaf hello-reply {
-        // XXX This thread was found in ospf_neighbor.h but didn't appear from
-        // clicmd: 'show ip ospf neighbor detail json'
-        type int64;
-        units "milliseconds";
-        description "Time left for a neighbor to respond to a hello request, as
-          measured by the hello reply thread.";
-      }
-    }
-
-    container graceful-restart-helper {
-      // frr specific model, see ospf_helper_info in ospf_gr.h
-      description "Status of graceful restart helper";
-
-      leaf grace-period {
-        type uint32;
-        description "The grace interval for this gr helper.";
-      }
-
-      leaf restart-reason {
-        type gr-restart-reason;
-        description "The reason for a graceful restart.";
-      }
-
-      leaf helper-status {
-        type uint32;
-        description "The gr helper's status.";
-      }
-
-      leaf helper-exit-reason {
-        type gr-exit-reason;
-        description "The reason for a gr helper exiting.";
-      }
-
-      leaf helper-rejected-reason {
-        type gr-reject-reason;
-        description "The reason a gr helper was rejected.";
-      }
-    }
+    uses frr-neighbor-state;
   }
 
   grouping frr-interface-common-state {
