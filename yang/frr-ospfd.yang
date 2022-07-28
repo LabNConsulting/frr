@@ -930,7 +930,7 @@ module frr-ospfd {
       type uint32 {
         range "0..16777215";
       }
-      units "Microsecond";
+      units "usec";
       description
         "Type 27 subTLVs. Delay in Microseconds.";
     }
@@ -940,7 +940,7 @@ module frr-ospfd {
         type uint32 {
           range "0..16777215";
         }
-        units "Microsecond";
+        units "usec";
         description
           "Minimum delay in Microseconds";
       }
@@ -948,7 +948,7 @@ module frr-ospfd {
         type uint32 {
           range "0..16777215";
         }
-        units "Microsecond";
+        units "usec";
         description
           "Maximum delay in Microseconds.";
       }
@@ -960,7 +960,7 @@ module frr-ospfd {
       type uint32 {
         range "0..16777215";
       }
-      units "Microsecond";
+      units "usec";
       description
         "Type 29 subTLVs. Link delay variation in Microseconds.";
     }
@@ -2292,7 +2292,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
       container timers {
         leaf dead-interval {
           type uint16;
-          units "seconds";
+          units "sec";
           description
             "Interval time after which a neighbor is declared down.";
         }
@@ -2301,7 +2301,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
           type uint16 {
             range "1..65535";
           }
-          units "seconds";
+          units "sec";
           description
             "Time between HELLO packets.";
         }
@@ -2310,7 +2310,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
           type uint16 {
             range "1..65535";
           }
-          units "seconds";
+          units "sec";
           description
             "Time between retransmitting lost link state advertisements.";
         }
@@ -2319,7 +2319,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
           type uint16 {
             range "1..65535";
           }
-          units "seconds";
+          units "sec";
           description
             "Link state transmit delay.";
         }
@@ -2412,7 +2412,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
       type uint32 {
         range "1..4294967";
       }
-      units "Mbits";
+      units "Mbits/Sec";
       description
         "The reference bandwidth in terms of Mbits per second.";
     }
@@ -2711,7 +2711,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
         type uint16 {
           range "10..1800";
         }
-        units "seconds";
+        units "sec";
         description
           "The maximum time between distinct originations of any particular
            LSA, value in units seconds.";
@@ -2721,7 +2721,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
         type uint32 {
           range "0..600000";
         }
-        units "milliseconds";
+        units "msec";
         description
           "Minimum delay in receiving new version of an LSA.";
       }
@@ -2731,7 +2731,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
           type uint16 {
             range "0..5000";
           }
-          units "milliseconds";
+          units "msec";
           description
             "LSA delay between transmissions.";
         }
@@ -2740,7 +2740,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
           type uint32 {
             range "0..600000";
           }
-          units "milliseconds";
+          units "msec";
           description
             "Delay from first change received till SPF calculation.";
         }
@@ -2865,7 +2865,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
         type uint16 {
           range "1..65535";
         }
-        units "seconds";
+        units "sec";
         description
           "Dead Neighbor Polling interval.";
       }
@@ -2928,7 +2928,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
         type uint16 {
           range "1..65535";
         }
-        units "seconds";
+        units "sec";
       }
 
       container minimal {
@@ -2944,7 +2944,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
       type uint16 {
         range "1..65535";
       }
-      units "seconds";
+      units "sec";
       description
         "Time between HELLO packets.";
     }
@@ -2953,7 +2953,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
       type uint16 {
         range "1..65535";
       }
-      units "seconds";
+      units "sec";
       description
         "Time between retransmitting lost link state advertisements.";
     }
@@ -2962,7 +2962,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
       type uint16 {
         range "1..65535";
       }
-      units "seconds";
+      units "sec";
       description
         "Link state transmit delay.";
     }
@@ -3547,7 +3547,6 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
     description "Additional Per-area statistics kept track of in frr.";
 
     leaf spf-timestamp {
-      // XXX yang:timestamp isn't logically equivalent to C's timeval struct
       type yang:timestamp;
       description "Timestamp of last spf calculations.";
     }
@@ -3667,13 +3666,18 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
         presence "Present if the stub-router thread is running.";
         leaf timer {
           type int64;
-          units "millisecond";
-          description "XXX.";
+          units "usec";
+          description "Stub routers timer thread.";
         }
       }
       container opaque-lsa-self {
         presence
           "Present if type-10 opaque LSAs origin thread is running";
+        leaf timer {
+          type int64;
+          units "usec";
+          description "Timer for type-10 opaque-LSA origination.";
+        }
       }
     }
     
@@ -3849,16 +3853,16 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
     leaf nbr-uptime {
       // frr specific model
       type int64;
-      units "MSec";
+      units "usec";
       description
-        "The uptime of the neighbor over this interface in MSec.";
+        "The uptime of the neighbor over this interface in microseconds.";
     }
     leaf nbr-downtime {
       // frr specific model
       type int64;
-      units "MSec";
+      units "usec";
       description
-        "The downtime of the neighbor over this interface in MSec.";
+        "The downtime of the neighbor over this interface in microseconds.";
     }
     
     container nsm {
@@ -3873,17 +3877,17 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
       }
       leaf last-progressive {
         type int64;
-        units "millisecond";
+        units "msec";
         description
           "Time since the last progressive NSM state change in
            milliseconds.";
       }
       leaf last-regressive {
         type int64;
-        units "millisecond";
+        units "usec";
         description
           "Time since the last regressive NSM state change in
-           milliseconds.";
+           microseconds.";
       }
     }
   }
@@ -3932,7 +3936,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
         presence "Present when inactivity timer thread is running";
         leaf timer {
           type int64;
-          units "millisecond";
+          units "usec";
           description "The remaining time an inactive neighbor has before they
             are declared dead.";
         }
@@ -3942,9 +3946,9 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
           "Present when the database retransmission timer thread is running.";
         leaf timer {
           type int64;
-          units "milliseconds";
+          units "usec";
           description
-            "Database description retranmission timer in milliseconds";
+            "Database description retranmission timer in microseconds";
         }
       }
       container ls-request-retransmission {
@@ -3952,8 +3956,8 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
           "Present when the LS request retransmission timer thread is running.";
         leaf timer {
           type int64;
-          units "milliseconds";
-          description "LS request retransmission timer in milliseconds.";
+          units "usec";
+          description "LS request retransmission timer in microseconds.";
         }
       }
       container ls-update-retransmission {
@@ -3961,8 +3965,8 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
           "Present when the LS update retranmission timer thread is running.";
         leaf timer {
           type int64;
-          units "milliseconds";
-          description "LS update retransmission timer in milliseconds.";
+          units "usec";
+          description "LS update retransmission timer in microseconds.";
         }
       }
       container hello-reply {
@@ -3972,7 +3976,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
           "Present when the hello reply timer thread is running.";
         leaf timer {
           type int64;
-          units "milliseconds";
+          units "usec";
           description "Time left for a neighbor to respond to a hello request, as
             measured by the hello reply thread.";
         }
@@ -4089,24 +4093,24 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
         presence "Present if the hello thread is running.";
         leaf timer {
           type int64;
-          units "millisecond";
-          description "Time left until next hello in milliseconds.";
+          units "usec";
+          description "Time left until next hello in microseconds.";
         }
       }
       container wait {
         presence "Present if the wait thread is running.";
         leaf timer {
           type int64;
-          units "millisecond";
-          description "Time left in the wait timer thread in milliseconds.";
+          units "usec";
+          description "Time left in the wait timer thread in microseconds.";
         }
       }
       container ls-ack {
         presence "Present if the ls-ack thread is running.";
         leaf timer {
           type int64;
-          units "millisecond";
-          description "Time left in the LS ack timer thread in milliseconds.";
+          units "usec";
+          description "Time left in the LS ack timer thread in microseconds.";
         }
       }
       container ls-ack-direct {
@@ -4117,6 +4121,11 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
       }
       container opaque-lsa-self {
         presence "Present if the type-9 opaque-LSAs origin thread is running.";
+        leaf timer {
+          type int64;
+          units "usec";
+          description "Timer for typ 9 opaque-LSA origination.";
+        }
       }
     }
   }
