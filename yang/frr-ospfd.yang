@@ -1377,6 +1377,8 @@ module frr-ospfd {
   
   grouping sr-algorithm-tlv {
     description "SR algorithm TLV grouping.";
+    reference
+      "draft-ietf-ospf-sr-yang-18: YANG Data Model for OSPF Segment Routing";
     container sr-algorithm-tlv {
       description "All SR algorithm (type 8) TLVs.";
       leaf-list sr-algorithm {
@@ -1390,6 +1392,8 @@ module frr-ospfd {
 
   grouping sid-range-tlvs {
     description "SID Range TLV grouping.";
+    reference
+      "draft-ietf-ospf-sr-yang-18: YANG Data Model for OSPF Segment Routing";
     container sid-range-tlvs {
       description "List of SID range (type 9) TLVs. Also known as SRGB TLV";
       list sid-range-tlv {
@@ -1406,8 +1410,11 @@ module frr-ospfd {
   }
 
   grouping local-block-tlvs {
-    description "The SR local block TLV contains the
-                 range of labels reserved for local SIDs.";
+    description
+      "The SR local block TLV contains the range of labels reserved for local
+       SIDs.";
+    reference
+      "draft-ietf-ospf-sr-yang-18: YANG Data Model for OSPF Segment Routing";
     container local-block-tlvs {
       description "List of SRLB (type 14) TLVs.";
       list local-block-tlv {
@@ -1425,9 +1432,9 @@ module frr-ospfd {
 
   grouping node-msd-tlv {
     // frr specific model
-    description "The Node/MSD TLV as defined in RFC 8476";
+    description "The Node/MSD TLV";
+    reference "RFC 8476: Signaling Maximum SID Depth (MSD) Using OSPF";
     container node-msd-tlvs {
-      /* XXX Is type 6 for ospfv2 as per RFC 8476 */
       description "List of pairs of MDS (type 12) TLVs.";
       list node-msd-tlv {
         description "MSD TLV.";
@@ -1446,7 +1453,8 @@ module frr-ospfd {
 
   grouping extended-prefix-range-tlvs {
     description "Extended prefix range (type 2) TLV grouping.";
-
+    reference
+      "draft-ietf-ospf-sr-yang-18: YANG Data Model for OSPF Segment Routing";
     container extended-prefix-range-tlvs {
       description "The list of range of prefixes.";
       list extended-prefix-range-tlv {
@@ -1485,6 +1493,8 @@ module frr-ospfd {
 
   grouping prefix-sid-sub-tlvs {
     description "Prefix Segment ID (SID, type 2) sub-TLVs.";
+    reference
+      "draft-ietf-ospf-sr-yang-18: YANG Data Model for OSPF Segment Routing";
     container prefix-sid-sub-tlvs{
       description "Prefix SID sub-TLV.";
       list prefix-sid-sub-tlv {
@@ -1517,6 +1527,10 @@ module frr-ospfd {
   }
 
   grouping adj-sid-sub-tlvs {
+    description
+      "(Lan) Adjacency SID subTLVs'.";
+    reference
+      "draft-ietf-ospf-sr-yang-18: YANG Data Model for OSPF Segment Routing";
     container adj-sid-sub-tlvs {
       description "Adjacency SID (type 2) optional sub-TLVs.";
       list adj-sid-sub-tlv {
@@ -5424,12 +5438,13 @@ module frr-ospfd {
       leaf interface-name {
         type frr-interface:interface-ref;
         description
-          "Interface name identifying a specific instance of OSPF on an interface.
+          "Interface name identifying a specific instance of OSPF on an
+           interface.
            This leaf is optional for the rpc.
-           If it is specified, the rpc will clear only the specific interface in
-           some set of OSPf instances.
-           If it is not specified, the rpc will clear all interfaces in some set
-           of OSPF instances.";
+           If it is specified, the rpc will clear only the specific interface
+           in some set of OSPf instances.
+           If it is not specified, the rpc will clear all interfaces in some
+           set of OSPF instances.";
       }
     }
   }
@@ -5452,8 +5467,8 @@ module frr-ospfd {
         description
           "The routing ID identifying a specific neighbor.
            This leaf is optional for the rpc.
-           If it is specified, the rpc will clear only the specified neighbor in
-           some set of OSPf instances.
+           If it is specified, the rpc will clear only the specified neighbor
+           in some set of OSPf instances.
            If it is not specified, the rpc will clear all neighbors in some set
            of OSPF instances.";
       }
