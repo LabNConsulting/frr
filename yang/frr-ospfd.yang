@@ -198,6 +198,7 @@ module frr-ospfd {
   }
 
   typedef gr-restart-reason {
+    // frr specific model, see ospf_gr.h
     type enumeration {
       enum unknown-restart {
         value "0";
@@ -223,6 +224,7 @@ module frr-ospfd {
   }
 
   typedef gr-exit-reason {
+    // frr specific model, see ospf_gr.h
     type enumeration {
       enum exit-none {
         value "0";
@@ -248,6 +250,7 @@ module frr-ospfd {
   }
 
   typedef gr-reject-reason {
+    // frr specific model, see ospf_gr.h
     type enumeration {
       enum rejected-none {
         value "0";
@@ -267,11 +270,11 @@ module frr-ospfd {
       }
       enum topo-change-rtxmt-list {
         value "4";
-	description "...";
+	description "Topology change in retransmit list";
       }
       enum lsa-age-more {
         value "5";
-	description "Link state advertisments must age more";
+	description "Link state advertisments are older than grace period";
       }
       enum restarting {
         value "6";
@@ -279,6 +282,16 @@ module frr-ospfd {
       }
     }
   }
+
+  /*
+   * Link State Database (LSD) Operational State
+   */
+
+  
+
+  /*
+   * End of LSD Operational State
+   */
 
   grouping nssa-grouping {
     container nssa {
@@ -1223,18 +1236,21 @@ module frr-ospfd {
     }
 
     leaf nbr-request-qlen {
+      // frr specific model
       type yang:gauge32;
       description
         "The current length of the LSA request queue. (Rqstl)";
     }
 
     leaf nbr-summary-len {
+      // frr specific model
       type int16;
       description
 	"The current length of the database summary list. (DBsml)";
     }
 
     leaf nbr-uptime {
+      // frr specific model
       type int64;
       units "MSec";
       description
@@ -1242,6 +1258,7 @@ module frr-ospfd {
     }
 
     leaf nbr-downtime {
+      // frr specific model
       type int64;
       units "MSec";
       description
@@ -1249,6 +1266,10 @@ module frr-ospfd {
     }
 
     container nsm {
+      // frr specific model
+      description
+        "Neighbor state machine related statistics.";
+
       leaf state-changes {
         type uint32;
         description
@@ -1306,12 +1327,11 @@ module frr-ospfd {
     }
 /*
     leaf cost {
+      // XXX check if present in OSPF model
       type ospf-link-metric;
       description "Cost to reach neighbor for Point-to-Multipoint and Hybrid
                    networkd.";
     }
-// Note: cost doesn't even show up in the ietf ospf model tree, even though it
-//   is in the yang code/script.
 */
     leaf dead-timer {
       type rt-types:timer-value-seconds16;
@@ -1325,6 +1345,7 @@ module frr-ospfd {
     }
 
     container threads {
+      // frr specific model, see ospf_neighbor in ospf_neighbor.h 
       description "Status of frr-required threads.";
       leaf inactivity-timer {
         type boolean;
@@ -1346,17 +1367,16 @@ module frr-ospfd {
         description "Status of the link state update retransmission thread.";
       }
 
-/*
       leaf hello-reply {
+        // XXX This thread was found in ospf_neighbor.h but didn't appear from clicmd:
+        // 'show ip ospf neighbor detail json'
         type boolean;
         description "Status of the hello reply thread.";
       }
-// Note: This thread was found in ospf_neighbor.h but didn't appear from clicmd:
-// show ip ospf neighbor detail json
-*/
     }
 
     container graceful-restart-helper {
+      // frr specific model, see ospf_helper_info in ospf_gr.h
       description "Status of graceful restart helper";
 
       leaf grace-period {
