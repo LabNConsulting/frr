@@ -11,6 +11,14 @@ module frr-ospfd {
     prefix inet;
   }
 
+  import ietf-routing-types {
+    prefix rt-types;
+  }
+
+  import ietf-yang-types {
+    prefix "yang";
+  }
+
   import frr-interface {
     prefix frr-interface;
   }
@@ -59,6 +67,101 @@ module frr-ospfd {
       type uint32;
     }
     description "OSPF Area ID.";
+  }
+
+  typedef ospf-link-metric {
+    type uint16 {
+      range "0 .. 65535";
+    }
+    description "OSPF Link Metric - 16-bit unsigned integer.";
+  }
+
+  typedef if-state-type {
+    type enumeration {
+      enum down {
+        value "1";
+        description
+          "Interface down state.";
+      }
+      enum loopback {
+        value "2";
+        description
+          "Interface loopback state.";
+      }
+      enum waiting {
+        value "3";
+        description
+          "Interface waiting state.";
+      }
+      enum point-to-point {
+        value "4";
+        description
+          "Interface point-to-point state.";
+      }
+      enum dr {
+        value "5";
+        description
+          "Interface Designated Router (DR) state.";
+      }
+      enum bdr {
+        value "6";
+        description
+          "Interface Backup Designated Router (BDR) state.";
+      }
+      enum dr-other {
+        value "7";
+        description
+          "Interface Other Designated Router state.";
+      }
+    }
+    description
+      "OSPF interface state type.";
+  }
+
+  typedef nbr-state-type {
+    type enumeration {
+      enum down {
+        value "1";
+        description
+          "Neighbor down state.";
+      }
+      enum attempt {
+        value "2";
+        description
+          "Neighbor attempt state.";
+      }
+      enum init {
+        value "3";
+        description
+          "Neighbor init state.";
+      }
+      enum 2-way {
+        value "4";
+        description
+          "Neighbor 2-Way state.";
+      }
+      enum exstart {
+        value "5";
+        description
+          "Neighbor exchange start state.";
+      }
+      enum exchange {
+        value "6";
+        description
+          "Neighbor exchange state.";
+      }
+      enum loading {
+        value "7";
+        description
+          "Neighbor loading state.";
+      }
+      enum full {
+        value "8";
+	description
+	  "Neighbor full state.";
+      }
+    }
+    description "OSPF neighbor state type.";
   }
 
   grouping nssa-grouping {
@@ -909,260 +1012,216 @@ module frr-ospfd {
     }
   }
 
-  // -------- Start of changes --------
-
-  typedef neighbor-state {
-    type enumeration {
-      enum "Down" {
-        value 0;
-        description
-          "State indicates that nothing has been heard from this neigbor";
-      }
-      enum "Attempt" {
-        value 1;
-        description
-          "State indicates that while nothing has been heard from this neighbor,
-           this interface deems them a good target and will try and connect with
-           them in the future. Only valid in NBMA networks.";
-      }
-      enum "Init" {
-        value 2;
-        description
-           "State indicates that Hello packets have been sent to this neighbor,
-            but that no response has been received yet";
-      }
-      enum "2-Way" {
-        value 3;
-        description
-          "State indicates that bidirectional communication has been established,
-           but that an adjaceny has yet to be formed";
-      }
-      enum "ExStart" {
-        value 4;
-        description
-          "State indicates that an adjacency has been formed, but that routing
-           updates have not started";
-      }
-      enum "Exchange" {
-        value 5;
-        description
-          "State indicates that Database Description packets are being shared
-           with this neighbor";
-      }
-      enum "Loading" {
-        value 6;
-        description
-          "State indicates that there are outstanding Link State Requests that
-           have yet to be answered by the neighbor";
-      }
-      enum "Full" {
-        value 7;
-        description
-          "State indicates full adjacency with the neighbor";
+  grouping interface-stat {
+    description "Per-interface statistics";
+    leaf discontinuity-time {
+      type yang:date-and-time;
+      description
+        "The time on the most recent occasion at which any one or more of this
+         OSPF interface's counters suffered a discontinuity. If no such
+         discontinuities have occured since the OSPF interface was last
+         re-initialized, then this node contains the time the OSPF interface
+         was re-initialized which normall occurs when it was created.";
+    }
+    leaf if-event-count {
+      type yang:counter32;
+      description
+        "The number of times this interface has changed its state or an error
+         has occured. Discontinuities in the value of this counter can occur
+         when the OSPF interface is re-initialized.";
+    }
+    leaf link-scope-lsa-count {
+      type yang:gauge32;
+      description "The number of link-scope LSAs.";
+    }
+    leaf link-scope-lsa-cksum-sum {
+      type uint32;
+      description
+        "The module 2**32 sum of the LSA checksums for link-scope LSAs. The
+         value should be treated as unsigned when comparing two sums of
+         checksums. While differing checksums indicate a different combination
+         of LSAs, equivalent checksums don't guarantee that the LSAs are the
+         same given that multiple combinations of LSAs can result in the same
+         checksum.";
+    }
+    container database {
+      description "Container for link-scope LSA type statistics.";
+      list link-scope-lsa-type {
+        description "List of link-scope LSA statistics";
+        leaf lsa-type {
+          type uint16;
+          description "Link scope LSA type.";
+	}
+        leaf lsa-count {
+          type yang:gauge32;
+          description "The number of LSAs of the LSA type.";
+        }
+        leaf lsa-cksum-sum {
+          type uint32;
+          description
+            "The module 2**32 sum of the LSA checksums for the LSAs of this
+             type. The value should be treated as unsigned when comparing two
+             sums of checksums. While differing checksums indicate a different
+             combination of LSAs, equivalent checksums don't guarantee that
+             the LSAs are the same given that multiple combinations of LSAs
+             can result in the same checksum.";
+        }
       }
     }
   }
 
-  typedef interface-state {
-    type enumeration {
-      enum "Down" {
-        value 0;
-        description
-          "State indicates that this interface is not operational or unusable";
-      }
-      enum "Loopback" {
-        value 1;
-        description
-          "State indicates that this interface is looped back";
-      }
-      enum "Waiting" {
-        value 2;
-        description
-          "State indicates that this interface is trying to discover the (backup)
-           DR of the network";
-      }
-      enum "Point-to-point" {
-        value 3;
-        description
-          "State indicates that this interface has established a point to point
-           connection and is trying to establish an adjacency";
-      }
-      enum "DROther" {
-        value 4;
-        description
-          "State indicates that this interface is neither the DR or Backup DR";
-      }
-      enum "Backup" {
-        value 5;
-        description
-          "State indicates that this interface is the Backup DR";
-      }
-      enum "DR" {
-        value 6;
-        description
-          "State indicates that this interface is the DR";
-      }
+  grouping neighbor-stat {
+    description "Per-neighbor statistics.";
+    leaf discontinuity-time {
+      type yang:date-and-time;
+      description
+        "The time on the most recent occasion at which any one or more of this
+         OSPF neighbor's counters suffered a discontinuity.  If no such
+         discontinuities have occurred since the OSPF neighbor was last
+         re-initialized, then this node contains the time the OSPF neighbor was
+         re-initialized which normally occurs when the neighbor is dynamically
+         discovered andcreated.";
+    } 
+    leaf nbr-event-count {
+      type yang:counter32;
+      description
+        "The number of times this neighbor has changed state or an error has
+         occurred. Discontinuities in the value of this counter can occur when
+         the OSPF neighbor is re-initialized.";
+    }
+    leaf nbr-retrans-qlen {
+      type yang:gauge32;
+      description
+        "The current length of the retransmission queue.";
     }
   }
 
-  typedef on-off {
-    type enumeration {
-      enum "off" { value 0; }
-      enum "on" { value 1; }
-    }
-  }
+  grouping neighbor-state {
+    description "OSPF neighbor operational state.";
 
-  typedef planned {
-    type enumeration {
-      enum "unplanned" { value 0; }
-      enum "planned" { value 1; }
-    }
-  }
-
-  grouping graceful-restart-helper {
-    container graceful-restart {
-      leaf helper-status {
-        type string;
-        description
-          "Status of fraceful restart helper";
-      }
-      leaf grace_interval {
-        type uint32;
-        description
-          "length of graceful restart helper interval";
-      }
-      leaf restart_reason {
-        type planned;
-        description
-          "Reason for graceful restart";
-      }
-      leaf helper-reject-reason {
-        type string;
-      }
-      leaf helper-exit-reason {
-        type string;
-      }
-    }
-  }
-
-  grouping detailed-neighbor-group {
-    container nsm {
-      leaf state-changes {
-        type uint32;
-        description
-          "The number of NSM state changes that have occured";
-      }
-      leaf last-progress {
-        type int64;
-        units "MSec";
-        description
-          "Time since the last progressive NSM state change in MSec";
-      }
-      leaf last-regressive {
-        type int64;
-        units "MSec";
-        description
-          "Time since last regressive NMS state change in MSec";
-      }
-    }
-    leaf designated-router {
+    leaf address {
       type inet:ipv4-address;
-      description
-        "The designated router on this neighbor's link";
+      description "Neighbor address.";
     }
-    leaf designated-router-backup {
+
+    leaf dr-router-id {
+      type rt-types:router-id;
+      description "Neighbor's Designated Router (DR) Router ID.";
+    }
+
+    leaf dr-ip-addr {
       type inet:ipv4-address;
-      description
-        "The backup designated router on this neighbor's link";
-    }
-    leaf options {
-      type uint8;
-      description
-        "Bitfield for various options";
-    }
-    container threads {
-      leaf inactivity-timer {
-        type on-off;
-        description
-          "State of inactivity timer thread";
-      }
-      leaf database-description-retransmission {
-        type on-off;
-        description
-          "State of database description retransmission thread";
-      }
-      leaf link-state-request-retransmission {
-        type on-off;
-        description
-          "State of link state request retransmission thread";
-      }
-      leaf link-state-update-retransmission {
-        type on-off;
-        description
-          "State of the link state update retransmission thread";
-      }
+      description "Neighbor's Designated Router (DR) IP address.";
     }
 
-    uses graceful-restart-helper;
+    leaf bdr-router-id {
+      type rt-types:router-id;
+      description "Neighbor's Backup Designated Router (BDR) Router ID.";
+    }
+
+    leaf bdr-ip-addr {
+      type inet:ipv4-address;
+      description "Neighbor's Backup Designated Router (BDR) IP Address.";
+    }
+
+    leaf state {
+      type nbr-state-type;
+      description
+        "OSPF neighbor state.";
+    }
+
+    leaf cost {
+      type ospf-link-metric;
+      description "Cost to reach neighbor for Point-to-Multipoint and Hybrid
+                   networkd.";
+    }
+
+    leaf dead-timer {
+      type rt-types:timer-value-seconds16;
+      description "This timer tracks the remaining time before the neighbor is
+                   declared dead.";
+    }
+
+    container statistics {
+      description "Per-neighbor statistics";
+      uses neighbor-stat;
+    }
   }
 
-  grouping neighbor-group {
-    leaf priority {
-      type int32;
-      description
-        "This is the DR priority of the router";
-    }
-    leaf converged {
-      type neighbor-state;
-      description
-        "This is the neighbor's state";
-    }
-    leaf role {
-      type interface-state;
-      description
-        "This is the interface's state";
-    }
-    leaf uptime {
-      type int64;
-      unitys "MSec";
-      description
-        "The uptime of the neighbor connection in MSec";
-    }
-    leaf downtime {
-      type int64;
-      units "MSec";
-      description
-        "The downtime of the neighbor connection in MSec";
-    }
-    container lsa-database {
-      leaf retransmit-count {
-        type uint64;
-        description
-          "Size of the link state retransmit database (RXmtl)";
-      }
-      leaf request-count {
-        type int16;
-        description
-          "Size of the link state request list (Rqstl)";
-      }
-      leaf summary-count {
-        type int16;
-        description
-          "Size of the database summary list (DBsml)";
-      }
-    }
-    
-    uses detailed-neighbor-group; 
-  }
+  grouping interface-common-state {
+    description "Common operation state of an frr OSPF interface.";
 
-  grouping interface-ospf-state {
+    leaf state {
+      type if-state-type;
+      description "Interface state.";
+    }
+
+    leaf hello-timer {
+      type rt-types:timer-value-seconds16;
+      description
+        "This timer tracks the remaining time before the next hello
+         packet is sent on the interface.";
+    }
+
+    leaf wait-timer {
+      type rt-types:timer-value-seconds16;
+      description
+        "This timer tracks the remaining time before the interface exits
+      	 the waiting state.";
+    }
+
+    leaf dr-router-id {
+      type rt-types:router-id;
+      description "Designated Router (DR) Router ID.";
+    }
+
+    leaf dr-ip-addr {
+      type inet:ipv4-address;
+      description "Designated Router (DR) IP address.";
+    }
+
+    leaf bdr-ip-addr {
+      type inet:ip-address;
+      description "Backup Designated Router (BDR) IP Address.";
+    }
+
+    container statistics {
+      description "Per-interface statistics";
+
+      uses interface-stat;
+    }
+
     container neighbors {
+      description "All neighbors for the interface.";
+      
       list neighbor {
-        key "address";
-        leaf address {
-          type inet:ipv4-address;
-        }    
-        uses neighbor-group;
+        key "neighbor-router-id";
+        description "List of interface OSPF neighbors.";
+        leaf neighbor-router-id {
+          type rt-types:router-id;
+          description "Neighbor Router ID.";
+        }
+        uses neighbor-state;
+      }
+    }
+
+    container database {
+      description "Link-scope Link State Database.";
+      list link-scope-lsa-type {
+        key "lsa-type";
+        description
+          "List OSPF link-scope LSAs.";
+        leaf lsa-type {
+          type uint16;
+          description "OSPF link-scope LSA type.";
+        }
+        container link-scope-lsas {
+          description
+            "All link-scope LSAs of this LSA type.";
+          list link-scope-lsa {
+	    leaf TODO-lsa {}
+          }
+        }
       }
     }
   }
@@ -1264,7 +1323,7 @@ module frr-ospfd {
     container ospf {
       description
         "OSPF interface operation state.";
-      uses interface-ospf-state;
+      uses interface-common-state;
     }
   }
 }
