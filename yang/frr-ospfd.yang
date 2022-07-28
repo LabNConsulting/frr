@@ -3249,6 +3249,23 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
       }
     }
   }
+
+  grouping frr-instance-stat {
+    description "Additional Per-instance statistics used in frr.";
+    container spf {
+      description "SPF statistics.";
+      leaf timestamp {
+        type yang:timestamp;
+        description "Timestamp of last SPF calculation.";
+      }
+      leaf duration {
+        /* XXX 'show ip ospf' prints out incorrect units (usec) */
+        type int64;
+        units "msec";
+        description "Execution time of last SPF calculation in milliseconds.";
+      }
+    }
+  }
   
   grouping instance-stat {
     description "Per-instance statistics";
@@ -3318,6 +3335,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
         }
       }
     }
+    uses frr-instance-stat;
     uses instance-fast-reroute-state;
   }
   
@@ -3469,10 +3487,10 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
     description "Additional frr statistics for the OSPF router
       operational state.";
 
-    container flags {
+    container router-flags {
       description "ASR/ASBR internal flags.";
-      
-      leaf-list router-flags {
+
+      leaf-list router-flag {
         type identityref {
           base router-lsa-bit;
         }
