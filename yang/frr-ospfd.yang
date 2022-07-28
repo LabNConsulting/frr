@@ -3063,12 +3063,14 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
                    networks.";
     }
 */
+/*
+// See the inactivity-timer thread for this value.
     leaf dead-timer {
       type rt-types:timer-value-seconds16;
       description "This timer tracks the remaining time before the neighbor is
                    declared dead.";
     }
-
+*/
     container statistics {
       description "Per-neighbor statistics";
       uses neighbor-stat;
@@ -3076,32 +3078,42 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
 
     container threads {
       // frr specific model, see ospf_neighbor in ospf_neighbor.h 
-      description "Status of frr-required threads.";
+      description "Status of frr-required neighbor threads.";
       leaf inactivity-timer {
-        type boolean;
-        description "Status of the inactivity timer thread.";
+        type int64;
+        units "millisecond";
+        description "The remaining time an inactive neighbor has before they
+          are declared dead. This is tracked by this inactivity timer thread";
       }
 
-      leaf database-description-retransmission {
-        type boolean;
-        description "Status of the database description retransmission thread.";
+      leaf db-desc-retransmission {
+        type int64;
+        units "milliseconds";
+        description "Database description retranmission timer in milliseconds,
+          as measured by the database retransmission thread.";
       }
 
-      leaf link-state-request-retransmission {
-        type boolean;
-        description "Status of the link state request retranmission thread.";
+      leaf ls-request-retransmission {
+        type int64;
+        units "milliseconds";
+        description "LS request retransmission timer in milliseconds, as
+          measured by the link state request retransmission thread.";
       }
 
-      leaf link-state-update-retransmission {
-        type boolean;
-        description "Status of the link state update retransmission thread.";
+      leaf ls-update-retransmission {
+        type int64;
+        units "milliseconds";
+        description "LS update retransmission timer in milliseconds, as
+          measured by the link state update retransmission thread.";
       }
 
       leaf hello-reply {
-        // XXX This thread was found in ospf_neighbor.h but didn't appear from clicmd:
-        // 'show ip ospf neighbor detail json'
-        type boolean;
-        description "Status of the hello reply thread.";
+        // XXX This thread was found in ospf_neighbor.h but didn't appear from
+        // clicmd: 'show ip ospf neighbor detail json'
+        type int64;
+        units "milliseconds";
+        description "Time left for a neighbor to respond to a hello request, as
+          measured by the hello reply thread.";
       }
     }
 
