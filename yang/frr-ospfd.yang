@@ -31,6 +31,10 @@ module frr-ospfd {
     prefix frr-route-types;
   }
 
+  import frr-vrf {
+    prefix frr-vrf;
+  }
+
   organization
     "FRRouting";
   contact
@@ -75,6 +79,35 @@ module frr-ospfd {
     }
     description "OSPF Link Metric - 16-bit unsigned integer.";
   }
+
+  /*
+   * RPC data types
+   */
+
+   typedef neighbor-ref {
+     type leafref {
+       path "/frr-interface:lib/frr-interface:interface/frr-interface:state/"
+            + "frr-ospfd:ospf/frr-ospfd:neighbors/frr-ospfd:neighbor/"
+            + "frr-ospfd:neighbor-router-id";
+       require-instance false;
+     }
+     description
+       "Reference to a neighbor.";
+   }
+
+   typedef ospf-instance-ref {
+     type leafref {
+       path "/frr-interface:lib/frr-interface:interface/frr-ospfd:ospf/"
+            + "frr-ospfd:instance/frr-ospfd:id";
+       require-instance false;
+     }
+     description
+       "Reference to an OSPF instance ID.";
+   }
+
+  /*
+   * Operational state data types
+   */
 
   typedef if-state-type {
     type enumeration {
@@ -1537,6 +1570,77 @@ module frr-ospfd {
       description
         "OSPF interface operation state.";
       uses interface-common-state;
+    }
+  }
+
+  /*
+   * Remote Procedure Calls
+   */
+  rpc clear-ospf-interface {
+    description
+      "Clears OSPF interfaces from instances of OSPF.";
+    input {
+      leaf vrf {
+        type frr-vrf:vrf-ref;
+        description
+          "VRF name identifying a specific OSPF instace.
+           This leaf is optional for the rpc.
+           If it is specified, the rpc will clear some set of interfaces in the
+           specified OSPF instance.
+           If it is not specified, the rpc will clear some set of interfaces in
+           all OSPF instances.";
+      }
+      leaf interface-name {
+        type frr-interface:interface-ref;
+        description
+          "Interface name identifying a specific instance of OSPF on an interface.
+           This leaf is optional for the rpc.
+           If it is specified, the rpc will clear only the specific interface in
+           some set of OSPf instances.
+           If it is not specified, the rpc will clear all interfaces in some set
+           of OSPF instances.";
+      }
+    }
+  }
+  rpc clear-ospf-neighbor {
+    description
+      "Clears OSPF neighbors from instances of OSPF.";
+    input {
+      leaf ospf-instance {
+        type ospf-instance-ref;
+        description
+          "uint16 integer identifying a specific OSPF instace.
+           This leaf is optional for the rpc.
+           If it is specified, the rpc will clear some set of neighbors in the
+           specified OSPF instance.
+           If it is not specified, the rpc will clear some set of neighbors in
+           all OSPF instances.";
+      }
+      leaf neighbor {
+        type neighbor-ref;
+        description
+          "The routing ID identifying a specific neighbor.
+           This leaf is optional for the rpc.
+           If it is specified, the rpc will clear only the specified neighbor in
+           some set of OSPf instances.
+           If it is not specified, the rpc will clear all neighbors in some set
+           of OSPF instances.";
+      }
+    }
+  }
+  rpc clear-ospf-process {
+    description
+      "Clears en entire OSPF process.";
+    input {
+      leaf ospf-instance {
+        type ospf-instance-ref;
+        description
+          "uint16 integer identifying a specific OSPF instace.
+           This leaf is optional for the rpc.
+           If it is specified, the rpc will clear only the specified
+           OSPF process.
+           If it is not specified, the rpc will clear all OSPF processes.";
+      }
     }
   }
 }
