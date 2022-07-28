@@ -909,6 +909,264 @@ module frr-ospfd {
     }
   }
 
+  // -------- Start of changes --------
+
+  typedef neighbor-state {
+    type enumeration {
+      enum "Down" {
+        value 0;
+        description
+          "State indicates that nothing has been heard from this neigbor";
+      }
+      enum "Attempt" {
+        value 1;
+        description
+          "State indicates that while nothing has been heard from this neighbor,
+           this interface deems them a good target and will try and connect with
+           them in the future. Only valid in NBMA networks.";
+      }
+      enum "Init" {
+        value 2;
+        description
+           "State indicates that Hello packets have been sent to this neighbor,
+            but that no response has been received yet";
+      }
+      enum "2-Way" {
+        value 3;
+        description
+          "State indicates that bidirectional communication has been established,
+           but that an adjaceny has yet to be formed";
+      }
+      enum "ExStart" {
+        value 4;
+        description
+          "State indicates that an adjacency has been formed, but that routing
+           updates have not started";
+      }
+      enum "Exchange" {
+        value 5;
+        description
+          "State indicates that Database Description packets are being shared
+           with this neighbor";
+      }
+      enum "Loading" {
+        value 6;
+        description
+          "State indicates that there are outstanding Link State Requests that
+           have yet to be answered by the neighbor";
+      }
+      enum "Full" {
+        value 7;
+        description
+          "State indicates full adjacency with the neighbor";
+      }
+    }
+  }
+
+  typedef interface-state {
+    type enumeration {
+      enum "Down" {
+        value 0;
+        description
+          "State indicates that this interface is not operational or unusable";
+      }
+      enum "Loopback" {
+        value 1;
+        description
+          "State indicates that this interface is looped back";
+      }
+      enum "Waiting" {
+        value 2;
+        description
+          "State indicates that this interface is trying to discover the (backup)
+           DR of the network";
+      }
+      enum "Point-to-point" {
+        value 3;
+        description
+          "State indicates that this interface has established a point to point
+           connection and is trying to establish an adjacency";
+      }
+      enum "DROther" {
+        value 4;
+        description
+          "State indicates that this interface is neither the DR or Backup DR";
+      }
+      enum "Backup" {
+        value 5;
+        description
+          "State indicates that this interface is the Backup DR";
+      }
+      enum "DR" {
+        value 6;
+        description
+          "State indicates that this interface is the DR";
+      }
+    }
+  }
+
+  typedef on-off {
+    type enumeration {
+      enum "off" { value 0; }
+      enum "on" { value 1; }
+    }
+  }
+
+  typedef planned {
+    type enumeration {
+      enum "unplanned" { value 0; }
+      enum "planned" { value 1; }
+    }
+  }
+
+  grouping graceful-restart-helper {
+    container graceful-restart {
+      leaf helper-status {
+        type string;
+        description
+          "Status of fraceful restart helper";
+      }
+      leaf grace_interval {
+        type uint32;
+        description
+          "length of graceful restart helper interval";
+      }
+      leaf restart_reason {
+        type planned;
+        description
+          "Reason for graceful restart";
+      }
+      leaf helper-reject-reason {
+        type string;
+      }
+      leaf helper-exit-reason {
+        type string;
+      }
+    }
+  }
+
+  grouping detailed-neighbor-group {
+    container nsm {
+      leaf state-changes {
+        type uint32;
+        description
+          "The number of NSM state changes that have occured";
+      }
+      leaf last-progress {
+        type int64;
+        units "MSec";
+        description
+          "Time since the last progressive NSM state change in MSec";
+      }
+      leaf last-regressive {
+        type int64;
+        units "MSec";
+        description
+          "Time since last regressive NMS state change in MSec";
+      }
+    }
+    leaf designated-router {
+      type inet:ipv4-address;
+      description
+        "The designated router on this neighbor's link";
+    }
+    leaf designated-router-backup {
+      type inet:ipv4-address;
+      description
+        "The backup designated router on this neighbor's link";
+    }
+    leaf options {
+      type uint8;
+      description
+        "Bitfield for various options";
+    }
+    container threads {
+      leaf inactivity-timer {
+        type on-off;
+        description
+          "State of inactivity timer thread";
+      }
+      leaf database-description-retransmission {
+        type on-off;
+        description
+          "State of database description retransmission thread";
+      }
+      leaf link-state-request-retransmission {
+        type on-off;
+        description
+          "State of link state request retransmission thread";
+      }
+      leaf link-state-update-retransmission {
+        type on-off;
+        description
+          "State of the link state update retransmission thread";
+      }
+    }
+
+    uses graceful-restart-helper;
+  }
+
+  grouping neighbor-group {
+    leaf priority {
+      type int32;
+      description
+        "This is the DR priority of the router";
+    }
+    leaf converged {
+      type neighbor-state;
+      description
+        "This is the neighbor's state";
+    }
+    leaf role {
+      type interface-state;
+      description
+        "This is the interface's state";
+    }
+    leaf uptime {
+      type int64;
+      unitys "MSec";
+      description
+        "The uptime of the neighbor connection in MSec";
+    }
+    leaf downtime {
+      type int64;
+      units "MSec";
+      description
+        "The downtime of the neighbor connection in MSec";
+    }
+    container lsa-database {
+      leaf retransmit-count {
+        type uint64;
+        description
+          "Size of the link state retransmit database (RXmtl)";
+      }
+      leaf request-count {
+        type int16;
+        description
+          "Size of the link state request list (Rqstl)";
+      }
+      leaf summary-count {
+        type int16;
+        description
+          "Size of the database summary list (DBsml)";
+      }
+    }
+    
+    uses detailed-neighbor-group; 
+  }
+
+  grouping interface-ospf-state {
+    container neighbors {
+      list neighbor {
+        key "address";
+        leaf address {
+          type inet:ipv4-address;
+        }    
+        uses neighbor-group;
+      }
+    }
+  }
+
   grouping interface-ospf-group {
     list instance {
       key "id";
@@ -999,6 +1257,14 @@ module frr-ospfd {
       description
         "OSPF interface parameters.";
       uses interface-ospf-group;
+    }
+  }
+
+  augment "/frr-interface:lib/frr-interface:interface/frr-interface:state" {
+    container ospf {
+      description
+        "OSPF interface operation state.";
+      uses interface-ospf-state;
     }
   }
 }
