@@ -3024,7 +3024,7 @@ XXX Is ospfv3 necessary? (should belong to ospf6d model?)
       description "Route type for this route.";
     }
 /*
-// Route tag is only stored for external routes in ospf
+ * Route tag is only stored for external routes in ospfd
     leaf route-tag {
       type uint32;
       description "Route tag for this route.";
@@ -4044,16 +4044,12 @@ XXX Is ospfv3 necessary? (should belong to ospf6d model?)
     container threads {
       // frr specific model, see ospf_neighbor in ospf_neighbor.h 
       description "Status of frr-required neighbor threads.";
+      /*
+       * Some core functionality that relies on threads is already present
+       * higher up in the model, and thus doesn't appear in this container.
+       * (e.g. dead-timer)
+       */
       
-      container inactivity {
-        presence "Present when inactivity timer thread is running";
-        leaf timer {
-          type int64;
-          units "usec";
-          description "The remaining time an inactive neighbor has before they
-            are declared dead.";
-        }
-      }
       container db-desc-retransmission {
         presence
           "Present when the database retransmission timer thread is running.";
@@ -4156,27 +4152,25 @@ XXX Is ospfv3 necessary? (should belong to ospf6d model?)
       description "Neighbor's Backup Designated Router (BDR) IP Address.";
     }
     leaf state {
-      type nbr-state-type;
+      type nbr-state;
       description
         "OSPF neighbor state.";
     }
+
 /*
     leaf cost {
-      // While present in the OSPF yang model code, it does not appear
-      // in the OSPF yang tree diagram
       type ospf-link-metric;
       description "Cost to reach neighbor for Point-to-Multipoint and Hybrid
                    networks.";
     }
 */
-/*
-// See the inactivity-timer thread for this value.
+    
     leaf dead-timer {
       type rt-types:timer-value-seconds16;
       description "This timer tracks the remaining time before the neighbor is
                    declared dead.";
     }
-*/
+
     container statistics {
       description "Per-neighbor statistics";
       uses neighbor-stat;
@@ -4210,23 +4204,12 @@ XXX Is ospfv3 necessary? (should belong to ospf6d model?)
 
     container threads {
       description "Status of frr-required interface threads.";
+      /*
+       * Some core functionality that relies on threads is already present
+       * higher up in the model, and thus doesn't appear in this container.
+       * (e.g. hello-timer and wait-timer)
+       */
       
-      container hello {
-        presence "Present if the hello thread is running.";
-        leaf timer {
-          type int64;
-          units "usec";
-          description "Time left until next hello in microseconds.";
-        }
-      }
-      container wait {
-        presence "Present if the wait thread is running.";
-        leaf timer {
-          type int64;
-          units "usec";
-          description "Time left in the wait timer thread in microseconds.";
-        }
-      }
       container ls-ack {
         presence "Present if the ls-ack thread is running.";
         leaf timer {
@@ -4266,14 +4249,14 @@ XXX Is ospfv3 necessary? (should belong to ospf6d model?)
         "This timer tracks the remaining time before the next hello
          packet is sent on the interface.";
     }
-/*
+    
     leaf wait-timer {
       type rt-types:timer-value-seconds16;
       description
         "This timer tracks the remaining time before the interface exits
          the waiting state.";
     }
-*/
+    
     leaf dr-router-id {
       type rt-types:router-id;
       description "Designated Router (DR) Router ID.";
