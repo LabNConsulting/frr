@@ -3777,7 +3777,6 @@ module frr-ospfd {
     // frr specific model
     description "Standard OSPF route parameters.";
 
-    /* XXX There is also a pointer to a struct lsa_header which is not modeled */
     leaf area-id {
       type ospf-area-id;
       description "The area this route belongs to.";
@@ -5305,8 +5304,7 @@ module frr-ospfd {
   grouping interface-ospf-group {
     container interfaces {
       list interface {
-        /* XXX IETF indexes based on the name, not address */
-        key "address";
+        key "name";
         description
           "List of OSPF interfaces.";
         leaf name {
@@ -5316,10 +5314,11 @@ module frr-ospfd {
             "Interface name reference.";
         }
 
-        leaf address {
-          type inet:ipv4-address;
+        leaf prefix {
+          /* frr specific model */
+          type inet:ipv4-prefix;
           description
-            "Address of interface";
+            "Prefix of interface";
         }
 
         uses interface-config;
@@ -5375,7 +5374,9 @@ module frr-ospfd {
       uses ospf-list-group;
 
       container state {
-      /* XXX ietf model doesn't have a defined container for state, but instead intermixes it */
+        /* 
+         * ietf model doesn't have a container for state, it only intermixes it
+         */
         description "Container for Router-scope operational state.";
         config false;
         
@@ -5385,35 +5386,6 @@ module frr-ospfd {
       uses area-groupings;
     }
   }
-
-  /*
-   * Per-interface configuration data
-   * XXX IETF configuration doesn't augment ietf-interfaces.yang,
-   * the frr-interface.yang equivalent. Keeping all state under ospf also
-   * makes it more convenient.
-   */
-  /*
-  augment "/frr-interface:lib/frr-interface:interface" {
-    container ospf {
-      description
-        "OSPF interface parameters.";
-      uses interface-ospf-group;
-    }
-  }
-  */
-
-  /*
-   * Per-interface operational state data
-   */
-  /*
-  augment "/frr-interface:lib/frr-interface:interface/frr-interface:state" {
-    container ospf {
-      description
-        "OSPF interface operation state.";
-      uses interface-common-state;
-    }
-  }
-  */
   
   /*
    * ----------------------------
