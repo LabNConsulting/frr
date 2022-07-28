@@ -3435,32 +3435,38 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
     container threads {
       description "Status of frr-required interface threads.";
       
-      leaf hello {
-        type int64;
-        units "millisecond";
-        description "Time left until next hello in milliseconds.";
+      container hello {
+        presence "Present if the hello thread is running.";
+        leaf countdown {
+          type int64;
+          units "millisecond";
+          description "Time left until next hello in milliseconds.";
+        }
       }
-      leaf wait {
-        type int64;
-        units "millisecond";
-        description "Time left in the wait timer thread in milliseconds.";
+      container wait {
+        presence "Present if the wait thread is running.";
+        leaf timer {
+          type int64;
+          units "millisecond";
+          description "Time left in the wait timer thread in milliseconds.";
+        }
       }
-      leaf ls-ack {
-        type int64;
-        units "millisecond";
-        description "Time left in the LS ack timer thread in milliseconds.";
+      container ls-ack {
+        presence "Present if the ls-ack thread is running.";
+        leaf timer {
+          type int64;
+          units "millisecond";
+          description "Time left in the LS ack timer thread in milliseconds.";
+        }
       }
-      leaf ls-ack-direct {
-        type empty;
-        description "Presence of the LS ack event thread.";
+      container ls-ack-direct {
+        presence "Present if the LS ack event thread is running.";
       }
-      leaf ls-upd-event {
-        type empty;
-        description "Presence of the LS update event thread.";
+      container ls-upd-event {
+        presence "Present if the LS update event thread is running.";
       }
-      leaf opaque-lsa-self {
-        type empty;
-        description "Presence of the type-9 opaque-LSAs thread.";
+      container opaque-lsa-self {
+        presence "Present if the type-9 opaque-LSAs origin thread is running.";
       }
     }
   }
