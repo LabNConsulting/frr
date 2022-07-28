@@ -104,9 +104,11 @@ module frr-ospfd {
 
    typedef neighbor-ref {
      type leafref {
-       path "/frr-interface:lib/frr-interface:interface/frr-interface:state/"
-            + "frr-ospfd:ospf/frr-ospfd:neighbors/frr-ospfd:neighbor/"
-            + "frr-ospfd:neighbor-router-id";
+       path "/frr-rt:routing/frr-rt:control-plane-protocols/"
+         + "frr-rt:control-plane-protocol/frr-ospfd:ospf/frr-ospfd:areas/"
+         + "frr-ospfd:area/frr-ospfd:interfaces/frr-ospfd:interface/"
+         + "frr-ospfd:state/frr-ospfd:neighbors/frr-ospfd:neighbor/"
+         + "frr-ospfd:neighbor-router-id";
        require-instance false;
      }
      description
@@ -115,8 +117,8 @@ module frr-ospfd {
 
    typedef ospf-instance-ref {
      type leafref {
-       path "/frr-interface:lib/frr-interface:interface/frr-ospfd:ospf/"
-            + "frr-ospfd:instance/frr-ospfd:id";
+       path "/frr-rt:routing/frr-rt:control-plane-protocols"
+          + "/frr-rt:control-plane-protocol/frr-rt:name";
        require-instance false;
      }
      description
@@ -2189,7 +2191,6 @@ module frr-ospfd {
   grouping lsa-database {
     uses lsa-key;
     uses lsa {
-      /*
       refine "version/ospfv2/ospfv2" {
         must "derived-from-or-self( "
           + "/frr-rt:routing/frr-rt:control-plane-protocols/"
@@ -2197,7 +2198,6 @@ module frr-ospfd {
           description "OSPFv2 LSA. (ospfd)";
         }
       }
-      */
 /* 
       refine "version/ospfv3/ospfv3" {
         must "derived-from-or-self( "
@@ -2370,7 +2370,7 @@ module frr-ospfd {
         
         leaf transit-area-id {
           type leafref {
-            path "../../../../area/area-id";
+            path "../../../area-id";
           }
           must "derived-from-or-self("
             + "../../../../area[area-id=current()]/area-type, 'normal-area')"
@@ -2398,9 +2398,9 @@ module frr-ospfd {
           }
           description
             "Interval after which a neighbor is declared down
-         (seconds) if hello packets are not received. It is
-         typically 3 or 4 times the hello-interval. A typical
-         value for LAN networks is 40 seconds.";
+             (seconds) if hello packets are not received. It is
+             typically 3 or 4 times the hello-interval. A typical
+             value for LAN networks is 40 seconds.";
           reference "RFC 2328: OSPF Version 2, Appendix C.3";
         }
         
@@ -2534,6 +2534,8 @@ module frr-ospfd {
         }
         
         uses virtual-link-group;
+
+        uses interface-ospf-group;
       }
     }
   }
@@ -3312,6 +3314,7 @@ module frr-ospfd {
   }
 
   grouping ospf-list-group {
+    /* XXX NBMA neighbors are stored on an interface level is the IETF model */
     container nbma-neighbors {
       description
         "Non-Broadcast Multiple Access (NBMA) neighbors.";
@@ -3364,19 +3367,27 @@ module frr-ospfd {
 
   grouping interface-ospf-attribute-group {
     leaf area {
-      type ospf-area-id;
+      type leafref {
+        path "../../../area-id";
+      }
       description
         "OSPF area ID.";
     }
 
     leaf cost {
-      type uint16 {
-        range "1..65535";
-      }
+      type ospf-link-metric;
       description
         "Interface cost";
     }
 
+    leaf mtu-ignore {
+      type boolean;
+      description
+        "Enable/Disable bypassing the MTU mismatch check in
+         Database Description packets specified in RFC 2328,
+         section 10.6.";
+    }
+    
     container dead-interval {
       leaf interval {
         type uint16 {
@@ -3395,18 +3406,6 @@ module frr-ospfd {
     }
 
     uses interface-common-attributes;
-    
-    leaf mtu-ignore {
-      type boolean;
-      description
-        "Disable MTU mismatch detection on this interface.";
-    }
-
-    leaf priority {
-      type uint8;
-      description
-        "Router priority.";
-    }
   }
 
   grouping ospf-route-standard {
@@ -4777,50 +4776,197 @@ module frr-ospfd {
     }
   }
 
-  grouping interface-ospf-group {
-    list instance {
-      key "id";
-      leaf id {
-        type uint16;
-        description
-          "OSPF instance ID.";
-      }
+  grouping interface-config {
+    description "Configuration for real interfaces.";
 
-      leaf bfd {
-        type boolean;
-        default "false";
-        description
-          "BFD support.";
-      }
-
-      leaf network {
-        type enumeration {
-          enum "broadcast" {
-            value 1;
-          }
-          enum "non-broadcast" {
-            value 2;
-          }
-          enum "point-to-multipoint" {
-            value 3;
-          }
-          enum "point-to-point" {
-            value 4;
-          }
+    leaf interface-type {
+      type enumeration {
+        enum "broadcast" {
+          value "0";
+          description
+            "Specify OSPF broadcast multi-access network.";
+        }
+        enum "non-broadcast" {
+          value "1";
+          description
+            "Specify OSPF Non-Broadcast Multi-Access
+             (NBMA) network.";
+        }
+        enum "point-to-multipoint" {
+          value "2";
+          description
+            "Specify OSPF point-to-multipoint network.";
+        }
+        enum "point-to-point" {
+          value "3";
+          description
+            "Specify OSPF point-to-point network.";
         }
       }
+      description
+        "Interface type.";
+    }
 
-      uses interface-ospf-attribute-group;
+    leaf dmvpn {
+      when "enum-value(../interface-type) = 3";
+      type boolean;
+      description
+        "DMVPN point-to-point network is configured.";
+    }
 
-      list interface-address {
+    leaf passive {
+      type boolean;
+      description
+        "Enable/Disable passive interface - a passive interface's
+         prefix will be advertised but no neighbor adjacencies
+         will be formed on the interface.";
+    }
+    leaf priority {
+      type uint8;
+      description
+        "Configure OSPF router priority. On multi-access network
+         this value is for Designated Router (DR) election. The
+         priority is ignored on other interface types. A router
+         with a higher priority will be preferred in the election
+         and a value of 0 indicates the router is not eligible to
+         become Designated Router or Backup Designated Router
+         (BDR).";
+    }
+    
+    /*
+     * XXX NBMA static neighbors currently stored at ospf routing scope
+    container static-neighbors {
+      description "Statically configured neighbors.";
+
+      list neighbor {
+        key "identifier";
+        description
+          "Specify a static OSPF neighbor.";
+
+        leaf identifier {
+          type inet:ip-address;
+          description
+            "Neighbor Router ID, IPv4 address, or IPv6 address.";
+        }
+
+        leaf cost {
+          type ospf-link-metric;
+          description
+            "Neighbor cost. Different implementations have different
+             default costs with some defaulting to a cost inversely
+             proportional to the interface speed. Others will
+             default to 1 equating the cost to a hop count." ;
+        }
+        leaf poll-interval {
+          type uint16;
+          units seconds;
+          description
+            "Neighbor poll interval (seconds) for sending OSPF
+             hello packets to discover the neighbor on NBMA
+             networks. This interval dictates the granularity for
+             discovery of new neighbors. A sample would be
+             120 seconds (2 minutes) for a legacy Packet Data
+             Network (PDN) X.25 network.";
+          reference "RFC 2328: OSPF Version 2, Appendix C.5";
+        }
+        leaf priority {
+          type uint8;
+          description
+             "Neighbor priority for DR election. A router with a
+              higher priority will be preferred in the election
+              and a value of 0 indicates the router is not
+              eligible to become Designated Router or Backup
+              Designated Router (BDR).";
+        }
+      }
+    }
+    */
+
+    container mpls {
+      container ldp-sync {
+        leaf enable {
+          type boolean;
+          description "Turn on mpls ldp-sync.";
+        }
+        leaf holddown {
+          type uint16 {
+            range "0..10000";
+          }
+          description
+            "Time to wait for ldp-sync to occur before restoring interface
+             cost.";
+        }
+      }
+    }
+    
+    container bfd {
+      /* frr specific model */
+      description "BFD Client Configuration.";
+      leaf enable {
+        type boolean;
+        description
+          "Enable bidirectional forwarding (BFD) on this interface.";
+      }
+      leaf local-multiplier {
+        type uint8;
+        description
+          "Multiplier transmitted by the local system. Detection multiplier.";
+        default "3";
+      }
+      leaf profile {
+        type string;
+        description
+          "BFD profile.";
+      }
+      container tx-rx-intervals {
+        leaf desired-min-tx-interval {
+          type uint32;
+          units "usec";
+          default "300";
+          description
+            "Desired minimum transmit interval of control packets.";
+        }
+        leaf required-min-rx-interval {
+          type uint32;
+          units "usec";
+          default "300";
+          description
+            "Required minimum receive interval of control packets.";
+        }
+      }
+    }
+  }
+  
+  grouping interface-ospf-group {
+    container interfaces {
+      list interface {
+        /* XXX IETF indexes based on the name, not address */
         key "address";
+        description
+          "List of OSPF interfaces.";
+        leaf name {
+          type frr-interface:interface-ref;
+          mandatory true;
+          description
+            "Interface name reference.";
+        }
+
         leaf address {
           type inet:ipv4-address;
           description
             "Address of interface";
         }
 
+        uses interface-config;
+        
         uses interface-ospf-attribute-group;
+
+        container state {
+          description
+            "OSPF interface operation state.";
+          config false;
+          uses interface-common-state;
+        }
       }
     }
   }
@@ -4877,7 +5023,11 @@ module frr-ospfd {
 
   /*
    * Per-interface configuration data
+   * XXX IETF configuration doesn't augment ietf-interfaces.yang,
+   * the frr-interface.yang equivalent. Keeping all state under ospf also
+   * makes it more convenient.
    */
+  /*
   augment "/frr-interface:lib/frr-interface:interface" {
     container ospf {
       description
@@ -4885,10 +5035,12 @@ module frr-ospfd {
       uses interface-ospf-group;
     }
   }
+  */
 
   /*
    * Per-interface operational state data
    */
+  /*
   augment "/frr-interface:lib/frr-interface:interface/frr-interface:state" {
     container ospf {
       description
@@ -4896,6 +5048,7 @@ module frr-ospfd {
       uses interface-common-state;
     }
   }
+  */
   
   /*
    * ----------------------------
