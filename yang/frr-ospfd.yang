@@ -1014,6 +1014,7 @@ module frr-ospfd {
 
   grouping interface-stat {
     description "Per-interface statistics";
+/*
     leaf discontinuity-time {
       type yang:date-and-time;
       description
@@ -1023,6 +1024,7 @@ module frr-ospfd {
          re-initialized, then this node contains the time the OSPF interface
          was re-initialized which normall occurs when it was created.";
     }
+    
     leaf if-event-count {
       type yang:counter32;
       description
@@ -1030,10 +1032,12 @@ module frr-ospfd {
          has occured. Discontinuities in the value of this counter can occur
          when the OSPF interface is re-initialized.";
     }
+
     leaf link-scope-lsa-count {
       type yang:gauge32;
       description "The number of link-scope LSAs.";
     }
+    
     leaf link-scope-lsa-cksum-sum {
       type uint32;
       description
@@ -1044,6 +1048,7 @@ module frr-ospfd {
          same given that multiple combinations of LSAs can result in the same
          checksum.";
     }
+    
     container database {
       description "Container for link-scope LSA type statistics.";
       list link-scope-lsa-type {
@@ -1051,11 +1056,13 @@ module frr-ospfd {
         leaf lsa-type {
           type uint16;
           description "Link scope LSA type.";
-	}
+        }
+	
         leaf lsa-count {
           type yang:gauge32;
           description "The number of LSAs of the LSA type.";
         }
+	
         leaf lsa-cksum-sum {
           type uint32;
           description
@@ -1068,10 +1075,12 @@ module frr-ospfd {
         }
       }
     }
+*/    
   }
 
   grouping neighbor-stat {
     description "Per-neighbor statistics.";
+/*
     leaf discontinuity-time {
       type yang:date-and-time;
       description
@@ -1081,7 +1090,8 @@ module frr-ospfd {
          re-initialized, then this node contains the time the OSPF neighbor was
          re-initialized which normally occurs when the neighbor is dynamically
          discovered andcreated.";
-    } 
+    }
+    
     leaf nbr-event-count {
       type yang:counter32;
       description
@@ -1089,10 +1099,59 @@ module frr-ospfd {
          occurred. Discontinuities in the value of this counter can occur when
          the OSPF neighbor is re-initialized.";
     }
+*/    
     leaf nbr-retrans-qlen {
       type yang:gauge32;
       description
-        "The current length of the retransmission queue.";
+        "The current length of the LSA retransmission queue. (RXmtl)";
+    }
+
+    leaf nbr-request-qlen {
+      type yang:guage32;
+      description
+        "The current length of the LSA request queue. (Rqstl)";
+    }
+
+    leaf nbr-summary-len {
+      type int16;
+      description
+	"The current length of the database summary list. (DBsml)";
+    }
+
+    leaf nbr-uptime {
+      type int64;
+      units "MSec";
+      description
+        "The uptime of the neighbor over this link in MSec.";
+    }
+
+    leaf nbr-downtime {
+      type int64;
+      units "MSec";
+      description
+        "The downtime of the neighbor connection in MSec.";
+    }
+
+    container nsm {
+      leaf state-changes {
+        type uint32;
+        description
+          "The number of NSM state changes that have occured.";
+      }
+
+      leaf last-progressive {
+        type int64;
+	units "MSec";
+        description
+          "Time since the last progressive NSM state change in MSec.";
+      }
+
+      leaf last-regressive {
+        type int64;
+	units "MSec";
+        description
+          "Time since the last regressive NSM state change in MSec.";
+      }
     }
   }
 
@@ -1129,13 +1188,15 @@ module frr-ospfd {
       description
         "OSPF neighbor state.";
     }
-
+/*
     leaf cost {
       type ospf-link-metric;
       description "Cost to reach neighbor for Point-to-Multipoint and Hybrid
                    networkd.";
     }
-
+// Note: cost doesn't even show up in the ietf ospf model tree, even though it
+//   is in the yang code/script.
+*/
     leaf dead-timer {
       type rt-types:timer-value-seconds16;
       description "This timer tracks the remaining time before the neighbor is
@@ -1145,6 +1206,16 @@ module frr-ospfd {
     container statistics {
       description "Per-neighbor statistics";
       uses neighbor-stat;
+    }
+
+    container threads {
+      description "Status of threads";
+      leaf TODO-thread-status-on-or-off {}
+    }
+
+    container graceful-restart-helper {
+      description "Status of graceful restart helper";
+      leaf TODO-graceful-restart-helper-status {}
     }
   }
 
@@ -1162,14 +1233,14 @@ module frr-ospfd {
         "This timer tracks the remaining time before the next hello
          packet is sent on the interface.";
     }
-
+/*
     leaf wait-timer {
       type rt-types:timer-value-seconds16;
       description
         "This timer tracks the remaining time before the interface exits
       	 the waiting state.";
     }
-
+*/
     leaf dr-router-id {
       type rt-types:router-id;
       description "Designated Router (DR) Router ID.";
@@ -1178,6 +1249,11 @@ module frr-ospfd {
     leaf dr-ip-addr {
       type inet:ipv4-address;
       description "Designated Router (DR) IP address.";
+    }
+
+    leaf bdr-router-id {
+      type rt-types:router-id;
+      description "Backup Designated Router (BDR) Router ID.";
     }
 
     leaf bdr-ip-addr {
@@ -1204,7 +1280,7 @@ module frr-ospfd {
         uses neighbor-state;
       }
     }
-
+/*
     container database {
       description "Link-scope Link State Database.";
       list link-scope-lsa-type {
@@ -1224,6 +1300,7 @@ module frr-ospfd {
         }
       }
     }
+*/
   }
 
   grouping interface-ospf-group {
