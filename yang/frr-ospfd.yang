@@ -2984,7 +2984,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
     // frr specific model
     description "Standard OSPF route parameters.";
 
-    /* XXX There is also a pointer to a struct lsa_header */
+    /* XXX There is also a pointer to a struct lsa_header which I did not model */
     leaf area-id {
       type inet:ipv4-address;
       description "The area this route belongs to.";
@@ -3259,16 +3259,16 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
         description "Timestamp of last SPF calculation.";
       }
       leaf duration {
-        /* XXX 'show ip ospf' prints out incorrect units (usec) */
         type int64;
-        units "msec";
-        description "Execution time of last SPF calculation in milliseconds.";
+        units "usec";
+        description "Execution time of last SPF calculation in microseconds.";
       }
     }
   }
   
   grouping instance-stat {
     description "Per-instance statistics";
+/*
     leaf discontinuity-time {
       type yang:date-and-time;
       description
@@ -3280,6 +3280,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
          re-initialized which normally occurs when it was
          created.";
     }
+*/
     leaf originate-new-lsa-count {
       type yang:counter32;
       description
@@ -3294,6 +3295,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
          value of this counter can occur when the OSPF instance is
          re-initialized.";
     }
+/*
     leaf as-scope-lsa-count {
       type yang:gauge32;
       description "The number of AS-scope LSAs.";
@@ -3335,8 +3337,9 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
         }
       }
     }
+*/
     uses frr-instance-stat;
-    uses instance-fast-reroute-state;
+//    uses instance-fast-reroute-state;
   }
   
   grouping lsa-identifiers {
@@ -3484,9 +3487,15 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
   }
 
   grouping frr-ospf-state {
+    //frr specific model
     description "Additional frr statistics for the OSPF router
       operational state.";
 
+    leaf vrf {
+      type frr-vrf:vrf-ref;
+      description
+        "VRF name identifying a specific OSPF instace.";
+    }
     container router-flags {
       description "ASR/ASBR internal flags.";
 
@@ -3494,6 +3503,145 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
         type identityref {
           base router-lsa-bit;
         }
+      }
+    }
+    
+    container threads {
+      description "All router-scope threads run in frr";
+
+      container abr-task {
+        presence "Present if the ABR task timer thread is running.";
+        leaf timer {
+          type int64;
+          units "usec";
+          description "Timer for ABR tasks in microseconds.";
+        }
+      }
+      container asbr-check {
+        presence "Present if the ASBR check timer thread is running.";
+        leaf timer {
+          type int64;
+          units "usec";
+          description "Timer for ASBR checking in microseconds.";
+        }
+      }
+      container asbr-nssa-redist-update {
+        presence
+          "Present if the ASBR NSSA redistribution update timer is running";
+        leaf timer {
+          type int64;
+          units "usec";
+          description "Timer for ASBR NSSA updates in microseconds.";
+        }
+      }
+      container distribute-update {
+        presence
+          "Present if the distribute list update timer thread is running.";
+        leaf timer {
+          type int64;
+          units "usec";
+          description "Timer for distributive list updates in microseconds.";
+        }
+      }
+      container spf-calc {
+        presence "Present if the SPF calculation timer thread is running.";
+        leaf timer {
+          type int64;
+          units "usec";
+          description "Timer for next shortest path first (SPF) calculations.";
+        }
+      }
+      container ase-calc {
+        presence "Present if the ASE calculation timer thread is running.";
+        leaf timer {
+          type int64;
+          units "usec";
+          description "Timer for next AS external route (ASE) calculations.";
+        }
+      }
+      container opaque-lsa-self {
+        presence "Present if type-11 opaque LSAs origin thread is running.";
+        leaf timer {
+          type int64;
+          units "usec";
+          description "Timer for type-11 opaque-LSA originination.";
+        }
+      }
+      container sr-update {
+        presence
+          "Present if the segment routing update timer thread is running.";
+        leaf timer {
+          type int64;
+          units "usec";
+          description "Timer for next segment routing (SR) update.";
+        }  
+      }
+      container max-age {
+        presence "Present if the maxage LSA remover timer thread is running.";
+        leaf timer {
+          type int64;
+          units "usec";
+          description "Max Age LSA remover timer in microseconds.";
+        }
+      }
+      container max-age-walker {
+        presence "Present if the maxage LSA checker timer thread is running.";
+        leaf timer {
+          type int64;
+          units "usec";
+          description "Max Age LSA checker timer in microseconds.";
+        }
+      }
+      container deferred-shutdown {
+        presence
+          "Present if the deffered/stub-router shutdown timer thread is
+           running.";
+        leaf timer {
+          type int64;
+          units "usec";
+          description "Deferred shutdown timer in microseconds.";
+        }
+      }
+      container default-routemap-timer {
+        presence
+          "Present if the default routmap timer thread is running.";
+        /* XXX It is unclear if this thread is an event or timer thread */
+      }
+      // Did not include the I/O threads
+      container lsa-refresher {
+        presence "Present if the LSA refresher timer thread is running.";
+        leaf timer {
+          type int64;
+          units "usec";
+          description "Timer for next LSA refresher in microseconds.";
+        }
+        leaf started {
+          type yang:timestamp;
+          description "Timestamp of when LSA refresher timer started.";
+        }
+      }
+      container external-aggr {
+        presence "Present if the external aggregation timer thread is running.";
+        leaf timer {
+          type int64;
+          units "usec";
+          description
+            "Delay timer to process external routes with summary addresses";
+        }
+      }
+    }
+
+    container graceful-restart {
+      description "Operational graceful restart information.";
+
+      leaf active-restarter-count {
+        type uint16;
+        description
+          "The number of active restarters for which this router is a helper.";
+      }
+      leaf last-exit-reason {
+        type uint32;
+        description "The last Helper exit reason.";
       }
     }
   }
@@ -3538,8 +3686,8 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
         }
       }
     }
-    uses spf-log;
-    uses lsa-log;
+//    uses spf-log;
+//    uses lsa-log;
   }
   
   grouping frr-area-stat {
@@ -3650,7 +3798,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
     }
 */
 
-   /* XXX Should the Shortest Path Tree be modeled? */
+   /* XXX Should the Shortest Path Graph be modeled? */
 
     uses frr-area-stat;
   }
@@ -3658,7 +3806,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
   grouping area-state {
     description "OSPF area operational state";
 
-    container threads {
+    container threads{
       // frr specific model
       description "All Area-scope threads run by frr.";
 
