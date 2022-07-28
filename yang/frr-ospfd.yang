@@ -2014,6 +2014,35 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
     }
   }
 
+  grouping lsa-database {
+    uses lsa-key;
+    uses lsa {
+      refine "version/ospfv2/ospfv2" {
+/* XXX Remove if unnecessary
+        must "derived-from-or-self( "
+          + "../../../../../../../../../../"
+          + "frr-rt:type, 'ospf')" {
+            description "OSPFv2 LSA.";
+          }
+*/
+        must "derived-from-or-self( "
+          + "/frr-rt:routing/frr-rt:control-plane-protocols/"
+          + "frr-rt:control-plane-protocol/frr-rt:type, 'ospf')" {
+          description "OSPFv2 LSA. (ospfd)";
+        }
+      }
+/* XXX Is ospfv3 necessary? (should belong to ospf6d model?)
+      refine "version/ospfv3/ospfv3" {
+        must "derived-from-or-self( "
+           + "../../../../../../../../../../"
+           + "rt:type, 'ospfv3')" {
+          description "OSPFv3 LSA.";
+        }
+      }
+*/
+    }
+  }
+
   /*
    * ----------------------------
    * End of LSD Operational State
@@ -2289,6 +2318,33 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
 
         uses shortcut-grouping;
 
+        container statistics {
+          config false;
+          uses area-stat;
+        }
+
+        container database {
+          config false;
+          description "Area-scope Link State Database.";
+          list area-scope-lsa-type {
+            key "lsa-type";
+            description "List OSPF area-scope LSAs.";
+            leaf lsa-type {
+              type uint16;
+              description "OSPF area-scope LSA type";
+            }
+            container area-scope-lsas {
+              description
+                "All area-scope LSAs of an area-scope LSA type.";
+              list area-scope-lsa {
+                key "lsa-id adv-router";
+                description "List of OSPF area-scope LSAs";
+                uses lsa-database;
+              }
+            } 
+          }
+        }
+        
         uses virtual-link-group;
       }
     }
@@ -2868,6 +2924,153 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
     }
   }
 
+  grouping area-stat {
+    description "Per-area statistics.";
+    leaf discontinuity-time {
+      type yang:date-and-time;
+      description
+        "The time on the most recent occasion at which any one or
+          more of this OSPF area's counters suffered a
+          discontinuity.  If no such discontinuities have occurred
+          since the OSPF area was last re-initialized, then
+          this node contains the time the OSPF area was
+          re-initialized which normally occurs when it was
+          created.";
+    }
+    leaf spf-runs-count {
+      type yang:counter32;
+      description
+        "The number of times the intra-area SPF has run.
+         Discontinuities in the value of this counter can occur
+         when the OSPF area is re-initialized.";
+    }
+    leaf abr-count {
+      type yang:gauge32;
+      description
+        "The total number of Area Border Routers (ABRs)
+         reachable within this area.";
+    }
+    leaf asbr-count {
+      type yang:gauge32;
+      description
+        "The total number of AS Boundary Routers (ASBRs).";
+    }
+    leaf ar-nssa-translator-event-count {
+      type yang:counter32;
+      description
+        "The number of NSSA translator-state changes.
+         Discontinuities in the value of this counter can occur
+         when the OSPF area is re-initialized.";
+    }
+    leaf area-scope-lsa-count {
+      type yang:gauge32;
+      description
+        "The number of area-scope LSAs in the area.";
+    }
+    leaf area-scope-lsa-cksum-sum {
+      type uint32;
+      description
+        "The module 2**32 sum of the LSA checksums
+         for area-scope LSAs. The value should be treated as
+         unsigned when comparing two sums of checksums. While
+         differing checksums indicate a different combination
+         of LSAs, equivalent checksums don't guarantee that the
+         LSAs are the same given that multiple combinations of
+         LSAs can result in the same checksum.";
+    }
+    container database {
+      description "Container for area-scope LSA type statistics.";
+      list area-scope-lsa-type {
+        description "List of area-scope LSA statistics";
+        leaf lsa-type {
+          type uint16;
+          description "Area-scope LSA type.";
+        }
+        leaf lsa-count {
+          type yang:gauge32;
+          description "The number of LSAs of the LSA type.";
+        }
+        leaf lsa-cksum-sum {
+          type uint32;
+          description
+            "The module 2**32 sum of the LSA checksums
+             for the LSAs of this type. The value should be
+             treated as unsigned when comparing two sums of
+             checksums. While differing checksums indicate a
+             different combination of LSAs, equivalent checksums
+             don't guarantee that the LSAs are the same given that
+             multiple combinations of LSAs can result in the same
+             checksum.";
+        }
+      }
+    }
+  }
+
+  grouping frr-interface-stat {
+    // frr specific model
+    description "Additional statistics kept track of in frr by each interface";
+
+    leaf hello-in {
+      type yang:counter32;
+      description "Hello message input count.";
+    }
+
+    leaf hello-out {
+      type yang:counter32;
+      description "Hello message output count.";
+    }
+
+    leaf db-desc-in {
+      type yang:counter32;
+      description "Database desc. message input count.";
+    }
+
+    leaf db-desc-out {
+      type yang:counter32;
+      description "Database desc. message output count.";
+    }
+
+    leaf ls-req-in {
+      type yang:counter32;
+      description "LS request message input count.";
+    }
+
+    leaf ls-req-out {
+      type yang:counter32;
+      description "LS request message output count.";
+    }
+
+    leaf ls-upd-in {
+      type yang:counter32;
+      description "LS update message input count.";
+    }
+
+    leaf ls-upt-out {
+      type yang:counter32;
+      description "LS update message output count.";
+    }
+
+    leaf ls-ack-in {
+      type yang:counter32;
+      description "LS ack message input count.";
+    }
+
+    leaf ls-ack-out {
+      type yang:counter32;
+      description "LS ack message output count.";
+    }
+
+    leaf discarded {
+      type yang:counter32;
+      description "Discarded input count by error.";
+    }
+
+    leaf full-nbrs {
+      type yang:counter32;
+      description "Number of full neighbors on this interface.";
+    }
+  }
+
   grouping interface-stat {
     description "Per-interface statistics";
 /*
@@ -2880,7 +3083,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
          re-initialized, then this node contains the time the OSPF interface
          was re-initialized which normall occurs when it was created.";
     }
-    
+*/    
     leaf if-event-count {
       type yang:counter32;
       description
@@ -2888,7 +3091,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
          has occured. Discontinuities in the value of this counter can occur
          when the OSPF interface is re-initialized.";
     }
-
+/*
     leaf link-scope-lsa-count {
       type yang:gauge32;
       description "The number of link-scope LSAs.";
@@ -2931,7 +3134,9 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
         }
       }
     }
-*/    
+*/
+
+    uses frr-interface-stat;
   }
 
   grouping neighbor-stat {
@@ -3148,6 +3353,62 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
     }
   }
 
+  grouping frr-interface-common-state {
+    // frr specific model
+    description "FRR specific interface operational state.";
+
+    leaf network-lsa-seqno {
+      type uint32;
+      description "The cryptographic sequence number in use if this
+        interface is the DR.";
+    }
+
+    container multicast-groups {
+      description "The multicast groups this interface is a part of.";
+
+      leaf ospf-all-routers {
+        type boolean;
+        description "Multicast group of all routers.";
+      }
+      leaf ospf-designated-routers {
+        type boolean;
+        description "Multicast group of designated routers.";
+      }
+    }
+
+    container threads {
+      description "Status of frr-required interface threads.";
+      
+      leaf hello {
+        type int64;
+        units "millisecond";
+        description "Time left until next hello in milliseconds.";
+      }
+      leaf wait {
+        type int64;
+        units "millisecond";
+        description "Time left in the wait timer thread in milliseconds.";
+      }
+      leaf ls-ack {
+        type int64;
+        units "millisecond";
+        description "Time left in the LS ack timer thread in milliseconds.";
+      }
+      leaf ls-ack-direct {
+        type empty;
+        description "Presence of the LS ack event thread.";
+      }
+      leaf ls-upd-event {
+        type empty;
+        description "Presence of the LS update event thread.";
+      }
+      leaf opaque-lsa-self {
+        type empty;
+        description "Presence of the type-9 opaque-LSAs thread.";
+      }
+    }
+  }
+
   grouping interface-common-state {
     description "OSPF interface common operational state.";
 
@@ -3190,9 +3451,10 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
       description "Backup Designated Router (BDR) IP Address.";
     }
 
+    uses frr-interface-common-state;
+
     container statistics {
       description "Per-interface statistics";
-
       uses interface-stat;
     }
 
@@ -3226,31 +3488,7 @@ XXX Is ospfv3 necessary? (should belong ospf6d model?)
           list link-scope-lsa {
             key "lsa-id adv-router";
             description "List of OSPF link-scope LSAs";
-            uses lsa-key;
-            uses lsa {
-              refine "version/ospfv2/ospfv2" {
-/* XXX Remove if unnecessary
-                must "derived-from-or-self( "
-                   + "../../../../../../../../../../"
-                   + "frr-rt:type, 'ospf')" {
-                  description "OSPFv2 LSA.";
-                }
-*/
-                must "derived-from-or-self( "
-                 + "/frr-rt:routing/frr-rt:control-plane-protocols/"
-                 + "frr-rt:control-plane-protocol/frr-rt:type, 'ospf')" {
-                 description "OSPFv2 LSA. (ospfd)";
-                }
-/* XXX Is ospfv3 necessary? (should belong to ospf6d model?)
-              refine "version/ospfv3/ospfv3" {
-                must "derived-from-or-self( "
-                   + "../../../../../../../../../../"
-                   + "rt:type, 'ospfv3')" {
-                  description "OSPFv3 LSA.";
-                }
-*/
-              }
-            }
+            uses lsa-database;
           }
         }
       }
