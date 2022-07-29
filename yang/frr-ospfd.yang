@@ -2908,6 +2908,7 @@ module frr-ospfd {
         range "1..65535";
       }
       units "seconds";
+      default "10";
       description
         "Interval between hello packets (seconds). It must
          be the same for all routers on the same network.
@@ -2923,6 +2924,7 @@ module frr-ospfd {
         /* IETF max was 3000 */
       }
       units "seconds";
+      default "5";
       description
         "Interval between retransmitting unacknowledged Link
          State Advertisements (LSAs) (seconds). This should
@@ -2937,6 +2939,7 @@ module frr-ospfd {
         range "1..65535";
       }
       units "seconds";
+      default "1";
       description
         "Estimated time needed to transmit Link State Update
          (LSU) packets on the interface (seconds). LSAs have
@@ -2988,6 +2991,7 @@ module frr-ospfd {
             description
               "The value must be greater than the 'hello-interval'.";
           }
+          default "40";
           description
             "Interval after which a neighbor is declared down
              (seconds) if hello packets are not received. It is
@@ -3049,6 +3053,7 @@ module frr-ospfd {
                stub or NSSA area.";
           }
           type ospf-metric;
+          default "1";
           description
             "Set the summary default route cost for a stub or NSSA area.";
         }
@@ -3179,6 +3184,7 @@ module frr-ospfd {
     }
     leaf passive-interface-default {
       type boolean;
+      default "false";
       description
         "Suppress routing updates on interfaces by default.";
     }
@@ -3205,6 +3211,7 @@ module frr-ospfd {
             "Standard behavior (RFC 2328).";
         }
       }
+      default "cisco";
     }
     container router-info {
       /*
@@ -3273,6 +3280,7 @@ module frr-ospfd {
           range "1..4294967";
         }
         units "Mbits/Sec";
+        default "100000";
         description
           "The reference bandwidth in terms of Mbits per second.";
       }
@@ -3298,6 +3306,7 @@ module frr-ospfd {
        */
       leaf helper-enable {
         type boolean;
+        default "false";
         description
           "Enable graceful restart helper support for restarting
            routers (RFC 3623 Section 3).";
@@ -3314,6 +3323,7 @@ module frr-ospfd {
       }
       leaf helper-strict-lsa-checking {
         type boolean;
+        default "true";
         description
           "Terminate graceful restart when an LSA topology change
            is detected (RFC 3623 Section B.2).";
@@ -3321,6 +3331,7 @@ module frr-ospfd {
       leaf helper-only-planned-restart {
         /* frr specific model */
         type boolean;
+        default "false";
         description
           "Only support as Helper in the case of planned restarts";
       }
@@ -3330,6 +3341,7 @@ module frr-ospfd {
           range "10..1800";
         }
         units "seconds";
+        default "1800";
         description
           "Support as Helper for this configured grace period";
       }
@@ -3437,6 +3449,7 @@ module frr-ospfd {
         type uint16 {
           range "5..1800";
         }
+        default "5";
         description
           "Aggregation delay timer.";
       }
@@ -3521,6 +3534,7 @@ module frr-ospfd {
           "Advertise own Router-LSA with infinite distance (stub router).";
         leaf always {
           type boolean;
+          default "false";
           description
             "Administratively (always) applied, for an indefinite period.";
         }
@@ -3623,6 +3637,7 @@ module frr-ospfd {
         range "0..600000";
       }
       units "msec";
+      default "0";
       description
         "Delay from first change received till SPF calculation.";
     }
@@ -3632,6 +3647,7 @@ module frr-ospfd {
         range "0..600000";
       }
       units "msec";
+      default "50";
       description
         "Initial hold time (msec) between consecutive SPF calculations.";
     }
@@ -3641,6 +3657,7 @@ module frr-ospfd {
         range "0..600000";
       }
       units "msec";
+      default "5000";
       description
         "Maximum hold time (msec).";
     }
@@ -3744,6 +3761,7 @@ module frr-ospfd {
         type uint16 {
           range "1..65535";
         }
+        default "16";
         description
           "Maximum number of Equal-Cost Multi-Path (ECMP) paths.";
       }
@@ -3762,6 +3780,7 @@ module frr-ospfd {
           range "10..1800";
         }
         units "seconds";
+        default "10";
         description
           "The maximum time between distinct originations of any particular
            LSA, value in units seconds.";
@@ -3771,6 +3790,7 @@ module frr-ospfd {
           range "0..600000";
         }
         units "msec";
+        default "1000";
         description
           "Minimum delay in receiving new version of an LSA.";
       }
@@ -3779,6 +3799,7 @@ module frr-ospfd {
           range "0..5000";
         }
         units "msec";
+        default "5000";
         description
           "Minimum delay between LSA transmissions.";
       }
@@ -3964,6 +3985,7 @@ module frr-ospfd {
     }
     leaf mtu-ignore {
       type boolean;
+      default "false";
       description
         "Enable/Disable bypassing the MTU mismatch check in
          Database Description packets specified in RFC 2328,
@@ -3975,6 +3997,7 @@ module frr-ospfd {
           range "1..65535";
         }
         units "seconds";
+        default "40";
       }
       container minimal {
         leaf hello-multiplier {
@@ -4667,11 +4690,13 @@ module frr-ospfd {
         "Operational graceful restart information.";
       leaf active-restarter-count {
         type uint16;
+        default "0";
         description
           "The number of active restarters for which this router is a helper.";
       }
       leaf last-exit-reason {
         type gr-exit-reason;
+        default "exit-none";
         description
           "The last Helper exit reason.";
       }
@@ -5468,6 +5493,7 @@ module frr-ospfd {
     }
     leaf priority {
       type uint8;
+      default "1";
       description
         "Configure OSPF router priority. On multi-access network
          this value is for Designated Router (DR) election. The
