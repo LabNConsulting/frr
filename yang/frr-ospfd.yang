@@ -1193,7 +1193,7 @@ module frr-ospfd {
       type uint32 {
         range "0..16777215";
       }
-      units "usec";
+      units "microseconds";
       description
         "Type 27 subTLVs. Delay in Microseconds.";
     }
@@ -1204,7 +1204,7 @@ module frr-ospfd {
         type uint32 {
           range "0..16777215";
         }
-        units "usec";
+        units "microseconds";
         description
           "Minimum delay in Microseconds";
       }
@@ -1212,7 +1212,7 @@ module frr-ospfd {
         type uint32 {
           range "0..16777215";
         }
-        units "usec";
+        units "microseconds";
         description
           "Maximum delay in Microseconds.";
       }
@@ -1221,7 +1221,7 @@ module frr-ospfd {
       type uint32 {
         range "0..16777215";
       }
-      units "usec";
+      units "microseconds";
       description
         "Type 29 subTLVs. Link delay variation in Microseconds.";
     }
@@ -4314,7 +4314,7 @@ module frr-ospfd {
       }
       leaf duration {
         type int64;
-        units "usec";
+        units "microseconds";
         description
           "Execution time of last SPF calculation in microseconds.";
       }
@@ -4561,7 +4561,7 @@ module frr-ospfd {
         presence "Present if the ABR task timer thread is running.";
         leaf timer {
           type int64;
-          units "usec";
+          units "microseconds";
           description
             "Timer for ABR tasks in microseconds.";
         }
@@ -4570,7 +4570,7 @@ module frr-ospfd {
         presence "Present if the ASBR check timer thread is running.";
         leaf timer {
           type int64;
-          units "usec";
+          units "microseconds";
           description
             "Timer for ASBR checking in microseconds.";
         }
@@ -4579,7 +4579,7 @@ module frr-ospfd {
         presence "Present if the ASBR NSSA redistribution update timer is running";
         leaf timer {
           type int64;
-          units "usec";
+          units "microseconds";
           description
             "Timer for ASBR NSSA updates in microseconds.";
         }
@@ -4588,7 +4588,7 @@ module frr-ospfd {
         presence "Present if the distribute list update timer thread is running.";
         leaf timer {
           type int64;
-          units "usec";
+          units "microseconds";
           description
             "Timer for distributive list updates in microseconds.";
         }
@@ -4597,7 +4597,7 @@ module frr-ospfd {
         presence "Present if the SPF calculation timer thread is running.";
         leaf timer {
           type int64;
-          units "usec";
+          units "microseconds";
           description
             "Timer for next shortest path first (SPF) calculations.";
         }
@@ -4606,7 +4606,7 @@ module frr-ospfd {
         presence "Present if the ASE calculation timer thread is running.";
         leaf timer {
           type int64;
-          units "usec";
+          units "microseconds";
           description
             "Timer for next AS external route (ASE) calculations.";
         }
@@ -4615,7 +4615,7 @@ module frr-ospfd {
         presence "Present if type-11 opaque LSAs origin thread is running.";
         leaf timer {
           type int64;
-          units "usec";
+          units "microseconds";
           description
             "Timer for type-11 opaque-LSA originination.";
         }
@@ -4624,7 +4624,7 @@ module frr-ospfd {
         presence "Present if the segment routing update timer thread is running.";
         leaf timer {
           type int64;
-          units "usec";
+          units "microseconds";
           description
             "Timer for next segment routing (SR) update.";
         }
@@ -4633,7 +4633,7 @@ module frr-ospfd {
         presence "Present if the maxage LSA remover timer thread is running.";
         leaf timer {
           type int64;
-          units "usec";
+          units "microseconds";
           description
             "Max Age LSA remover timer in microseconds.";
         }
@@ -4642,7 +4642,7 @@ module frr-ospfd {
         presence "Present if the maxage LSA checker timer thread is running.";
         leaf timer {
           type int64;
-          units "usec";
+          units "microseconds";
           description
             "Max Age LSA checker timer in microseconds.";
         }
@@ -4652,7 +4652,7 @@ module frr-ospfd {
                   running.";
         leaf timer {
           type int64;
-          units "usec";
+          units "microseconds";
           description
             "Deferred shutdown timer in microseconds.";
         }
@@ -4665,7 +4665,7 @@ module frr-ospfd {
         presence "Present if the LSA refresher timer thread is running.";
         leaf timer {
           type int64;
-          units "usec";
+          units "microseconds";
           description
             "Timer for next LSA refresher in microseconds.";
         }
@@ -4679,7 +4679,7 @@ module frr-ospfd {
         presence "Present if the external aggregation timer thread is running.";
         leaf timer {
           type int64;
-          units "usec";
+          units "microseconds";
           description
             "Delay timer to process external routes with summary addresses";
         }
@@ -4883,7 +4883,7 @@ module frr-ospfd {
         presence "Present if the stub-router thread is running.";
         leaf timer {
           type int64;
-          units "usec";
+          units "microseconds";
           description
             "Stub routers timer thread.";
         }
@@ -4892,7 +4892,7 @@ module frr-ospfd {
         presence "Present if type-10 opaque LSAs origin thread is running";
         leaf timer {
           type int64;
-          units "usec";
+          units "microseconds";
           description
             "Timer for type-10 opaque-LSA origination.";
         }
@@ -5084,13 +5084,13 @@ module frr-ospfd {
     }
     leaf nbr-uptime {
       type int64;
-      units "usec";
+      units "microseconds";
       description
         "The uptime of the neighbor over this interface in microseconds.";
     }
     leaf nbr-downtime {
       type int64;
-      units "usec";
+      units "microseconds";
       description
         "The downtime of the neighbor over this interface in microseconds.";
     }
@@ -5111,7 +5111,7 @@ module frr-ospfd {
       }
       leaf last-regressive {
         type int64;
-        units "usec";
+        units "microseconds";
         description
           "Time since the last regressive NSM state change in
            microseconds.";
@@ -5167,7 +5167,7 @@ module frr-ospfd {
         presence "Present when the database retransmission timer thread is running.";
         leaf timer {
           type int64;
-          units "usec";
+          units "microseconds";
           description
             "Database description retranmission timer in microseconds";
         }
@@ -5176,7 +5176,7 @@ module frr-ospfd {
         presence "Present when the LS request retransmission timer thread is running.";
         leaf timer {
           type int64;
-          units "usec";
+          units "microseconds";
           description
             "LS request retransmission timer in microseconds.";
         }
@@ -5185,7 +5185,7 @@ module frr-ospfd {
         presence "Present when the LS update retranmission timer thread is running.";
         leaf timer {
           type int64;
-          units "usec";
+          units "microseconds";
           description
             "LS update retransmission timer in microseconds.";
         }
@@ -5198,7 +5198,7 @@ module frr-ospfd {
         presence "Present when the hello reply timer thread is running.";
         leaf timer {
           type int64;
-          units "usec";
+          units "microseconds";
           description
             "Time left for a neighbor to respond to a hello request, as
              measured by the hello reply thread.";
@@ -5338,7 +5338,7 @@ module frr-ospfd {
         presence "Present if the ls-ack thread is running.";
         leaf timer {
           type int64;
-          units "usec";
+          units "microseconds";
           description
             "Time left in the LS ack timer thread in microseconds.";
         }
@@ -5353,7 +5353,7 @@ module frr-ospfd {
         presence "Present if the type-9 opaque-LSAs origin thread is running.";
         leaf timer {
           type int64;
-          units "usec";
+          units "microseconds";
           description
             "Timer for typ 9 opaque-LSA origination.";
         }
@@ -5575,6 +5575,7 @@ module frr-ospfd {
         "BFD Client Configuration.";
       leaf enable {
         type boolean;
+        default "false";
         description
           "Enable bidirectional forwarding (BFD) on this interface.";
       }
@@ -5592,14 +5593,14 @@ module frr-ospfd {
       container tx-rx-intervals {
         leaf desired-min-tx-interval {
           type uint32;
-          units "usec";
+          units "microseconds";
           default "300";
           description
             "Desired minimum transmit interval of control packets.";
         }
         leaf required-min-rx-interval {
           type uint32;
-          units "usec";
+          units "microseconds";
           default "300";
           description
             "Required minimum receive interval of control packets.";
@@ -5665,7 +5666,7 @@ module frr-ospfd {
            interface.
            This leaf is optional for the rpc.
            If it is specified, the rpc will clear only the specific interface
-           in some set of OSPf instances.
+           in some set of OSPF instances.
            If it is not specified, the rpc will clear all interfaces in some
            set of OSPF instances.";
       }
@@ -5692,7 +5693,7 @@ module frr-ospfd {
           "The routing ID identifying a specific neighbor.
            This leaf is optional for the rpc.
            If it is specified, the rpc will clear only the specified neighbor
-           in some set of OSPf instances.
+           in some set of OSPF instances.
            If it is not specified, the rpc will clear all neighbors in some set
            of OSPF instances.";
       }
