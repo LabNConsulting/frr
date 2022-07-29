@@ -647,17 +647,17 @@ module frr-ospfd {
 
   typedef auth-type {
     type enumeration {
-      enum null {
+      enum "null" {
         value 0;
         description
           "Use null authentication.";
       }
-      enum simple {
+      enum "simple" {
         value 1;
         description
           "Use simple authentication.";
       }
-      enum cryptographic {
+      enum "cryptographic" {
         value 2;
         description
           "Use message-digest authentication.";
@@ -702,37 +702,37 @@ module frr-ospfd {
 
   typedef if-state {
     type enumeration {
-      enum down {
+      enum "down" {
         value 1;
         description
           "Interface down state.";
       }
-      enum loopback {
+      enum "loopback" {
         value 2;
         description
           "Interface loopback state.";
       }
-      enum waiting {
+      enum "waiting" {
         value 3;
         description
           "Interface waiting state.";
       }
-      enum point-to-point {
+      enum "point-to-point" {
         value 4;
         description
           "Interface point-to-point state.";
       }
-      enum dr {
+      enum "dr" {
         value 5;
         description
           "Interface Designated Router (DR) state.";
       }
-      enum bdr {
+      enum "bdr" {
         value 6;
         description
           "Interface Backup Designated Router (BDR) state.";
       }
-      enum dr-other {
+      enum "dr-other" {
         value 7;
         description
           "Interface Other Designated Router state.";
@@ -744,42 +744,42 @@ module frr-ospfd {
 
   typedef nbr-state {
     type enumeration {
-      enum down {
+      enum "down" {
         value 1;
         description
           "Neighbor down state.";
       }
-      enum attempt {
+      enum "attempt" {
         value 2;
         description
           "Neighbor attempt state.";
       }
-      enum init {
+      enum "init" {
         value 3;
         description
           "Neighbor init state.";
       }
-      enum 2-way {
+      enum "2-way" {
         value 4;
         description
           "Neighbor 2-Way state.";
       }
-      enum exstart {
+      enum "exstart" {
         value 5;
         description
           "Neighbor exchange start state.";
       }
-      enum exchange {
+      enum "exchange" {
         value 6;
         description
           "Neighbor exchange state.";
       }
-      enum loading {
+      enum "loading" {
         value 7;
         description
           "Neighbor loading state.";
       }
-      enum full {
+      enum "full" {
         value 8;
         description
           "Neighbor full state.";
@@ -792,27 +792,27 @@ module frr-ospfd {
   typedef gr-restart-reason {
     /* frr specific model */
     type enumeration {
-      enum unknown-restart {
+      enum "unknown-restart" {
         value 0;
         description
           "Uknown restart.";
       }
-      enum sw-restart {
+      enum "sw-restart" {
         value 1;
         description
           "Software restart.";
       }
-      enum sw-upgrade {
+      enum "sw-upgrade" {
         value 2;
         description
           "Software reload/upgrade.";
       }
-      enum switch-redundant-card {
+      enum "switch-redundant-card" {
         value 3;
         description
           "Switch to redundant control processor.";
       }
-      enum invalid-reason-code {
+      enum "invalid-reason-code" {
         value 4;
         description
           "Invalid restart.";
@@ -823,27 +823,27 @@ module frr-ospfd {
   typedef gr-exit-reason {
     /* frr specific model */
     type enumeration {
-      enum exit-none {
+      enum "exit-none" {
         value 0;
         description
           "No exit reason.";
       }
-      enum inprogress {
+      enum "inprogress" {
         value 1;
         description
           "Graceful restart in progress.";
       }
-      enum topo-chg {
+      enum "topo-chg" {
         value 2;
         description
           "Topology has changed.";
       }
-      enum grace-timeout {
+      enum "grace-timeout" {
         value 3;
         description
           "Grace period expired.";
       }
-      enum completed {
+      enum "completed" {
         value 4;
         description
           "Graceful restart completed.";
@@ -854,37 +854,37 @@ module frr-ospfd {
   typedef gr-reject-reason {
     /* frr specific model */
     type enumeration {
-      enum rejected-none {
+      enum "rejected-none" {
         value 0;
         description
           "No reject reason.";
       }
-      enum support-disabled {
+      enum "support-disabled" {
         value 1;
         description
           "Graceful restart is not supported.";
       }
-      enum not-a-valid-neighbour {
+      enum "not-a-valid-neighbour" {
         value 2;
         description
           "Not a valud neighbour.";
       }
-      enum planned-only-restart {
+      enum "planned-only-restart" {
         value 3;
         description
           "Can only support planned graceful restarts";
       }
-      enum topo-change-rtxmt-list {
+      enum "topo-change-rtxmt-list" {
         value 4;
         description
           "Topology change in retransmit list";
       }
-      enum lsa-age-more {
+      enum "lsa-age-more" {
         value 5;
         description
           "Link state advertisments are older than grace period";
       }
-      enum restarting {
+      enum "restarting" {
         value 6;
         description
           "Currently restarting";
@@ -902,7 +902,7 @@ module frr-ospfd {
 
   typedef fletcher-checksum16-type {
     type string {
-      pattern '(0x)?[0-9a-fA-F]{4}';
+      pattern "(0x)?[0-9a-fA-F]{4}";
     }
     description
       "Fletcher 16-bit checksum in hex-string format 0xXXXX.";
@@ -913,23 +913,23 @@ module frr-ospfd {
 
   typedef router-link-type {
     type enumeration {
-      enum point-to-point-link {
+      enum "point-to-point-link" {
         value 1;
         description
           "Point-to-Point link to Router";
       }
-      enum transit-network-link {
+      enum "transit-network-link" {
         value 2;
         description
           "Link to transit network identified by
            Designated-Router (DR)";
       }
-      enum stub-network-link {
+      enum "stub-network-link" {
         value 3;
         description
           "Link to stub network identified by subnet";
       }
-      enum virtual-link {
+      enum "virtual-link" {
         value 4;
         description
           "Virtual link across transit area";
@@ -949,12 +949,12 @@ module frr-ospfd {
 
   typedef pce-domain-type {
     type enumeration {
-      enum ospf-area-id {
+      enum "ospf-area-id" {
         value 1;
         description
           "Indicates that the visible domain type is an OSPF Area.";
       }
-      enum as-number {
+      enum "as-number" {
         value 2;
         description
           "Indicates that the visible domain type is an AS";
@@ -964,41 +964,41 @@ module frr-ospfd {
 
   typedef route-type {
     type enumeration {
-      enum min {
+      enum "min" {
         value 0;
         description
           "OSPF min path.";
       }
-      enum intra-area {
+      enum "intra-area" {
         value 1;
         description
           "OSPF intra-area route.";
       }
-      enum inter-area {
+      enum "inter-area" {
         value 2;
         description
           "OSPF inter-area route.";
       }
-      enum external-1 {
+      enum "external-1" {
         value 3;
         description
           "OSPF type 1 external route.";
       }
-      enum external-2 {
+      enum "external-2" {
         value 4;
         description
           "OSPF type 2 external route.";
       }
-      enum max {
+      enum "max" {
         value 5;
         description
           "OSPF mac path.";
       }
       /*
-      enum nssa-1 {
+      enum "nssa-1" {
         description "OSPF type 1 NSSA route.";
       }
-      enum nssa-2 {
+      enum "nssa-2" {
         description "OSPF type 2 NSSA route.";
       }
       */
@@ -1009,17 +1009,17 @@ module frr-ospfd {
 
   typedef destination-type {
     type enumeration {
-      enum router {
+      enum "router" {
         value 1;
         description
           "Destination is a router.";
       }
-      enum network {
+      enum "network" {
         value 2;
         description
           "Destination is a network.";
       }
-      enum discard {
+      enum "discard" {
         value 3;
         description
           "Destination is to be discarded.";
@@ -1031,22 +1031,22 @@ module frr-ospfd {
 
   typedef area-type {
     type enumeration {
-      enum default {
+      enum "default" {
         value 0;
         description
           "Default area type.";
       }
-      enum stub {
+      enum "stub" {
         value 1;
         description
           "Stub area type.";
       }
-      enum nssa {
+      enum "nssa" {
         value 2;
         description
           "Not so stubby area type.";
       }
-      enum max {
+      enum "max" {
         value 3;
         description
           "Max area type.";
@@ -1441,8 +1441,8 @@ module frr-ospfd {
           "Type 1 tlv.";
         leaf grace-period {
           type uint32;
-          mandatory true;
           units "seconds";
+          mandatory true;
           description
             "The number of seconds that a neighbor should be advertised as
              fully adjacent despite the state of database synchronization.";
@@ -2162,27 +2162,27 @@ module frr-ospfd {
             "Extended prefix TLV.";
           leaf route-type {
             type enumeration {
-              enum unspecified {
+              enum "unspecified" {
                 value 0;
                 description
                   "Unspecified.";
               }
-              enum intra-area {
+              enum "intra-area" {
                 value 1;
                 description
                   "OSPF intra-area route.";
               }
-              enum inter-area {
+              enum "inter-area" {
                 value 3;
                 description
                   "OSPF inter-area route.";
               }
-              enum external {
+              enum "external" {
                 value 5;
                 description
                   "OSPF External route.";
               }
-              enum nssa {
+              enum "nssa" {
                 value 7;
                 description
                   "OSPF NSSA external route.";
@@ -2844,15 +2844,15 @@ module frr-ospfd {
         "Shortcut configuration.";
       leaf configuration {
         type enumeration {
-          enum default {
+          enum "default" {
             description
               "Default shortcutting behavior";
           }
-          enum disable {
+          enum "disable" {
             description
               "Disable shortcutting through the area";
           }
-          enum enable {
+          enum "enable" {
             description
               "Enable shortcutting through the area";
           }
@@ -2870,7 +2870,7 @@ module frr-ospfd {
         default "null";
       }
       leaf simple-key {
-        when 'enum-value(../type) = 1' {
+        when "enum-value(../type) = 1" {
           description
             "A simple key consists of only a simple password.";
         }
@@ -2879,7 +2879,7 @@ module frr-ospfd {
           "The OSPF password.";
       }
       container mds-keys {
-        when 'enum-value(../type) = 2' {
+        when "enum-value(../type) = 2" {
           description
             "A message digest key set consists of an id and password.";
         }
@@ -2986,7 +2986,7 @@ module frr-ospfd {
         leaf dead-interval {
           type uint16;
           units "seconds";
-          must '../dead-interval > ../hello-interval' {
+          must "../dead-interval > ../hello-interval" {
             error-message "The dead interval must be "
                         + "larger than the hello interval";
             description
@@ -3065,15 +3065,15 @@ module frr-ospfd {
           }
           leaf translate {
             type enumeration {
-              enum never {
+              enum "never" {
                 description
                   "NSSA-ABR to never translate.";
               }
-              enum candidate {
+              enum "candidate" {
                 description
                   "NSSA-ABR for translate election.";
               }
-              enum always {
+              enum "always" {
                 description
                   "NSSA-ABR to always translate.";
               }
@@ -3191,22 +3191,22 @@ module frr-ospfd {
     }
     leaf abr-type {
       type enumeration {
-        enum cisco {
+        enum "cisco" {
           value 1;
           description
             "Alternative ABR, Cisco implementation.";
         }
-        enum ibm {
+        enum "ibm" {
           value 2;
           description
             "Alternative ABR,  IBM implementation.";
         }
-        enum shortcut {
+        enum "shortcut" {
           value 3;
           description
             "Shortcut ABR.";
         }
-        enum standard {
+        enum "standard" {
           value 4;
           description
             "Standard behavior (RFC 2328).";
@@ -3358,10 +3358,10 @@ module frr-ospfd {
     }
     leaf metric-type {
       type enumeration {
-        enum type-1 {
+        enum "type-1" {
           value 1;
         }
-        enum type-2 {
+        enum "type-2" {
           value 2;
         }
       }
@@ -3379,23 +3379,23 @@ module frr-ospfd {
     container default-information {
       leaf originate {
         type enumeration {
-          enum none {
+          enum "none" {
             value 0;
             description
               "Don't advertise default route.";
           }
-          enum zebra {
+          enum "zebra" {
             value 1;
             description
               "Always default route only to Zebra.";
           }
-          enum always {
+          enum "always" {
             value 2;
             description
               "Always advertise default route.";
           }
         }
-        default none;
+        default "none";
         description
           "How a default route should be originated.";
       }
@@ -3619,9 +3619,9 @@ module frr-ospfd {
            (TI-LFA)";
         leaf protection {
           type enumeration {
-            enum undefined;
-            enum link;
-            enum node;
+            enum "undefined";
+            enum "link";
+            enum "node";
           }
           default "link";
           description
@@ -3666,11 +3666,11 @@ module frr-ospfd {
     }
     leaf hold-multiplier {
       /* frr specific model */
-      config false;
       type uint32 {
         range "1..4294967295";
       }
       default "1";
+      config false;
       description
         "SPF adaptive hold time multiplier.";
     }
@@ -3818,14 +3818,14 @@ module frr-ospfd {
           type uint32 {
             range "0..1048575";
           }
-          must '../upper-bound > .';
+          must "../upper-bound > .";
           default "16000";
         }
         leaf upper-bound {
           type uint32 {
             range "0..1048575";
           }
-          must '. > ../lower-bound';
+          must ". > ../lower-bound";
           default "23999";
         }
       }
@@ -3834,14 +3834,14 @@ module frr-ospfd {
           "Local blocks to be advertised.";
         leaf lower-bound {
           type uint32;
-          must '../upper-bound > .';
+          must "../upper-bound > .";
           default "15000";
           description
             "Lower value in the label range.";
         }
         leaf upper-bound {
           type uint32;
-          must '. > ../lower-bound';
+          must ". > ../lower-bound";
           default "15999";
           description
             "Upper value in the label range.";
@@ -3871,11 +3871,11 @@ module frr-ospfd {
               "List of prefix SID mapped to IPv4 local prefixes.";
             leaf value-type {
               type enumeration {
-                enum index {
+                enum "index" {
                   description
                     "The value will be interpreted as an index.";
                 }
-                enum absolute {
+                enum "absolute" {
                   description
                     "The value will become interpreted as an absolute value.";
                 }
@@ -3898,18 +3898,18 @@ module frr-ospfd {
             }
             leaf last-hop-behavior {
               type enumeration {
-                enum explicit-null {
+                enum "explicit-null" {
                   value 0;
                   description
                     "Use explicit-null for the SID.";
                 }
-                enum no-php {
+                enum "no-php" {
                   value 1;
                   description
                     "Do not use Penultimate Hop Popping (PHP)
                      for the SID.";
                 }
-                enum php {
+                enum "php" {
                   value 2;
                   description
                     "Use PHP for the SID.";
@@ -4207,32 +4207,32 @@ module frr-ospfd {
         }
         leaf alternate-type {
           type enumeration {
-            enum equal-cost {
+            enum "equal-cost" {
               description
                 "ECMP alternate.";
             }
-            enum lfa {
+            enum "lfa" {
               description
                 "LFA alternate.";
             }
-            enum remote-lfa {
+            enum "remote-lfa" {
               description
                 "Remote LFA alternate.";
             }
-            enum tunnel {
+            enum "tunnel" {
               description
                 "Tunnel based alternate
                  (like RSVP-TE or GRE).";
             }
-            enum ti-lfa {
+            enum "ti-lfa" {
               description
                 "TI-LFA alternate.";
             }
-            enum mrt {
+            enum "mrt" {
               description
                 "MRT alternate.";
             }
-            enum other {
+            enum "other" {
               description
                 "Unknown alternate type.";
             }
@@ -4452,20 +4452,20 @@ module frr-ospfd {
         }
         leaf spf-type {
           type enumeration {
-            enum full {
+            enum "full" {
               description
                 "SPF computation was a Full SPF.";
             }
-            enum intra {
+            enum "intra" {
               description
                 "SPF computation was only for intra-area routes.";
             }
-            enum inter {
+            enum "inter" {
               description
                 "SPF computation was only for inter-area
                  summary routes.";
             }
-            enum external {
+            enum "external" {
               description
                 "SPF computation was only for AS external routes.";
             }
@@ -4651,8 +4651,7 @@ module frr-ospfd {
         }
       }
       container deferred-shutdown {
-        presence "Present if the deffered/stub-router shutdown timer thread is
-                  running.";
+        presence "Present if the deffered/stub-router shutdown timer thread is running.";
         leaf timer {
           type int64;
           units "microseconds";
@@ -5225,12 +5224,12 @@ module frr-ospfd {
       }
       leaf helper-status {
         type enumeration {
-          enum not-helper {
+          enum "not-helper" {
             value 0;
             description
               "gr helper is not active.";
           }
-          enum active-helper {
+          enum "active-helper" {
             value 1;
             description
               "gr helper is active";
@@ -5457,23 +5456,23 @@ module frr-ospfd {
       "Configuration for real interfaces.";
     leaf interface-type {
       type enumeration {
-        enum broadcast {
+        enum "broadcast" {
           value 0;
           description
             "Specify OSPF broadcast multi-access network.";
         }
-        enum non-broadcast {
+        enum "non-broadcast" {
           value 1;
           description
             "Specify OSPF Non-Broadcast Multi-Access
              (NBMA) network.";
         }
-        enum point-to-multipoint {
+        enum "point-to-multipoint" {
           value 2;
           description
             "Specify OSPF point-to-multipoint network.";
         }
-        enum point-to-point {
+        enum "point-to-point" {
           value 3;
           description
             "Specify OSPF point-to-point network.";
@@ -5483,7 +5482,7 @@ module frr-ospfd {
         "Interface type.";
     }
     leaf dmvpn {
-      when 'enum-value(../interface-type) = 3';
+      when "enum-value(../interface-type) = 3";
       type boolean;
       description
         "DMVPN point-to-point network is configured.";
@@ -5644,6 +5643,41 @@ module frr-ospfd {
     }
   }
 
+  augment "/frr-rt:routing/frr-rt:control-plane-protocols/frr-rt:control-plane-protocol" {
+    container ospf {
+      when "../frr-rt:type = 'frr-ospfd:ospf'" {
+        description
+          "This container is only valid for the 'OSPF' routing
+           protocol.";
+      }
+      uses route-ospf-attributes;
+      uses graceful-restart-group;
+      uses auto-cost-group;
+      uses default-info-group;
+      uses redistribute-group;
+      uses summary-group;
+      uses preference-group;
+      uses distribute-zebra-group;
+      uses max-metric-group;
+      uses mpls-group;
+      uses fast-reroute-group;
+      uses spf-group;
+      uses timer-group;
+      uses segment-routing-group;
+      uses ospf-list-group;
+      container state {
+        config false;
+        /* 
+         * ietf model doesn't have a container for state, it only intermixes it
+         */
+        description
+          "Container for Router-scope operational state.";
+        uses ospf-state;
+      }
+      uses area-groupings;
+    }
+  }
+  
   /*
    * ----------------------------
    * Remote Procedure Calls (RPC)
@@ -5718,41 +5752,6 @@ module frr-ospfd {
            OSPF process.
            If it is not specified, the rpc will clear all OSPF processes.";
       }
-    }
-  }
-
-  augment "/frr-rt:routing/frr-rt:control-plane-protocols/frr-rt:control-plane-protocol" {
-    container ospf {
-      when "../frr-rt:type = 'frr-ospfd:ospf'" {
-        description
-          "This container is only valid for the 'OSPF' routing
-           protocol.";
-      }
-      uses route-ospf-attributes;
-      uses graceful-restart-group;
-      uses auto-cost-group;
-      uses default-info-group;
-      uses redistribute-group;
-      uses summary-group;
-      uses preference-group;
-      uses distribute-zebra-group;
-      uses max-metric-group;
-      uses mpls-group;
-      uses fast-reroute-group;
-      uses spf-group;
-      uses timer-group;
-      uses segment-routing-group;
-      uses ospf-list-group;
-      container state {
-        config false;
-        /* 
-         * ietf model doesn't have a container for state, it only intermixes it
-         */
-        description
-          "Container for Router-scope operational state.";
-        uses ospf-state;
-      }
-      uses area-groupings;
     }
   }
 }
