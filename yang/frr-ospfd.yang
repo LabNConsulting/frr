@@ -38,6 +38,14 @@ module frr-ospfd {
      This YANG module augments the basic routing with additional
      OSPF information";
 
+  revision 2022-07-29 {
+    description
+      "Shifted the model to better reflect ietf-ospf, added support for
+       OSPF's operational state, and added parameters for unrepresented
+       FRR clicmds";
+    reference
+      "draft-ietf-ospf-yang-29: YANG Data Model for OSPF Protocol.";
+  }
   revision 2020-07-21 {
     description
       "Initial revision.";
@@ -559,7 +567,7 @@ module frr-ospfd {
       "No-PHP flag.";
   }
 
-  identity prefix-bit {
+  identity prefix-m-bit {
     base prefix-sid-bit;
     description
       "Mapping server flag.";
@@ -1056,7 +1064,7 @@ module frr-ospfd {
       "The type of an area.";
   }
 
-  typedef pce-capabilitites {
+  typedef pce-capabilities {
     type bits {
       bit gmpls-link {
         position 0;
@@ -1105,7 +1113,7 @@ module frr-ospfd {
       }
     }
     description
-      "PCE capabilitites";
+      "PCE capabilities";
   }
 
   /*
@@ -1364,7 +1372,7 @@ module frr-ospfd {
       }
     }
     leaf capabilities {
-      type pce-capabilitites;
+      type pce-capabilities;
       description
         "Type 5 subTLV. Indicates a list of PCE capability flags.";
     }
@@ -3216,7 +3224,7 @@ module frr-ospfd {
     }
     container router-info {
       /*
-       * XXX In frr (ospfd.h), no router capabilitites config information is
+       * XXX In frr (ospfd.h), no router capabilities config information is
        * actually stored in the ospf data structure. 
        */
       choice type {
@@ -3266,7 +3274,7 @@ module frr-ospfd {
           }
         }
         leaf capabilities {
-          type pce-capabilitites;
+          type pce-capabilities;
         }
       }
     }
@@ -3575,6 +3583,7 @@ module frr-ospfd {
         }
         container inter-as {
           /* frr specific model */
+          /* XXX Check if exclusive */
           leaf as {
             type boolean;
             description
@@ -3619,9 +3628,21 @@ module frr-ospfd {
            (TI-LFA)";
         leaf protection {
           type enumeration {
-            enum "undefined";
-            enum "link";
-            enum "node";
+            enum "undefined" {
+              value 0;
+              description
+                "No protection in place.";
+            }
+            enum "link" {
+              value 1;
+              description
+                "Protect against link failure.";
+            }
+            enum "node" {
+              value 2;
+              description
+                "Protect against node failure.";
+            }
           }
           default "link";
           description
@@ -3644,7 +3665,7 @@ module frr-ospfd {
       description
         "Delay from first change received till SPF calculation.";
     }
-    leaf initital-holdtime {
+    leaf initial-holdtime {
       /* frr specific model */
       type uint32 {
         range "0..600000";
