@@ -2972,6 +2972,13 @@ module frr-ospfd {
           description
             "Router ID of the remote ABR.";
         }
+        leaf interface {
+          /* frr specific model */
+          type frr-interface:interface-ref;
+          mandatory true;
+          description
+            "Virtual interface name reference.";
+        }
         leaf dead-interval {
           type uint16;
           units "seconds";
@@ -3355,11 +3362,28 @@ module frr-ospfd {
   }
 
   grouping default-info-group {
-    container default-information-originate {
-      leaf always {
-        type boolean;
+    container default-information {
+      leaf originate {
+        type enumeration {
+          enum none {
+            value 0;
+            description
+              "Don't advertise default route.";
+          }
+          enum zebra {
+            value 1;
+            description
+              "Always default route only to Zebra.";
+          }
+          enum always {
+            value 2;
+            description
+              "Always advertise default route.";
+          }
+        }
+        default none;
         description
-          "Always advertise default route.";
+          "How a default route should be originated.";
       }
       uses metric-common-group;
     }
@@ -3619,6 +3643,16 @@ module frr-ospfd {
       units "msec";
       description
         "Maximum hold time (msec).";
+    }
+    leaf hold-multiplier {
+      /* frr specific model */
+      config false;
+      type uint32 {
+        range "1..4294967295";
+      }
+      default "1";
+      description
+        "SPF adaptive hold time multiplier.";
     }
     /*
     leaf initial-delay {
