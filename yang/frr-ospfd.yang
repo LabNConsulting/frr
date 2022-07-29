@@ -1442,6 +1442,7 @@ module frr-ospfd {
         leaf grace-period {
           type uint32;
           mandatory true;
+          units "seconds";
           description
             "The number of seconds that a neighbor should be advertised as
              fully adjacent despite the state of database synchronization.";
@@ -3279,10 +3280,11 @@ module frr-ospfd {
         type uint32 {
           range "1..4294967";
         }
-        units "Mbits/Sec";
+        /* IETF units were Mbps */
+        units "Kbps";
         default "100000";
         description
-          "The reference bandwidth in terms of Mbits per second.";
+          "The reference bandwidth in terms of Kilobits per second.";
       }
     }
   }
@@ -3449,6 +3451,7 @@ module frr-ospfd {
         type uint16 {
           range "5..1800";
         }
+        units "seconds";
         default "5";
         description
           "Aggregation delay timer.";
@@ -5211,6 +5214,7 @@ module frr-ospfd {
         "Status of graceful restart helper";
       leaf grace-period {
         type uint32;
+        units "seconds";
         description
           "The grace interval for this gr helper.";
       }
@@ -5563,6 +5567,7 @@ module frr-ospfd {
           type uint16 {
             range "0..10000";
           }
+          units "seconds";
           description
             "Time to wait for ldp-sync to occur before restoring interface
              cost.";
