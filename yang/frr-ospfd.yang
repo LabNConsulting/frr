@@ -1164,12 +1164,12 @@ module frr-ospfd {
         "Type 10 subTLVs. Local/Remote router Identifiers. If specified,
          ignore link-id subTLVs and use instead.";
       leaf local-router-id {
-        type inet:ipv4-address;
+        type rt-types:router-id;
         description
           "Local TE Router ID.";
       }
       leaf remote-router-id {
-        type inet:ipv4-address;
+        type rt-types:router-id;
         description
           "Remote TR Router ID.";
       }
@@ -1742,7 +1742,7 @@ module frr-ospfd {
             "Weight used for load-balancing.";
         }
         leaf neighbor-router-id {
-          type yang:dotted-quad;
+          type rt-types:router-id;
           description
             "Neighbor router ID.";
         }
@@ -3085,7 +3085,7 @@ module frr-ospfd {
         "ARP for neighbor table entry.";
     }
     leaf explicit-router-id {
-      type inet:ipv4-address;
+      type rt-types:router-id;
       description
         "Router-id for the OSPF process.";
     }
