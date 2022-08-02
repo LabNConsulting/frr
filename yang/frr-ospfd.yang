@@ -681,11 +681,9 @@ module frr-ospfd {
 
   typedef neighbor-ref {
     type leafref {
-      path "/frr-rt:routing/frr-rt:control-plane-protocols/"
-         + "frr-rt:control-plane-protocol/frr-ospfd:ospf/frr-ospfd:areas/"
-         + "frr-ospfd:area/frr-ospfd:interfaces/frr-ospfd:interface/"
-         + "frr-ospfd:state/frr-ospfd:neighbors/frr-ospfd:neighbor/"
-         + "frr-ospfd:neighbor-router-id";
+      path "/frr-interface:lib/frr-interface:interface/frr-interface:state/"
+        + "frr-ospfd:ospf/frr-ospfd:neighbors/frr-ospfd:neighbor/"
+        + "frr-ospfd:neighbor-router-id";
       require-instance false;
     }
     description
@@ -1438,7 +1436,7 @@ module frr-ospfd {
 
   grouping grace-lsa-opaque {
     /* frr specific model */
-    /* XXX TLVS should have link-local scope only */
+    /* XXX This TLV should have link-local scope only */
     container grace-lsa-opaque {
       description
         "OSPFv2 Graceful Restart opaque LSA.";
@@ -2789,6 +2787,7 @@ module frr-ospfd {
   grouping lsa-database {
     uses lsa-key;
     uses lsa {
+      /*
       refine "version/ospfv2/ospfv2" {
         must "derived-from-or-self( "
            + "/frr-rt:routing/frr-rt:control-plane-protocols/"
@@ -2797,6 +2796,7 @@ module frr-ospfd {
             "OSPFv2 LSA. (ospfd)";
         }
       }
+      */
       /* 
       refine "version/ospfv3/ospfv3" {
         must "derived-from-or-self( "
@@ -3131,8 +3131,9 @@ module frr-ospfd {
             "Area-scope operational state container.";
           uses area-state;
         }
-        uses virtual-link-group;
-        uses interface-ospf-group;
+
+        // uses virtual-link-group;
+        // uses interface-ospf-group;
       }
     }
   }
@@ -3997,12 +3998,19 @@ module frr-ospfd {
   grouping interface-ospf-attribute-group {
     leaf area {
       type leafref {
-        path "../../../area-id";
+        path "/frr-rt:routing/frr-rt:control-plane-protocols/"
+          + "frr-rt:control-plane-protocol[frr-rt:name = "
+          + "current()/../ospf-id]/ospf/areas/area/area-id";
       }
+      mandatory true;
       description
         "OSPF area ID.";
     }
     leaf cost {
+      /*
+       * XXX Duplicate with ../../frr-interface:state/frr-interface:metric
+       * However, metric can be configured in OSPF
+       */
       type ospf-link-metric;
       description
         "Interface cost";
@@ -5385,6 +5393,7 @@ module frr-ospfd {
     }
   }
 
+  /* XXX Add prefixes to each interface? */
   grouping interface-common-state {
     description
       "OSPF interface common operational state.";
@@ -5475,6 +5484,15 @@ module frr-ospfd {
   grouping interface-config {
     description
       "Configuration for real interfaces.";
+    leaf ospf-id {
+      type leafref {
+        path "/frr-rt:routing/frr-rt:control-plane-protocols/"
+          + "frr-rt:control-plane-protocol/frr-rt:name";
+      }
+      mandatory true;
+      description
+        "ID of OSPF routing instance that is associated with this interface.";
+    }
     leaf interface-type {
       type enumeration {
         enum "broadcast" {
@@ -5498,6 +5516,11 @@ module frr-ospfd {
           description
             "Specify OSPF point-to-point network.";
         }
+        enum "virtual-link" {
+          value 4;
+          description
+            "Specify OSPF virtual link.";
+        }
       }
       description
         "Interface type.";
@@ -5507,6 +5530,44 @@ module frr-ospfd {
       type boolean;
       description
         "DMVPN point-to-point network is configured.";
+    }
+    container virtual-link {
+      when "enum-value(../interface-type) = 4" {
+        description
+          "Only present when this interface is configured as a virtual link.";
+      }
+      leaf transit-area-id {
+        /* 
+         * XXX this 'must' statement fails yanglint validation for no
+         * apparent reason due to an internal yanglint error in
+         * .../src/validation.c
+         */
+        must "derived-from-or-self("
+          + "/frr-rt:routing/frr-rt:control-plane-protocols/"
+          + "frr-rt:control-plane-protocol[frr-rt:name = "
+          + "current()/../../ospf-id]/ospf/areas/area[area-id = "
+          + "current()/../../area]/area-type, 'normal-area')"
+          + " and ../../area != '0.0.0.0'" {
+          error-message
+              "Virtual link transit area must be non-zero and normal.";
+          description
+              "Virtual-link transit area must be non-zero and normal area.";
+        }
+        type leafref {
+          path "/frr-rt:routing/frr-rt:control-plane-protocols/"
+            + "frr-rt:control-plane-protocol[frr-rt:name = "
+            + "current()/../../ospf-id]/ospf/areas/area/area-id";
+        }
+        mandatory true;
+        description
+          "Transit area of virtual link.";
+      }
+      leaf router-id {
+        type rt-types:router-id;
+        mandatory true;
+        description
+          "Router ID of the remote ABR.";
+      }
     }
     leaf passive {
       type boolean;
@@ -5576,6 +5637,7 @@ module frr-ospfd {
       }
     }
     */
+
     container mpls {
       container ldp-sync {
         leaf enable {
@@ -5696,6 +5758,25 @@ module frr-ospfd {
         uses ospf-state;
       }
       uses area-groupings;
+    }
+  }
+
+  augment "/frr-interface:lib/frr-interface:interface/frr-interface:state" {
+    container ospf {
+      presence "Present if OSPF is running on this interface";
+      description
+        "OSPF interface operational state.";
+      uses interface-common-state;
+    }
+  }
+
+  augment "/frr-interface:lib/frr-interface:interface" {
+    container ospf {
+      presence "Present if OSPF is running on this interface";
+      description
+        "OSPF interface parameters.";
+      uses interface-config;
+      uses interface-ospf-attribute-group;  
     }
   }
   
