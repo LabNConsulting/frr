@@ -2960,66 +2960,6 @@ module frr-ospfd {
     uses authentication-group;
   }
 
-  grouping virtual-link-group {
-    container virtual-links {
-      list virtual-link {
-        key "transit-area-id router-id";
-        description
-          "Virtual link parameters.";
-        leaf transit-area-id {
-          type leafref {
-            path "../../../area-id";
-          }
-          must "derived-from-or-self("
-             + "../../../../area[area-id=current()]/area-type, 'normal-area')"
-             + " and "
-             + "../../../../area[area-id=current()]/area-id != '0.0.0.0'" {
-            error-message "Virtual link transit area must be non-zero.";
-            description
-              "Virtual-link transit area must be non-zero area.";
-          }
-        }
-        leaf router-id {
-          type inet:ipv4-address;
-          description
-            "Router ID of the remote ABR.";
-        }
-        leaf interface {
-          /* frr specific model */
-          type frr-interface:interface-ref;
-          mandatory true;
-          description
-            "Virtual interface name reference.";
-        }
-        leaf dead-interval {
-          type uint16;
-          units "seconds";
-          must "../dead-interval > ../hello-interval" {
-            error-message "The dead interval must be "
-                        + "larger than the hello interval";
-            description
-              "The value must be greater than the 'hello-interval'.";
-          }
-          default "40";
-          description
-            "Interval after which a neighbor is declared down
-             (seconds) if hello packets are not received. It is
-             typically 3 or 4 times the hello-interval. A typical
-             value for LAN networks is 40 seconds.";
-          reference
-            "RFC 2328: OSPF Version 2, Appendix C.3";
-        }
-        uses interface-common-attributes;
-        container state {
-          config false;
-          description
-            "Operational state of all virtual links";
-          uses virtual-link-state;
-        }
-      }
-    }
-  }
-
   grouping area-groupings {
     container areas {
       list area {
@@ -3131,9 +3071,6 @@ module frr-ospfd {
             "Area-scope operational state container.";
           uses area-state;
         }
-
-        // uses virtual-link-group;
-        // uses interface-ospf-group;
       }
     }
   }
@@ -3995,7 +3932,7 @@ module frr-ospfd {
     }
   }
 
-  grouping interface-ospf-attribute-group {
+  grouping interface-attribute-group {
     leaf area {
       type leafref {
         path "/frr-rt:routing/frr-rt:control-plane-protocols/"
@@ -4030,12 +3967,22 @@ module frr-ospfd {
         }
         units "seconds";
         default "40";
+        description
+          "Interval after which a neighbor is declared down
+           (seconds) if hello packets are not received. It is
+           typically 3 or 4 times the hello-interval. A typical
+           value for LAN networks is 40 seconds.";
+        reference
+          "RFC 2328: OSPF Version 2, Appendix C.3";
+
       }
       container minimal {
         leaf hello-multiplier {
           type uint8 {
             range "1..10";
           }
+          description
+            "Number of hello messages to send each second.";
         }
       }
     }
@@ -4774,20 +4721,6 @@ module frr-ospfd {
     // uses lsa-log;
   }
 
-  grouping virtual-link-state {
-    description
-      "OSPF virtual link operational state.";
-    /*
-    leaf cost {
-      type ospf-link-metric;
-      config false;
-      description
-        "Virtual link interface cost.";
-    }
-    */
-    uses interface-common-state;
-  }
-
   grouping frr-area-stat {
     /* frr specific model */
     description
@@ -5485,6 +5418,7 @@ module frr-ospfd {
     description
       "Configuration for real interfaces.";
     leaf ospf-id {
+      /* frr specific model */
       type leafref {
         path "/frr-rt:routing/frr-rt:control-plane-protocols/"
           + "frr-rt:control-plane-protocol/frr-rt:name";
@@ -5517,6 +5451,7 @@ module frr-ospfd {
             "Specify OSPF point-to-point network.";
         }
         enum "virtual-link" {
+          /* frr specific model */
           value 4;
           description
             "Specify OSPF virtual link.";
@@ -5526,12 +5461,14 @@ module frr-ospfd {
         "Interface type.";
     }
     leaf dmvpn {
+      /* frr specific model */
       when "enum-value(../interface-type) = 3";
       type boolean;
       description
         "DMVPN point-to-point network is configured.";
     }
     container virtual-link {
+      /* frr specific model */
       when "enum-value(../interface-type) = 4" {
         description
           "Only present when this interface is configured as a virtual link.";
@@ -5694,37 +5631,10 @@ module frr-ospfd {
         }
       }
     }
+    
+    uses interface-attribute-group;
   }
 
-  grouping interface-ospf-group {
-    container interfaces {
-      list interface {
-        key "name";
-        description
-          "List of OSPF interfaces.";
-        leaf name {
-          type frr-interface:interface-ref;
-          mandatory true;
-          description
-            "Interface name reference.";
-        }
-        leaf prefix {
-          /* frr specific model */
-          type inet:ipv4-prefix;
-          description
-            "Prefix of interface";
-        }
-        uses interface-config;
-        uses interface-ospf-attribute-group;
-        container state {
-          config false;
-          description
-            "OSPF interface operation state.";
-          uses interface-common-state;
-        }
-      }
-    }
-  }
 
   augment "/frr-rt:routing/frr-rt:control-plane-protocols/frr-rt:control-plane-protocol" {
     container ospf {
@@ -5775,8 +5685,7 @@ module frr-ospfd {
       presence "Present if OSPF is running on this interface";
       description
         "OSPF interface parameters.";
-      uses interface-config;
-      uses interface-ospf-attribute-group;  
+      uses interface-config;  
     }
   }
   
