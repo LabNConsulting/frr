@@ -2079,55 +2079,50 @@ DEFUN (no_ospf_abr_type,
 	return CMD_SUCCESS;
 }
 
-DEFUN (ospf_log_adjacency_changes,
+/*
+ * XPath: /frr-routing:routing/control-plane-protocols/control-plane-protocol/frr-ospfd:ospf/log-adjacency-changes
+ * XPath: /frr-routing:routing/control-plane-protocols/control-plane-protocol/frr-ospfd:ospf/log-adjacency-changes/detail
+ */
+DEFPY_YANG (ospf_log_adjacency_changes,
        ospf_log_adjacency_changes_cmd,
        "log-adjacency-changes",
        "Log changes in adjacency state\n")
 {
-	VTY_DECLVAR_INSTANCE_CONTEXT(ospf, ospf);
-
-	SET_FLAG(ospf->config, OSPF_LOG_ADJACENCY_CHANGES);
-	UNSET_FLAG(ospf->config, OSPF_LOG_ADJACENCY_DETAIL);
-	return CMD_SUCCESS;
+	nb_cli_enqueue_change(vty, "./frr-ospfd:ospf/log-adjacency-changes", NB_OP_CREATE, NULL);
+	nb_cli_enqueue_change(vty, "./frr-ospfd:ospf/log-adjacency-changes/detail", NB_OP_MODIFY, "false");
+	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFUN (ospf_log_adjacency_changes_detail,
+DEFPY_YANG (ospf_log_adjacency_changes_detail,
        ospf_log_adjacency_changes_detail_cmd,
        "log-adjacency-changes detail",
        "Log changes in adjacency state\n"
        "Log all state changes\n")
 {
-	VTY_DECLVAR_INSTANCE_CONTEXT(ospf, ospf);
-
-	SET_FLAG(ospf->config, OSPF_LOG_ADJACENCY_CHANGES);
-	SET_FLAG(ospf->config, OSPF_LOG_ADJACENCY_DETAIL);
-	return CMD_SUCCESS;
+	nb_cli_enqueue_change(vty, "./frr-ospfd:ospf/log-adjacency-changes", NB_OP_CREATE, NULL);
+	nb_cli_enqueue_change(vty, "./frr-ospfd:ospf/log-adjacency-changes/detail", NB_OP_MODIFY, "true");
+	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFUN (no_ospf_log_adjacency_changes,
+DEFPY_YANG (no_ospf_log_adjacency_changes,
        no_ospf_log_adjacency_changes_cmd,
        "no log-adjacency-changes",
        NO_STR
        "Log changes in adjacency state\n")
 {
-	VTY_DECLVAR_INSTANCE_CONTEXT(ospf, ospf);
-
-	UNSET_FLAG(ospf->config, OSPF_LOG_ADJACENCY_DETAIL);
-	UNSET_FLAG(ospf->config, OSPF_LOG_ADJACENCY_CHANGES);
-	return CMD_SUCCESS;
+        nb_cli_enqueue_change(vty, "./frr-ospfd:ospf/log-adjacency-changes", NB_OP_DESTROY, NULL);
+	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFUN (no_ospf_log_adjacency_changes_detail,
+DEFPY_YANG (no_ospf_log_adjacency_changes_detail,
        no_ospf_log_adjacency_changes_detail_cmd,
        "no log-adjacency-changes detail",
        NO_STR
        "Log changes in adjacency state\n"
        "Log all state changes\n")
 {
-	VTY_DECLVAR_INSTANCE_CONTEXT(ospf, ospf);
-
-	UNSET_FLAG(ospf->config, OSPF_LOG_ADJACENCY_DETAIL);
-	return CMD_SUCCESS;
+	nb_cli_enqueue_change(vty, "./frr-ospfd:ospf/log-adjacency-changes/detail", NB_OP_MODIFY, "false");
+	return nb_cli_apply_changes(vty, NULL);
 }
 
 DEFUN (ospf_compatible_rfc1583,

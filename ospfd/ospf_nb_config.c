@@ -161,28 +161,29 @@ int routing_control_plane_protocols_control_plane_protocol_ospf_compatible_rfc15
  */
 int routing_control_plane_protocols_control_plane_protocol_ospf_log_adjacency_changes_create(struct nb_cb_create_args *args)
 {
-	switch (args->event) {
-	case NB_EV_VALIDATE:
-	case NB_EV_PREPARE:
-	case NB_EV_ABORT:
-	case NB_EV_APPLY:
-		/* TODO: implement me. */
-		break;
-	}
+	struct ospf *ospf;
+
+	if (args->event != NB_EV_APPLY)
+		return NB_OK;
+
+	ospf = nb_running_get_entry(args->dnode, NULL, true);
+
+	SET_FLAG(ospf->config, OSPF_LOG_ADJACENCY_CHANGES);
 
 	return NB_OK;
 }
 
 int routing_control_plane_protocols_control_plane_protocol_ospf_log_adjacency_changes_destroy(struct nb_cb_destroy_args *args)
 {
-	switch (args->event) {
-	case NB_EV_VALIDATE:
-	case NB_EV_PREPARE:
-	case NB_EV_ABORT:
-	case NB_EV_APPLY:
-		/* TODO: implement me. */
-		break;
-	}
+	struct ospf *ospf;
+
+	if (args->event != NB_EV_APPLY)
+		return NB_OK;
+
+	ospf = nb_running_get_entry(args->dnode, NULL, true);
+
+	UNSET_FLAG(ospf->config, OSPF_LOG_ADJACENCY_CHANGES);
+	UNSET_FLAG(ospf->config, OSPF_LOG_ADJACENCY_DETAIL);
 
 	return NB_OK;
 }
@@ -192,14 +193,17 @@ int routing_control_plane_protocols_control_plane_protocol_ospf_log_adjacency_ch
  */
 int routing_control_plane_protocols_control_plane_protocol_ospf_log_adjacency_changes_detail_modify(struct nb_cb_modify_args *args)
 {
-	switch (args->event) {
-	case NB_EV_VALIDATE:
-	case NB_EV_PREPARE:
-	case NB_EV_ABORT:
-	case NB_EV_APPLY:
-		/* TODO: implement me. */
-		break;
-	}
+	struct ospf *ospf;
+
+	if (args->event != NB_EV_APPLY)
+		return NB_OK;
+
+	ospf = nb_running_get_entry(args->dnode, NULL, true);
+
+	if (yang_dnode_get_bool(args->dnode, NULL))
+		SET_FLAG(ospf->config, OSPF_LOG_ADJACENCY_DETAIL);
+	else
+		UNSET_FLAG(ospf->config, OSPF_LOG_ADJACENCY_DETAIL);
 
 	return NB_OK;
 }
