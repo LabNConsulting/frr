@@ -2125,43 +2125,36 @@ DEFPY_YANG (no_ospf_log_adjacency_changes_detail,
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFUN (ospf_compatible_rfc1583,
+/*
+ * XPath: /frr-routing:routing/control-plane-protocols/control-plane-protocol/frr-ospfd:ospf/compatible-rfc1583
+ */
+DEFPY_YANG (ospf_compatible_rfc1583,
        ospf_compatible_rfc1583_cmd,
        "compatible rfc1583",
        "OSPF compatibility list\n"
        "compatible with RFC 1583\n")
 {
-	VTY_DECLVAR_INSTANCE_CONTEXT(ospf, ospf);
-
-	if (!CHECK_FLAG(ospf->config, OSPF_RFC1583_COMPATIBLE)) {
-		SET_FLAG(ospf->config, OSPF_RFC1583_COMPATIBLE);
-		ospf_spf_calculate_schedule(ospf, SPF_FLAG_CONFIG_CHANGE);
-	}
-	return CMD_SUCCESS;
+	nb_cli_enqueue_change(vty, "./frr-ospfd:ospf/compatible-rfc1583", NB_OP_MODIFY, "true");
+	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFUN (no_ospf_compatible_rfc1583,
+DEFPY_YANG (no_ospf_compatible_rfc1583,
        no_ospf_compatible_rfc1583_cmd,
        "no compatible rfc1583",
        NO_STR
        "OSPF compatibility list\n"
        "compatible with RFC 1583\n")
 {
-	VTY_DECLVAR_INSTANCE_CONTEXT(ospf, ospf);
-
-	if (CHECK_FLAG(ospf->config, OSPF_RFC1583_COMPATIBLE)) {
-		UNSET_FLAG(ospf->config, OSPF_RFC1583_COMPATIBLE);
-		ospf_spf_calculate_schedule(ospf, SPF_FLAG_CONFIG_CHANGE);
-	}
-	return CMD_SUCCESS;
+	nb_cli_enqueue_change(vty, "./frr-ospfd:ospf/compatible-rfc1583", NB_OP_MODIFY, "false");
+	return nb_cli_apply_changes(vty, NULL);
 }
 
-ALIAS(ospf_compatible_rfc1583, ospf_rfc1583_flag_cmd,
+ALIAS_YANG(ospf_compatible_rfc1583, ospf_rfc1583_flag_cmd,
       "ospf rfc1583compatibility",
       "OSPF specific commands\n"
       "Enable the RFC1583Compatibility flag\n")
 
-ALIAS(no_ospf_compatible_rfc1583, no_ospf_rfc1583_flag_cmd,
+ALIAS_YANG(no_ospf_compatible_rfc1583, no_ospf_rfc1583_flag_cmd,
       "no ospf rfc1583compatibility", NO_STR
       "OSPF specific commands\n"
       "Disable the RFC1583Compatibility flag\n")

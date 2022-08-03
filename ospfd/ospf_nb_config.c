@@ -144,13 +144,23 @@ int routing_control_plane_protocols_control_plane_protocol_ospf_capability_opaqu
  */
 int routing_control_plane_protocols_control_plane_protocol_ospf_compatible_rfc1583_modify(struct nb_cb_modify_args *args)
 {
-	switch (args->event) {
-	case NB_EV_VALIDATE:
-	case NB_EV_PREPARE:
-	case NB_EV_ABORT:
-	case NB_EV_APPLY:
-		/* TODO: implement me. */
-		break;
+	struct ospf *ospf;
+
+	if (args->event != NB_EV_APPLY)
+		return NB_OK;
+
+	ospf = nb_running_get_entry(args->dnode, NULL, true);
+
+	if (yang_dnode_get_bool(args->dnode, NULL)) {
+		if (!CHECK_FLAG(ospf->config, OSPF_RFC1583_COMPATIBLE)) {
+			SET_FLAG(ospf->config, OSPF_RFC1583_COMPATIBLE);
+			ospf_spf_calculate_schedule(ospf, SPF_FLAG_CONFIG_CHANGE);
+		}
+	} else {
+		if (CHECK_FLAG(ospf->config, OSPF_RFC1583_COMPATIBLE)) {
+			UNSET_FLAG(ospf->config, OSPF_RFC1583_COMPATIBLE);
+			ospf_spf_calculate_schedule(ospf, SPF_FLAG_CONFIG_CHANGE);
+		}
 	}
 
 	return NB_OK;
