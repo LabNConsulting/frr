@@ -5643,6 +5643,7 @@ module frr-ospfd {
           "This container is only valid for the 'OSPF' routing
            protocol.";
       }
+      presence "Present if OSPF is running on this router.";
       uses route-ospf-attributes;
       uses graceful-restart-group;
       uses auto-cost-group;
