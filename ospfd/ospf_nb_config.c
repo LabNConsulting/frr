@@ -2,7 +2,10 @@
 
 #include "northbound.h"
 
+#include "ospfd/ospfd.h"
+#include "ospfd/ospf_interface.h"
 #include "ospfd/ospf_nb.h"
+#include "ospfd/ospf_dump.h"
 
 /*
  * frr-routing router configurable state
@@ -13,28 +16,40 @@
  */
 int routing_control_plane_protocols_control_plane_protocol_ospf_create(struct nb_cb_create_args *args)
 {
-	switch (args->event) {
-	case NB_EV_VALIDATE:
-	case NB_EV_PREPARE:
-	case NB_EV_ABORT:
-	case NB_EV_APPLY:
-		/* TODO: implement me. */
-		break;
-	}
+	struct ospf *ospf;
+	unsigned short instance;
+	const char *vrf_name;
+	bool created = false;
+
+	if (args->event != NB_EV_APPLY)
+		return NB_OK;
+
+	vrf_name = yang_dnode_get_string(args->dnode, "./../vrf");
+	instance = yang_dnode_get_uint8(args->dnode, "./../name");
+
+	ospf = ospf_get(instance, vrf_name, &created);
+
+	if (IS_DEBUG_OSPF_EVENT)
+		zlog_debug(
+			   "Config command 'router ospf %d' received, vrf %s id %u oi_running %u",
+			   ospf->instance, ospf_get_name(ospf), ospf->vrf_id,
+			   ospf->oi_running);
+
+	nb_running_set_entry(args->dnode, ospf);
 
 	return NB_OK;
 }
 
 int routing_control_plane_protocols_control_plane_protocol_ospf_destroy(struct nb_cb_destroy_args *args)
 {
-	switch (args->event) {
-	case NB_EV_VALIDATE:
-	case NB_EV_PREPARE:
-	case NB_EV_ABORT:
-	case NB_EV_APPLY:
-		/* TODO: implement me. */
-		break;
-	}
+	struct ospf *ospf;
+
+	if (args->event != NB_EV_APPLY)
+		return NB_OK;
+
+	ospf = nb_running_unset_entry(args->dnode);
+
+	ospf_finish(ospf);
 
 	return NB_OK;
 }
@@ -61,28 +76,48 @@ int routing_control_plane_protocols_control_plane_protocol_ospf_use_arp_modify(s
  */
 int routing_control_plane_protocols_control_plane_protocol_ospf_explicit_router_id_modify(struct nb_cb_modify_args *args)
 {
-	switch (args->event) {
-	case NB_EV_VALIDATE:
-	case NB_EV_PREPARE:
-	case NB_EV_ABORT:
-	case NB_EV_APPLY:
-		/* TODO: implement me. */
-		break;
-	}
+	struct ospf *ospf;
+	struct listnode *node;
+	struct ospf_area *area;
+
+	if (args->event != NB_EV_APPLY)
+		return NB_OK;
+
+	ospf = nb_running_get_entry(args->dnode, NULL, true);
+
+        yang_dnode_get_ipv4(&ospf->router_id_static, args->dnode, NULL);
+
+	for (ALL_LIST_ELEMENTS_RO(ospf->areas, node, area))
+		if (area->full_nbrs) {
+			zlog_warn("For this router-id change to take effect, use \"clear ip ospf process\" command\n");
+			return NB_OK;
+		}
+
+	ospf_router_id_update(ospf);
 
 	return NB_OK;
 }
 
 int routing_control_plane_protocols_control_plane_protocol_ospf_explicit_router_id_destroy(struct nb_cb_destroy_args *args)
 {
-	switch (args->event) {
-	case NB_EV_VALIDATE:
-	case NB_EV_PREPARE:
-	case NB_EV_ABORT:
-	case NB_EV_APPLY:
-		/* TODO: implement me. */
-		break;
-	}
+	struct ospf *ospf;
+	struct listnode *node;
+	struct ospf_area *area;
+
+	if (args->event != NB_EV_APPLY)
+		return NB_OK;
+
+	ospf = nb_running_get_entry(args->dnode, NULL, true);
+
+	ospf->router_id_static.s_addr = 0;
+
+	for (ALL_LIST_ELEMENTS_RO(ospf->areas, node, area))
+		if (area->full_nbrs) {
+			zlog_warn("For this router-id change to take effect, use \"clear ip ospf process\" command\n");
+			return NB_OK;
+		}
+
+	ospf_router_id_update(ospf);
 
 	return NB_OK;
 }

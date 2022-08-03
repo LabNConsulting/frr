@@ -36,6 +36,7 @@
 #include <lib/json.h>
 #include "defaults.h"
 #include "lib/printfrr.h"
+#include "northbound_cli.h"
 
 #include "ospfd/ospfd.h"
 #include "ospfd/ospf_asbr.h"
@@ -140,37 +141,6 @@ int ospf_oi_count(struct interface *ifp)
 		all_vrf = strmatch(vrf_name, "all");                           \
 	}
 
-static int ospf_router_cmd_parse(struct vty *vty, struct cmd_token *argv[],
-				 const int argc, unsigned short *instance,
-				 const char **vrf_name)
-{
-	int idx_vrf = 0, idx_inst = 0;
-
-	*instance = 0;
-	if (argv_find(argv, argc, "(1-65535)", &idx_inst)) {
-		if (ospf_instance == 0) {
-			vty_out(vty,
-				"%% OSPF is not running in instance mode\n");
-			return CMD_WARNING_CONFIG_FAILED;
-		}
-
-		*instance = strtoul(argv[idx_inst]->arg, NULL, 10);
-	}
-
-	*vrf_name = VRF_DEFAULT_NAME;
-	if (argv_find(argv, argc, "vrf", &idx_vrf)) {
-		if (ospf_instance != 0) {
-			vty_out(vty,
-				"%% VRF is not supported in instance mode\n");
-			return CMD_WARNING_CONFIG_FAILED;
-		}
-
-		*vrf_name = argv[idx_vrf + 1]->arg;
-	}
-
-	return CMD_SUCCESS;
-}
-
 static void ospf_show_vrf_name(struct ospf *ospf, struct vty *vty,
 			       json_object *json, uint8_t use_vrf)
 {
@@ -188,101 +158,111 @@ static void ospf_show_vrf_name(struct ospf *ospf, struct vty *vty,
 #include "ospfd/ospf_vty_clippy.c"
 #endif
 
-DEFUN_NOSH (router_ospf,
+/*
+ * XPath: /frr-routing:routing/control-plane-protocols/control-plane-protocol/frr-ospfd:ospf
+ */
+DEFPY_YANG_NOSH (router_ospf,
        router_ospf_cmd,
-       "router ospf [{(1-65535)|vrf NAME}]",
+       "router ospf [{(1-65535)$instance|vrf NAME}]",
        "Enable a routing process\n"
        "Start OSPF configuration\n"
        "Instance ID\n"
        VRF_CMD_HELP_STR)
 {
-	unsigned short instance;
-	const char *vrf_name;
-	bool created = false;
-	struct ospf *ospf;
 	int ret;
+	char xpath[XPATH_MAXLEN];
 
-	ret = ospf_router_cmd_parse(vty, argv, argc, &instance, &vrf_name);
-	if (ret != CMD_SUCCESS)
-		return ret;
+	if (instance) {
+		if (ospf_instance == 0) {
+			vty_out(vty, "%% OSPF is not running in instance mode\n");
+			return CMD_WARNING_CONFIG_FAILED;
+		}
+		vrf = VRF_DEFAULT_NAME;
+	} else if (vrf) {
+		if (ospf_instance != 0) {
+			vty_out(vty, "%% VRF is not supported in instance mode\n");
+			return CMD_WARNING_CONFIG_FAILED;
+		}
+		instance = 0;
+	} else {
+		instance = 0;
+		vrf = VRF_DEFAULT_NAME;
+	}
 
 	if (instance != ospf_instance) {
-		VTY_PUSH_CONTEXT_NULL(OSPF_NODE);
+		/* XXX Any equivalent for xpath? */
+		// VTY_PUSH_CONTEXT_NULL(OSPF_NODE);
 		return CMD_NOT_MY_INSTANCE;
 	}
 
-	ospf = ospf_get(instance, vrf_name, &created);
+	snprintf(xpath, XPATH_MAXLEN, "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='ospf'][name='%ld'][vrf='%s']/frr-ospfd:ospf", instance, vrf);
+	nb_cli_enqueue_change(vty, "./frr-ospfd:ospf", NB_OP_CREATE, NULL);
 
-	if (created)
-		if (DFLT_OSPF_LOG_ADJACENCY_CHANGES)
-			SET_FLAG(ospf->config, OSPF_LOG_ADJACENCY_CHANGES);
+	/*
+	 * XXX Old vty clicmd checks if OSPF instance successfully created,
+	 * or if an instance was already found. This check is absent here, under
+	 * the asumption that duplicate instances cannot be created under nb
+	 */
+	if (DFLT_OSPF_LOG_ADJACENCY_CHANGES)
+		nb_cli_enqueue_change(vty, "./frr-ospfd:ospf/log-adjacency-changes", NB_OP_CREATE, "true");
 
-	if (IS_DEBUG_OSPF_EVENT)
-		zlog_debug(
-			"Config command 'router ospf %d' received, vrf %s id %u oi_running %u",
-			ospf->instance, ospf_get_name(ospf), ospf->vrf_id,
-			ospf->oi_running);
+	ret = nb_cli_apply_changes(vty, xpath);
 
-	VTY_PUSH_CONTEXT(OSPF_NODE, ospf);
+        VTY_PUSH_XPATH(OSPF_NODE, xpath);
 
 	return ret;
 }
 
-DEFUN (no_router_ospf,
+DEFPY_YANG (no_router_ospf,
        no_router_ospf_cmd,
-       "no router ospf [{(1-65535)|vrf NAME}]",
+       "no router ospf [{(1-65535)$instance|vrf NAME}]",
        NO_STR
        "Enable a routing process\n"
        "Start OSPF configuration\n"
        "Instance ID\n"
        VRF_CMD_HELP_STR)
 {
-	unsigned short instance;
-	const char *vrf_name;
-	struct ospf *ospf;
-	int ret;
+	char xpath[XPATH_MAXLEN];
 
-	ret = ospf_router_cmd_parse(vty, argv, argc, &instance, &vrf_name);
-	if (ret != CMD_SUCCESS)
-		return ret;
+	if (instance) {
+		if (ospf_instance == 0) {
+			vty_out(vty, "%% OSPF is not running in instance mode\n");
+			return CMD_WARNING_CONFIG_FAILED;
+		}
+		vrf = VRF_DEFAULT_NAME;
+	} else if (vrf) {
+		if (ospf_instance != 0) {
+			vty_out(vty, "%% VRF is not supported in instance mode\n");
+			return CMD_WARNING_CONFIG_FAILED;
+		}
+		instance = 0;
+	} else {
+		instance = 0;
+		vrf = VRF_DEFAULT_NAME;
+	}
 
 	if (instance != ospf_instance)
 		return CMD_NOT_MY_INSTANCE;
 
-	ospf = ospf_lookup(instance, vrf_name);
-	if (ospf)
-		ospf_finish(ospf);
-	else
-		ret = CMD_WARNING_CONFIG_FAILED;
+	snprintf(xpath, XPATH_MAXLEN, "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='ospf'][name='%ld'][vrf='%s']/frr-ospfd:ospf", instance, vrf);
+	nb_cli_enqueue_change(vty, "./frr-ospfd:ospf", NB_OP_DESTROY, NULL);
 
-	return ret;
+	return nb_cli_apply_changes(vty, xpath);
 }
 
-
-DEFPY (ospf_router_id,
+/*
+ * XPath: /frr-routing:routing/control-plane-protocols/control-plane-protocol/frr-ospfd:ospf/explicit-router-id
+ */
+DEFPY_YANG (ospf_router_id,
        ospf_router_id_cmd,
        "ospf router-id A.B.C.D",
        "OSPF specific commands\n"
        "router-id for the OSPF process\n"
        "OSPF router-id in IP address format\n")
 {
-	VTY_DECLVAR_INSTANCE_CONTEXT(ospf, ospf);
+	nb_cli_enqueue_change(vty, "./frr-ospfd:ospf/explicit-router-id", NB_OP_MODIFY, router_id_str);
 
-	struct listnode *node;
-	struct ospf_area *area;
-
-	ospf->router_id_static = router_id;
-
-	for (ALL_LIST_ELEMENTS_RO(ospf->areas, node, area))
-		if (area->full_nbrs) {
-			vty_out(vty,
-				"For this router-id change to take effect, use \"clear ip ospf process\" command\n");
-			return CMD_SUCCESS;
-		}
-
-	ospf_router_id_update(ospf);
-
-	return CMD_SUCCESS;
+	return nb_cli_apply_changes(vty, NULL);
 }
 
 DEFUN_HIDDEN (ospf_router_id_old,
@@ -318,7 +298,7 @@ DEFUN_HIDDEN (ospf_router_id_old,
 	return CMD_SUCCESS;
 }
 
-DEFPY (no_ospf_router_id,
+DEFPY_YANG (no_ospf_router_id,
        no_ospf_router_id_cmd,
        "no ospf router-id [A.B.C.D]",
        NO_STR
@@ -326,29 +306,22 @@ DEFPY (no_ospf_router_id,
        "router-id for the OSPF process\n"
        "OSPF router-id in IP address format\n")
 {
-	VTY_DECLVAR_INSTANCE_CONTEXT(ospf, ospf);
-	struct listnode *node;
-	struct ospf_area *area;
+	struct in_addr config_id;
 
 	if (router_id_str) {
-		if (!IPV4_ADDR_SAME(&ospf->router_id_static, &router_id)) {
+		yang_dnode_get_ipv4(&config_id, vty->candidate_config->dnode,
+				    "/frr-routing:routing/control-plane-protocols/control-plane-protocol[name='%ld']/frr-ospfd:ospf/explicit-router-id",
+				    ospf_instance);
+
+		yang_str2ipv4(router_id_str, &router_id);
+		if (!IPV4_ADDR_SAME(&config_id, &router_id)) {
 			vty_out(vty, "%% OSPF router-id doesn't match\n");
 			return CMD_WARNING_CONFIG_FAILED;
 		}
 	}
 
-	ospf->router_id_static.s_addr = 0;
-
-	for (ALL_LIST_ELEMENTS_RO(ospf->areas, node, area))
-		if (area->full_nbrs) {
-			vty_out(vty,
-				"For this router-id change to take effect, use \"clear ip ospf process\" command\n");
-			return CMD_SUCCESS;
-		}
-
-	ospf_router_id_update(ospf);
-
-	return CMD_SUCCESS;
+	nb_cli_enqueue_change(vty, "./frr-ospfd:ospf/explicit-router-id", NB_OP_DESTROY, NULL);
+	return nb_cli_apply_changes(vty, NULL);
 }
 
 
