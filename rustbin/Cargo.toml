@@ -1,0 +1,15 @@
+[package]
+name = "rustbin"
+version = "0.1.0"
+edition = "2021"
+
+# [[bin]]
+# name = "rustbind"
+# path = "src"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+[build-dependencies]
+bindgen = "0.69.4"
