@@ -2853,18 +2853,22 @@ module frr-ospfd {
       leaf configuration {
         type enumeration {
           enum "default" {
+            value 0;
             description
               "Default shortcutting behavior";
           }
-          enum "disable" {
-            description
-              "Disable shortcutting through the area";
-          }
           enum "enable" {
+            value 1;
             description
               "Enable shortcutting through the area";
           }
+          enum "disable" {
+            value 2;
+            description
+              "Disable shortcutting through the area";
+          }
         }
+        default "default";
       }
     }
   }
@@ -3032,6 +3036,7 @@ module frr-ospfd {
           }
           leaf suppress-fa {
             type boolean;
+            default "false";
             description
               "Suppress forwarding address.";
           }
@@ -3086,6 +3091,7 @@ module frr-ospfd {
     }
     leaf explicit-router-id {
       type rt-types:router-id;
+      /* XXX mandatory true; ? */
       description
         "Router-id for the OSPF process.";
     }
@@ -3097,6 +3103,7 @@ module frr-ospfd {
     }
     leaf compatible-rfc1583 {
       type boolean;
+      default "false";
       description
         "Compatible with RFC 1583.";
     }
@@ -3105,13 +3112,14 @@ module frr-ospfd {
       presence "Log adjacency changes.";
       leaf detail {
         type boolean;
-        mandatory true;
+        default "false";
         description
           "Log additional detail.";
       }
     }
     leaf send-extra-data-zebra {
       type boolean;
+      default "false";
       description
         "Send extra data to the Zebra daemon.";
     }
@@ -3126,6 +3134,7 @@ module frr-ospfd {
       type uint8 {
         range "1..100";
       }
+      default "20";
       description
         "Maximum number of interfaces serviced per write.";
     }
@@ -3222,6 +3231,14 @@ module frr-ospfd {
 
   grouping auto-cost-group {
     container auto-cost {
+      /* auto-cost reference bandwidth is always enabled in FRR */
+      /*
+      leaf enable {
+        type boolean;
+        description
+          "Enable/Disable interface auto-cost.";
+      }
+      */
       leaf reference-bandwidth {
         type uint32 {
           range "1..4294967";
@@ -3244,14 +3261,13 @@ module frr-ospfd {
       reference
         "RFC 3623: OSPF Graceful Restart
          RFC 5187: OSPFv3 Graceful Restart";
-      /*
-            leaf enable {
-              type boolean;
-              description
-                "Enable/Disable graceful restart as defined in RFC 3623
-                 for OSPFv2 and RFC 5187 for OSPFv3.";
-            }
-       */
+      leaf enable {
+        type boolean;
+        default "false";
+        description
+          "Enable/Disable graceful restart as defined in RFC 3623
+           for OSPFv2 and RFC 5187 for OSPFv3.";
+      }
       leaf helper-enable {
         type boolean;
         default "false";
@@ -3491,6 +3507,7 @@ module frr-ospfd {
           type uint8 {
             range "5..100";
           }
+          units "seconds";
           description
             "Advertise stub-router prior to full shutdown of OSPF.";
         }
@@ -3498,6 +3515,7 @@ module frr-ospfd {
           type uint32 {
             range "5..86400";
           }
+          units "seconds";
           description
             "Automatically advertise stub Router-LSA on startup of OSPF.";
         }
@@ -3511,6 +3529,7 @@ module frr-ospfd {
         leaf on {
           /* frr specific model */
           type boolean;
+          default "false";
           description
             "Enable the MPLS-TE functionality.";
         }
@@ -3521,22 +3540,28 @@ module frr-ospfd {
         }
         container inter-as {
           /* frr specific model */
-          /* XXX Check if exclusive */
-          leaf as {
-            type boolean;
-            description
-              "AS native mode self originate INTER-AS LSA with Type 11 (as flooding scope).";
-          }
-          leaf area {
-            type ospf-area-id;
-            description
-              "AREA native mode self originate INTER-AS LSA with Type 10 (area flooding scope).";
+          choice mode {
+            case as {
+              leaf as {
+                type boolean;
+                description
+                  "AS native mode self originate INTER-AS LSA with Type 11 (as flooding scope).";
+              }
+            }
+            case area {
+              leaf area {
+                type ospf-area-id;
+                description
+                  "AREA native mode self originate INTER-AS LSA with Type 10 (area flooding scope).";
+              }
+            }
           }
         }
       }
       container ldp {
         leaf igp-sync {
           type boolean;
+          default "false";
           description
             "Enable LDP IGP synchronization.";
         }
@@ -3546,6 +3571,7 @@ module frr-ospfd {
             range "0..10000";
           }
           units "seconds";
+          default "0";
           description
             "LDP Holddown timer";
         }
@@ -3815,6 +3841,7 @@ module frr-ospfd {
       }
       leaf on {
         type boolean;
+        default "false";
         description
           "Enable Segment Routing.";
       }
@@ -3900,6 +3927,7 @@ module frr-ospfd {
         }
         leaf priority {
           type uint8;
+          default "0";
           description
             "Neighbor Priority.";
         }
@@ -3908,6 +3936,7 @@ module frr-ospfd {
             range "1..65535";
           }
           units "seconds";
+          default "60";
           description
             "Dead Neighbor Polling interval.";
         }
@@ -3925,6 +3954,7 @@ module frr-ospfd {
         }
         leaf area {
           type ospf-area-id;
+          mandatory true;
           description
             "Area ID for this network.";
         }
@@ -3944,13 +3974,11 @@ module frr-ospfd {
         "OSPF area ID.";
     }
     leaf cost {
-      /*
-       * XXX Duplicate with ../../frr-interface:state/frr-interface:metric
-       * However, metric can be configured in OSPF
-       */
       type ospf-link-metric;
       description
-        "Interface cost";
+        "Configured Interface cost. If not configured, the cost of the
+         interface will be ../../frr-interface:state/frr-interface:metric,
+         which is automatically calculated.";
     }
     leaf mtu-ignore {
       type boolean;
@@ -3978,6 +4006,12 @@ module frr-ospfd {
       }
       container minimal {
         leaf hello-multiplier {
+          must "../../interval = 1" {
+            /* frr specific model */
+            description
+              "1 second dead interval with sub-second hellos should be
+               configured.";
+          }
           type uint8 {
             range "1..10";
           }
@@ -5457,6 +5491,7 @@ module frr-ospfd {
             "Specify OSPF virtual link.";
         }
       }
+      default "broadcast";
       description
         "Interface type.";
     }
@@ -5464,6 +5499,7 @@ module frr-ospfd {
       /* frr specific model */
       when "enum-value(../interface-type) = 3";
       type boolean;
+      default "false";
       description
         "DMVPN point-to-point network is configured.";
     }
@@ -5508,6 +5544,7 @@ module frr-ospfd {
     }
     leaf passive {
       type boolean;
+      default "false";
       description
         "Enable/Disable passive interface - a passive interface's
          prefix will be advertised but no neighbor adjacencies
@@ -5579,6 +5616,7 @@ module frr-ospfd {
       container ldp-sync {
         leaf enable {
           type boolean;
+          default "false";
           description
             "Turn on mpls ldp-sync.";
         }
