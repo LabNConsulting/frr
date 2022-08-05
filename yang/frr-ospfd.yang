@@ -3091,7 +3091,7 @@ module frr-ospfd {
     }
     leaf explicit-router-id {
       type rt-types:router-id;
-      /* XXX mandatory true; ? */
+      /* Not mandatory, since the router-id can be configured automatically */
       description
         "Router-id for the OSPF process.";
     }
@@ -5510,26 +5510,27 @@ module frr-ospfd {
           "Only present when this interface is configured as a virtual link.";
       }
       leaf transit-area-id {
-        /* 
-         * XXX this 'must' statement fails yanglint validation for no
-         * apparent reason due to an internal yanglint error in
-         * .../src/validation.c
-         */
-        must "derived-from-or-self("
-          + "/frr-rt:routing/frr-rt:control-plane-protocols/"
-          + "frr-rt:control-plane-protocol[frr-rt:name = "
-          + "current()/../../ospf-id]/ospf/areas/area[area-id = "
-          + "current()/../../area]/area-type, 'normal-area')"
-          + " and ../../area != '0.0.0.0'" {
-          error-message
-              "Virtual link transit area must be non-zero and normal.";
-          description
-              "Virtual-link transit area must be non-zero and normal area.";
-        }
         type leafref {
           path "/frr-rt:routing/frr-rt:control-plane-protocols/"
             + "frr-rt:control-plane-protocol[frr-rt:name = "
             + "current()/../../ospf-id]/ospf/areas/area/area-id";
+        }
+        must "derived-from-or-self("
+          + "/frr-rt:routing/frr-rt:control-plane-protocols/"
+          + "frr-rt:control-plane-protocol[frr-rt:name = "
+          + "current()/../../ospf-id]/ospf/areas/area[area-id = "
+          + "current()]/area-type, 'normal-area')"
+          + " and . != '0.0.0.0'" {
+          error-message
+              "Virtual-link transit area must be non-backbone and normal.";
+          description
+              "Virtual-link transit area must be non-backbone and normal.";
+        }
+        must "../../area = '0.0.0.0'" {
+          error-message
+            "Virtual interface must exist in the backbone area.";
+          description
+            "Virtual interface must exist in the backbone area.";
         }
         mandatory true;
         description
