@@ -3184,11 +3184,12 @@ module frr-ospfd {
         }
         case area {
           leaf area {
-            type ospf-area-id;
+            type boolean;
             description
               "Enable the Router Information functionality with Area flooding scope.";
           }
         }
+        mandatory true;
       }
       container pce {
         /* frr specific model */
