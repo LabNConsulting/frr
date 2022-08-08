@@ -21,6 +21,9 @@ module frr-ospfd {
   import frr-interface {
     prefix frr-interface;
   }
+  import frr-zebra {
+    prefix frr-zebra;
+  }
   import frr-route-map {
     prefix frr-route-map;
   }
@@ -4011,14 +4014,14 @@ module frr-ospfd {
       }
       container minimal {
         leaf hello-multiplier {
+          type uint8 {
+            range "1..10";
+          }
           must "../../interval = 1" {
             /* frr specific model */
             description
               "1 second dead interval with sub-second hellos should be
                configured.";
-          }
-          type uint8 {
-            range "1..10";
           }
           description
             "Number of hello messages to send each second.";
@@ -5456,6 +5459,25 @@ module frr-ospfd {
   grouping interface-config {
     description
       "Configuration for real interfaces.";
+    leaf prefix {
+      /* frr specific model */
+      must "derived-from-or-self("
+        + "../../../frr-zebra:zebra/"
+        + "frr-zebra:ip-addrs[frr-zebra:ip-prefix = current()]/"
+        + "frr-zebra:address-family, 'frr-rt:ipv4')";
+      /*
+       * XXX This must statement can throw an incompatible type operand error,
+       * but will still validate correctly (or not at all if the condition
+       * isn't fulfilled)
+       */
+      type leafref {
+        path "../../../frr-zebra:zebra/"
+          + "frr-zebra:ip-addrs/frr-zebra:ip-prefix";
+      }
+      description
+        "OSPF interface's prefix. Even though multiple may be declared in
+         Zebra, OSPF only supports one prefix at a time.";
+    }
     leaf ospf-id {
       /* frr specific model */
       type leafref {
@@ -5727,10 +5749,15 @@ module frr-ospfd {
 
   augment "/frr-interface:lib/frr-interface:interface" {
     container ospf {
-      presence "Present if OSPF is running on this interface";
+      list instance {
+        key "prefix";
+        description
+          "OSPF interface instance. There can be multiple of these running on
+           a single interface.";
+        uses interface-config;
+      }
       description
         "OSPF interface parameters.";
-      uses interface-config;  
     }
   }
   
