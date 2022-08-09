@@ -684,9 +684,9 @@ module frr-ospfd {
 
   typedef neighbor-ref {
     type leafref {
-      path "/frr-interface:lib/frr-interface:interface/frr-interface:state/"
-        + "frr-ospfd:ospf/frr-ospfd:neighbors/frr-ospfd:neighbor/"
-        + "frr-ospfd:neighbor-router-id";
+      path "/frr-interface:lib/frr-interface:interface/frr-ospfd:ospf/"
+        + "frr-ospfd:instance/frr-ospfd:state/frr-ospfd:neighbors/"
+        + "frr-ospfd:neighbor/frr-ospfd:neighbor-router-id";
       require-instance false;
     }
     description
@@ -5681,11 +5681,16 @@ module frr-ospfd {
       }
     }
     */
-    
     uses interface-params-group {
       refine "area" {
         mandatory true;
       }
+    }
+    container state {
+      config false;
+      description
+        "OSPF interface's operational state.";
+      uses interface-common-state;
     }
   }
 
@@ -5722,14 +5727,6 @@ module frr-ospfd {
         uses ospf-state;
       }
       uses area-groupings;
-    }
-  }
-  augment "/frr-interface:lib/frr-interface:interface/frr-interface:state" {
-    container ospf {
-      presence "Present if OSPF is running on this interface.";
-      description
-        "OSPF interface operational state.";
-      uses interface-common-state;
     }
   }
   augment "/frr-interface:lib/frr-interface:interface" {
