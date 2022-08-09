@@ -697,7 +697,6 @@ module frr-ospfd {
     type leafref {
       path "/frr-rt:routing/frr-rt:control-plane-protocols"
          + "/frr-rt:control-plane-protocol/frr-rt:name";
-      require-instance false;
     }
     description
       "Reference to an OSPF instance ID.";
@@ -3976,10 +3975,7 @@ module frr-ospfd {
        between all OSPF interfaces.";
     leaf ospf-id {
       /* frr specific model */
-      type leafref {
-        path "/frr-rt:routing/frr-rt:control-plane-protocols/"
-          + "frr-rt:control-plane-protocol/frr-rt:name";
-      }
+      type ospf-instance-ref;
       mandatory true;
       description
         "ID of OSPF routing instance that is associated with this interface.";
@@ -5751,7 +5747,7 @@ module frr-ospfd {
             path "../../../frr-zebra:zebra/"
               + "frr-zebra:ip-addrs/frr-zebra:ip-prefix";
           }
-                    must "derived-from-or-self("
+          must "derived-from-or-self("
             + "../../../frr-zebra:zebra/"
             + "frr-zebra:ip-addrs[frr-zebra:ip-prefix = current()]/"
             + "frr-zebra:address-family, 'frr-rt:ipv4')";
