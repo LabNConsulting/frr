@@ -3178,6 +3178,7 @@ module frr-ospfd {
        * actually stored in the ospf data structure. 
        */
       choice type {
+        mandatory true;
         case as {
           leaf as {
             type boolean;
@@ -3192,7 +3193,6 @@ module frr-ospfd {
               "Enable the Router Information functionality with Area flooding scope.";
           }
         }
-        mandatory true;
       }
       container pce {
         /* frr specific model */
@@ -3970,14 +3970,29 @@ module frr-ospfd {
     }
   }
 
-  grouping interface-attribute-group {
+  grouping interface-common-group {
+    description
+      "Common parameters that are FRR interface dependent, but are common
+       between all OSPF interfaces.";
+    leaf ospf-id {
+      /* frr specific model */
+      type leafref {
+        path "/frr-rt:routing/frr-rt:control-plane-protocols/"
+          + "frr-rt:control-plane-protocol/frr-rt:name";
+      }
+      mandatory true;
+      description
+        "ID of OSPF routing instance that is associated with this interface.";
+    }
+  }
+
+  grouping interface-params-group {
     leaf area {
       type leafref {
         path "/frr-rt:routing/frr-rt:control-plane-protocols/"
           + "frr-rt:control-plane-protocol[frr-rt:name = "
-          + "current()/../ospf-id]/ospf/areas/area/area-id";
+          + "current()/../../ospf-id]/ospf/areas/area/area-id";
       }
-      mandatory true;
       description
         "OSPF area ID.";
     }
@@ -3987,6 +4002,68 @@ module frr-ospfd {
         "Configured Interface cost. If not configured, the cost of the
          interface will be ../../frr-interface:state/frr-interface:metric,
          which is automatically calculated.";
+    }
+    leaf passive {
+      type boolean;
+      default "false";
+      description
+        "Enable/Disable passive interface - a passive interface's
+         prefix will be advertised but no neighbor adjacencies
+         will be formed on the interface.";
+    }
+    leaf priority {
+      type uint8;
+      default "1";
+      description
+        "Configure OSPF router priority. On multi-access network
+         this value is for Designated Router (DR) election. The
+         priority is ignored on other interface types. A router
+         with a higher priority will be preferred in the election
+         and a value of 0 indicates the router is not eligible to
+         become Designated Router or Backup Designated Router
+         (BDR).";
+    }
+    leaf interface-type {
+      type enumeration {
+        enum "broadcast" {
+          value 0;
+          description
+            "Specify OSPF broadcast multi-access network.";
+        }
+        enum "non-broadcast" {
+          value 1;
+          description
+            "Specify OSPF Non-Broadcast Multi-Access
+             (NBMA) network.";
+        }
+        enum "point-to-multipoint" {
+          value 2;
+          description
+            "Specify OSPF point-to-multipoint network.";
+        }
+        enum "point-to-point" {
+          value 3;
+          description
+            "Specify OSPF point-to-point network.";
+        }
+        enum "virtual-link" {
+          /* frr specific model */
+          value 4;
+          description
+            "Specify OSPF virtual link.";
+        }
+      }
+      default "broadcast";
+      description
+        "Interface type.";
+    }
+    leaf dmvpn {
+      /* frr specific model */
+      when "enum-value(../interface-type) = 3";
+      type boolean;
+      default "false";
+      description
+        "DMVPN point-to-point network is configured.";
     }
     leaf mtu-ignore {
       type boolean;
@@ -4010,7 +4087,6 @@ module frr-ospfd {
            value for LAN networks is 40 seconds.";
         reference
           "RFC 2328: OSPF Version 2, Appendix C.3";
-
       }
       container minimal {
         leaf hello-multiplier {
@@ -4029,6 +4105,63 @@ module frr-ospfd {
       }
     }
     uses interface-common-attributes;
+    container mpls {
+      container ldp-sync {
+        leaf enable {
+          type boolean;
+          default "false";
+          description
+            "Turn on mpls ldp-sync.";
+        }
+        leaf holddown {
+          type uint16 {
+            range "0..10000";
+          }
+          units "seconds";
+          description
+            "Time to wait for ldp-sync to occur before restoring interface
+             cost.";
+        }
+      }
+    }
+    container bfd {
+      /* frr specific model */
+      description
+        "BFD Client Configuration.";
+      leaf enable {
+        type boolean;
+        default "false";
+        description
+          "Enable bidirectional forwarding (BFD) on this interface.";
+      }
+      leaf local-multiplier {
+        type uint8;
+        default "3";
+        description
+          "Multiplier transmitted by the local system. Detection multiplier.";
+      }
+      leaf profile {
+        type string;
+        description
+          "BFD profile.";
+      }
+      container tx-rx-intervals {
+        leaf desired-min-tx-interval {
+          type uint32;
+          units "microseconds";
+          default "300";
+          description
+            "Desired minimum transmit interval of control packets.";
+        }
+        leaf required-min-rx-interval {
+          type uint32;
+          units "microseconds";
+          default "300";
+          description
+            "Required minimum receive interval of control packets.";
+        }
+      }
+    }
   }
 
   grouping ospf-route-standard {
@@ -5458,78 +5591,7 @@ module frr-ospfd {
 
   grouping interface-config {
     description
-      "Configuration for real interfaces.";
-    leaf prefix {
-      /* frr specific model */
-      must "derived-from-or-self("
-        + "../../../frr-zebra:zebra/"
-        + "frr-zebra:ip-addrs[frr-zebra:ip-prefix = current()]/"
-        + "frr-zebra:address-family, 'frr-rt:ipv4')";
-      /*
-       * XXX This must statement can throw an incompatible type operand error,
-       * but will still validate correctly (or not at all if the condition
-       * isn't fulfilled)
-       */
-      type leafref {
-        path "../../../frr-zebra:zebra/"
-          + "frr-zebra:ip-addrs/frr-zebra:ip-prefix";
-      }
-      description
-        "OSPF interface's prefix. Even though multiple may be declared in
-         Zebra, OSPF only supports one prefix at a time.";
-    }
-    leaf ospf-id {
-      /* frr specific model */
-      type leafref {
-        path "/frr-rt:routing/frr-rt:control-plane-protocols/"
-          + "frr-rt:control-plane-protocol/frr-rt:name";
-      }
-      mandatory true;
-      description
-        "ID of OSPF routing instance that is associated with this interface.";
-    }
-    leaf interface-type {
-      type enumeration {
-        enum "broadcast" {
-          value 0;
-          description
-            "Specify OSPF broadcast multi-access network.";
-        }
-        enum "non-broadcast" {
-          value 1;
-          description
-            "Specify OSPF Non-Broadcast Multi-Access
-             (NBMA) network.";
-        }
-        enum "point-to-multipoint" {
-          value 2;
-          description
-            "Specify OSPF point-to-multipoint network.";
-        }
-        enum "point-to-point" {
-          value 3;
-          description
-            "Specify OSPF point-to-point network.";
-        }
-        enum "virtual-link" {
-          /* frr specific model */
-          value 4;
-          description
-            "Specify OSPF virtual link.";
-        }
-      }
-      default "broadcast";
-      description
-        "Interface type.";
-    }
-    leaf dmvpn {
-      /* frr specific model */
-      when "enum-value(../interface-type) = 3";
-      type boolean;
-      default "false";
-      description
-        "DMVPN point-to-point network is configured.";
-    }
+      "Configuration for real ospf interfaces.";
     container virtual-link {
       /* frr specific model */
       when "enum-value(../interface-type) = 4" {
@@ -5540,18 +5602,18 @@ module frr-ospfd {
         type leafref {
           path "/frr-rt:routing/frr-rt:control-plane-protocols/"
             + "frr-rt:control-plane-protocol[frr-rt:name = "
-            + "current()/../../ospf-id]/ospf/areas/area/area-id";
+            + "current()/../../../ospf-id]/ospf/areas/area/area-id";
         }
         must "derived-from-or-self("
           + "/frr-rt:routing/frr-rt:control-plane-protocols/"
           + "frr-rt:control-plane-protocol[frr-rt:name = "
-          + "current()/../../ospf-id]/ospf/areas/area[area-id = "
+          + "current()/../../../ospf-id]/ospf/areas/area[area-id = "
           + "current()]/area-type, 'normal-area')"
           + " and . != '0.0.0.0'" {
           error-message
-              "Virtual-link transit area must be non-backbone and normal.";
+            "Virtual-link transit area must be non-backbone and normal.";
           description
-              "Virtual-link transit area must be non-backbone and normal.";
+            "Virtual-link transit area must be non-backbone and normal.";
         }
         must "../../area = '0.0.0.0'" {
           error-message
@@ -5569,26 +5631,6 @@ module frr-ospfd {
         description
           "Router ID of the remote ABR.";
       }
-    }
-    leaf passive {
-      type boolean;
-      default "false";
-      description
-        "Enable/Disable passive interface - a passive interface's
-         prefix will be advertised but no neighbor adjacencies
-         will be formed on the interface.";
-    }
-    leaf priority {
-      type uint8;
-      default "1";
-      description
-        "Configure OSPF router priority. On multi-access network
-         this value is for Designated Router (DR) election. The
-         priority is ignored on other interface types. A router
-         with a higher priority will be preferred in the election
-         and a value of 0 indicates the router is not eligible to
-         become Designated Router or Backup Designated Router
-         (BDR).";
     }
     /*
     XXX NBMA static neighbors currently stored at ospf routing scope
@@ -5639,68 +5681,13 @@ module frr-ospfd {
       }
     }
     */
-
-    container mpls {
-      container ldp-sync {
-        leaf enable {
-          type boolean;
-          default "false";
-          description
-            "Turn on mpls ldp-sync.";
-        }
-        leaf holddown {
-          type uint16 {
-            range "0..10000";
-          }
-          units "seconds";
-          description
-            "Time to wait for ldp-sync to occur before restoring interface
-             cost.";
-        }
-      }
-    }
-    container bfd {
-      /* frr specific model */
-      description
-        "BFD Client Configuration.";
-      leaf enable {
-        type boolean;
-        default "false";
-        description
-          "Enable bidirectional forwarding (BFD) on this interface.";
-      }
-      leaf local-multiplier {
-        type uint8;
-        default "3";
-        description
-          "Multiplier transmitted by the local system. Detection multiplier.";
-      }
-      leaf profile {
-        type string;
-        description
-          "BFD profile.";
-      }
-      container tx-rx-intervals {
-        leaf desired-min-tx-interval {
-          type uint32;
-          units "microseconds";
-          default "300";
-          description
-            "Desired minimum transmit interval of control packets.";
-        }
-        leaf required-min-rx-interval {
-          type uint32;
-          units "microseconds";
-          default "300";
-          description
-            "Required minimum receive interval of control packets.";
-        }
-      }
-    }
     
-    uses interface-attribute-group;
+    uses interface-params-group {
+      refine "area" {
+        mandatory true;
+      }
+    }
   }
-
 
   augment "/frr-rt:routing/frr-rt:control-plane-protocols/frr-rt:control-plane-protocol" {
     container ospf {
@@ -5737,27 +5724,51 @@ module frr-ospfd {
       uses area-groupings;
     }
   }
-
   augment "/frr-interface:lib/frr-interface:interface/frr-interface:state" {
     container ospf {
-      presence "Present if OSPF is running on this interface";
+      presence "Present if OSPF is running on this interface.";
       description
         "OSPF interface operational state.";
       uses interface-common-state;
     }
   }
-
   augment "/frr-interface:lib/frr-interface:interface" {
     container ospf {
+      presence "Present if OSPF is running on this interface.";
+      description
+        "OSPF interface parameters.";
+      uses interface-common-group;
+      container default {
+        description
+          "Default parameters for an OSPF interface instance.";
+        uses interface-params-group;
+      }
       list instance {
         key "prefix";
         description
           "OSPF interface instance. There can be multiple of these running on
            a single interface.";
+        leaf prefix {
+          /* frr specific model */
+          type leafref {
+            path "../../../frr-zebra:zebra/"
+              + "frr-zebra:ip-addrs/frr-zebra:ip-prefix";
+          }
+                    must "derived-from-or-self("
+            + "../../../frr-zebra:zebra/"
+            + "frr-zebra:ip-addrs[frr-zebra:ip-prefix = current()]/"
+            + "frr-zebra:address-family, 'frr-rt:ipv4')";
+          /*
+           * XXX This must statement can throw an incompatible type operand
+           * error, but will still validate correctly (or not at all if the
+           * condition isn't fulfilled)
+           */
+          description
+            "OSPF interface's prefix. Even though multiple may be declared in
+             Zebra, OSPF only supports one prefix at a time.";
+        }
         uses interface-config;
       }
-      description
-        "OSPF interface parameters.";
     }
   }
   
@@ -5770,6 +5781,7 @@ module frr-ospfd {
   rpc clear-ospf-interface {
     description
       "Clears OSPF interfaces from instances of OSPF.";
+
     input {
       leaf vrf {
         type frr-vrf:vrf-ref;
@@ -5794,10 +5806,10 @@ module frr-ospfd {
       }
     }
   }
-
   rpc clear-ospf-neighbor {
     description
       "Clears OSPF neighbors from instances of OSPF.";
+
     input {
       leaf ospf-instance {
         type ospf-instance-ref;
@@ -5821,10 +5833,10 @@ module frr-ospfd {
       }
     }
   }
-
   rpc clear-ospf-process {
     description
       "Clears en entire OSPF process.";
+
     input {
       leaf ospf-instance {
         type ospf-instance-ref;
