@@ -1,11 +1,13 @@
 #include <zebra.h>
 
 #include "northbound.h"
+#include "table.h"
 
 #include "ospfd/ospfd.h"
 #include "ospfd/ospf_interface.h"
 #include "ospfd/ospf_nb.h"
 #include "ospfd/ospf_dump.h"
+#include "ospfd/ospf_vty.h"
 
 /*
  * frr-routing router configurable state
@@ -85,7 +87,7 @@ int routing_control_plane_protocols_control_plane_protocol_ospf_explicit_router_
 
 	ospf = nb_running_get_entry(args->dnode, NULL, true);
 
-        yang_dnode_get_ipv4(&ospf->router_id_static, args->dnode, NULL);
+	yang_dnode_get_ipv4(&(ospf->router_id_static), args->dnode, NULL);
 
 	for (ALL_LIST_ELEMENTS_RO(ospf->areas, node, area))
 		if (area->full_nbrs) {
@@ -1929,12 +1931,50 @@ int routing_control_plane_protocols_control_plane_protocol_ospf_nbma_neighbors_n
  */
 int routing_control_plane_protocols_control_plane_protocol_ospf_ip_networks_network_create(struct nb_cb_create_args *args)
 {
+	struct ospf *ospf;
+	struct prefix_ipv4 prefix;
+	struct in_addr area_id, ospf_id;
+	const char *area_id_str;
+	int ret, format;
+	bool net_exists = false;
+
 	switch (args->event) {
 	case NB_EV_VALIDATE:
+		yang_dnode_get_ipv4(&ospf_id, args->dnode, "../../explicit-router-id");
+
+		/* XXX Doesn't check for automatically assigned router ID's */
+		if (ospf_id.s_addr) {
+			zlog_err("The network command is not supported in multi-instance ospf\n");
+			return NB_ERR_VALIDATION;
+		}
+
+		net_exists = yang_dnode_existsf(args->dnode,
+						"/frr-interface:lib/interface/frr-ospfd:ospf/area");
+		net_exists = net_exists || yang_dnode_existsf(args->dnode,
+							      "/frr-interface:lib/interface/frr-ospfd:ospf/interface-address/area");
+
+		if (net_exists) {
+			zlog_warn("Please remove all ip ospf area x.x.x.x commands first.\n");
+			return NB_ERR_VALIDATION;
+		}
+
+		break;
 	case NB_EV_PREPARE:
 	case NB_EV_ABORT:
+		break;
 	case NB_EV_APPLY:
-		/* TODO: implement me. */
+		ospf = nb_running_get_entry(args->dnode, NULL, true);
+
+		yang_dnode_get_ipv4p(&prefix, args->dnode, "./prefix");
+		area_id_str = yang_dnode_get_string(args->dnode, "./area");
+		str2area_id(area_id_str, &area_id, &format);
+
+		ret = ospf_network_set(ospf, &prefix, area_id, format);
+		if (ret == 0) {
+			zlog_err("There is already same network statement.\n");
+			return NB_ERR;
+		}
+
 		break;
 	}
 
@@ -1943,12 +1983,40 @@ int routing_control_plane_protocols_control_plane_protocol_ospf_ip_networks_netw
 
 int routing_control_plane_protocols_control_plane_protocol_ospf_ip_networks_network_destroy(struct nb_cb_destroy_args *args)
 {
+	struct ospf *ospf;
+	struct prefix_ipv4 prefix;
+	struct in_addr area_id, ospf_id;
+	const char *area_id_str;
+	int ret, format;
+
+
 	switch (args->event) {
 	case NB_EV_VALIDATE:
+		yang_dnode_get_ipv4(&ospf_id, args->dnode, "../../explicit-router-id");
+
+		/* XXX Doesn't check for automatically assigned router ID's */
+		if (ospf_id.s_addr) {
+			zlog_err("The network command is not supported in multi-instance ospf\n");
+			return NB_ERR_VALIDATION;
+		}
+
+		break;
 	case NB_EV_PREPARE:
 	case NB_EV_ABORT:
+		break;
 	case NB_EV_APPLY:
-		/* TODO: implement me. */
+		ospf = nb_running_get_entry(args->dnode, NULL, true);
+
+		yang_dnode_get_ipv4p(&prefix, args->dnode, "./prefix");
+		area_id_str = yang_dnode_get_string(args->dnode, "./area");
+		str2area_id(area_id_str, &area_id, &format);
+
+		ret = ospf_network_unset(ospf, &prefix, area_id);
+		if (ret == 0) {
+			zlog_err("Can't find specific network area configuration to delete.\n");
+			return NB_ERR;
+		}
+
 		break;
 	}
 
@@ -1960,13 +2028,35 @@ int routing_control_plane_protocols_control_plane_protocol_ospf_ip_networks_netw
  */
 int routing_control_plane_protocols_control_plane_protocol_ospf_ip_networks_network_area_modify(struct nb_cb_modify_args *args)
 {
-	switch (args->event) {
-	case NB_EV_VALIDATE:
-	case NB_EV_PREPARE:
-	case NB_EV_ABORT:
-	case NB_EV_APPLY:
-		/* TODO: implement me. */
-		break;
+	struct ospf *ospf;
+	struct prefix_ipv4 prefix;
+	struct route_node *rn;
+	struct in_addr area;
+	struct ospf_network *network;
+
+	if (args->event == NB_EV_VALIDATE) {
+		ospf = nb_running_get_entry(args->dnode, NULL, false);
+		if (!ospf)
+		        return NB_OK;
+
+		yang_dnode_get_ipv4p(&prefix, args->dnode, "../prefix");
+
+		rn = route_node_lookup(ospf->networks, &prefix);
+		if (!rn)
+			return NB_OK;
+
+		network = rn->info;
+		route_unlock_node(rn);
+
+		if (!network)
+			return NB_OK;
+
+		yang_dnode_get_ipv4(&area, args->dnode, NULL);
+
+		if (!IPV4_ADDR_SAME(&network->area_id, &area)) {
+			zlog_err("Directly changing network area is not supported\n");
+			return NB_ERR_VALIDATION;
+		}
 	}
 
 	return NB_OK;

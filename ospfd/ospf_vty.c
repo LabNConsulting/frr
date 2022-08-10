@@ -503,57 +503,28 @@ DEFUN_HIDDEN (no_ospf_passive_interface,
 	return CMD_SUCCESS;
 }
 
-
-DEFUN (ospf_network_area,
+/*
+ * XPath: /frr-routing:routing/control-plane-protocols/control-plane-protocol/frr-ospfd:ospf/ip-networks/network
+ * XPath: /frr-routing:routing/control-plane-protocols/control-plane-protocol/frr-ospfd:ospf/ip-networks/network/area
+ */
+DEFPY_YANG (ospf_network_area,
        ospf_network_area_cmd,
-       "network A.B.C.D/M area <A.B.C.D|(0-4294967295)>",
+       "network A.B.C.D/M$prefix area <A.B.C.D|(0-4294967295)>",
        "Enable routing on an IP network\n"
        "OSPF network prefix\n"
        "Set the OSPF area ID\n"
        "OSPF area ID in IP address format\n"
        "OSPF area ID as a decimal value\n")
 {
-	VTY_DECLVAR_INSTANCE_CONTEXT(ospf, ospf);
-	int idx_ipv4_prefixlen = 1;
-	int idx_ipv4_number = 3;
-	struct prefix_ipv4 p;
-	struct in_addr area_id;
-	int ret, format;
-	uint32_t count;
+	nb_cli_enqueue_change(vty, ".", NB_OP_CREATE, NULL);
+	nb_cli_enqueue_change(vty, "./area", NB_OP_MODIFY, area);
 
-	if (ospf->instance) {
-		vty_out(vty,
-			"The network command is not supported in multi-instance ospf\n");
-		return CMD_WARNING_CONFIG_FAILED;
-	}
-
-	count = ospf_count_area_params(ospf);
-	if (count > 0) {
-		vty_out(vty,
-			"Please remove all ip ospf area x.x.x.x commands first.\n");
-		if (IS_DEBUG_OSPF_EVENT)
-			zlog_debug(
-				"%s ospf vrf %s num of %u ip ospf area x config",
-				__func__, ospf_get_name(ospf), count);
-		return CMD_WARNING_CONFIG_FAILED;
-	}
-
-	/* Get network prefix and Area ID. */
-	str2prefix_ipv4(argv[idx_ipv4_prefixlen]->arg, &p);
-	VTY_GET_OSPF_AREA_ID(area_id, format, argv[idx_ipv4_number]->arg);
-
-	ret = ospf_network_set(ospf, &p, area_id, format);
-	if (ret == 0) {
-		vty_out(vty, "There is already same network statement.\n");
-		return CMD_WARNING_CONFIG_FAILED;
-	}
-
-	return CMD_SUCCESS;
+	return nb_cli_apply_changes(vty, "./networks/network[prefix='%s']", prefix_str);
 }
 
-DEFUN (no_ospf_network_area,
+DEFPY_YANG (no_ospf_network_area,
        no_ospf_network_area_cmd,
-       "no network A.B.C.D/M area <A.B.C.D|(0-4294967295)>",
+       "no network A.B.C.D/M$prefix [area <A.B.C.D|(0-4294967295)>]",
        NO_STR
        "Enable routing on an IP network\n"
        "OSPF network prefix\n"
@@ -561,31 +532,9 @@ DEFUN (no_ospf_network_area,
        "OSPF area ID in IP address format\n"
        "OSPF area ID as a decimal value\n")
 {
-	VTY_DECLVAR_INSTANCE_CONTEXT(ospf, ospf);
-	int idx_ipv4_prefixlen = 2;
-	int idx_ipv4_number = 4;
-	struct prefix_ipv4 p;
-	struct in_addr area_id;
-	int ret, format;
+	nb_cli_enqueue_change(vty, ".", NB_OP_DESTROY, NULL);
 
-	if (ospf->instance) {
-		vty_out(vty,
-			"The network command is not supported in multi-instance ospf\n");
-		return CMD_WARNING_CONFIG_FAILED;
-	}
-
-	/* Get network prefix and Area ID. */
-	str2prefix_ipv4(argv[idx_ipv4_prefixlen]->arg, &p);
-	VTY_GET_OSPF_AREA_ID(area_id, format, argv[idx_ipv4_number]->arg);
-
-	ret = ospf_network_unset(ospf, &p, area_id);
-	if (ret == 0) {
-		vty_out(vty,
-			"Can't find specified network area configuration.\n");
-		return CMD_WARNING_CONFIG_FAILED;
-	}
-
-	return CMD_SUCCESS;
+	return nb_cli_apply_changes(vty, "./networks/network[prefix='%s']", prefix_str);
 }
 
 DEFUN (ospf_area_range,
