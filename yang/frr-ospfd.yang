@@ -5611,12 +5611,6 @@ module frr-ospfd {
           description
             "Virtual-link transit area must be non-backbone and normal.";
         }
-        must "../../area = '0.0.0.0'" {
-          error-message
-            "Virtual interface must exist in the backbone area.";
-          description
-            "Virtual interface must exist in the backbone area.";
-        }
         mandatory true;
         description
           "Transit area of virtual link.";
@@ -5677,11 +5671,7 @@ module frr-ospfd {
       }
     }
     */
-    uses interface-params-group {
-      refine "area" {
-        mandatory true;
-      }
-    }
+    uses interface-params-group;
     container state {
       config false;
       description
