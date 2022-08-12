@@ -2966,6 +2966,62 @@ module frr-ospfd {
     uses authentication-group;
   }
 
+  grouping virtual-link-group {
+    container virtual-links {
+      when "derived-from-or-self(../area-type, 'normal-area') and ../area-id = '0.0.0.0'" {
+        description
+          "Virtual links must be in backbone area.";
+      }
+      list virtual-link {
+        key "transit-area-id router-id";
+        description
+          "Virtual link parameters.";
+        leaf transit-area-id {
+          type leafref {
+            path "../../../../area/area-id";
+          }
+          must "derived-from-or-self("
+            + "../../../../area[area-id=current()]/area-type, 'normal-area')"
+            + " and "
+            + "../../../../area[area-id=current()]/area-id != '0.0.0.0'" {
+            error-message "Virtual link transit area must be non-zero";
+            description
+              "Virtual-link transit area must be non-zero area.";
+          }
+        }
+        leaf router-id {
+          type rt-types:router-id;
+          description
+            "Router ID of the remote ABR.";
+        }
+        leaf dead-interval {
+          type uint16;
+          units "seconds";
+          must "../dead-interval > ../hello-interval" {
+            error-message
+              "The dead interval must be larger than the hello interval";
+            description
+              "The value must be greater than the 'hello-interval'.";
+          }
+          default "40";
+          description
+            "Interval after which a neighbor is declared down (seconds) if
+             hello packets are not received. It is typically 3 or 4 times the
+             hello-interval. A typical value for LAN networks is 40 seconds.";
+          reference
+            "RFC 2328: OSPF Version 2, Appendix C.3";
+        }
+        uses interface-common-attributes;
+        container state {
+          config false;
+          description
+            "Operational state of all a virtual link.";
+          uses interface-common-state;
+        }
+      }
+    }
+  }
+
   grouping area-groupings {
     container areas {
       list area {
@@ -3078,6 +3134,7 @@ module frr-ospfd {
             "Area-scope operational state container.";
           uses area-state;
         }
+        uses virtual-link-group;
       }
     }
   }
@@ -4041,12 +4098,6 @@ module frr-ospfd {
           value 3;
           description
             "Specify OSPF point-to-point network.";
-        }
-        enum "virtual-link" {
-          /* frr specific model */
-          value 4;
-          description
-            "Specify OSPF virtual link.";
         }
       }
       default "broadcast";
@@ -5588,40 +5639,6 @@ module frr-ospfd {
   grouping interface-config {
     description
       "Configuration for real ospf interfaces.";
-    container virtual-link {
-      /* frr specific model */
-      when "enum-value(../interface-type) = 4" {
-        description
-          "Only present when this interface is configured as a virtual link.";
-      }
-      leaf transit-area-id {
-        type leafref {
-          path "/frr-rt:routing/frr-rt:control-plane-protocols/"
-            + "frr-rt:control-plane-protocol[frr-rt:name = "
-            + "current()/../../../ospf-id]/ospf/areas/area/area-id";
-        }
-        must "derived-from-or-self("
-          + "/frr-rt:routing/frr-rt:control-plane-protocols/"
-          + "frr-rt:control-plane-protocol[frr-rt:name = "
-          + "current()/../../../ospf-id]/ospf/areas/area[area-id = "
-          + "current()]/area-type, 'normal-area')"
-          + " and . != '0.0.0.0'" {
-          error-message
-            "Virtual-link transit area must be non-backbone and normal.";
-          description
-            "Virtual-link transit area must be non-backbone and normal.";
-        }
-        mandatory true;
-        description
-          "Transit area of virtual link.";
-      }
-      leaf router-id {
-        type rt-types:router-id;
-        mandatory true;
-        description
-          "Router ID of the remote ABR.";
-      }
-    }
     /*
     XXX NBMA static neighbors currently stored at ospf routing scope
 
