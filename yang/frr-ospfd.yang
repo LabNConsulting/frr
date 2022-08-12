@@ -1860,8 +1860,7 @@ module frr-ospfd {
     description
       "OSPFv2 LSA body.";
     container router {
-      when "derived-from-or-self(../../header/type, "
-         + "'ospfv2-router-lsa')" {
+      when "derived-from-or-self(../../header/type, 'ospfv2-router-lsa')" {
         description
           "Only applies to Router-LSAs.";
       }
@@ -1903,8 +1902,7 @@ module frr-ospfd {
       }
     }
     container network {
-      when "derived-from-or-self(../../header/type, "
-         + "'ospfv2-network-lsa')" {
+      when "derived-from-or-self(../../header/type, 'ospfv2-network-lsa')" {
         description
           "Only applies to Network LSAs.";
       }
@@ -1926,8 +1924,7 @@ module frr-ospfd {
       }
     }
     container summary {
-      when "derived-from(../../header/type, "
-         + "'ospfv2-summary-lsa-type')" {
+      when "derived-from(../../header/type, 'ospfv2-summary-lsa-type')" {
         description
           "Only applies to Summary LSAs.";
       }
@@ -1959,8 +1956,7 @@ module frr-ospfd {
       }
     }
     container external {
-      when "derived-from(../../header/type, "
-         + "'ospfv2-external-lsa-type')" {
+      when "derived-from(../../header/type, 'ospfv2-external-lsa-type')" {
         description
           "Only applies to AS-external LSAs and NSSA LSAs.";
       }
@@ -2013,8 +2009,7 @@ module frr-ospfd {
       }
     }
     container opaque {
-      when "derived-from(../../header/type, "
-         + "'ospfv2-opaque-lsa-type')" {
+      when "derived-from(../../header/type, 'ospfv2-opaque-lsa-type')" {
         description
           "Only applies to Opaque LSAs.";
       }
@@ -2352,8 +2347,7 @@ module frr-ospfd {
     description
       "OSPFv3 LSA body.";
     container router {
-      when "derived-from-or-self(../../header/type, "
-         + "'ospfv3-router-lsa')" {
+      when "derived-from-or-self(../../header/type, 'ospfv3-router-lsa')" {
         description
           "Only applies to Router LSAs.";
       }
@@ -2399,8 +2393,7 @@ module frr-ospfd {
       }
     }
     container network {
-      when "derived-from-or-self(../../header/type, "
-         + "'ospfv3-network-lsa')" {
+      when "derived-from-or-self(../../header/type, 'ospfv3-network-lsa')" {
         description
           "Only applies to Network LSAs.";
       }
@@ -2418,8 +2411,7 @@ module frr-ospfd {
       }
     }
     container inter-area-prefix {
-      when "derived-from-or-self(../../header/type, "
-         + "'ospfv3-inter-area-prefix-lsa')" {
+      when "derived-from-or-self(../../header/type, 'ospfv3-inter-area-prefix-lsa')" {
         description
           "Only applies to Inter-Area-Prefix LSAs.";
       }
@@ -2433,8 +2425,7 @@ module frr-ospfd {
       uses ospfv3-lsa-prefix;
     }
     container inter-area-router {
-      when "derived-from-or-self(../../header/type, "
-         + "'ospfv3-inter-area-router-lsa')" {
+      when "derived-from-or-self(../../header/type, 'ospfv3-inter-area-router-lsa')" {
         description
           "Only applies to Inter-Area-Router LSAs.";
       }
@@ -2453,8 +2444,7 @@ module frr-ospfd {
       }
     }
     container as-external {
-      when "derived-from-or-self(../../header/type, "
-         + "'ospfv3-as-external-lsa')" {
+      when "derived-from-or-self(../../header/type, 'ospfv3-as-external-lsa')" {
         description
           "Only applies to AS-external LSAs.";
       }
@@ -2463,8 +2453,7 @@ module frr-ospfd {
       uses ospfv3-lsa-external;
     }
     container nssa {
-      when "derived-from-or-self(../../header/type, "
-         + "'ospfv3-nssa-lsa')" {
+      when "derived-from-or-self(../../header/type, 'ospfv3-nssa-lsa')" {
         description
           "Only applies to NSSA LSAs.";
       }
@@ -2473,8 +2462,7 @@ module frr-ospfd {
       uses ospfv3-lsa-external;
     }
     container link {
-      when "derived-from-or-self(../../header/type, "
-         + "'ospfv3-link-lsa')" {
+      when "derived-from-or-self(../../header/type, 'ospfv3-link-lsa')" {
         description
           "Only applies to Link LSAs.";
       }
@@ -2512,8 +2500,7 @@ module frr-ospfd {
       }
     }
     container intra-area-prefix {
-      when "derived-from-or-self(../../header/type, "
-         + "'ospfv3-intra-area-prefix-lsa')" {
+      when "derived-from-or-self(../../header/type, 'ospfv3-intra-area-prefix-lsa')" {
         description
           "Only applies to Intra-Area-Prefix LSAs.";
       }
@@ -2562,8 +2549,7 @@ module frr-ospfd {
       }
     }
     container router-information {
-      when "derived-from-or-self(../../header/type, "
-         + "'ospfv3-router-information-lsa')" {
+      when "derived-from-or-self(../../header/type, 'ospfv3-router-information-lsa')" {
         description
           "Only applies to Router Information LSAs (RFC 7770).";
       }
