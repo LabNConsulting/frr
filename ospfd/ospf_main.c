@@ -59,6 +59,9 @@
 #include "ospfd/ospf_ldp_sync.h"
 #include "ospfd/ospf_routemap_nb.h"
 
+#include "ospfd/ospf_nb.h"
+#include "routing_nb.h"
+
 /* ospfd privileges */
 zebra_capabilities_t _caps_p[] = {ZCAP_NET_RAW, ZCAP_BIND, ZCAP_NET_ADMIN,
 				  ZCAP_SYS_ADMIN};
@@ -137,6 +140,8 @@ static const struct frr_yang_module_info *const ospfd_yang_modules[] = {
 	&frr_route_map_info,
 	&frr_vrf_info,
 	&frr_ospf_route_map_info,
+	&frr_routing_info,
+	&frr_ospfd_info,
 };
 
 FRR_DAEMON_INFO(ospfd, OSPF, .vty_port = OSPF_VTY_PORT,

@@ -1,6 +1,8 @@
 #ifndef _FRR_OSPFD_NB_H_
 #define _FRR_OSPFD_NB_H_
 
+extern const struct frr_yang_module_info frr_ospfd_info;
+
 /* prototypes */
 int lib_interface_ospf_create(struct nb_cb_create_args *args);
 int lib_interface_ospf_destroy(struct nb_cb_destroy_args *args);

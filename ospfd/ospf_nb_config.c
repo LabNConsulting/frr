@@ -2035,6 +2035,9 @@ int routing_control_plane_protocols_control_plane_protocol_ospf_ip_networks_netw
 	struct ospf_network *network;
 
 	if (args->event == NB_EV_VALIDATE) {
+		/*
+		 * XXX: cannot refer to running state in validate step
+		 */
 		ospf = nb_running_get_entry(args->dnode, NULL, false);
 		if (!ospf)
 		        return NB_OK;
@@ -2801,6 +2804,9 @@ int lib_interface_ospf_area_modify(struct nb_cb_modify_args *args)
 
 	switch (args->event) {
 	case NB_EV_VALIDATE:
+		/*
+		 * XXX: cannot refer to running state in validate step
+		 */
 		params = IF_DEF_PARAMS(ifp);
 
 		if (memcmp(ifp->name, "VLINK", 5) == 0) {
@@ -3388,6 +3394,9 @@ int lib_interface_ospf_interface_address_area_modify(struct nb_cb_modify_args *a
 
 	switch (args->event) {
 	case NB_EV_VALIDATE:
+		/*
+		 * XXX: cannot refer to running state in validate step
+		 */
 		params = IF_DEF_PARAMS(ifp);
 
 		if (memcmp(ifp->name, "VLINK", 5) == 0) {
