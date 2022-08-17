@@ -540,7 +540,12 @@ DEFPY_YANG (no_ospf_network_area,
 	return nb_cli_apply_changes(vty, "./networks/network[prefix='%s']", prefix_str);
 }
 
-DEFUN (ospf_area_range,
+/*
+ * XPath: /frr-routing:routing/control-plane-protocols/control-plane-protocol/frr-ospfd:ospf/areas/area/ranges/range
+ * XPath: /frr-routing:routing/control-plane-protocols/control-plane-protocol/frr-ospfd:ospf/areas/area/ranges/range/cost
+ * XPath: /frr-routing:routing/control-plane-protocols/control-plane-protocol/frr-ospfd:ospf/areas/area/ranges/range/substitute
+ */
+DEFPY_YANG (ospf_area_range,
        ospf_area_range_cmd,
        "area <A.B.C.D|(0-4294967295)> range A.B.C.D/M [advertise [cost (0-16777215)]]",
        "OSPF area parameters\n"
@@ -552,30 +557,22 @@ DEFUN (ospf_area_range,
        "User specified metric for this range\n"
        "Advertised metric for this range\n")
 {
-	VTY_DECLVAR_INSTANCE_CONTEXT(ospf, ospf);
-	int idx_ipv4_number = 1;
-	int idx_ipv4_prefixlen = 3;
-	int idx_cost = 6;
-	struct prefix_ipv4 p;
-	struct in_addr area_id;
-	int format;
-	uint32_t cost;
+	char xpath_base[XPATH_MAXLEN];
 
-	VTY_GET_OSPF_AREA_ID(area_id, format, argv[idx_ipv4_number]->arg);
-	str2prefix_ipv4(argv[idx_ipv4_prefixlen]->arg, &p);
+	snprintf(xpath_base, XPATH_MAXLEN,
+		 "./frr-ospfd:ospf/areas/area[area-id='%s']/ranges/range[prefix='%s']",
+		 area, range_str);
 
-	ospf_area_range_set(ospf, area_id, &p, OSPF_AREA_RANGE_ADVERTISE);
-	ospf_area_display_format_set(ospf, ospf_area_get(ospf, area_id),
-				     format);
-	if (argc > 5) {
-		cost = strtoul(argv[idx_cost]->arg, NULL, 10);
-		ospf_area_range_cost_set(ospf, area_id, &p, cost);
-	}
+	nb_cli_enqueue_change(vty, ".", NB_OP_CREATE, NULL);
+	nb_cli_enqueue_change(vty, "./advertise", NB_OP_MODIFY, "true");
 
-	return CMD_SUCCESS;
+	if (cost_str)
+		nb_cli_enqueue_change(vty, "./cost", NB_OP_MODIFY, cost_str);
+
+	return nb_cli_apply_changes(vty, xpath_base);
 }
 
-DEFUN (ospf_area_range_cost,
+DEFPY_YANG (ospf_area_range_cost,
        ospf_area_range_cost_cmd,
        "area <A.B.C.D|(0-4294967295)> range A.B.C.D/M {cost (0-16777215)|substitute A.B.C.D/M}",
        "OSPF area parameters\n"
@@ -588,37 +585,24 @@ DEFUN (ospf_area_range_cost,
        "Announce area range as another prefix\n"
        "Network prefix to be announced instead of range\n")
 {
-	VTY_DECLVAR_INSTANCE_CONTEXT(ospf, ospf);
-	int idx_ipv4_number = 1;
-	int idx_ipv4_prefixlen = 3;
-	int idx = 4;
-	struct prefix_ipv4 p, s;
-	struct in_addr area_id;
-	int format;
-	uint32_t cost;
+	char xpath_base[XPATH_MAXLEN];
 
-	VTY_GET_OSPF_AREA_ID(area_id, format, argv[idx_ipv4_number]->arg);
-	str2prefix_ipv4(argv[idx_ipv4_prefixlen]->arg, &p);
+	snprintf(xpath_base, XPATH_MAXLEN,
+		 "./frr-ospfd:ospf/areas/area[area-id='%s']/ranges/range[prefix='%s']",
+		 area, range_str);
 
-	ospf_area_range_set(ospf, area_id, &p, OSPF_AREA_RANGE_ADVERTISE);
-	ospf_area_display_format_set(ospf, ospf_area_get(ospf, area_id),
-				     format);
+	nb_cli_enqueue_change(vty, ".", NB_OP_CREATE, NULL);
+	nb_cli_enqueue_change(vty, "./advertise", NB_OP_MODIFY, "true");
 
-	if (argv_find(argv, argc, "cost", &idx)) {
-		cost = strtoul(argv[idx + 1]->arg, NULL, 10);
-		ospf_area_range_cost_set(ospf, area_id, &p, cost);
-	}
+	if (cost_str)
+		nb_cli_enqueue_change(vty, "./cost", NB_OP_MODIFY, cost_str);
+	if (substitute_str)
+		nb_cli_enqueue_change(vty, "./substitute", NB_OP_MODIFY, substitute_str);
 
-	idx = 4;
-	if (argv_find(argv, argc, "substitute", &idx)) {
-		str2prefix_ipv4(argv[idx + 1]->arg, &s);
-		ospf_area_range_substitute_set(ospf, area_id, &p, &s);
-	}
-
-	return CMD_SUCCESS;
+	return nb_cli_apply_changes(vty, xpath_base);
 }
 
-DEFUN (ospf_area_range_not_advertise,
+DEFPY_YANG (ospf_area_range_not_advertise,
        ospf_area_range_not_advertise_cmd,
        "area <A.B.C.D|(0-4294967295)> range A.B.C.D/M not-advertise",
        "OSPF area parameters\n"
@@ -628,25 +612,19 @@ DEFUN (ospf_area_range_not_advertise,
        "Area range prefix\n"
        "DoNotAdvertise this range\n")
 {
-	VTY_DECLVAR_INSTANCE_CONTEXT(ospf, ospf);
-	int idx_ipv4_number = 1;
-	int idx_ipv4_prefixlen = 3;
-	struct prefix_ipv4 p;
-	struct in_addr area_id;
-	int format;
+	char xpath_base[XPATH_MAXLEN];
 
-	VTY_GET_OSPF_AREA_ID(area_id, format, argv[idx_ipv4_number]->arg);
-	str2prefix_ipv4(argv[idx_ipv4_prefixlen]->arg, &p);
+	snprintf(xpath_base, XPATH_MAXLEN,
+		 "./frr-ospfd:ospf/areas/area[area-id='%s']/ranges/range[prefix='%s']",
+		 area, range_str);
 
-	ospf_area_range_set(ospf, area_id, &p, 0);
-	ospf_area_display_format_set(ospf, ospf_area_get(ospf, area_id),
-				     format);
-	ospf_area_range_substitute_unset(ospf, area_id, &p);
+	nb_cli_enqueue_change(vty, ".", NB_OP_CREATE, NULL);
+	nb_cli_enqueue_change(vty, "./advertise", NB_OP_MODIFY, "false");
 
-	return CMD_SUCCESS;
+	return nb_cli_apply_changes(vty, xpath_base);
 }
 
-DEFUN (no_ospf_area_range,
+DEFPY_YANG (no_ospf_area_range,
        no_ospf_area_range_cmd,
        "no area <A.B.C.D|(0-4294967295)> range A.B.C.D/M [<cost (0-16777215)|advertise [cost (0-16777215)]|not-advertise>]",
        NO_STR
@@ -662,22 +640,18 @@ DEFUN (no_ospf_area_range,
        "Advertised metric for this range\n"
        "DoNotAdvertise this range\n")
 {
-	VTY_DECLVAR_INSTANCE_CONTEXT(ospf, ospf);
-	int idx_ipv4_number = 2;
-	int idx_ipv4_prefixlen = 4;
-	struct prefix_ipv4 p;
-	struct in_addr area_id;
-	int format;
+	char xpath_base[XPATH_MAXLEN];
 
-	VTY_GET_OSPF_AREA_ID(area_id, format, argv[idx_ipv4_number]->arg);
-	str2prefix_ipv4(argv[idx_ipv4_prefixlen]->arg, &p);
+	snprintf(xpath_base, XPATH_MAXLEN,
+		 "./frr-ospfd:ospf/areas/area[area-id='%s']/ranges/range[prefix='%s']",
+		 area, range_str);
 
-	ospf_area_range_unset(ospf, area_id, &p);
+	nb_cli_enqueue_change(vty, ".", NB_OP_DESTROY, NULL);
 
-	return CMD_SUCCESS;
+	return nb_cli_apply_changes(vty, xpath_base);
 }
 
-DEFUN (no_ospf_area_range_substitute,
+DEFPY_YANG (no_ospf_area_range_substitute,
        no_ospf_area_range_substitute_cmd,
        "no area <A.B.C.D|(0-4294967295)> range A.B.C.D/M substitute A.B.C.D/M",
        NO_STR
@@ -689,21 +663,15 @@ DEFUN (no_ospf_area_range_substitute,
        "Announce area range as another prefix\n"
        "Network prefix to be announced instead of range\n")
 {
-	VTY_DECLVAR_INSTANCE_CONTEXT(ospf, ospf);
-	int idx_ipv4_number = 2;
-	int idx_ipv4_prefixlen = 4;
-	int idx_ipv4_prefixlen_2 = 6;
-	struct prefix_ipv4 p, s;
-	struct in_addr area_id;
-	int format;
+	char xpath_base[XPATH_MAXLEN];
 
-	VTY_GET_OSPF_AREA_ID(area_id, format, argv[idx_ipv4_number]->arg);
-	str2prefix_ipv4(argv[idx_ipv4_prefixlen]->arg, &p);
-	str2prefix_ipv4(argv[idx_ipv4_prefixlen_2]->arg, &s);
+	snprintf(xpath_base, XPATH_MAXLEN,
+		 "./frr-ospfd:ospf/areas/area[area-id='%s']/ranges/range[prefix='%s']",
+		 area, range_str);
 
-	ospf_area_range_substitute_unset(ospf, area_id, &p);
+	nb_cli_enqueue_change(vty, "./substitute", NB_OP_DESTROY, substitute_str);
 
-	return CMD_SUCCESS;
+	return nb_cli_apply_changes(vty, xpath_base);
 }
 
 

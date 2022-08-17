@@ -4,6 +4,7 @@
 #include "table.h"
 
 #include "ospfd/ospfd.h"
+#include "ospfd/ospf_abr.h"
 #include "ospfd/ospf_interface.h"
 #include "ospfd/ospf_nb.h"
 #include "ospfd/ospf_dump.h"
@@ -2411,28 +2412,33 @@ int routing_control_plane_protocols_control_plane_protocol_ospf_areas_area_filte
  */
 int routing_control_plane_protocols_control_plane_protocol_ospf_areas_area_ranges_range_create(struct nb_cb_create_args *args)
 {
-	switch (args->event) {
-	case NB_EV_VALIDATE:
-	case NB_EV_PREPARE:
-	case NB_EV_ABORT:
-	case NB_EV_APPLY:
-		/* TODO: implement me. */
-		break;
-	}
+	/*
+	 * Actual creation of the range occurs in ..._range_advertise_modify
+	 * since a range must be able to switch beteen being advertisable and
+	 * not advertisable, which is set depending on input to the range
+	 * creation callback command.
+	 */
 
 	return NB_OK;
 }
 
 int routing_control_plane_protocols_control_plane_protocol_ospf_areas_area_ranges_range_destroy(struct nb_cb_destroy_args *args)
 {
-	switch (args->event) {
-	case NB_EV_VALIDATE:
-	case NB_EV_PREPARE:
-	case NB_EV_ABORT:
-	case NB_EV_APPLY:
-		/* TODO: implement me. */
-		break;
-	}
+	struct ospf *ospf;
+	struct in_addr area_id;
+	struct prefix_ipv4 p;
+	const char *area_id_str;
+	int format;
+
+	if (args->event != NB_EV_APPLY)
+		return NB_OK;
+
+	ospf = nb_running_get_entry(args->dnode, NULL, true);
+	area_id_str = yang_dnode_get_string(args->dnode, "../../area-id");
+	str2area_id(area_id_str, &area_id, &format);
+	yang_dnode_get_ipv4p(&p, args->dnode, "./prefix");
+
+	ospf_area_range_unset(ospf, area_id, &p);
 
 	return NB_OK;
 }
@@ -2442,14 +2448,27 @@ int routing_control_plane_protocols_control_plane_protocol_ospf_areas_area_range
  */
 int routing_control_plane_protocols_control_plane_protocol_ospf_areas_area_ranges_range_advertise_modify(struct nb_cb_modify_args *args)
 {
-	switch (args->event) {
-	case NB_EV_VALIDATE:
-	case NB_EV_PREPARE:
-	case NB_EV_ABORT:
-	case NB_EV_APPLY:
-		/* TODO: implement me. */
-		break;
-	}
+	struct ospf *ospf;
+	struct in_addr area_id;
+	struct prefix_ipv4 p;
+	const char *area_id_str;
+	int format;
+	bool advertise;
+
+	if (args->event != NB_EV_APPLY)
+		return NB_OK;
+
+	ospf = nb_running_get_entry(args->dnode, NULL, true);
+	area_id_str = yang_dnode_get_string(args->dnode, "../../../area-id");
+	str2area_id(area_id_str, &area_id, &format);
+	yang_dnode_get_ipv4p(&p, args->dnode, "../prefix");
+	advertise = yang_dnode_get_bool(args->dnode, ".");
+
+	ospf_area_range_set(ospf, area_id, &p, advertise ? OSPF_AREA_RANGE_ADVERTISE : 0);
+	ospf_area_display_format_set(ospf, ospf_area_get(ospf, area_id),
+				     format);
+	if (!advertise)
+		ospf_area_range_substitute_unset(ospf, area_id, &p);
 
 	return NB_OK;
 }
@@ -2459,28 +2478,33 @@ int routing_control_plane_protocols_control_plane_protocol_ospf_areas_area_range
  */
 int routing_control_plane_protocols_control_plane_protocol_ospf_areas_area_ranges_range_cost_modify(struct nb_cb_modify_args *args)
 {
-	switch (args->event) {
-	case NB_EV_VALIDATE:
-	case NB_EV_PREPARE:
-	case NB_EV_ABORT:
-	case NB_EV_APPLY:
-		/* TODO: implement me. */
-		break;
-	}
+	struct ospf *ospf;
+	struct in_addr area_id;
+	struct prefix_ipv4 p;
+	const char *area_id_str;
+	int format;
+	uint32_t cost;
+
+	if (args->event != NB_EV_APPLY)
+		return NB_OK;
+
+	ospf = nb_running_get_entry(args->dnode, NULL, true);
+	area_id_str = yang_dnode_get_string(args->dnode, "../../../area-id");
+	str2area_id(area_id_str, &area_id, &format);
+	yang_dnode_get_ipv4p(&p, args->dnode, "../prefix");
+	cost = yang_dnode_get_uint32(args->dnode, NULL);
+
+	ospf_area_range_cost_set(ospf, area_id, &p, cost);
 
 	return NB_OK;
 }
 
 int routing_control_plane_protocols_control_plane_protocol_ospf_areas_area_ranges_range_cost_destroy(struct nb_cb_destroy_args *args)
 {
-	switch (args->event) {
-	case NB_EV_VALIDATE:
-	case NB_EV_PREPARE:
-	case NB_EV_ABORT:
-	case NB_EV_APPLY:
-		/* TODO: implement me. */
-		break;
-	}
+        /*
+	 * Unused callback since cost cannot be removed unless its range is
+	 * destroyed.
+	 */
 
 	return NB_OK;
 }
@@ -2490,28 +2514,43 @@ int routing_control_plane_protocols_control_plane_protocol_ospf_areas_area_range
  */
 int routing_control_plane_protocols_control_plane_protocol_ospf_areas_area_ranges_range_substitute_modify(struct nb_cb_modify_args *args)
 {
-	switch (args->event) {
-	case NB_EV_VALIDATE:
-	case NB_EV_PREPARE:
-	case NB_EV_ABORT:
-	case NB_EV_APPLY:
-		/* TODO: implement me. */
-		break;
-	}
+        struct ospf *ospf;
+	struct in_addr area_id;
+	struct prefix_ipv4 p, s;
+	const char *area_id_str;
+	int format;
+
+	if (args->event != NB_EV_APPLY)
+		return NB_OK;
+
+	ospf = nb_running_get_entry(args->dnode, NULL, true);
+	area_id_str = yang_dnode_get_string(args->dnode, "../../../area-id");
+	str2area_id(area_id_str, &area_id, &format);
+	yang_dnode_get_ipv4p(&p, args->dnode, "../prefix");
+	yang_dnode_get_ipv4p(&s, args->dnode, NULL);
+
+	ospf_area_range_substitute_set(ospf, area_id, &p, &s);
 
 	return NB_OK;
 }
 
 int routing_control_plane_protocols_control_plane_protocol_ospf_areas_area_ranges_range_substitute_destroy(struct nb_cb_destroy_args *args)
 {
-	switch (args->event) {
-	case NB_EV_VALIDATE:
-	case NB_EV_PREPARE:
-	case NB_EV_ABORT:
-	case NB_EV_APPLY:
-		/* TODO: implement me. */
-		break;
-	}
+        struct ospf *ospf;
+	struct in_addr area_id;
+	struct prefix_ipv4 p;
+	const char *area_id_str;
+	int format;
+
+	if (args->event != NB_EV_APPLY)
+		return NB_OK;
+
+	ospf = nb_running_get_entry(args->dnode, NULL, true);
+	area_id_str = yang_dnode_get_string(args->dnode, "../../../area-id");
+	str2area_id(area_id_str, &area_id, &format);
+	yang_dnode_get_ipv4p(&p, args->dnode, "../prefix");
+
+	ospf_area_range_substitute_unset(ospf, area_id, &p);
 
 	return NB_OK;
 }
