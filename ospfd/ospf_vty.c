@@ -325,7 +325,7 @@ DEFPY_YANG (no_ospf_router_id,
 }
 
 
-static void ospf_passive_interface_default_update(struct ospf *ospf,
+extern void ospf_passive_interface_default_update(struct ospf *ospf,
 						  uint8_t newval)
 {
 	struct listnode *ln;
@@ -383,17 +383,19 @@ static void ospf_passive_interface_update(struct interface *ifp,
 	 */
 }
 
-DEFUN (ospf_passive_interface_default,
+/*
+ * XPath: /frr-routing:routing/control-plane-protocols/control-plane-protocol/frr-ospfd:ospf/passive-interface-default
+ */
+DEFPY_YANG (ospf_passive_interface_default,
        ospf_passive_interface_default_cmd,
        "passive-interface default",
        "Suppress routing updates on an interface\n"
        "Suppress routing updates on interfaces by default\n")
 {
-	VTY_DECLVAR_INSTANCE_CONTEXT(ospf, ospf);
+	nb_cli_enqueue_change(vty, "./frr-ospfd:ospf/passive-interface-default",
+			      NB_OP_MODIFY, "true");
 
-	ospf_passive_interface_default_update(ospf, OSPF_IF_PASSIVE);
-
-	return CMD_SUCCESS;
+	return nb_cli_apply_changes(vty, NULL);
 }
 
 DEFUN_HIDDEN (ospf_passive_interface_addr,
@@ -442,18 +444,18 @@ DEFUN_HIDDEN (ospf_passive_interface_addr,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_ospf_passive_interface_default,
+DEFPY_YANG (no_ospf_passive_interface_default,
        no_ospf_passive_interface_default_cmd,
        "no passive-interface default",
        NO_STR
        "Allow routing updates on an interface\n"
        "Allow routing updates on interfaces by default\n")
+
 {
-	VTY_DECLVAR_INSTANCE_CONTEXT(ospf, ospf);
+	nb_cli_enqueue_change(vty, "./frr-ospfd:ospf/passive-interface-default",
+			      NB_OP_MODIFY, "false");
 
-	ospf_passive_interface_default_update(ospf, OSPF_IF_ACTIVE);
-
-	return CMD_SUCCESS;
+	return nb_cli_apply_changes(vty, NULL);
 }
 
 DEFUN_HIDDEN (no_ospf_passive_interface,
