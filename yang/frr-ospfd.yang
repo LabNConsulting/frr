@@ -3219,6 +3219,7 @@ module frr-ospfd {
        * XXX In frr (ospfd.h), no router capabilities config information is
        * actually stored in the ospf data structure. 
        */
+      presence "Router info is enabled on this router";
       choice type {
         mandatory true;
         case as {
