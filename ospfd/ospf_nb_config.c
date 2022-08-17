@@ -2779,17 +2779,67 @@ int lib_interface_ospf_ospf_id_modify(struct nb_cb_modify_args *args)
 	return NB_OK;
 }
 
+/* XXX Remove code duplication between this and .../instance/area callbacks*/
 /*
  * XPath: /frr-interface:lib/interface/frr-ospfd:ospf/area
  */
 int lib_interface_ospf_area_modify(struct nb_cb_modify_args *args)
 {
+	int format;
+	struct interface *ifp;
+	struct in_addr area_id;
+	struct ospf_if_params *params = NULL;
+	struct route_node *rn;
+	struct ospf *ospf= NULL;
+	const char *area_id_str;
+
+	ifp = nb_running_get_entry(args->dnode, NULL, true);
+	ospf = ifp->vrf->info;
+
+	area_id_str = yang_dnode_get_string(args->dnode, NULL);
+	str2area_id(area_id_str, &area_id, &format);
+
 	switch (args->event) {
 	case NB_EV_VALIDATE:
+		params = IF_DEF_PARAMS(ifp);
+
+		if (memcmp(ifp->name, "VLINK", 5) == 0) {
+			zlog_err("Cannot enable OSPF on a virtual link.\n");
+			return NB_ERR_VALIDATION;
+		}
+
+		if (ospf) {
+			for (rn = route_top(ospf->networks); rn; rn = route_next(rn)) {
+				if (rn->info != NULL) {
+					zlog_err("Please remove all network commands first.\n");
+					return NB_ERR_VALIDATION;
+				}
+			}
+		}
+
+		if (OSPF_IF_PARAM_CONFIGURED(params, if_area)
+		    && !IPV4_ADDR_SAME(&params->if_area, &area_id)) {
+		        zlog_err("Must remove previous area config before changing ospf area \n");
+			return NB_ERR_VALIDATION;
+		}
+
+		break;
 	case NB_EV_PREPARE:
 	case NB_EV_ABORT:
+		break;
 	case NB_EV_APPLY:
-		/* TODO: implement me. */
+		params = IF_DEF_PARAMS(ifp);
+
+		/* enable ospf on this interface with area_id */
+		if (params) {
+			SET_IF_PARAM(params, if_area);
+			params->if_area = area_id;
+			params->if_area_id_fmt = format;
+		}
+
+		if (ospf)
+			ospf_interface_area_set(ospf, ifp);
+
 		break;
 	}
 
@@ -2798,13 +2848,21 @@ int lib_interface_ospf_area_modify(struct nb_cb_modify_args *args)
 
 int lib_interface_ospf_area_destroy(struct nb_cb_destroy_args *args)
 {
-	switch (args->event) {
-	case NB_EV_VALIDATE:
-	case NB_EV_PREPARE:
-	case NB_EV_ABORT:
-	case NB_EV_APPLY:
-		/* TODO: implement me. */
-		break;
+	struct ospf *ospf;
+	struct interface *ifp;
+	struct ospf_if_params *params;
+
+	if (args->event != NB_EV_APPLY)
+		return NB_OK;
+
+	ifp = nb_running_get_entry(args->dnode, NULL, true);
+
+	params = IF_DEF_PARAMS(ifp);
+	if (OSPF_IF_PARAM_CONFIGURED(params, if_area)) {
+		UNSET_IF_PARAM(params, if_area);
+		ospf = ifp->vrf->info;
+		if (ospf)
+			ospf_interface_area_unset(ospf, ifp);
 	}
 
 	return NB_OK;
@@ -3284,13 +3342,24 @@ int lib_interface_ospf_interface_address_create(struct nb_cb_create_args *args)
 
 int lib_interface_ospf_interface_address_destroy(struct nb_cb_destroy_args *args)
 {
-	switch (args->event) {
-	case NB_EV_VALIDATE:
-	case NB_EV_PREPARE:
-	case NB_EV_ABORT:
-	case NB_EV_APPLY:
-		/* TODO: implement me. */
-		break;
+	struct ospf *ospf;
+	struct interface *ifp;
+	struct ospf_if_params *params;
+	struct in_addr addr;
+
+	if (args->event != NB_EV_APPLY)
+		return NB_OK;
+
+	ifp = nb_running_get_entry(args->dnode, NULL, true);
+
+	yang_dnode_get_ipv4(&addr, args->dnode, "./address");
+
+	params = ospf_get_if_params((ifp), (addr));
+	if (OSPF_IF_PARAM_CONFIGURED(params, if_area)) {
+		UNSET_IF_PARAM(params, if_area);
+		ospf = ifp->vrf->info;
+		if (ospf)
+			ospf_interface_area_unset(ospf, ifp);
 	}
 
 	return NB_OK;
@@ -3301,12 +3370,79 @@ int lib_interface_ospf_interface_address_destroy(struct nb_cb_destroy_args *args
  */
 int lib_interface_ospf_interface_address_area_modify(struct nb_cb_modify_args *args)
 {
+	int format;
+	struct interface *ifp;
+	struct in_addr area_id, addr;
+	struct ospf_if_params *params = NULL;
+	struct route_node *rn;
+	struct ospf *ospf= NULL;
+        const char *area_id_str;
+
+	ifp = nb_running_get_entry(args->dnode, NULL, true);
+	ospf = ifp->vrf->info;
+
+	area_id_str = yang_dnode_get_string(args->dnode, NULL);
+	str2area_id(area_id_str, &area_id, &format);
+
+	yang_dnode_get_ipv4(&addr, args->dnode, "./address");
+
 	switch (args->event) {
 	case NB_EV_VALIDATE:
+		params = IF_DEF_PARAMS(ifp);
+
+		if (memcmp(ifp->name, "VLINK", 5) == 0) {
+			zlog_err("Cannot enable OSPF on a virtual link.\n");
+			return NB_ERR_VALIDATION;
+		}
+
+		if (ospf) {
+			for (rn = route_top(ospf->networks); rn; rn = route_next(rn)) {
+				if (rn->info != NULL) {
+					zlog_err("Please remove all network commands first.\n");
+					return NB_ERR_VALIDATION;
+				}
+			}
+		}
+
+		if (OSPF_IF_PARAM_CONFIGURED(params, if_area)
+		    && !IPV4_ADDR_SAME(&params->if_area, &area_id)) {
+		        zlog_err("Must remove previous area config before changing ospf area \n");
+			return NB_ERR_VALIDATION;
+		}
+
+		// do not overwrite previously configured address-level params
+		params = ospf_get_if_params((ifp), (addr));
+		if (OSPF_IF_PARAM_CONFIGURED(params, if_area)
+		    && !IPV4_ADDR_SAME(&params->if_area, &area_id)) {
+			zlog_err("Must remove previous area/address config before changing ospf area\n");
+			return NB_ERR_VALIDATION;
+		}
+
+		break;
 	case NB_EV_PREPARE:
 	case NB_EV_ABORT:
+		break;
 	case NB_EV_APPLY:
-		/* TODO: implement me. */
+		params = ospf_get_if_params((ifp), (addr));
+
+		// do not reconfigure address-level params
+		if (OSPF_IF_PARAM_CONFIGURED(params, if_area)
+		    && IPV4_ADDR_SAME(&params->if_area, &area_id)) {
+			return NB_OK;
+		}
+
+		ospf_if_update_params((ifp), (addr));
+
+		/* enable ospf on this interface with area_id */
+		if (params) {
+			SET_IF_PARAM(params, if_area);
+			params->if_area = area_id;
+			params->if_area_id_fmt = format;
+		}
+
+		if (ospf)
+			ospf_interface_area_set(ospf, ifp);
+
 		break;
 	}
 

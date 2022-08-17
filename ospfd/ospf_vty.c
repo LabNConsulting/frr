@@ -503,6 +503,7 @@ DEFUN_HIDDEN (no_ospf_passive_interface,
 	return CMD_SUCCESS;
 }
 
+/* XXX Areas not created yet in northbound model */
 /*
  * XPath: /frr-routing:routing/control-plane-protocols/control-plane-protocol/frr-ospfd:ospf/ip-networks/network
  * XPath: /frr-routing:routing/control-plane-protocols/control-plane-protocol/frr-ospfd:ospf/ip-networks/network/area
@@ -8731,9 +8732,15 @@ DEFUN_HIDDEN (no_ospf_transmit_delay,
 	return no_ip_ospf_transmit_delay(self, vty, argc, argv);
 }
 
-DEFUN (ip_ospf_area,
+/*
+ * XPath: /frr-interface:lib/interface/frr-ospfd:ospf
+ * XPath: /frr-interface:lib/interface/frr-ospfd:ospf/area
+ * XPath: /frr-interface:lib/interface/frr-ospfd:ospf/interface-address
+ * XPath: /frr-interface:lib/interface/frr-ospfd:ospf/interface-address/area
+ */
+DEFPY_YANG (ip_ospf_area,
        ip_ospf_area_cmd,
-       "ip ospf [(1-65535)] area <A.B.C.D|(0-4294967295)> [A.B.C.D]",
+       "ip ospf [(1-65535)$instance] area <A.B.C.D|(0-4294967295)> [A.B.C.D$if_addr]",
        "IP Information\n"
        "OSPF interface commands\n"
        "Instance ID\n"
@@ -8742,30 +8749,9 @@ DEFUN (ip_ospf_area,
        "OSPF area ID as a decimal value\n"
        "Address of interface\n")
 {
-	VTY_DECLVAR_CONTEXT(interface, ifp);
-	int idx = 0;
-	int format, ret;
-	struct in_addr area_id;
-	struct in_addr addr;
-	struct ospf_if_params *params = NULL;
-	struct route_node *rn;
-	struct ospf *ospf = NULL;
-	unsigned short instance = 0;
-	char *areaid;
-	uint32_t count = 0;
+	char xpath_base[XPATH_MAXLEN], xpath_area[XPATH_MAXLEN];
 
-	if (argv_find(argv, argc, "(1-65535)", &idx))
-		instance = strtol(argv[idx]->arg, NULL, 10);
-
-	argv_find(argv, argc, "area", &idx);
-	areaid = argv[idx + 1]->arg;
-
-	if (!instance)
-		ospf = ifp->vrf->info;
-	else
-		ospf = ospf_lookup_instance(instance);
-
-	if (instance && instance != ospf_instance) {
+	if (instance != ospf_instance) {
 		/*
 		 * At this point we know we have received
 		 * an instance and there is no ospf instance
@@ -8777,88 +8763,27 @@ DEFUN (ip_ospf_area,
 		 * allow the other instance(process) handle
 		 * the configuration command.
 		 */
-		count = 0;
-
-		params = IF_DEF_PARAMS(ifp);
-		if (OSPF_IF_PARAM_CONFIGURED(params, if_area)) {
-			UNSET_IF_PARAM(params, if_area);
-			count++;
-		}
-
-		for (rn = route_top(IF_OIFS_PARAMS(ifp)); rn; rn = route_next(rn))
-			if ((params = rn->info) && OSPF_IF_PARAM_CONFIGURED(params, if_area)) {
-				UNSET_IF_PARAM(params, if_area);
-				count++;
-			}
-
-		if (count > 0) {
-			ospf = ifp->vrf->info;
-			if (ospf)
-				ospf_interface_area_unset(ospf, ifp);
-		}
-
-		return CMD_NOT_MY_INSTANCE;
+		nb_cli_enqueue_change(vty, "./frr-ospfd:ospf/area", NB_OP_DESTROY, area);
+		/*
+		 * XXX Iterate through each instance of an OSPF interface
+		 * and enqueue a NB_OP_DESTROY change on its area
+		 */
 	}
 
-	ret = str2area_id(areaid, &area_id, &format);
-	if (ret < 0) {
-		vty_out(vty, "Please specify area by A.B.C.D|<0-4294967295>\n");
-		return CMD_WARNING_CONFIG_FAILED;
+	if (if_addr_str) {
+		/* set ospf interface instance parameters */
+		/* Convert address to host prefix with mask /32 */
+		snprintf(xpath_base, XPATH_MAXLEN, "./frr-ospfd:ospf/interface-address[address='%s']", if_addr_str);
+		snprintf(xpath_area, XPATH_MAXLEN, "./frr-ospfd:ospf/interface-address[address='%s']/area", if_addr_str);
+		nb_cli_enqueue_change(vty, xpath_base, NB_OP_CREATE, NULL);
+		nb_cli_enqueue_change(vty, xpath_area, NB_OP_MODIFY, area);
 	}
-	if (memcmp(ifp->name, "VLINK", 5) == 0) {
-		vty_out(vty, "Cannot enable OSPF on a virtual link.\n");
-		return CMD_WARNING_CONFIG_FAILED;
-	}
-
-	if (ospf) {
-		for (rn = route_top(ospf->networks); rn; rn = route_next(rn)) {
-			if (rn->info != NULL) {
-				vty_out(vty,
-					"Please remove all network commands first.\n");
-				return CMD_WARNING_CONFIG_FAILED;
-			}
-		}
+	else {
+		/* Set ospf interface default parameters */
+		nb_cli_enqueue_change(vty, "./frr-ospfd:ospf/area", NB_OP_MODIFY, area);
 	}
 
-	params = IF_DEF_PARAMS(ifp);
-	if (OSPF_IF_PARAM_CONFIGURED(params, if_area)
-	    && !IPV4_ADDR_SAME(&params->if_area, &area_id)) {
-		vty_out(vty,
-			"Must remove previous area config before changing ospf area \n");
-		return CMD_WARNING_CONFIG_FAILED;
-	}
-
-	// Check if we have an address arg and proccess it
-	if (argc == idx + 3) {
-		if (!inet_aton(argv[idx + 2]->arg, &addr)) {
-			vty_out(vty,
-				"Please specify Intf Address by A.B.C.D\n");
-			return CMD_WARNING_CONFIG_FAILED;
-		}
-		// update/create address-level params
-		params = ospf_get_if_params((ifp), (addr));
-		if (OSPF_IF_PARAM_CONFIGURED(params, if_area)) {
-			if (!IPV4_ADDR_SAME(&params->if_area, &area_id)) {
-				vty_out(vty,
-					"Must remove previous area/address config before changing ospf area\n");
-				return CMD_WARNING_CONFIG_FAILED;
-			} else
-				return CMD_SUCCESS;
-		}
-		ospf_if_update_params((ifp), (addr));
-	}
-
-	/* enable ospf on this interface with area_id */
-	if (params) {
-		SET_IF_PARAM(params, if_area);
-		params->if_area = area_id;
-		params->if_area_id_fmt = format;
-	}
-
-	if (ospf)
-		ospf_interface_area_set(ospf, ifp);
-
-	return CMD_SUCCESS;
+	return nb_cli_apply_changes(vty, NULL);
 }
 
 DEFUN (no_ip_ospf_area,
