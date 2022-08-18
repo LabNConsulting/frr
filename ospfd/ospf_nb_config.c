@@ -1933,9 +1933,11 @@ int routing_control_plane_protocols_control_plane_protocol_ospf_nbma_neighbors_n
 }
 
 /*
- * XPath: /frr-routing:routing/control-plane-protocols/control-plane-protocol/frr-ospfd:ospf/ip-networks/network
+ * XPath:
+ * /frr-routing:routing/control-plane-protocols/control-plane-protocol/frr-ospfd:ospf/networks/network
  */
-int routing_control_plane_protocols_control_plane_protocol_ospf_ip_networks_network_create(struct nb_cb_create_args *args)
+int routing_control_plane_protocols_control_plane_protocol_ospf_networks_network_create(
+	struct nb_cb_create_args *args)
 {
 	struct ospf *ospf;
 	struct prefix_ipv4 prefix;
@@ -1989,7 +1991,8 @@ int routing_control_plane_protocols_control_plane_protocol_ospf_ip_networks_netw
 	return NB_OK;
 }
 
-int routing_control_plane_protocols_control_plane_protocol_ospf_ip_networks_network_destroy(struct nb_cb_destroy_args *args)
+int routing_control_plane_protocols_control_plane_protocol_ospf_networks_network_destroy(
+	struct nb_cb_destroy_args *args)
 {
 	struct ospf *ospf;
 	struct prefix_ipv4 prefix;
@@ -2034,9 +2037,11 @@ int routing_control_plane_protocols_control_plane_protocol_ospf_ip_networks_netw
 }
 
 /*
- * XPath: /frr-routing:routing/control-plane-protocols/control-plane-protocol/frr-ospfd:ospf/ip-networks/network/area
+ * XPath:
+ * /frr-routing:routing/control-plane-protocols/control-plane-protocol/frr-ospfd:ospf/networks/network/area
  */
-int routing_control_plane_protocols_control_plane_protocol_ospf_ip_networks_network_area_modify(struct nb_cb_modify_args *args)
+int routing_control_plane_protocols_control_plane_protocol_ospf_networks_network_area_modify(
+	struct nb_cb_modify_args *args)
 {
 	struct ospf *ospf;
 	struct prefix_ipv4 prefix;

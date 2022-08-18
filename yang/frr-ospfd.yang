@@ -3997,7 +3997,9 @@ module frr-ospfd {
         }
       }
     }
-    container ip-networks {
+    container networks {
+      description
+        "Enable OSPF routing on list of IPv4 network.";
       list network {
         key "prefix";
         description

@@ -2078,16 +2078,16 @@ const struct frr_yang_module_info frr_ospfd_info = {
 			}
 		},
 		{
-			.xpath = "/frr-routing:routing/control-plane-protocols/control-plane-protocol/frr-ospfd:ospf/ip-networks/network",
+			.xpath = "/frr-routing:routing/control-plane-protocols/control-plane-protocol/frr-ospfd:ospf/networks/network",
 			.cbs = {
-				.create = routing_control_plane_protocols_control_plane_protocol_ospf_ip_networks_network_create,
-				.destroy = routing_control_plane_protocols_control_plane_protocol_ospf_ip_networks_network_destroy,
+				.create = routing_control_plane_protocols_control_plane_protocol_ospf_networks_network_create,
+				.destroy = routing_control_plane_protocols_control_plane_protocol_ospf_networks_network_destroy,
 			}
 		},
 		{
-			.xpath = "/frr-routing:routing/control-plane-protocols/control-plane-protocol/frr-ospfd:ospf/ip-networks/network/area",
+			.xpath = "/frr-routing:routing/control-plane-protocols/control-plane-protocol/frr-ospfd:ospf/networks/network/area",
 			.cbs = {
-				.modify = routing_control_plane_protocols_control_plane_protocol_ospf_ip_networks_network_area_modify,
+				.modify = routing_control_plane_protocols_control_plane_protocol_ospf_networks_network_area_modify,
 			}
 		},
 		{
