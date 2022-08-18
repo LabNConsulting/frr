@@ -84,6 +84,24 @@ int routing_control_plane_protocols_control_plane_protocol_destroy(
 	return NB_OK;
 }
 
+const void *routing_control_plane_protocols_control_plane_protocol_get_next(
+	struct nb_cb_get_next_args *args)
+{
+	return NULL;
+}
+
+int routing_control_plane_protocols_control_plane_protocol_get_keys(
+	struct nb_cb_get_keys_args *args)
+{
+	return NB_OK;
+}
+
+const void *routing_control_plane_protocols_control_plane_protocol_lookup_entry(
+	struct nb_cb_lookup_entry_args *args)
+{
+	return NULL;
+}
+
 static void vrf_to_control_plane_protocol(const struct lyd_node *dnode,
 					  char *xpath)
 {

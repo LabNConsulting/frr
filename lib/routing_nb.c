@@ -33,7 +33,10 @@ const struct frr_yang_module_info frr_routing_info = {
 			.cbs = {
 				.create = routing_control_plane_protocols_control_plane_protocol_create,
 				.destroy = routing_control_plane_protocols_control_plane_protocol_destroy,
-			}
+				.get_next = routing_control_plane_protocols_control_plane_protocol_get_next,
+				.get_keys = routing_control_plane_protocols_control_plane_protocol_get_keys,
+				.lookup_entry = routing_control_plane_protocols_control_plane_protocol_lookup_entry,
+			},
 		},
 		{
 			.xpath = NULL,
