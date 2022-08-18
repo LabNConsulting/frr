@@ -21,14 +21,23 @@ int routing_control_plane_protocols_control_plane_protocol_ospf_create(struct nb
 {
 	struct ospf *ospf;
 	unsigned short instance;
-	const char *vrf_name;
+	const char *istr, *vrf_name;
+	char *eistr;
 	bool created = false;
+
+	vrf_name = yang_dnode_get_string(args->dnode, "../vrf");
+	istr = yang_dnode_get_string(args->dnode, "../name");
+	instance = strtoul(istr, &eistr, 10);
+
+	if (args->event == NB_EV_VALIDATE) {
+		if (eistr == istr) {
+			return NB_ERR_VALIDATION;
+		}
+	}
+	assert(eistr != istr);
 
 	if (args->event != NB_EV_APPLY)
 		return NB_OK;
-
-	vrf_name = yang_dnode_get_string(args->dnode, "./../vrf");
-	instance = yang_dnode_get_uint8(args->dnode, "./../name");
 
 	ospf = ospf_get(instance, vrf_name, &created);
 

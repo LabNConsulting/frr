@@ -56,6 +56,7 @@
 #include "ospfd/ospf_dump.h"
 #include "ospfd/ospf_bfd.h"
 #include "ospfd/ospf_ldp_sync.h"
+#include "lib/routing_nb.h"
 
 
 FRR_CFG_DEFAULT_BOOL(OSPF_LOG_ADJACENCY_CHANGES,
@@ -195,8 +196,18 @@ DEFPY_YANG_NOSH (router_ospf,
 		return CMD_NOT_MY_INSTANCE;
 	}
 
-	snprintf(xpath, XPATH_MAXLEN, "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='ospf'][name='%ld'][vrf='%s']/frr-ospfd:ospf", instance, vrf);
-	nb_cli_enqueue_change(vty, "./frr-ospfd:ospf", NB_OP_CREATE, NULL);
+	snprintf(xpath, XPATH_MAXLEN,
+		 FRR_ROUTING_XPATH
+		 "[type='frr-ospfd:ospf'][name='%ld'][vrf='%s']/frr-ospfd:ospf",
+		 instance, vrf);
+
+	nb_cli_enqueue_change(vty, ".", NB_OP_CREATE, NULL);
+
+	ret = nb_cli_apply_changes(vty, xpath);
+	if (ret != CMD_SUCCESS)
+		return ret;
+
+	VTY_PUSH_XPATH(OSPF_NODE, xpath);
 
 	/*
 	 * XXX Old vty clicmd checks if OSPF instance successfully created,
@@ -205,10 +216,6 @@ DEFPY_YANG_NOSH (router_ospf,
 	 */
 	if (DFLT_OSPF_LOG_ADJACENCY_CHANGES)
 		nb_cli_enqueue_change(vty, "./frr-ospfd:ospf/log-adjacency-changes", NB_OP_CREATE, "true");
-
-	ret = nb_cli_apply_changes(vty, xpath);
-
-        VTY_PUSH_XPATH(OSPF_NODE, xpath);
 
 	return ret;
 }
@@ -244,8 +251,11 @@ DEFPY_YANG (no_router_ospf,
 	if (instance != ospf_instance)
 		return CMD_NOT_MY_INSTANCE;
 
-	snprintf(xpath, XPATH_MAXLEN, "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='ospf'][name='%ld'][vrf='%s']/frr-ospfd:ospf", instance, vrf);
-	nb_cli_enqueue_change(vty, "./frr-ospfd:ospf", NB_OP_DESTROY, NULL);
+	snprintf(xpath, XPATH_MAXLEN,
+		 FRR_ROUTING_XPATH
+		 "[type='frr-ospfd:ospf'][name='%ld'][vrf='%s']/frr-ospfd:ospf",
+		 instance, vrf);
+	nb_cli_enqueue_change(vty, ".", NB_OP_DESTROY, NULL);
 
 	return nb_cli_apply_changes(vty, xpath);
 }
