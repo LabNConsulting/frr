@@ -1996,6 +1996,7 @@ const struct frr_yang_module_info frr_ospfd_info = {
 				.modify = routing_control_plane_protocols_control_plane_protocol_ospf_timers_lsa_min_interval_modify,
 			}
 		},
+#if 0
 		{
 			.xpath = "/frr-routing:routing/control-plane-protocols/control-plane-protocol/frr-ospfd:ospf/sr-mpls/srgb/lower-bound",
 			.cbs = {
@@ -2058,6 +2059,7 @@ const struct frr_yang_module_info frr_ospfd_info = {
 				.modify = routing_control_plane_protocols_control_plane_protocol_ospf_sr_mpls_bindings_connected_prefix_sid_map_connected_prefix_sid_last_hop_behavior_modify,
 			}
 		},
+#endif
 		{
 			.xpath = "/frr-routing:routing/control-plane-protocols/control-plane-protocol/frr-ospfd:ospf/nbma-neighbors/neighbor",
 			.cbs = {

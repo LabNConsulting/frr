@@ -3227,10 +3227,10 @@ module frr-ospfd {
        */
       presence "Router info is enabled on this router";
       choice type {
-        mandatory true;
         case as {
           leaf as {
             type boolean;
+            default true;
             description
               "Enable the Router Information functionality with AS flooding scope.";
           }
@@ -3849,6 +3849,7 @@ module frr-ospfd {
     }
   }
 
+  /*
   grouping segment-routing-group {
     container sr-mpls {
       container srgb {
@@ -3965,7 +3966,7 @@ module frr-ospfd {
       }
     }
   }
-
+  */
   grouping ospf-list-group {
     /* XXX NBMA neighbors are stored on an interface level is the IETF model */
     container nbma-neighbors {
@@ -4027,7 +4028,7 @@ module frr-ospfd {
     leaf ospf-id {
       /* frr specific model */
       type ospf-instance-ref;
-      mandatory true;
+      default "0";
       description
         "ID of OSPF routing instance that is associated with this interface.";
     }
@@ -4780,6 +4781,7 @@ module frr-ospfd {
       "Additional frr statistics for the OSPF router
        operational state.";
     container router-flags {
+      config false;
       description
         "ASR/ASBR internal flags.";
       leaf-list router-flag {
@@ -4789,6 +4791,7 @@ module frr-ospfd {
       }
     }
     container threads {
+      config false;
       description
         "All router-scope threads run in frr";
       container abr-task {
@@ -4919,6 +4922,7 @@ module frr-ospfd {
       }
     }
     container graceful-restart {
+      config false;
       description
         "Operational graceful restart information.";
       leaf active-restarter-count {
@@ -5690,13 +5694,16 @@ module frr-ospfd {
   }
 
   augment "/frr-rt:routing/frr-rt:control-plane-protocols/frr-rt:control-plane-protocol" {
+    description "Adds OSPF to routing model";
     container ospf {
       when "../frr-rt:type = 'frr-ospfd:ospf'" {
         description
           "This container is only valid for the 'OSPF' routing
            protocol.";
       }
-      presence "Present if OSPF is running on this router.";
+      presence "Present if this instance of OSPF is running";
+      description
+        "Global ospf configuration and operational state.";
       uses route-ospf-attributes;
       uses graceful-restart-group;
       uses auto-cost-group;
@@ -5710,7 +5717,7 @@ module frr-ospfd {
       uses fast-reroute-group;
       uses spf-group;
       uses timer-group;
-      uses segment-routing-group;
+      // uses segment-routing-group;
       uses ospf-list-group;
       container state {
         config false;
