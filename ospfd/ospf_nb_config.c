@@ -92,7 +92,8 @@ int routing_control_plane_protocols_control_plane_protocol_ospf_explicit_router_
 
 	for (ALL_LIST_ELEMENTS_RO(ospf->areas, node, area))
 		if (area->full_nbrs) {
-			zlog_warn("For this router-id change to take effect, use \"clear ip ospf process\" command\n");
+			zlog_warn(
+				"For this router-id change to take effect, use \"clear ip ospf process\" command");
 			return NB_OK;
 		}
 
@@ -116,7 +117,8 @@ int routing_control_plane_protocols_control_plane_protocol_ospf_explicit_router_
 
 	for (ALL_LIST_ELEMENTS_RO(ospf->areas, node, area))
 		if (area->full_nbrs) {
-			zlog_warn("For this router-id change to take effect, use \"clear ip ospf process\" command\n");
+			zlog_warn(
+				"For this router-id change to take effect, use \"clear ip ospf process\" command");
 			return NB_OK;
 		}
 
@@ -1948,7 +1950,8 @@ int routing_control_plane_protocols_control_plane_protocol_ospf_ip_networks_netw
 
 		/* XXX Doesn't check for automatically assigned router ID's */
 		if (ospf_id.s_addr) {
-			zlog_err("The network command is not supported in multi-instance ospf\n");
+			zlog_err(
+				"The network command is not supported in multi-instance ospf");
 			return NB_ERR_VALIDATION;
 		}
 
@@ -1958,7 +1961,8 @@ int routing_control_plane_protocols_control_plane_protocol_ospf_ip_networks_netw
 							      "/frr-interface:lib/interface/frr-ospfd:ospf/interface-address/area");
 
 		if (net_exists) {
-			zlog_warn("Please remove all ip ospf area x.x.x.x commands first.\n");
+			zlog_warn(
+				"Please remove all ip ospf area x.x.x.x commands first.");
 			return NB_ERR_VALIDATION;
 		}
 
@@ -1975,7 +1979,7 @@ int routing_control_plane_protocols_control_plane_protocol_ospf_ip_networks_netw
 
 		ret = ospf_network_set(ospf, &prefix, area_id, format);
 		if (ret == 0) {
-			zlog_err("There is already same network statement.\n");
+			zlog_err("There is already same network statement.");
 			return NB_ERR;
 		}
 
@@ -2000,7 +2004,8 @@ int routing_control_plane_protocols_control_plane_protocol_ospf_ip_networks_netw
 
 		/* XXX Doesn't check for automatically assigned router ID's */
 		if (ospf_id.s_addr) {
-			zlog_err("The network command is not supported in multi-instance ospf\n");
+			zlog_err(
+				"The network command is not supported in multi-instance ospf");
 			return NB_ERR_VALIDATION;
 		}
 
@@ -2017,7 +2022,8 @@ int routing_control_plane_protocols_control_plane_protocol_ospf_ip_networks_netw
 
 		ret = ospf_network_unset(ospf, &prefix, area_id);
 		if (ret == 0) {
-			zlog_err("Can't find specific network area configuration to delete.\n");
+			zlog_err(
+				"Can't find specific network area configuration to delete.");
 			return NB_ERR;
 		}
 
@@ -2061,7 +2067,8 @@ int routing_control_plane_protocols_control_plane_protocol_ospf_ip_networks_netw
 		yang_dnode_get_ipv4(&area, args->dnode, NULL);
 
 		if (!IPV4_ADDR_SAME(&network->area_id, &area)) {
-			zlog_err("Directly changing network area is not supported\n");
+			zlog_err(
+				"Directly changing network area is not supported");
 			return NB_ERR_VALIDATION;
 		}
 	}
@@ -2852,14 +2859,15 @@ int lib_interface_ospf_area_modify(struct nb_cb_modify_args *args)
 		params = IF_DEF_PARAMS(ifp);
 
 		if (memcmp(ifp->name, "VLINK", 5) == 0) {
-			zlog_err("Cannot enable OSPF on a virtual link.\n");
+			zlog_err("Cannot enable OSPF on a virtual link.");
 			return NB_ERR_VALIDATION;
 		}
 
 		if (ospf) {
 			for (rn = route_top(ospf->networks); rn; rn = route_next(rn)) {
 				if (rn->info != NULL) {
-					zlog_err("Please remove all network commands first.\n");
+					zlog_err(
+						"Please remove all network commands first.");
 					return NB_ERR_VALIDATION;
 				}
 			}
@@ -2867,7 +2875,8 @@ int lib_interface_ospf_area_modify(struct nb_cb_modify_args *args)
 
 		if (OSPF_IF_PARAM_CONFIGURED(params, if_area)
 		    && !IPV4_ADDR_SAME(&params->if_area, &area_id)) {
-		        zlog_err("Must remove previous area config before changing ospf area \n");
+			zlog_err(
+				"Must remove previous area config before changing ospf area.");
 			return NB_ERR_VALIDATION;
 		}
 
@@ -3442,14 +3451,15 @@ int lib_interface_ospf_interface_address_area_modify(struct nb_cb_modify_args *a
 		params = IF_DEF_PARAMS(ifp);
 
 		if (memcmp(ifp->name, "VLINK", 5) == 0) {
-			zlog_err("Cannot enable OSPF on a virtual link.\n");
+			zlog_err("Cannot enable OSPF on a virtual link.");
 			return NB_ERR_VALIDATION;
 		}
 
 		if (ospf) {
 			for (rn = route_top(ospf->networks); rn; rn = route_next(rn)) {
 				if (rn->info != NULL) {
-					zlog_err("Please remove all network commands first.\n");
+					zlog_err(
+						"Please remove all network commands first.");
 					return NB_ERR_VALIDATION;
 				}
 			}
@@ -3457,7 +3467,8 @@ int lib_interface_ospf_interface_address_area_modify(struct nb_cb_modify_args *a
 
 		if (OSPF_IF_PARAM_CONFIGURED(params, if_area)
 		    && !IPV4_ADDR_SAME(&params->if_area, &area_id)) {
-		        zlog_err("Must remove previous area config before changing ospf area \n");
+			zlog_err(
+				"Must remove previous area config before changing ospf area.");
 			return NB_ERR_VALIDATION;
 		}
 
@@ -3465,7 +3476,8 @@ int lib_interface_ospf_interface_address_area_modify(struct nb_cb_modify_args *a
 		params = ospf_get_if_params((ifp), (addr));
 		if (OSPF_IF_PARAM_CONFIGURED(params, if_area)
 		    && !IPV4_ADDR_SAME(&params->if_area, &area_id)) {
-			zlog_err("Must remove previous area/address config before changing ospf area\n");
+			zlog_err(
+				"Must remove previous area/address config before changing ospf area.");
 			return NB_ERR_VALIDATION;
 		}
 
