@@ -215,7 +215,7 @@ DEFPY_YANG_NOSH (router_ospf,
 	 * the asumption that duplicate instances cannot be created under nb
 	 */
 	if (DFLT_OSPF_LOG_ADJACENCY_CHANGES)
-		nb_cli_enqueue_change(vty, "./frr-ospfd:ospf/log-adjacency-changes", NB_OP_CREATE, "true");
+		nb_cli_enqueue_change(vty, "log-adjacency-changes", NB_OP_CREATE, NULL);
 
 	return ret;
 }
@@ -2018,8 +2018,9 @@ DEFPY_YANG (ospf_log_adjacency_changes,
        "log-adjacency-changes",
        "Log changes in adjacency state\n")
 {
-	nb_cli_enqueue_change(vty, "./frr-ospfd:ospf/log-adjacency-changes", NB_OP_CREATE, NULL);
-	nb_cli_enqueue_change(vty, "./frr-ospfd:ospf/log-adjacency-changes/detail", NB_OP_MODIFY, "false");
+	nb_cli_enqueue_change(vty, "log-adjacency-changes", NB_OP_CREATE, NULL);
+	nb_cli_enqueue_change(vty, "log-adjacency-changes/detail", NB_OP_MODIFY,
+			      "false");
 	return nb_cli_apply_changes(vty, NULL);
 }
 
@@ -2029,8 +2030,9 @@ DEFPY_YANG (ospf_log_adjacency_changes_detail,
        "Log changes in adjacency state\n"
        "Log all state changes\n")
 {
-	nb_cli_enqueue_change(vty, "./frr-ospfd:ospf/log-adjacency-changes", NB_OP_CREATE, NULL);
-	nb_cli_enqueue_change(vty, "./frr-ospfd:ospf/log-adjacency-changes/detail", NB_OP_MODIFY, "true");
+	nb_cli_enqueue_change(vty, "log-adjacency-changes", NB_OP_CREATE, NULL);
+	nb_cli_enqueue_change(vty, "log-adjacency-changes/detail", NB_OP_MODIFY,
+			      "true");
 	return nb_cli_apply_changes(vty, NULL);
 }
 
@@ -2040,7 +2042,8 @@ DEFPY_YANG (no_ospf_log_adjacency_changes,
        NO_STR
        "Log changes in adjacency state\n")
 {
-        nb_cli_enqueue_change(vty, "./frr-ospfd:ospf/log-adjacency-changes", NB_OP_DESTROY, NULL);
+	nb_cli_enqueue_change(vty, "log-adjacency-changes", NB_OP_DESTROY,
+			      NULL);
 	return nb_cli_apply_changes(vty, NULL);
 }
 
@@ -2051,7 +2054,8 @@ DEFPY_YANG (no_ospf_log_adjacency_changes_detail,
        "Log changes in adjacency state\n"
        "Log all state changes\n")
 {
-	nb_cli_enqueue_change(vty, "./frr-ospfd:ospf/log-adjacency-changes/detail", NB_OP_MODIFY, "false");
+	nb_cli_enqueue_change(vty, "log-adjacency-changes/detail", NB_OP_MODIFY,
+			      "false");
 	return nb_cli_apply_changes(vty, NULL);
 }
 
