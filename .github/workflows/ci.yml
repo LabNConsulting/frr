@@ -1,0 +1,90 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    strategy:
+      fail-fast: true
+
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install build dependencies
+        run: |
+           curl -s https://deb.frrouting.org/frr/keys.asc | sudo tee /etc/apt/trusted.gpg.d/frr.asc
+           echo deb https://deb.frrouting.org/frr $(lsb_release -s -c) frr-stable | sudo tee -a /etc/apt/sources.list.d/frr.list
+           sudo apt-get update -y
+           sudo apt-get install -y librtr-dev libyang2-dev rtr-tools
+           sudo apt-get install -y \
+             install-info libc-ares-dev libcap-dev libelf-dev \
+             libgrpc++-dev libgrpc-dev libjson-c-dev \
+             libpam0g-dev libprotobuf-c-dev libreadline-dev libsnmp-dev \
+             libunwind-dev libzmq5 libzmq3-dev perl pkg-config \
+             protobuf-c-compiler protobuf-compiler-grpc python3-dev \
+             python3-sphinx texinfo
+
+      - name: Setup build environment
+        run: |
+           sudo groupadd --system frr
+           sudo groupadd --system frrvty
+           sudo adduser --system --ingroup frr --home /var/run/frr/ \
+             --gecos "FRR suite" --shell /sbin/nologin frr
+           sudo usermod -a -G frrvty frr
+           sudo install -o frr -g frr -d /etc/frr /var/run/frr
+
+      - name: Build FRR
+        run: |
+          ./bootstrap.sh
+          mkdir build
+          cd build
+          ../configure --prefix=/usr \
+            --localstatedir=/var/run/frr \
+            --sbindir=/usr/lib/frr \
+            --sysconfdir=/etc/frr \
+            --enable-dev-build \
+            --enable-multipath=64 \
+            --enable-pim6d \
+            --enable-config-rollbacks \
+            --enable-ospfapi=yes \
+            --enable-ospfclient=yes \
+            --enable-grpc \
+            --enable-fpm \
+            --enable-protobuf \
+            --enable-realms \
+            --enable-rpki \
+            --enable-sharpd \
+            --enable-snmp=agentx \
+            --enable-systemd \
+            --enable-zeromq \
+            --enable-user=frr \
+            --enable-group=frr \
+            --enable-vty-group=frrvty \
+            --with-pkg-git-version \
+            --with-pkg-extra-version=-ci-build
+          make -j $(nproc)
+          sudo make install
+
+      - name: Install test dependencies
+        run: |
+           sudo apt-get install -y gdb iproute2 \
+             libsnmp-dev  net-tools  python3-pip snmpd snmp \
+             snmp-mibs-downloader
+           sudo python3 -m pip install wheel
+           sudo python3 -m pip install 'pytest>=6.2.4' 'pytest-xdist>=2.3.0' \
+             'scapy>=2.4.5' grpcio grpcio-tools xmltodict
+           sudo download-mibs
+           sudo wget http://www.iana.org/assignments/ianaippmmetricsregistry-mib/ianaippmmetricsregistry-mib -O /usr/share/snmp/mibs/iana/IANA-IPPM-METRICS-REGISTRY-MIB
+           sudo wget http://pastebin.com/raw.php?i=p3QyuXzZ -O /usr/share/snmp/mibs/ietf/SNMPv2-PDU
+           sudo wget http://pastebin.com/raw.php?i=gG7j8nyk -O /usr/share/snmp/mibs/ietf/IPATM-IPMC-MIB
+           echo 'mibs +ALL' | sudo tee /etc/snmp/snmp.conf
+
+      - name: Unit Test FRR
+        run: cd build && make check
+
+      - name: Regression Test (topotest)
+        run: |
+          cd tests/topotests
+          sudo python3 -m pytest -s -v -nauto --dist=loadfile
