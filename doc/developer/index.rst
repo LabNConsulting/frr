@@ -15,6 +15,7 @@ FRRouting Developer's Guide
    bgpd
    fpm
    grpc
+   mgmtd
    ospf
    zebra
    vtysh

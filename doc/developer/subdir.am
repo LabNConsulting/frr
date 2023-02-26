@@ -41,6 +41,7 @@ dev_RSTFILES = \
 	doc/developer/locking.rst \
 	doc/developer/logging.rst \
 	doc/developer/memtypes.rst \
+	doc/developer/mgmtd.rst \
 	doc/developer/modules.rst \
 	doc/developer/next-hop-tracking.rst \
 	doc/developer/ospf-api.rst \

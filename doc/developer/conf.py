@@ -36,7 +36,7 @@ rst_prolog = ""
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ["sphinx.ext.todo", "sphinx.ext.graphviz"]
+extensions = ["sphinx.ext.todo", "sphinx.ext.graphviz", "sphinxcontrib.seqdiag"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -349,6 +349,13 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 # texinfo_no_detailmenu = False
+
+# -- Options for seqdiag output -------------------------------------------
+
+seqdiag_antialias = False
+seqdiag_transparency = True
+seqdiag_html_image_format = "SVG"                           # or "PNG"
+seqdiag_latex_image_format = "PDF"                          # or "PNG"
 
 # contents of ../extra/frrlexer.py.
 # This is read here to support VPATH build. Since this section is execfile()'d
