@@ -21,7 +21,6 @@
 #ifndef _MGMTD_VTY_H
 #define _MGMTD_VTY_H
 
-#include "lib/command.h"
 #include "northbound_cli.h"
 
 extern void mgmt_enqueue_vty_nb_command(struct vty *vty, const char *xpath,
