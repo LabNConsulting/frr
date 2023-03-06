@@ -41,7 +41,7 @@
 #endif /* REDIRECT_DEBUG_TO_STDERR */
 
 struct mgmt_ds_ctx {
-	enum mgmt_datastore_id ds_id;
+	Mgmtd__DatastoreId ds_id;
 	int lock; /* 0 unlocked, >0 read locked < write locked */
 
 	bool config_ds;
@@ -224,11 +224,10 @@ void mgmt_ds_destroy(void)
 	/*
 	 * TODO: Free the datastores.
 	 */
-
 }
 
 struct mgmt_ds_ctx *mgmt_ds_get_ctx_by_id(struct mgmt_master *mm,
-				enum mgmt_datastore_id ds_id)
+					  Mgmtd__DatastoreId ds_id)
 {
 	switch (ds_id) {
 	case MGMTD_DS_CANDIDATE:
@@ -238,8 +237,8 @@ struct mgmt_ds_ctx *mgmt_ds_get_ctx_by_id(struct mgmt_master *mm,
 	case MGMTD_DS_OPERATIONAL:
 		return (mm->oper_ds);
 	case MGMTD_DS_NONE:
-	case MGMTD_DS_MAX_ID:
-	default:
+	case MGMTD__DATASTORE_ID__STARTUP_DS:
+	case _MGMTD__DATASTORE_ID_IS_INT_SIZE:
 		return 0;
 	}
 

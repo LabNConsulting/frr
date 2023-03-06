@@ -1,4 +1,5 @@
-/* mgmt memory type definitions
+/*
+ * MGMTD Frontend Server
  * Copyright (C) 2021  Vmware, Inc.
  *		       Pushpasis Sarkar <spushpasis@vmware.com>
  *
@@ -17,18 +18,15 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include <zebra.h>
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#ifndef _FRR_MGMTD_FE_SERVER_H_
+#define _FRR_MGMTD_FE_SERVER_H_
 
-#include "mgmt_memory.h"
+#define MGMTD_FE_MAX_CONN 32
 
-/* this file is temporary in nature;  definitions should be moved to the
- * files they're used in
- */
+/* Initialise frontend server */
+extern int mgmt_fe_server_init(struct thread_master *master);
 
-DEFINE_MGROUP(MGMTD, "mgmt");
-DEFINE_MTYPE(MGMTD, MGMTD, "MGMTD instance");
-DEFINE_MTYPE(MGMTD, MGMTD_FE_ADPATER, "MGMTD Frontend adapter");
-DEFINE_MTYPE(MGMTD, MGMTD_FE_SESSION, "MGMTD Frontend Client Session");
+/* Destroy frontend server */
+extern void mgmt_fe_server_destroy(void);
+
+#endif /* _FRR_MGMTD_FE_SERVER_H_ */
