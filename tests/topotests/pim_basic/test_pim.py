@@ -82,9 +82,12 @@ def setup_module(mod):
         router.load_config(
             TopoRouter.RD_PIM, os.path.join(CWD, "{}/pimd.conf".format(rname))
         )
-        router.load_config(
-            TopoRouter.RD_BGP, os.path.join(CWD, "{}/bgpd.conf".format(rname))
-        )
+        if os.path.exists("{}/bgpd.conf".format(rname)):
+            router.load_config(
+                TopoRouter.RD_BGP, os.path.join(CWD, "{}/bgpd.conf".format(rname))
+            )
+        else:
+            router.load_config(TopoRouter.RD_BGP)
 
     # After loading the configurations, this function loads configured daemons.
     tgen.start_router()
