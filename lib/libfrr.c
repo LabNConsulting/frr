@@ -1240,8 +1240,8 @@ void frr_fini(void)
 	rcu_shutdown();
 
 	/* also log memstats to stderr when stderr goes to a file*/
-	if (debug_memstats_at_exit || !isatty(STDERR_FILENO))
-		have_leftovers = log_memstats(stderr, di->name);
+	/* if (debug_memstats_at_exit || !isatty(STDERR_FILENO)) */
+	/* 	have_leftovers = log_memstats(stderr, di->name); */
 
 	/* in case we decide at runtime that we want exit-memstats for
 	 * a daemon

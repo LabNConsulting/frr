@@ -5,5 +5,6 @@
 **/*.lo
 **/*.so
 **/.libs
+build/
 docker/alpine/pkgs
 docker/centos/pkgs

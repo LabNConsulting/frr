@@ -50,7 +50,13 @@ Installing Topotest Requirements
    # Socat code can be taken from below url,
    # which has latest changes done for PIMv6,
    # join and traffic:
-   https://github.com/opensourcerouting/socat/
+   apt-get install autoconf yodl
+   git clone https://github.com/opensourcerouting/socat/
+   (cd socat && autoconf && ./configure && make && make install)
+
+   # If you feel motivated we would welcome changes to remove
+   # this socat requirement
+
 
 
 Enable Coredumps
@@ -125,15 +131,13 @@ If you prefer to manually build FRR, then use the following suggested config:
        --localstatedir=/var/run/frr \
        --sbindir=/usr/lib/frr \
        --sysconfdir=/etc/frr \
-       --enable-vtysh \
-       --enable-pimd \
-       --enable-pim6d \
        --enable-sharpd \
        --enable-multipath=64 \
        --enable-user=frr \
        --enable-group=frr \
        --enable-vty-group=frrvty \
        --enable-snmp=agentx \
+       --enable-scripting \
        --with-pkg-extra-version=-my-manual-build
 
 And create ``frr`` user and ``frrvty`` group as follows:
