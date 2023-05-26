@@ -1242,29 +1242,42 @@ def fix_host_limits():
     sysctl_assure(None, "fs.suid_dumpable", 1)
 
     # Maximum connection backlog
+    # XXX missing in docker
     sysctl_atleast(None, "net.core.netdev_max_backlog", 4 * 1024)
 
     # Maximum read and write socket buffer sizes
+    # docker only has:
+    # net.ipv4.tcp_rmem = 10240       131072  16777216
+    # net.ipv4.udp_rmem_min = 4096
+    # net.ipv4.tcp_wmem = 10240       87380   16777216
+    # net.ipv4.udp_wmem_min = 4096
     sysctl_atleast(None, "net.core.rmem_max", 16 * 2**20)
     sysctl_atleast(None, "net.core.wmem_max", 16 * 2**20)
 
     # Garbage Collection Settings for ARP and Neighbors
+    # docker doesn't have these but does have per interface net.ipv4.neigh.INTF.gc_stale_time
     sysctl_atleast(None, "net.ipv4.neigh.default.gc_thresh2", 4 * 1024)
     sysctl_atleast(None, "net.ipv4.neigh.default.gc_thresh3", 8 * 1024)
     sysctl_atleast(None, "net.ipv6.neigh.default.gc_thresh2", 4 * 1024)
     sysctl_atleast(None, "net.ipv6.neigh.default.gc_thresh3", 8 * 1024)
     # Hold entries for 10 minutes
+    # docker has per INTF net.ipv4.neigh.r1-eth1.base_reachable_time_ms
     sysctl_assure(None, "net.ipv4.neigh.default.base_reachable_time_ms", 10 * 60 * 1000)
     sysctl_assure(None, "net.ipv6.neigh.default.base_reachable_time_ms", 10 * 60 * 1000)
 
     # igmp
+    # docker has per INTF net.ipv4.neigh.r1-eth1.mcast_resolicit = 0
+    # and net.ipv4.neigh.r1-eth1.mcast_solicit = 3
     sysctl_assure(None, "net.ipv4.neigh.default.mcast_solicit", 10)
 
     # MLD
+    # XXX none in docker only on host
     sysctl_atleast(None, "net.ipv6.mld_max_msf", 512)
 
     # Increase routing table size to 128K
+    # XXX none in docker
     sysctl_atleast(None, "net.ipv4.route.max_size", 128 * 1024)
+    # IS IN docker
     sysctl_atleast(None, "net.ipv6.route.max_size", 128 * 1024)
 
 
