@@ -53,6 +53,13 @@ struct mgmt_be_get_adapter_config_params {
 	uint32_t seq;
 };
 
+#if HAVE_OSPFD
+static const char *ospfd_oper_xpaths[] __attribute__((unused)) = {
+	"/frr-interface:lib/interface/state/frr-ospfd-lite:ospf/state/*",
+	"/frr-ospfd-lite:ospf/instance/state/*",
+};
+#endif
+
 /*
  * Each client gets their own map, but also union all the strings into the
  * above map as well.
