@@ -207,6 +207,10 @@ static const struct frr_yang_module_info *const mgmt_yang_modules[] = {
 	&(struct frr_yang_module_info){.name = "frr-staticd",
 				       .ignore_cbs = true},
 #endif
+#ifdef HAVE_OSPFD
+	&(struct frr_yang_module_info){.name = "frr-ospfd-lite",
+		.ignore_cbs = true},
+#endif
 };
 
 FRR_DAEMON_INFO(mgmtd, MGMTD, .vty_port = MGMTD_VTY_PORT,
