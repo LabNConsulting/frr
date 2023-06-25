@@ -10,10 +10,10 @@
 #include "vty.h"
 #include "hook.h"
 
-#define EXTERNAL_METRIC_TYPE_1      0
-#define EXTERNAL_METRIC_TYPE_2      1
+#define EXTERNAL_METRIC_TYPE_1 0
+#define EXTERNAL_METRIC_TYPE_2 1
 
-#define DEFAULT_ROUTE		    ZEBRA_ROUTE_MAX
+#define DEFAULT_ROUTE ZEBRA_ROUTE_MAX
 #define DEFAULT_ROUTE_TYPE(T) ((T) == DEFAULT_ROUTE)
 
 /* OSPF distance. */
@@ -35,8 +35,7 @@ extern void ospf_zebra_delete(struct ospf *ospf, struct prefix_ipv4 *,
 extern void ospf_zebra_add_discard(struct ospf *ospf, struct prefix_ipv4 *);
 extern void ospf_zebra_delete_discard(struct ospf *ospf, struct prefix_ipv4 *);
 
-extern int ospf_redistribute_check(struct ospf *, struct external_info *,
-				   int *);
+extern int ospf_redistribute_check(struct ospf *, struct external_info *, int *);
 extern int ospf_distribute_check_connected(struct ospf *,
 					   struct external_info *);
 extern void ospf_distribute_list_update(struct ospf *, int, unsigned short);
@@ -83,9 +82,9 @@ extern int ospf_distance_unset(struct vty *, struct ospf *, const char *,
 extern void ospf_zebra_init(struct event_loop *m, unsigned short instance);
 extern void ospf_zebra_vrf_register(struct ospf *ospf);
 extern void ospf_zebra_vrf_deregister(struct ospf *ospf);
-bool ospf_external_default_routemap_apply_walk(
-	struct ospf *ospf, struct list *ext_list,
-	struct external_info *default_ei);
+bool ospf_external_default_routemap_apply_walk(struct ospf *ospf,
+					       struct list *ext_list,
+					       struct external_info *default_ei);
 int ospf_external_info_apply_default_routemap(struct ospf *ospf,
 					      struct external_info *ei,
 					      struct external_info *default_ei);

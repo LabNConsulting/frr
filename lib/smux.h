@@ -17,15 +17,15 @@ extern "C" {
 #endif
 
 /* Structures here are mostly compatible with UCD SNMP 4.1.1 */
-#define MATCH_FAILED     (-1)
-#define MATCH_SUCCEEDED  0
+#define MATCH_FAILED (-1)
+#define MATCH_SUCCEEDED 0
 
 /* SYNTAX TruthValue from SNMPv2-TC. */
-#define SNMP_TRUE  1
+#define SNMP_TRUE 1
 #define SNMP_FALSE 2
 
 /* SYNTAX RowStatus from SNMPv2-TC. */
-#define SNMP_VALID  1
+#define SNMP_VALID 1
 #define SNMP_INVALID 2
 
 #define IN_ADDR_SIZE sizeof(struct in_addr)
@@ -80,8 +80,8 @@ struct index_oid {
 	(*var_len = sizeof(snmp_int_val), snmp_int_val = V,                    \
 	 (uint8_t *)&snmp_int_val)
 
-#define SNMP_OCTET(V)							\
-	(*var_len = sizeof(snmp_octet_val), snmp_octet_val = V,                    \
+#define SNMP_OCTET(V)                                                          \
+	(*var_len = sizeof(snmp_octet_val), snmp_octet_val = V,                \
 	 (uint8_t *)&snmp_octet_val)
 
 #define SNMP_STRING(V)                                                         \

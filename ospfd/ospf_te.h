@@ -32,8 +32,8 @@
  *
  */
 
-#define	MAX_LEGAL_TE_INSTANCE_NUM (0xffff)
-#define LEGAL_TE_INSTANCE_RANGE(i)  (0 <= (i) && (i) <= 0xffff)
+#define MAX_LEGAL_TE_INSTANCE_NUM (0xffff)
+#define LEGAL_TE_INSTANCE_RANGE(i) (0 <= (i) && (i) <= 0xffff)
 
 /*
  *        24       16        8        0
@@ -55,26 +55,26 @@
  */
 
 /* Following define the type of TE link regarding the various RFC */
-#define STD_TE  	0x01
-#define GMPLS   	0x02
-#define INTER_AS	0x04
-#define PSEUDO_TE	0x08
-#define EMULATED	0x10
+#define STD_TE 0x01
+#define GMPLS 0x02
+#define INTER_AS 0x04
+#define PSEUDO_TE 0x08
+#define EMULATED 0x10
 
-#define IS_STD_TE(x)		(x & STD_TE)
-#define IS_PSEUDO_TE(x)		(x & PSEUDO_TE)
-#define IS_INTER_AS(x) 		(x & INTER_AS)
-#define IS_EMULATED(x)		(x & EMULATED)
+#define IS_STD_TE(x) (x & STD_TE)
+#define IS_PSEUDO_TE(x) (x & PSEUDO_TE)
+#define IS_INTER_AS(x) (x & INTER_AS)
+#define IS_EMULATED(x) (x & EMULATED)
 
 /* Flags to manage TE Link LSA */
-#define LPFLG_LSA_INACTIVE		0x00
-#define LPFLG_LSA_ACTIVE		0x01
-#define LPFLG_LSA_ENGAGED		0x02
-#define LPFLG_LOOKUP_DONE		0x04
-#define LPFLG_LSA_FORCED_REFRESH	0x08
-#define LPFLG_LSA_FLOOD_AS		0x10
+#define LPFLG_LSA_INACTIVE 0x00
+#define LPFLG_LSA_ACTIVE 0x01
+#define LPFLG_LSA_ENGAGED 0x02
+#define LPFLG_LOOKUP_DONE 0x04
+#define LPFLG_LSA_FORCED_REFRESH 0x08
+#define LPFLG_LSA_FLOOD_AS 0x10
 
-#define IS_FLOOD_AS(x)		(x & LPFLG_LSA_FLOOD_AS)
+#define IS_FLOOD_AS(x) (x & LPFLG_LSA_FLOOD_AS)
 
 /* Macro to log debug message */
 #define ote_debug(...)                                                         \
@@ -88,87 +88,87 @@
  */
 
 /* Router Address TLV */ /* Mandatory */
-#define	TE_TLV_ROUTER_ADDR		1
+#define TE_TLV_ROUTER_ADDR 1
 struct te_tlv_router_addr {
 	struct tlv_header header; /* Value length is 4 octets. */
 	struct in_addr value;
 };
 
 /* Link TLV */
-#define	TE_TLV_LINK			2
+#define TE_TLV_LINK 2
 struct te_tlv_link {
 	struct tlv_header header;
 	/* A set of link-sub-TLVs will follow. */
 };
 
 /* Default TE TLV size */
-#define TE_LINK_SUBTLV_DEF_SIZE		4
+#define TE_LINK_SUBTLV_DEF_SIZE 4
 
 /* Link Type Sub-TLV */ /* Mandatory */
-#define	TE_LINK_SUBTLV_LINK_TYPE	1
-#define TE_LINK_SUBTLV_TYPE_SIZE	1
+#define TE_LINK_SUBTLV_LINK_TYPE 1
+#define TE_LINK_SUBTLV_TYPE_SIZE 1
 struct te_link_subtlv_link_type {
 	struct tlv_header header; /* Value length is 1 octet. */
 	struct {
-#define	LINK_TYPE_SUBTLV_VALUE_PTP	1
-#define	LINK_TYPE_SUBTLV_VALUE_MA	2
+#define LINK_TYPE_SUBTLV_VALUE_PTP 1
+#define LINK_TYPE_SUBTLV_VALUE_MA 2
 		uint8_t value;
 		uint8_t padding[3];
 	} link_type;
 };
 
 /* Link Sub-TLV: Link ID */ /* Mandatory */
-#define	TE_LINK_SUBTLV_LINK_ID		2
+#define TE_LINK_SUBTLV_LINK_ID 2
 struct te_link_subtlv_link_id {
 	struct tlv_header header; /* Value length is 4 octets. */
-	struct in_addr value;     /* Same as router-lsa's link-id. */
+	struct in_addr value;	  /* Same as router-lsa's link-id. */
 };
 
 /* Link Sub-TLV: Local Interface IP Address */ /* Optional */
-#define	TE_LINK_SUBTLV_LCLIF_IPADDR	3
+#define TE_LINK_SUBTLV_LCLIF_IPADDR 3
 struct te_link_subtlv_lclif_ipaddr {
 	struct tlv_header header; /* Value length is 4 x N octets. */
 	struct in_addr value[1];  /* Local IP address(es). */
 };
 
 /* Link Sub-TLV: Remote Interface IP Address */ /* Optional */
-#define	TE_LINK_SUBTLV_RMTIF_IPADDR	4
+#define TE_LINK_SUBTLV_RMTIF_IPADDR 4
 struct te_link_subtlv_rmtif_ipaddr {
 	struct tlv_header header; /* Value length is 4 x N octets. */
 	struct in_addr value[1];  /* Neighbor's IP address(es). */
 };
 
 /* Link Sub-TLV: Traffic Engineering Metric */ /* Optional */
-#define	TE_LINK_SUBTLV_TE_METRIC	5
+#define TE_LINK_SUBTLV_TE_METRIC 5
 struct te_link_subtlv_te_metric {
 	struct tlv_header header; /* Value length is 4 octets. */
 	uint32_t value;		  /* Link metric for TE purpose. */
 };
 
 /* Link Sub-TLV: Maximum Bandwidth */ /* Optional */
-#define	TE_LINK_SUBTLV_MAX_BW		6
+#define TE_LINK_SUBTLV_MAX_BW 6
 struct te_link_subtlv_max_bw {
 	struct tlv_header header; /* Value length is 4 octets. */
 	float value;		  /* bytes/sec */
 };
 
 /* Link Sub-TLV: Maximum Reservable Bandwidth */ /* Optional */
-#define	TE_LINK_SUBTLV_MAX_RSV_BW	7
+#define TE_LINK_SUBTLV_MAX_RSV_BW 7
 struct te_link_subtlv_max_rsv_bw {
 	struct tlv_header header; /* Value length is 4 octets. */
 	float value;		  /* bytes/sec */
 };
 
 /* Link Sub-TLV: Unreserved Bandwidth */ /* Optional */
-#define	TE_LINK_SUBTLV_UNRSV_BW		8
-#define TE_LINK_SUBTLV_UNRSV_SIZE	32
+#define TE_LINK_SUBTLV_UNRSV_BW 8
+#define TE_LINK_SUBTLV_UNRSV_SIZE 32
 struct te_link_subtlv_unrsv_bw {
 	struct tlv_header header;    /* Value length is 32 octets. */
 	float value[MAX_CLASS_TYPE]; /* One for each priority level. */
 };
 
 /* Link Sub-TLV: Resource Class/Color */ /* Optional */
-#define	TE_LINK_SUBTLV_RSC_CLSCLR	9
+#define TE_LINK_SUBTLV_RSC_CLSCLR 9
 struct te_link_subtlv_rsc_clsclr {
 	struct tlv_header header; /* Value length is 4 octets. */
 	uint32_t value;		  /* Admin. group membership. */
@@ -176,17 +176,17 @@ struct te_link_subtlv_rsc_clsclr {
 
 /* For RFC6827 */
 /* Local and Remote TE Router ID */
-#define TE_LINK_SUBTLV_LRRID		10
-#define TE_LINK_SUBTLV_LRRID_SIZE	8
+#define TE_LINK_SUBTLV_LRRID 10
+#define TE_LINK_SUBTLV_LRRID_SIZE 8
 struct te_link_subtlv_lrrid {
 	struct tlv_header header; /* Value length is 8 octets. */
-	struct in_addr local;     /* Local TE Router Identifier */
-	struct in_addr remote;    /* Remote TE Router Identifier */
+	struct in_addr local;	  /* Local TE Router Identifier */
+	struct in_addr remote;	  /* Remote TE Router Identifier */
 };
 
 /* RFC4203: Link Local/Remote Identifiers */
-#define TE_LINK_SUBTLV_LLRI		11
-#define TE_LINK_SUBTLV_LLRI_SIZE	8
+#define TE_LINK_SUBTLV_LLRI 11
+#define TE_LINK_SUBTLV_LLRI_SIZE 8
 struct te_link_subtlv_llri {
 	struct tlv_header header; /* Value length is 8 octets. */
 	uint32_t local;		  /* Link Local Identifier */
@@ -201,17 +201,17 @@ struct te_link_subtlv_llri {
 
 /* For RFC 5392 */
 /* Remote AS Number sub-TLV */
-#define TE_LINK_SUBTLV_RAS		21
+#define TE_LINK_SUBTLV_RAS 21
 struct te_link_subtlv_ras {
 	struct tlv_header header; /* Value length is 4 octets. */
 	uint32_t value;		  /* Remote AS number */
 };
 
 /* IPv4 Remote ASBR ID Sub-TLV */
-#define TE_LINK_SUBTLV_RIP		22
+#define TE_LINK_SUBTLV_RIP 22
 struct te_link_subtlv_rip {
 	struct tlv_header header; /* Value length is 4 octets. */
-	struct in_addr value;     /* Remote ASBR IP address */
+	struct in_addr value;	  /* Remote ASBR IP address */
 };
 
 /* SUBTLV 24 is IPv6 Remote ASBR ID (RFC5392). see ospf6d */
@@ -222,7 +222,7 @@ struct te_link_subtlv_rip {
 
 /* RFC7471 */
 /* Link Sub-TLV: Average Link Delay */ /* Optional */
-#define TE_LINK_SUBTLV_AV_DELAY		27
+#define TE_LINK_SUBTLV_AV_DELAY 27
 struct te_link_subtlv_av_delay {
 	struct tlv_header header; /* Value length is 4 bytes. */
 	/*
@@ -233,8 +233,8 @@ struct te_link_subtlv_av_delay {
 };
 
 /* Link Sub-TLV: Low/High Link Delay */
-#define TE_LINK_SUBTLV_MM_DELAY         28
-#define TE_LINK_SUBTLV_MM_DELAY_SIZE    8
+#define TE_LINK_SUBTLV_MM_DELAY 28
+#define TE_LINK_SUBTLV_MM_DELAY_SIZE 8
 struct te_link_subtlv_mm_delay {
 	struct tlv_header header; /* Value length is 8 bytes. */
 	/*
@@ -247,7 +247,7 @@ struct te_link_subtlv_mm_delay {
 };
 
 /* Link Sub-TLV: Link Delay Variation i.e. Jitter */
-#define TE_LINK_SUBTLV_DELAY_VAR	29
+#define TE_LINK_SUBTLV_DELAY_VAR 29
 struct te_link_subtlv_delay_var {
 	struct tlv_header header; /* Value length is 4 bytes. */
 	/* interval in micro-seconds only 24 bits => 0 ... 16777215 */
@@ -255,7 +255,7 @@ struct te_link_subtlv_delay_var {
 };
 
 /* Link Sub-TLV: Routine Unidirectional Link Packet Loss */
-#define TE_LINK_SUBTLV_PKT_LOSS		30
+#define TE_LINK_SUBTLV_PKT_LOSS 30
 struct te_link_subtlv_pkt_loss {
 	struct tlv_header header; /* Value length is 4 bytes. */
 	/*
@@ -266,7 +266,7 @@ struct te_link_subtlv_pkt_loss {
 };
 
 /* Link Sub-TLV: Unidirectional Residual Bandwidth */ /* Optional */
-#define TE_LINK_SUBTLV_RES_BW		31
+#define TE_LINK_SUBTLV_RES_BW 31
 struct te_link_subtlv_res_bw {
 	struct tlv_header header; /* Value length is 4 bytes. */
 	/* bandwidth in IEEE floating point format with units in bytes/second */
@@ -274,7 +274,7 @@ struct te_link_subtlv_res_bw {
 };
 
 /* Link Sub-TLV: Unidirectional Available Bandwidth */ /* Optional */
-#define TE_LINK_SUBTLV_AVA_BW		32
+#define TE_LINK_SUBTLV_AVA_BW 32
 struct te_link_subtlv_ava_bw {
 	struct tlv_header header; /* Value length is 4 octets. */
 	/* bandwidth in IEEE floating point format with units in bytes/second */
@@ -282,17 +282,17 @@ struct te_link_subtlv_ava_bw {
 };
 
 /* Link Sub-TLV: Unidirectional Utilized Bandwidth */ /* Optional */
-#define TE_LINK_SUBTLV_USE_BW           33
+#define TE_LINK_SUBTLV_USE_BW 33
 struct te_link_subtlv_use_bw {
 	struct tlv_header header; /* Value length is 4 octets. */
 	/* bandwidth in IEEE floating point format with units in bytes/second */
 	float value;
 };
 
-#define TE_LINK_SUBTLV_MAX		34      /* Last SUBTLV + 1 */
+#define TE_LINK_SUBTLV_MAX 34 /* Last SUBTLV + 1 */
 
 /* Here are "non-official" architectural constants. */
-#define MPLS_TE_MINIMUM_BANDWIDTH	1.0	/* Reasonable? *//* XXX */
+#define MPLS_TE_MINIMUM_BANDWIDTH 1.0 /* Reasonable? */ /* XXX */
 
 /* Mode for Inter-AS Opaque-LSA */
 enum inter_as_mode { Off, AS, Area };

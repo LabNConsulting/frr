@@ -107,19 +107,17 @@ void *qobj_get_typed(uint64_t id, const struct qobj_nodetype *type);
 
 /* type declarations */
 #define DECLARE_QOBJ_TYPE(structname)                                          \
-	extern const struct qobj_nodetype qobj_t_##structname                  \
-	/* end */
+	extern const struct qobj_nodetype qobj_t_##structname /* end */
 #define DEFINE_QOBJ_TYPE(structname)                                           \
 	const struct qobj_nodetype qobj_t_##structname = {                     \
 		.node_member_offset =                                          \
-			(ptrdiff_t)offsetof(struct structname, qobj_node)}     \
-	/* end */
+			(ptrdiff_t)offsetof(struct structname,                 \
+					    qobj_node)} /* end */
 #define DEFINE_QOBJ_TYPE_INIT(structname, ...)                                 \
-	const struct qobj_nodetype qobj_t_##structname = {                     \
-		.node_member_offset =                                          \
-			(ptrdiff_t)offsetof(struct structname, qobj_node),     \
-		__VA_ARGS__}                                                   \
-	/* end */
+	const struct qobj_nodetype qobj_t_##structname =                       \
+		{.node_member_offset =                                         \
+			 (ptrdiff_t)offsetof(struct structname, qobj_node),    \
+		 __VA_ARGS__} /* end */
 
 /* ID dereference with typecheck.
  * will return NULL if id not found or wrong type. */

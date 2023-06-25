@@ -9,8 +9,7 @@
 
 /* Prototypes. */
 extern int ospf_if_add_allspfrouters(struct ospf *, struct prefix *, ifindex_t);
-extern int ospf_if_drop_allspfrouters(struct ospf *, struct prefix *,
-				      ifindex_t);
+extern int ospf_if_drop_allspfrouters(struct ospf *, struct prefix *, ifindex_t);
 extern int ospf_if_add_alldrouters(struct ospf *, struct prefix *, ifindex_t);
 extern int ospf_if_drop_alldrouters(struct ospf *, struct prefix *, ifindex_t);
 extern int ospf_if_ipmulticast(int fd, struct prefix *, ifindex_t);

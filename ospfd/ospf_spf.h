@@ -10,11 +10,11 @@
 #include "typesafe.h"
 
 /* values for vertex->type */
-#define OSPF_VERTEX_ROUTER  1  /* for a Router-LSA */
-#define OSPF_VERTEX_NETWORK 2  /* for a Network-LSA */
+#define OSPF_VERTEX_ROUTER 1  /* for a Router-LSA */
+#define OSPF_VERTEX_NETWORK 2 /* for a Network-LSA */
 
 /* values for vertex->flags */
-#define OSPF_VERTEX_PROCESSED      0x01
+#define OSPF_VERTEX_PROCESSED 0x01
 
 /* The "root" is the node running the SPF calculation */
 
@@ -23,18 +23,18 @@ PREDECL_SKIPLIST_NONUNIQ(vertex_pqueue);
 struct vertex {
 	struct vertex_pqueue_item pqi;
 	uint8_t flags;
-	uint8_t type;		/* copied from LSA header */
-	struct in_addr id;      /* copied from LSA header */
+	uint8_t type;	   /* copied from LSA header */
+	struct in_addr id; /* copied from LSA header */
 	struct ospf_lsa *lsa_p;
 	struct lsa_header *lsa; /* Router or Network LSA */
-	uint32_t distance;      /* from root to this vertex */
-	struct list *parents;   /* list of parents in SPF tree */
-	struct list *children;  /* list of children in SPF tree*/
+	uint32_t distance;	/* from root to this vertex */
+	struct list *parents;	/* list of parents in SPF tree */
+	struct list *children;	/* list of children in SPF tree*/
 };
 
 struct vertex_nexthop {
-	struct in_addr router;     /* router address to send to */
-	int lsa_pos; /* LSA position for resolving the interface */
+	struct in_addr router; /* router address to send to */
+	int lsa_pos;	       /* LSA position for resolving the interface */
 };
 
 struct vertex_parent {
@@ -58,8 +58,7 @@ typedef enum {
 } ospf_spf_reason_t;
 
 extern void ospf_spf_calculate_schedule(struct ospf *, ospf_spf_reason_t);
-extern void ospf_spf_calculate(struct ospf_area *area,
-			       struct ospf_lsa *root_lsa,
+extern void ospf_spf_calculate(struct ospf_area *area, struct ospf_lsa *root_lsa,
 			       struct route_table *new_table,
 			       struct route_table *all_rtrs,
 			       struct route_table *new_rtrs, bool is_dry_run,

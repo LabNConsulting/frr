@@ -80,9 +80,9 @@ static void peer_process(struct hash_bucket *hb, void *arg)
 
 	struct timeval *next_update = arg;
 
-	static struct timeval elapsed;  // elapsed time since keepalive
+	static struct timeval elapsed;	// elapsed time since keepalive
 	static struct timeval ka = {0}; // peer->v_keepalive as a timeval
-	static struct timeval diff;     // ka - elapsed
+	static struct timeval diff;	// ka - elapsed
 
 	static const struct timeval tolerance = {0, 100000};
 
@@ -202,9 +202,9 @@ void *bgp_keepalives_start(void *arg)
 			pthread_cond_timedwait(peerhash_cond, peerhash_mtx,
 					       &next_update_ts);
 		else
-			while (peerhash->count == 0
-			       && atomic_load_explicit(&fpt->running,
-						       memory_order_relaxed))
+			while (peerhash->count == 0 &&
+			       atomic_load_explicit(&fpt->running,
+						    memory_order_relaxed))
 				pthread_cond_wait(peerhash_cond, peerhash_mtx);
 
 		monotime(&currtime);

@@ -130,8 +130,7 @@ static inline char *time_to_string(time_t ts, char *buf)
 }
 
 /* Convert interval to human-friendly string, used in cli output e.g. */
-static inline const char *frrtime_to_interval(time_t t, char *buf,
-					      size_t buflen)
+static inline const char *frrtime_to_interval(time_t t, char *buf, size_t buflen)
 {
 	struct tm tm;
 

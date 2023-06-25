@@ -76,9 +76,8 @@ static void ecommunity_hash_free(struct ecommunity *ecom)
    not.
 */
 static bool ecommunity_add_val_internal(struct ecommunity *ecom,
-					const void *eval,
-					bool unique, bool overwrite,
-					uint8_t ecom_size)
+					const void *eval, bool unique,
+					bool overwrite, uint8_t ecom_size)
 {
 	uint32_t c, ins_idx;
 	const struct ecommunity_val *eval4 = (struct ecommunity_val *)eval;
@@ -99,15 +98,13 @@ static bool ecommunity_add_val_internal(struct ecommunity *ecom,
 	c = 0;
 
 	ins_idx = UINT32_MAX;
-	for (uint8_t *p = ecom->val; c < ecom->size;
-	     p += ecom_size, c++) {
+	for (uint8_t *p = ecom->val; c < ecom->size; p += ecom_size, c++) {
 		if (unique) {
 			if (ecom_size == ECOMMUNITY_SIZE) {
 				if (p[0] == eval4->val[0] &&
 				    p[1] == eval4->val[1]) {
 					if (overwrite) {
-						memcpy(p, eval4->val,
-						       ecom_size);
+						memcpy(p, eval4->val, ecom_size);
 						return true;
 					}
 					return false;
@@ -116,8 +113,7 @@ static bool ecommunity_add_val_internal(struct ecommunity *ecom,
 				if (p[0] == eval6->val[0] &&
 				    p[1] == eval6->val[1]) {
 					if (overwrite) {
-						memcpy(p, eval6->val,
-						       ecom_size);
+						memcpy(p, eval6->val, ecom_size);
 						return true;
 					}
 					return false;
@@ -141,13 +137,12 @@ static bool ecommunity_add_val_internal(struct ecommunity *ecom,
 	/* Add the value to the structure with numerical sorting.  */
 	ecom->size++;
 	ecom->val = XREALLOC(MTYPE_ECOMMUNITY_VAL, ecom->val,
-			 ecom_length_size(ecom, ecom_size));
+			     ecom_length_size(ecom, ecom_size));
 
 	memmove(ecom->val + ((ins_idx + 1) * ecom_size),
 		ecom->val + (ins_idx * ecom_size),
 		(ecom->size - 1 - ins_idx) * ecom_size);
-	memcpy(ecom->val + (ins_idx * ecom_size),
-	       eval, ecom_size);
+	memcpy(ecom->val + (ins_idx * ecom_size), eval, ecom_size);
 
 	return true;
 }
@@ -159,23 +154,22 @@ static bool ecommunity_add_val_internal(struct ecommunity *ecom,
  * else return 0.
  */
 bool ecommunity_add_val(struct ecommunity *ecom, struct ecommunity_val *eval,
-		       bool unique, bool overwrite)
+			bool unique, bool overwrite)
 {
 	return ecommunity_add_val_internal(ecom, (const void *)eval, unique,
 					   overwrite, ECOMMUNITY_SIZE);
 }
 
 bool ecommunity_add_val_ipv6(struct ecommunity *ecom,
-			     struct ecommunity_val_ipv6 *eval,
-			     bool unique, bool overwrite)
+			     struct ecommunity_val_ipv6 *eval, bool unique,
+			     bool overwrite)
 {
 	return ecommunity_add_val_internal(ecom, (const void *)eval, unique,
 					   overwrite, IPV6_ECOMMUNITY_SIZE);
 }
 
-static struct ecommunity *
-ecommunity_uniq_sort_internal(struct ecommunity *ecom,
-			      unsigned short ecom_size)
+static struct ecommunity *ecommunity_uniq_sort_internal(struct ecommunity *ecom,
+							unsigned short ecom_size)
 {
 	uint32_t i;
 	struct ecommunity *new;
@@ -276,8 +270,8 @@ struct ecommunity *ecommunity_merge(struct ecommunity *ecom1,
 				    struct ecommunity *ecom2)
 {
 	ecom1->val = XREALLOC(MTYPE_ECOMMUNITY_VAL, ecom1->val,
-			      (size_t)(ecom1->size + ecom2->size)
-				      * (size_t)ecom1->unit_size);
+			      (size_t)(ecom1->size + ecom2->size) *
+				      (size_t)ecom1->unit_size);
 
 	memcpy(ecom1->val + (ecom1->size * ecom1->unit_size), ecom2->val,
 	       (size_t)ecom2->size * (size_t)ecom1->unit_size);
@@ -350,9 +344,9 @@ bool ecommunity_cmp(const void *arg1, const void *arg2)
 	if (ecom1->unit_size != ecom2->unit_size)
 		return false;
 
-	return (ecom1->size == ecom2->size
-		&& memcmp(ecom1->val, ecom2->val, ecom1->size *
-			  ecom1->unit_size) == 0);
+	return (ecom1->size == ecom2->size &&
+		memcmp(ecom1->val, ecom2->val,
+		       ecom1->size * ecom1->unit_size) == 0);
 }
 
 /* Initialize Extended Comminities related hash. */
@@ -468,11 +462,9 @@ static void ecommunity_node_target_str(char *buf, size_t bufsz, uint8_t *ptr,
 	(void)ptr; /* consume value */
 }
 
-static int ecommunity_encode_internal(uint8_t type, uint8_t sub_type,
-				      int trans, as_t as,
-				      struct in_addr *ip,
-				      struct in6_addr *ip6,
-				      uint32_t val,
+static int ecommunity_encode_internal(uint8_t type, uint8_t sub_type, int trans,
+				      as_t as, struct in_addr *ip,
+				      struct in6_addr *ip6, uint32_t val,
 				      void *eval_ptr)
 {
 	struct ecommunity_val *eval = (struct ecommunity_val *)eval_ptr;
@@ -483,8 +475,8 @@ static int ecommunity_encode_internal(uint8_t type, uint8_t sub_type,
 	if (type == ECOMMUNITY_ENCODE_AS) {
 		if (as > BGP_AS_MAX)
 			return -1;
-	} else if (type == ECOMMUNITY_ENCODE_IP
-		   || type == ECOMMUNITY_ENCODE_AS4) {
+	} else if (type == ECOMMUNITY_ENCODE_IP ||
+		   type == ECOMMUNITY_ENCODE_AS4) {
 		if (val > UINT16_MAX)
 			return -1;
 	} else if (type == ECOMMUNITY_ENCODE_TRANS_EXP &&
@@ -525,8 +517,8 @@ static int ecommunity_encode(uint8_t type, uint8_t sub_type, int trans, as_t as,
 			     struct in_addr ip, uint32_t val,
 			     struct ecommunity_val *eval)
 {
-	return ecommunity_encode_internal(type, sub_type, trans, as,
-					  &ip, NULL, val, (void *)eval);
+	return ecommunity_encode_internal(type, sub_type, trans, as, &ip, NULL,
+					  val, (void *)eval);
 }
 
 /* Get next Extended Communities token from the string. */
@@ -631,8 +623,7 @@ static const char *ecommunity_gettoken(const char *str, void *eval_ptr,
 	 *
 	 */
 	/* IPv6 case : look for last ':' */
-	if (*token == ecommunity_token_rt6 ||
-	    *token == ecommunity_token_val6) {
+	if (*token == ecommunity_token_rt6 || *token == ecommunity_token_val6) {
 		char *limit;
 
 		limit = endptr = strrchr(p, ':');
@@ -661,8 +652,8 @@ static const char *ecommunity_gettoken(const char *str, void *eval_ptr,
 
 		ecomm_type = ECOMMUNITY_ENCODE_TRANS_EXP;
 		if (ecommunity_encode_internal(ecomm_type,
-					ECOMMUNITY_FLOWSPEC_REDIRECT_IPV6,
-					1, 0, NULL, &ip6, as, eval_ptr))
+					       ECOMMUNITY_FLOWSPEC_REDIRECT_IPV6,
+					       1, 0, NULL, &ip6, as, eval_ptr))
 			goto error;
 
 		*token = ecommunity_token_val6;
@@ -792,9 +783,8 @@ static struct ecommunity *ecommunity_str2com_internal(const char *str, int type,
 			if (ecom == NULL)
 				ecom = ecommunity_new();
 			eval.val[1] = type;
-			ecommunity_add_val_internal(ecom, (void *)&eval,
-						    false, false,
-						    ecom->unit_size);
+			ecommunity_add_val_internal(ecom, (void *)&eval, false,
+						    false, ecom->unit_size);
 			break;
 		case ecommunity_token_val6:
 			if (keyword_included) {
@@ -808,8 +798,8 @@ static struct ecommunity *ecommunity_str2com_internal(const char *str, int type,
 				ecom = ecommunity_new();
 			ecom->unit_size = IPV6_ECOMMUNITY_SIZE;
 			eval.val[1] = type;
-			ecommunity_add_val_internal(ecom, (void *)&eval, false, false,
-						    ecom->unit_size);
+			ecommunity_add_val_internal(ecom, (void *)&eval, false,
+						    false, ecom->unit_size);
 			break;
 		case ecommunity_token_unknown:
 			if (ecom)
@@ -849,15 +839,13 @@ static struct ecommunity *ecommunity_str2com_internal(const char *str, int type,
 struct ecommunity *ecommunity_str2com(const char *str, int type,
 				      int keyword_included)
 {
-	return ecommunity_str2com_internal(str, type,
-					   keyword_included, false);
+	return ecommunity_str2com_internal(str, type, keyword_included, false);
 }
 
 struct ecommunity *ecommunity_str2com_ipv6(const char *str, int type,
 					   int keyword_included)
 {
-	return ecommunity_str2com_internal(str, type,
-					   keyword_included, true);
+	return ecommunity_str2com_internal(str, type, keyword_included, true);
 }
 
 static int ecommunity_rt_soo_str_internal(char *buf, size_t bufsz,
@@ -916,8 +904,8 @@ static int ecommunity_rt_soo_str_internal(char *buf, size_t bufsz,
 
 			inet_ntop(AF_INET6, &eip6.ip, buf_local,
 				  sizeof(buf_local));
-			len = snprintf(buf, bufsz, "%s%s:%u", prefix,
-				       buf_local, eip6.val);
+			len = snprintf(buf, bufsz, "%s%s:%u", prefix, buf_local,
+				       eip6.val);
 		}
 	} else if (type == ECOMMUNITY_ENCODE_IP) {
 		memcpy(&eip.ip, pnt, 4);
@@ -938,9 +926,8 @@ static int ecommunity_rt_soo_str_internal(char *buf, size_t bufsz,
 static int ecommunity_rt_soo_str(char *buf, size_t bufsz, const uint8_t *pnt,
 				 int type, int sub_type, int format)
 {
-	return ecommunity_rt_soo_str_internal(buf, bufsz, pnt, type,
-					      sub_type, format,
-					      ECOMMUNITY_SIZE);
+	return ecommunity_rt_soo_str_internal(buf, bufsz, pnt, type, sub_type,
+					      format, ECOMMUNITY_SIZE);
 }
 
 /* Helper function to convert IEEE-754 Floating Point to uint32 */
@@ -998,8 +985,8 @@ static int ecommunity_lb_str(char *buf, size_t bufsz, const uint8_t *pnt,
 	"rt 100:1 100:2soo 100:3"
 
    extcommunity-list
-	"rt 100:1 rt 100:2 soo 100:3show [ip] bgp" and extcommunity-list regular expression matching
-	"RT:100:1 RT:100:2 SoO:100:3"
+	"rt 100:1 rt 100:2 soo 100:3show [ip] bgp" and extcommunity-list regular
+   expression matching "RT:100:1 RT:100:2 SoO:100:3"
 
    For each formath please use below definition for format:
 
@@ -1042,30 +1029,31 @@ char *ecommunity_ecom2str(struct ecommunity *ecom, int format, int filter)
 		/* High-order octet is the type */
 		type = *pnt++;
 
-		if (type == ECOMMUNITY_ENCODE_AS || type == ECOMMUNITY_ENCODE_IP
-		    || type == ECOMMUNITY_ENCODE_AS4) {
+		if (type == ECOMMUNITY_ENCODE_AS ||
+		    type == ECOMMUNITY_ENCODE_IP ||
+		    type == ECOMMUNITY_ENCODE_AS4) {
 			/* Low-order octet of type. */
 			sub_type = *pnt++;
-			if (sub_type != ECOMMUNITY_ROUTE_TARGET
-			    && sub_type != ECOMMUNITY_SITE_ORIGIN) {
+			if (sub_type != ECOMMUNITY_ROUTE_TARGET &&
+			    sub_type != ECOMMUNITY_SITE_ORIGIN) {
 				if (sub_type ==
-				    ECOMMUNITY_FLOWSPEC_REDIRECT_IPV4 &&
+					    ECOMMUNITY_FLOWSPEC_REDIRECT_IPV4 &&
 				    type == ECOMMUNITY_ENCODE_IP) {
 					struct in_addr *ipv4 =
 						(struct in_addr *)pnt;
 					snprintfrr(encbuf, sizeof(encbuf),
 						   "NH:%pI4:%d", ipv4, pnt[5]);
 				} else if (sub_type ==
-					   ECOMMUNITY_LINK_BANDWIDTH &&
+						   ECOMMUNITY_LINK_BANDWIDTH &&
 					   type == ECOMMUNITY_ENCODE_AS) {
-					ecommunity_lb_str(
-						encbuf, sizeof(encbuf), pnt,
-						ecom->disable_ieee_floating);
+					ecommunity_lb_str(encbuf,
+							  sizeof(encbuf), pnt,
+							  ecom->disable_ieee_floating);
 				} else if (sub_type == ECOMMUNITY_NODE_TARGET &&
 					   type == ECOMMUNITY_ENCODE_IP) {
-					ecommunity_node_target_str(
-						encbuf, sizeof(encbuf), pnt,
-						format);
+					ecommunity_node_target_str(encbuf,
+								   sizeof(encbuf),
+								   pnt, format);
 				} else
 					unk_ecom = 1;
 			} else {
@@ -1105,8 +1093,7 @@ char *ecommunity_ecom2str(struct ecommunity *ecom, int format, int filter)
 					 (uint8_t)rmac.octet[3],
 					 (uint8_t)rmac.octet[4],
 					 (uint8_t)rmac.octet[5]);
-			} else if (*pnt
-				   == ECOMMUNITY_EVPN_SUBTYPE_MACMOBILITY) {
+			} else if (*pnt == ECOMMUNITY_EVPN_SUBTYPE_MACMOBILITY) {
 				uint32_t seqnum;
 				uint8_t flags = *++pnt;
 
@@ -1116,50 +1103,44 @@ char *ecommunity_ecom2str(struct ecommunity *ecom, int format, int filter)
 				snprintf(encbuf, sizeof(encbuf), "MM:%u",
 					 seqnum);
 
-				if (CHECK_FLAG(
-					    flags,
-					    ECOMMUNITY_EVPN_SUBTYPE_MACMOBILITY_FLAG_STICKY))
+				if (CHECK_FLAG(flags,
+					       ECOMMUNITY_EVPN_SUBTYPE_MACMOBILITY_FLAG_STICKY))
 					strlcat(encbuf, ", sticky MAC",
 						sizeof(encbuf));
 			} else if (*pnt == ECOMMUNITY_EVPN_SUBTYPE_ND) {
 				uint8_t flags = *++pnt;
 
-				if (CHECK_FLAG(
-					    flags,
-					    ECOMMUNITY_EVPN_SUBTYPE_ND_ROUTER_FLAG))
+				if (CHECK_FLAG(flags,
+					       ECOMMUNITY_EVPN_SUBTYPE_ND_ROUTER_FLAG))
 					strlcpy(encbuf, "ND:Router Flag",
 						sizeof(encbuf));
-				if (CHECK_FLAG(
-					    flags,
-					    ECOMMUNITY_EVPN_SUBTYPE_PROXY_FLAG))
+				if (CHECK_FLAG(flags,
+					       ECOMMUNITY_EVPN_SUBTYPE_PROXY_FLAG))
 					strlcpy(encbuf, "ND:Proxy",
 						sizeof(encbuf));
-			} else if (*pnt
-				   == ECOMMUNITY_EVPN_SUBTYPE_ES_IMPORT_RT) {
+			} else if (*pnt == ECOMMUNITY_EVPN_SUBTYPE_ES_IMPORT_RT) {
 				struct ethaddr mac;
 
 				pnt++;
 				memcpy(&mac, pnt, ETH_ALEN);
-				snprintf(encbuf,
-					sizeof(encbuf),
-					"ES-Import-Rt:%02x:%02x:%02x:%02x:%02x:%02x",
-					(uint8_t)mac.octet[0],
-					(uint8_t)mac.octet[1],
-					(uint8_t)mac.octet[2],
-					(uint8_t)mac.octet[3],
-					(uint8_t)mac.octet[4],
-					(uint8_t)mac.octet[5]);
-			} else if (*pnt
-				   == ECOMMUNITY_EVPN_SUBTYPE_ESI_LABEL) {
+				snprintf(encbuf, sizeof(encbuf),
+					 "ES-Import-Rt:%02x:%02x:%02x:%02x:%02x:%02x",
+					 (uint8_t)mac.octet[0],
+					 (uint8_t)mac.octet[1],
+					 (uint8_t)mac.octet[2],
+					 (uint8_t)mac.octet[3],
+					 (uint8_t)mac.octet[4],
+					 (uint8_t)mac.octet[5]);
+			} else if (*pnt == ECOMMUNITY_EVPN_SUBTYPE_ESI_LABEL) {
 				uint8_t flags = *++pnt;
 
-				snprintf(encbuf,
-					sizeof(encbuf), "ESI-label-Rt:%s",
-					(flags &
-					 ECOMMUNITY_EVPN_SUBTYPE_ESI_SA_FLAG) ?
-					"SA":"AA");
-			} else if (*pnt
-				   == ECOMMUNITY_EVPN_SUBTYPE_DF_ELECTION) {
+				snprintf(encbuf, sizeof(encbuf),
+					 "ESI-label-Rt:%s",
+					 (flags &
+					  ECOMMUNITY_EVPN_SUBTYPE_ESI_SA_FLAG)
+						 ? "SA"
+						 : "AA");
+			} else if (*pnt == ECOMMUNITY_EVPN_SUBTYPE_DF_ELECTION) {
 				uint8_t alg;
 				uint16_t pref;
 				uint16_t bmap;
@@ -1171,10 +1152,9 @@ char *ecommunity_ecom2str(struct ecommunity *ecom, int format, int filter)
 				pref = ntohs(pref);
 
 				if (bmap)
-					snprintf(
-						encbuf, sizeof(encbuf),
-						"DF: (alg: %u, bmap: 0x%x pref: %u)",
-						alg, bmap, pref);
+					snprintf(encbuf, sizeof(encbuf),
+						 "DF: (alg: %u, bmap: 0x%x pref: %u)",
+						 alg, bmap, pref);
 				else
 					snprintf(encbuf, sizeof(encbuf),
 						 "DF: (alg: %u, pref: %u)", alg,
@@ -1197,26 +1177,23 @@ char *ecommunity_ecom2str(struct ecommunity *ecom, int format, int filter)
 				char buf[ECOMMUNITY_STRLEN];
 
 				memset(buf, 0, sizeof(buf));
-				ecommunity_rt_soo_str_internal(buf, sizeof(buf),
-						(const uint8_t *)pnt,
-						type &
-						~ECOMMUNITY_ENCODE_TRANS_EXP,
-						ECOMMUNITY_ROUTE_TARGET,
-						format,
-						ecom->unit_size);
+				ecommunity_rt_soo_str_internal(
+					buf, sizeof(buf), (const uint8_t *)pnt,
+					type & ~ECOMMUNITY_ENCODE_TRANS_EXP,
+					ECOMMUNITY_ROUTE_TARGET, format,
+					ecom->unit_size);
 				snprintf(encbuf, sizeof(encbuf), "%s", buf);
 			} else if (sub_type ==
 				   ECOMMUNITY_FLOWSPEC_REDIRECT_IPV6) {
 				char buf[64];
 
 				memset(buf, 0, sizeof(buf));
-				ecommunity_rt_soo_str_internal(buf, sizeof(buf),
-						(const uint8_t *)pnt,
-						type &
-						~ECOMMUNITY_ENCODE_TRANS_EXP,
-						ECOMMUNITY_ROUTE_TARGET,
-						ECOMMUNITY_FORMAT_DISPLAY,
-						ecom->unit_size);
+				ecommunity_rt_soo_str_internal(
+					buf, sizeof(buf), (const uint8_t *)pnt,
+					type & ~ECOMMUNITY_ENCODE_TRANS_EXP,
+					ECOMMUNITY_ROUTE_TARGET,
+					ECOMMUNITY_FORMAT_DISPLAY,
+					ecom->unit_size);
 				snprintf(encbuf, sizeof(encbuf),
 					 "FS:redirect VRF %s", buf);
 			} else if (sub_type == ECOMMUNITY_REDIRECT_VRF) {
@@ -1224,11 +1201,10 @@ char *ecommunity_ecom2str(struct ecommunity *ecom, int format, int filter)
 
 				memset(buf, 0, sizeof(buf));
 				ecommunity_rt_soo_str(buf, sizeof(buf),
-						(const uint8_t *)pnt,
-						type &
-						~ECOMMUNITY_ENCODE_TRANS_EXP,
-						ECOMMUNITY_ROUTE_TARGET,
-						ECOMMUNITY_FORMAT_DISPLAY);
+						      (const uint8_t *)pnt,
+						      type & ~ECOMMUNITY_ENCODE_TRANS_EXP,
+						      ECOMMUNITY_ROUTE_TARGET,
+						      ECOMMUNITY_FORMAT_DISPLAY);
 				snprintf(encbuf, sizeof(encbuf),
 					 "FS:redirect VRF %s", buf);
 				snprintf(encbuf, sizeof(encbuf),
@@ -1238,7 +1214,7 @@ char *ecommunity_ecom2str(struct ecommunity *ecom, int format, int filter)
 			else if (sub_type == ECOMMUNITY_TRAFFIC_ACTION) {
 				char action[64];
 
-				if (*(pnt+3) ==
+				if (*(pnt + 3) ==
 				    1 << FLOWSPEC_TRAFFIC_ACTION_TERMINAL)
 					strlcpy(action, "terminate (apply)",
 						sizeof(action));
@@ -1246,7 +1222,7 @@ char *ecommunity_ecom2str(struct ecommunity *ecom, int format, int filter)
 					strlcpy(action, "eval stops",
 						sizeof(action));
 
-				if (*(pnt+3) ==
+				if (*(pnt + 3) ==
 				    1 << FLOWSPEC_TRAFFIC_ACTION_SAMPLE)
 					strlcat(action, ", sample",
 						sizeof(action));
@@ -1257,10 +1233,10 @@ char *ecommunity_ecom2str(struct ecommunity *ecom, int format, int filter)
 			} else if (sub_type == ECOMMUNITY_TRAFFIC_RATE) {
 				union traffic_rate data;
 
-				data.rate_byte[3] = *(pnt+2);
-				data.rate_byte[2] = *(pnt+3);
-				data.rate_byte[1] = *(pnt+4);
-				data.rate_byte[0] = *(pnt+5);
+				data.rate_byte[3] = *(pnt + 2);
+				data.rate_byte[2] = *(pnt + 3);
+				data.rate_byte[1] = *(pnt + 4);
+				data.rate_byte[0] = *(pnt + 5);
 				snprintf(encbuf, sizeof(encbuf), "FS:rate %f",
 					 data.rate_float);
 			} else if (sub_type == ECOMMUNITY_TRAFFIC_MARKING) {
@@ -1278,15 +1254,17 @@ char *ecommunity_ecom2str(struct ecommunity *ecom, int format, int filter)
 		} else if (type == ECOMMUNITY_ENCODE_IP_NON_TRANS) {
 			sub_type = *pnt++;
 			if (sub_type == ECOMMUNITY_NODE_TARGET)
-				ecommunity_node_target_str(
-					encbuf, sizeof(encbuf), pnt, format);
+				ecommunity_node_target_str(encbuf,
+							   sizeof(encbuf), pnt,
+							   format);
 			else
 				unk_ecom = 1;
 		} else if (type == ECOMMUNITY_ENCODE_OPAQUE_NON_TRANS) {
 			sub_type = *pnt++;
 			if (sub_type == ECOMMUNITY_ORIGIN_VALIDATION_STATE)
-				ecommunity_origin_validation_state_str(
-					encbuf, sizeof(encbuf), pnt);
+				ecommunity_origin_validation_state_str(encbuf,
+								       sizeof(encbuf),
+								       pnt);
 			else
 				unk_ecom = 1;
 		} else {
@@ -1341,8 +1319,7 @@ bool ecommunity_match(const struct ecommunity *ecom1,
 	while (i < ecom1->size && j < ecom2->size) {
 		if (memcmp(ecom1->val + i * ecom1->unit_size,
 			   ecom2->val + j * ecom2->unit_size,
-			   ecom2->unit_size)
-		    == 0)
+			   ecom2->unit_size) == 0)
 			j++;
 		i++;
 	}
@@ -1375,8 +1352,7 @@ extern struct ecommunity_val *ecommunity_lookup(const struct ecommunity *ecom,
 /* remove ext. community matching type and subtype
  * return 1 on success ( removed ), 0 otherwise (not present)
  */
-bool ecommunity_strip(struct ecommunity *ecom, uint8_t type,
-		      uint8_t subtype)
+bool ecommunity_strip(struct ecommunity *ecom, uint8_t type, uint8_t subtype)
 {
 	uint8_t *p, *q, *new;
 	uint32_t c, found = 0;
@@ -1461,8 +1437,7 @@ bool ecommunity_del_val(struct ecommunity *ecom, struct ecommunity_val *eval)
 }
 
 int ecommunity_fill_pbr_action(struct ecommunity_val *ecom_eval,
-			       struct bgp_pbr_entry_action *api,
-			       afi_t afi)
+			       struct bgp_pbr_entry_action *api, afi_t afi)
 {
 	if (ecom_eval->val[1] == ECOMMUNITY_TRAFFIC_RATE) {
 		api->action = ACTION_TRAFFICRATE;
@@ -1502,8 +1477,8 @@ int ecommunity_fill_pbr_action(struct ecommunity_val *ecom_eval,
 		 * in the 'Network Address of Next- Hop'
 		 * field of the associated MP_REACH_NLRI.
 		 */
-		struct ecommunity_ip *ip_ecom = (struct ecommunity_ip *)
-			ecom_eval + 2;
+		struct ecommunity_ip *ip_ecom =
+			(struct ecommunity_ip *)ecom_eval + 2;
 
 		api->u.zr.redirect_ip_v4 = ip_ecom->ip;
 	} else
@@ -1511,9 +1486,9 @@ int ecommunity_fill_pbr_action(struct ecommunity_val *ecom_eval,
 	return 0;
 }
 
-static struct ecommunity *bgp_aggr_ecommunity_lookup(
-						struct bgp_aggregate *aggregate,
-						struct ecommunity *ecommunity)
+static struct ecommunity *
+bgp_aggr_ecommunity_lookup(struct bgp_aggregate *aggregate,
+			   struct ecommunity *ecommunity)
 {
 	return hash_lookup(aggregate->ecommunity_hash, ecommunity);
 }
@@ -1533,8 +1508,8 @@ static void bgp_aggr_ecommunity_prepare(struct hash_bucket *hb, void *arg)
 	struct ecommunity **aggr_ecommunity = arg;
 
 	if (*aggr_ecommunity)
-		*aggr_ecommunity = ecommunity_merge(*aggr_ecommunity,
-						    hb_ecommunity);
+		*aggr_ecommunity =
+			ecommunity_merge(*aggr_ecommunity, hb_ecommunity);
 	else
 		*aggr_ecommunity = ecommunity_dup(hb_ecommunity);
 }
@@ -1565,17 +1540,17 @@ void bgp_compute_aggregate_ecommunity_hash(struct bgp_aggregate *aggregate,
 	/* Create hash if not already created.
 	 */
 	if (aggregate->ecommunity_hash == NULL)
-		aggregate->ecommunity_hash = hash_create(
-					ecommunity_hash_make, ecommunity_cmp,
-					"BGP Aggregator ecommunity hash");
+		aggregate->ecommunity_hash =
+			hash_create(ecommunity_hash_make, ecommunity_cmp,
+				    "BGP Aggregator ecommunity hash");
 
 	aggr_ecommunity = bgp_aggr_ecommunity_lookup(aggregate, ecommunity);
 	if (aggr_ecommunity == NULL) {
 		/* Insert ecommunity into hash.
 		 */
-		aggr_ecommunity = hash_get(aggregate->ecommunity_hash,
-					   ecommunity,
-					   bgp_aggr_ecommunty_hash_alloc);
+		aggr_ecommunity =
+			hash_get(aggregate->ecommunity_hash, ecommunity,
+				 bgp_aggr_ecommunty_hash_alloc);
 	}
 
 	/* Increment reference counter.
@@ -1594,8 +1569,7 @@ void bgp_compute_aggregate_ecommunity_val(struct bgp_aggregate *aggregate)
 	 */
 	if (aggregate->ecommunity)
 		ecommunity_free(&aggregate->ecommunity);
-	if (aggregate->ecommunity_hash
-	    && aggregate->ecommunity_hash->count) {
+	if (aggregate->ecommunity_hash && aggregate->ecommunity_hash->count) {
 		hash_iterate(aggregate->ecommunity_hash,
 			     bgp_aggr_ecommunity_prepare,
 			     &aggregate->ecommunity);
@@ -1612,9 +1586,7 @@ void bgp_remove_ecommunity_from_aggregate(struct bgp_aggregate *aggregate,
 	struct ecommunity *aggr_ecommunity = NULL;
 	struct ecommunity *ret_ecomm = NULL;
 
-	if ((!aggregate)
-	    || (!aggregate->ecommunity_hash)
-	    || (!ecommunity))
+	if ((!aggregate) || (!aggregate->ecommunity_hash) || (!ecommunity))
 		return;
 
 	/* Look-up the ecommunity in the hash.
@@ -1639,9 +1611,7 @@ void bgp_remove_ecomm_from_aggregate_hash(struct bgp_aggregate *aggregate,
 	struct ecommunity *aggr_ecommunity = NULL;
 	struct ecommunity *ret_ecomm = NULL;
 
-	if ((!aggregate)
-	    || (!aggregate->ecommunity_hash)
-	    || (!ecommunity))
+	if ((!aggregate) || (!aggregate->ecommunity_hash) || (!ecommunity))
 		return;
 
 	/* Look-up the ecommunity in the hash.

@@ -151,7 +151,7 @@ struct nhg_hash_entry {
 enum nhg_type {
 	NHG_TYPE_L3 = 0,
 	NHG_TYPE_L2_NH, /* NHs in a L2 NHG used as a MAC/FDB dest */
-	NHG_TYPE_L2,    /* L2 NHG used as a MAC/FDB dest */
+	NHG_TYPE_L2,	/* L2 NHG used as a MAC/FDB dest */
 };
 
 /* Was this one we created, either this session or previously? */
@@ -267,8 +267,7 @@ extern struct nhg_hash_entry *zebra_nhg_resolve(struct nhg_hash_entry *nhe);
 extern unsigned int zebra_nhg_depends_count(const struct nhg_hash_entry *nhe);
 extern bool zebra_nhg_depends_is_empty(const struct nhg_hash_entry *nhe);
 
-extern unsigned int
-zebra_nhg_dependents_count(const struct nhg_hash_entry *nhe);
+extern unsigned int zebra_nhg_dependents_count(const struct nhg_hash_entry *nhe);
 extern bool zebra_nhg_dependents_is_empty(const struct nhg_hash_entry *nhe);
 
 /* Lookup ID, doesn't create */
@@ -293,8 +292,7 @@ void nhg_ctx_free(struct nhg_ctx **ctx);
 extern int zebra_nhg_kernel_find(uint32_t id, struct nexthop *nh,
 				 struct nh_grp *grp, uint8_t count,
 				 vrf_id_t vrf_id, afi_t afi, int type,
-				 int startup,
-				 struct nhg_resilience *resilience);
+				 int startup, struct nhg_resilience *resilience);
 /* Del via kernel */
 extern int zebra_nhg_kernel_del(uint32_t id, vrf_id_t vrf_id);
 
@@ -304,8 +302,8 @@ extern struct nhg_hash_entry *zebra_nhg_rib_find(uint32_t id,
 						 afi_t rt_afi, int type);
 
 /* Find an nhe based on a route's nhe, used during route creation */
-struct nhg_hash_entry *
-zebra_nhg_rib_find_nhe(struct nhg_hash_entry *rt_nhe, afi_t rt_afi);
+struct nhg_hash_entry *zebra_nhg_rib_find_nhe(struct nhg_hash_entry *rt_nhe,
+					      afi_t rt_afi);
 
 
 /**
@@ -324,8 +322,7 @@ zebra_nhg_rib_find_nhe(struct nhg_hash_entry *rt_nhe, afi_t rt_afi);
  */
 struct nhg_hash_entry *zebra_nhg_proto_add(uint32_t id, int type,
 					   uint16_t instance, uint32_t session,
-					   struct nexthop_group *nhg,
-					   afi_t afi);
+					   struct nexthop_group *nhg, afi_t afi);
 
 /*
  * Del NHE.
@@ -380,11 +377,11 @@ struct route_entry; /* Forward ref to avoid circular includes */
 extern int nexthop_active_update(struct route_node *rn, struct route_entry *re);
 
 #ifdef _FRR_ATTRIBUTE_PRINTFRR
-#pragma FRR printfrr_ext "%pNG" (const struct nhg_hash_entry *)
+#pragma FRR printfrr_ext "%pNG"(const struct nhg_hash_entry *)
 #endif
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif	/* __ZEBRA_NHG_H__ */
+#endif /* __ZEBRA_NHG_H__ */

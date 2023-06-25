@@ -20,7 +20,7 @@ extern void ospf_ti_lfa_generate_p_spaces(struct ospf_area *area,
 extern void ospf_ti_lfa_insert_backup_paths(struct ospf_area *area,
 					    struct route_table *new_table);
 extern void ospf_ti_lfa_free_p_spaces(struct ospf_area *area);
-void ospf_print_protected_resource(
-	struct protected_resource *protected_resource, char *buf);
+void ospf_print_protected_resource(struct protected_resource *protected_resource,
+				   char *buf);
 
 #endif /* _OSPF_TI_LFA_H */

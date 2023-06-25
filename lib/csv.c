@@ -478,8 +478,7 @@ csv_record_t *csv_concat_record(csv_t *csv, csv_record_t *rec1,
 	csv_record_t *rec;
 
 	/* first check if rec1 and rec2 belong to this csv */
-	if (!csv_is_record_valid(csv, rec1)
-	    || !csv_is_record_valid(csv, rec2)) {
+	if (!csv_is_record_valid(csv, rec1) || !csv_is_record_valid(csv, rec2)) {
 		log_error("rec1 and/or rec2 invalid\n");
 		return NULL;
 	}
@@ -528,8 +527,8 @@ csv_record_t *csv_concat_record(csv_t *csv, csv_record_t *rec1,
 	rec->rec_len = strlen(curr);
 
 	/* paranoia */
-	assert(csv->buflen
-	       > (csv->csv_len - rec1->rec_len - rec2->rec_len + rec->rec_len));
+	assert(csv->buflen >
+	       (csv->csv_len - rec1->rec_len - rec2->rec_len + rec->rec_len));
 
 	/* decode record into fields */
 	csv_decode_record(rec);

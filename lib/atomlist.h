@@ -29,8 +29,8 @@ extern "C" {
  */
 
 /* atomic_atomptr_t may look a bit odd, it's for the sake of C++ compat */
-typedef uintptr_t		atomptr_t;
-typedef atomic_uintptr_t	atomic_atomptr_t;
+typedef uintptr_t atomptr_t;
+typedef atomic_uintptr_t atomic_atomptr_t;
 
 #define ATOMPTR_MASK (UINTPTR_MAX - 3)
 #define ATOMPTR_LOCK (1)
@@ -77,12 +77,13 @@ static inline bool atomptr_u(atomptr_t val)
  * correctly.
  */
 #ifdef WNO_ATOMLIST_UNSAFE_FIND
-# define atomic_find_warn
+#define atomic_find_warn
 #else
-# define atomic_find_warn __attribute__((_DEPRECATED( \
-	"WARNING: find() on atomic lists cannot be atomic by principle; " \
-	"check code to make sure usage pattern is OK and if it is, use " \
-	"#define WNO_ATOMLIST_UNSAFE_FIND")))
+#define atomic_find_warn                                                          \
+	__attribute__((_DEPRECATED(                                               \
+		"WARNING: find() on atomic lists cannot be atomic by principle; " \
+		"check code to make sure usage pattern is OK and if it is, use "  \
+		"#define WNO_ATOMLIST_UNSAFE_FIND")))
 #endif
 
 
@@ -119,49 +120,79 @@ struct atomlist_head {
  * DECLARE_ATOMLIST(namelist, struct name, nlitem);
  */
 #define PREDECL_ATOMLIST(prefix)                                               \
-struct prefix ## _head { struct atomlist_head ah; };                           \
-struct prefix ## _item { struct atomlist_item ai; };                           \
-MACRO_REQUIRE_SEMICOLON() /* end */
+	struct prefix##_head {                                                 \
+		struct atomlist_head ah;                                       \
+	};                                                                     \
+	struct prefix##_item {                                                 \
+		struct atomlist_item ai;                                       \
+	};                                                                     \
+	MACRO_REQUIRE_SEMICOLON() /* end */
 
-#define INIT_ATOMLIST(var) { }
+#define INIT_ATOMLIST(var)                                                     \
+	{                                                                      \
+	}
 
-#define DECLARE_ATOMLIST(prefix, type, field)                                  \
-macro_inline void prefix ## _add_head(struct prefix##_head *h, type *item)     \
-{	atomlist_add_head(&h->ah, &item->field.ai); }                          \
-macro_inline void prefix ## _add_tail(struct prefix##_head *h, type *item)     \
-{	atomlist_add_tail(&h->ah, &item->field.ai); }                          \
-macro_inline void prefix ## _del_hint(struct prefix##_head *h, type *item,     \
-		atomic_atomptr_t *hint)                                        \
-{	atomlist_del_hint(&h->ah, &item->field.ai, hint); }                    \
-macro_inline type *prefix ## _del(struct prefix##_head *h, type *item)         \
-{	atomlist_del_hint(&h->ah, &item->field.ai, NULL);                      \
-	/* TODO: Return NULL if not found */                                   \
-	return item; }                                                         \
-macro_inline type *prefix ## _pop(struct prefix##_head *h)                     \
-{	char *p = (char *)atomlist_pop(&h->ah);                                \
-	return p ? (type *)(p - offsetof(type, field)) : NULL; }               \
-macro_inline type *prefix ## _first(struct prefix##_head *h)                   \
-{	char *p = atomptr_p(atomic_load_explicit(&h->ah.first,                 \
-				memory_order_acquire));                        \
-	return p ? (type *)(p - offsetof(type, field)) : NULL; }               \
-macro_inline type *prefix ## _next(struct prefix##_head *h, type *item)        \
-{	char *p = atomptr_p(atomic_load_explicit(&item->field.ai.next,         \
-				memory_order_acquire));                        \
-	return p ? (type *)(p - offsetof(type, field)) : NULL; }               \
-macro_inline type *prefix ## _next_safe(struct prefix##_head *h, type *item)   \
-{	return item ? prefix##_next(h, item) : NULL; }                         \
-macro_inline size_t prefix ## _count(struct prefix##_head *h)                  \
-{	return atomic_load_explicit(&h->ah.count, memory_order_relaxed); }     \
-macro_inline void prefix ## _init(struct prefix##_head *h)                     \
-{                                                                              \
-	memset(h, 0, sizeof(*h));                                              \
-}                                                                              \
-macro_inline void prefix ## _fini(struct prefix##_head *h)                     \
-{                                                                              \
-	assert(prefix ## _count(h) == 0);                                      \
-	memset(h, 0, sizeof(*h));                                              \
-}                                                                              \
-MACRO_REQUIRE_SEMICOLON() /* end */
+#define DECLARE_ATOMLIST(prefix, type, field)                                   \
+	macro_inline void prefix##_add_head(struct prefix##_head *h,            \
+					    type *item)                         \
+	{                                                                       \
+		atomlist_add_head(&h->ah, &item->field.ai);                     \
+	}                                                                       \
+	macro_inline void prefix##_add_tail(struct prefix##_head *h,            \
+					    type *item)                         \
+	{                                                                       \
+		atomlist_add_tail(&h->ah, &item->field.ai);                     \
+	}                                                                       \
+	macro_inline void prefix##_del_hint(struct prefix##_head *h,            \
+					    type *item, atomic_atomptr_t *hint) \
+	{                                                                       \
+		atomlist_del_hint(&h->ah, &item->field.ai, hint);               \
+	}                                                                       \
+	macro_inline type *prefix##_del(struct prefix##_head *h, type *item)    \
+	{                                                                       \
+		atomlist_del_hint(&h->ah, &item->field.ai, NULL);               \
+		/* TODO: Return NULL if not found */                            \
+		return item;                                                    \
+	}                                                                       \
+	macro_inline type *prefix##_pop(struct prefix##_head *h)                \
+	{                                                                       \
+		char *p = (char *)atomlist_pop(&h->ah);                         \
+		return p ? (type *)(p - offsetof(type, field)) : NULL;          \
+	}                                                                       \
+	macro_inline type *prefix##_first(struct prefix##_head *h)              \
+	{                                                                       \
+		char *p =                                                       \
+			atomptr_p(atomic_load_explicit(&h->ah.first,            \
+						       memory_order_acquire));  \
+		return p ? (type *)(p - offsetof(type, field)) : NULL;          \
+	}                                                                       \
+	macro_inline type *prefix##_next(struct prefix##_head *h, type *item)   \
+	{                                                                       \
+		char *p =                                                       \
+			atomptr_p(atomic_load_explicit(&item->field.ai.next,    \
+						       memory_order_acquire));  \
+		return p ? (type *)(p - offsetof(type, field)) : NULL;          \
+	}                                                                       \
+	macro_inline type *prefix##_next_safe(struct prefix##_head *h,          \
+					      type *item)                       \
+	{                                                                       \
+		return item ? prefix##_next(h, item) : NULL;                    \
+	}                                                                       \
+	macro_inline size_t prefix##_count(struct prefix##_head *h)             \
+	{                                                                       \
+		return atomic_load_explicit(&h->ah.count,                       \
+					    memory_order_relaxed);              \
+	}                                                                       \
+	macro_inline void prefix##_init(struct prefix##_head *h)                \
+	{                                                                       \
+		memset(h, 0, sizeof(*h));                                       \
+	}                                                                       \
+	macro_inline void prefix##_fini(struct prefix##_head *h)                \
+	{                                                                       \
+		assert(prefix##_count(h) == 0);                                 \
+		memset(h, 0, sizeof(*h));                                       \
+	}                                                                       \
+	MACRO_REQUIRE_SEMICOLON() /* end */
 
 /* add_head:
  * - contention on ->first pointer
@@ -187,7 +218,7 @@ void atomlist_add_tail(struct atomlist_head *h, struct atomlist_item *item);
  * reads starting later.
  */
 void atomlist_del_hint(struct atomlist_head *h, struct atomlist_item *item,
-		atomic_atomptr_t *hint);
+		       atomic_atomptr_t *hint);
 
 /* pop:
  *
@@ -196,7 +227,6 @@ void atomlist_del_hint(struct atomlist_head *h, struct atomlist_item *item,
  * reads starting later.
  */
 struct atomlist_item *atomlist_pop(struct atomlist_head *h);
-
 
 
 struct atomsort_item {
@@ -210,149 +240,156 @@ struct atomsort_head {
 };
 
 #define _PREDECL_ATOMSORT(prefix)                                              \
-struct prefix ## _head { struct atomsort_head ah; };                           \
-struct prefix ## _item { struct atomsort_item ai; };                           \
-MACRO_REQUIRE_SEMICOLON() /* end */
+	struct prefix##_head {                                                 \
+		struct atomsort_head ah;                                       \
+	};                                                                     \
+	struct prefix##_item {                                                 \
+		struct atomsort_item ai;                                       \
+	};                                                                     \
+	MACRO_REQUIRE_SEMICOLON() /* end */
 
-#define INIT_ATOMSORT_UNIQ(var)		{ }
-#define INIT_ATOMSORT_NONUNIQ(var)	{ }
+#define INIT_ATOMSORT_UNIQ(var)                                                \
+	{                                                                      \
+	}
+#define INIT_ATOMSORT_NONUNIQ(var)                                             \
+	{                                                                      \
+	}
 
-#define _DECLARE_ATOMSORT(prefix, type, field, cmpfn_nuq, cmpfn_uq)            \
-macro_inline void prefix ## _init(struct prefix##_head *h)                     \
-{                                                                              \
-	memset(h, 0, sizeof(*h));                                              \
-}                                                                              \
-macro_inline void prefix ## _fini(struct prefix##_head *h)                     \
-{                                                                              \
-	assert(h->ah.count == 0);                                              \
-	memset(h, 0, sizeof(*h));                                              \
-}                                                                              \
-macro_inline type *prefix ## _add(struct prefix##_head *h, type *item)         \
-{                                                                              \
-	struct atomsort_item *p;                                               \
-	p = atomsort_add(&h->ah, &item->field.ai, cmpfn_uq);                   \
-	return container_of_null(p, type, field.ai);                           \
-}                                                                              \
-macro_inline type *prefix ## _first(struct prefix##_head *h)                   \
-{                                                                              \
-	struct atomsort_item *p;                                               \
-	p = atomptr_p(atomic_load_explicit(&h->ah.first,                       \
-				memory_order_acquire));                        \
-	return container_of_null(p, type, field.ai);                           \
-}                                                                              \
-macro_inline type *prefix ## _next(struct prefix##_head *h, type *item)        \
-{                                                                              \
-	struct atomsort_item *p;                                               \
-	p = atomptr_p(atomic_load_explicit(&item->field.ai.next,               \
-				memory_order_acquire));                        \
-	return container_of_null(p, type, field.ai);                           \
-}                                                                              \
-macro_inline type *prefix ## _next_safe(struct prefix##_head *h, type *item)   \
-{                                                                              \
-	return item ? prefix##_next(h, item) : NULL;                           \
-}                                                                              \
-atomic_find_warn                                                               \
-macro_inline type *prefix ## _find_gteq(struct prefix##_head *h,               \
-		const type *item)                                              \
-{                                                                              \
-	type *p = prefix ## _first(h);                                         \
-	while (p && cmpfn_nuq(&p->field.ai, &item->field.ai) < 0)              \
-		p = prefix ## _next(h, p);                                     \
-	return p;                                                              \
-}                                                                              \
-atomic_find_warn                                                               \
-macro_inline type *prefix ## _find_lt(struct prefix##_head *h,                 \
-		const type *item)                                              \
-{                                                                              \
-	type *p = prefix ## _first(h), *prev = NULL;                           \
-	while (p && cmpfn_nuq(&p->field.ai, &item->field.ai) < 0)              \
-		p = prefix ## _next(h, (prev = p));                            \
-	return prev;                                                           \
-}                                                                              \
-macro_inline void prefix ## _del_hint(struct prefix##_head *h, type *item,     \
-		atomic_atomptr_t *hint)                                        \
-{                                                                              \
-	atomsort_del_hint(&h->ah, &item->field.ai, hint);                      \
-}                                                                              \
-macro_inline type *prefix ## _del(struct prefix##_head *h, type *item)         \
-{                                                                              \
-	atomsort_del_hint(&h->ah, &item->field.ai, NULL);                      \
-	/* TODO: Return NULL if not found */                                   \
-	return item;                                                           \
-}                                                                              \
-macro_inline size_t prefix ## _count(struct prefix##_head *h)                  \
-{                                                                              \
-	return atomic_load_explicit(&h->ah.count, memory_order_relaxed);       \
-}                                                                              \
-macro_inline type *prefix ## _pop(struct prefix##_head *h)                     \
-{                                                                              \
-	struct atomsort_item *p = atomsort_pop(&h->ah);                        \
-	return p ? container_of(p, type, field.ai) : NULL;                     \
-}                                                                              \
-MACRO_REQUIRE_SEMICOLON() /* end */
+#define _DECLARE_ATOMSORT(prefix, type, field, cmpfn_nuq, cmpfn_uq)             \
+	macro_inline void prefix##_init(struct prefix##_head *h)                \
+	{                                                                       \
+		memset(h, 0, sizeof(*h));                                       \
+	}                                                                       \
+	macro_inline void prefix##_fini(struct prefix##_head *h)                \
+	{                                                                       \
+		assert(h->ah.count == 0);                                       \
+		memset(h, 0, sizeof(*h));                                       \
+	}                                                                       \
+	macro_inline type *prefix##_add(struct prefix##_head *h, type *item)    \
+	{                                                                       \
+		struct atomsort_item *p;                                        \
+		p = atomsort_add(&h->ah, &item->field.ai, cmpfn_uq);            \
+		return container_of_null(p, type, field.ai);                    \
+	}                                                                       \
+	macro_inline type *prefix##_first(struct prefix##_head *h)              \
+	{                                                                       \
+		struct atomsort_item *p;                                        \
+		p = atomptr_p(atomic_load_explicit(&h->ah.first,                \
+						   memory_order_acquire));      \
+		return container_of_null(p, type, field.ai);                    \
+	}                                                                       \
+	macro_inline type *prefix##_next(struct prefix##_head *h, type *item)   \
+	{                                                                       \
+		struct atomsort_item *p;                                        \
+		p = atomptr_p(atomic_load_explicit(&item->field.ai.next,        \
+						   memory_order_acquire));      \
+		return container_of_null(p, type, field.ai);                    \
+	}                                                                       \
+	macro_inline type *prefix##_next_safe(struct prefix##_head *h,          \
+					      type *item)                       \
+	{                                                                       \
+		return item ? prefix##_next(h, item) : NULL;                    \
+	}                                                                       \
+	atomic_find_warn macro_inline                                           \
+		type *prefix##_find_gteq(struct prefix##_head *h,               \
+					 const type *item)                      \
+	{                                                                       \
+		type *p = prefix##_first(h);                                    \
+		while (p && cmpfn_nuq(&p->field.ai, &item->field.ai) < 0)       \
+			p = prefix##_next(h, p);                                \
+		return p;                                                       \
+	}                                                                       \
+	atomic_find_warn macro_inline                                           \
+		type *prefix##_find_lt(struct prefix##_head *h,                 \
+				       const type *item)                        \
+	{                                                                       \
+		type *p = prefix##_first(h), *prev = NULL;                      \
+		while (p && cmpfn_nuq(&p->field.ai, &item->field.ai) < 0)       \
+			p = prefix##_next(h, (prev = p));                       \
+		return prev;                                                    \
+	}                                                                       \
+	macro_inline void prefix##_del_hint(struct prefix##_head *h,            \
+					    type *item, atomic_atomptr_t *hint) \
+	{                                                                       \
+		atomsort_del_hint(&h->ah, &item->field.ai, hint);               \
+	}                                                                       \
+	macro_inline type *prefix##_del(struct prefix##_head *h, type *item)    \
+	{                                                                       \
+		atomsort_del_hint(&h->ah, &item->field.ai, NULL);               \
+		/* TODO: Return NULL if not found */                            \
+		return item;                                                    \
+	}                                                                       \
+	macro_inline size_t prefix##_count(struct prefix##_head *h)             \
+	{                                                                       \
+		return atomic_load_explicit(&h->ah.count,                       \
+					    memory_order_relaxed);              \
+	}                                                                       \
+	macro_inline type *prefix##_pop(struct prefix##_head *h)                \
+	{                                                                       \
+		struct atomsort_item *p = atomsort_pop(&h->ah);                 \
+		return p ? container_of(p, type, field.ai) : NULL;              \
+	}                                                                       \
+	MACRO_REQUIRE_SEMICOLON() /* end */
 
-#define PREDECL_ATOMSORT_UNIQ(prefix)                                          \
-	_PREDECL_ATOMSORT(prefix)
+#define PREDECL_ATOMSORT_UNIQ(prefix) _PREDECL_ATOMSORT(prefix)
 #define DECLARE_ATOMSORT_UNIQ(prefix, type, field, cmpfn)                      \
                                                                                \
-macro_inline int prefix ## __cmp(const struct atomsort_item *a,                \
-		const struct atomsort_item *b)                                 \
-{                                                                              \
-	return cmpfn(container_of(a, type, field.ai),                          \
-			container_of(b, type, field.ai));                      \
-}                                                                              \
+	macro_inline int prefix##__cmp(const struct atomsort_item *a,          \
+				       const struct atomsort_item *b)          \
+	{                                                                      \
+		return cmpfn(container_of(a, type, field.ai),                  \
+			     container_of(b, type, field.ai));                 \
+	}                                                                      \
                                                                                \
-_DECLARE_ATOMSORT(prefix, type, field,                                         \
-		prefix ## __cmp, prefix ## __cmp);                             \
+	_DECLARE_ATOMSORT(prefix, type, field, prefix##__cmp, prefix##__cmp);  \
                                                                                \
-atomic_find_warn                                                               \
-macro_inline type *prefix ## _find(struct prefix##_head *h, const type *item)  \
-{                                                                              \
-	type *p = prefix ## _first(h);                                         \
-	int cmpval = 0;                                                        \
-	while (p && (cmpval = cmpfn(p, item)) < 0)                             \
-		p = prefix ## _next(h, p);                                     \
-	if (!p || cmpval > 0)                                                  \
-		return NULL;                                                   \
-	return p;                                                              \
-}                                                                              \
-MACRO_REQUIRE_SEMICOLON() /* end */
+	atomic_find_warn macro_inline                                          \
+		type *prefix##_find(struct prefix##_head *h, const type *item) \
+	{                                                                      \
+		type *p = prefix##_first(h);                                   \
+		int cmpval = 0;                                                \
+		while (p && (cmpval = cmpfn(p, item)) < 0)                     \
+			p = prefix##_next(h, p);                               \
+		if (!p || cmpval > 0)                                          \
+			return NULL;                                           \
+		return p;                                                      \
+	}                                                                      \
+	MACRO_REQUIRE_SEMICOLON() /* end */
 
-#define PREDECL_ATOMSORT_NONUNIQ(prefix)                                       \
-	_PREDECL_ATOMSORT(prefix)
+#define PREDECL_ATOMSORT_NONUNIQ(prefix) _PREDECL_ATOMSORT(prefix)
 #define DECLARE_ATOMSORT_NONUNIQ(prefix, type, field, cmpfn)                   \
                                                                                \
-macro_inline int prefix ## __cmp(const struct atomsort_item *a,                \
-		const struct atomsort_item *b)                                 \
-{                                                                              \
-	return cmpfn(container_of(a, type, field.ai),                          \
-			container_of(b, type, field.ai));                      \
-}                                                                              \
-macro_inline int prefix ## __cmp_uq(const struct atomsort_item *a,             \
-		const struct atomsort_item *b)                                 \
-{                                                                              \
-	int cmpval = cmpfn(container_of(a, type, field.ai),                    \
-			container_of(b, type, field.ai));                      \
-	if (cmpval)                                                            \
-		return cmpval;                                                 \
-	if (a < b)                                                             \
-		return -1;                                                     \
-	if (a > b)                                                             \
-		return 1;                                                      \
-	return 0;                                                              \
-}                                                                              \
+	macro_inline int prefix##__cmp(const struct atomsort_item *a,          \
+				       const struct atomsort_item *b)          \
+	{                                                                      \
+		return cmpfn(container_of(a, type, field.ai),                  \
+			     container_of(b, type, field.ai));                 \
+	}                                                                      \
+	macro_inline int prefix##__cmp_uq(const struct atomsort_item *a,       \
+					  const struct atomsort_item *b)       \
+	{                                                                      \
+		int cmpval = cmpfn(container_of(a, type, field.ai),            \
+				   container_of(b, type, field.ai));           \
+		if (cmpval)                                                    \
+			return cmpval;                                         \
+		if (a < b)                                                     \
+			return -1;                                             \
+		if (a > b)                                                     \
+			return 1;                                              \
+		return 0;                                                      \
+	}                                                                      \
                                                                                \
-_DECLARE_ATOMSORT(prefix, type, field,                                         \
-		prefix ## __cmp, prefix ## __cmp_uq);                          \
-MACRO_REQUIRE_SEMICOLON() /* end */
+	_DECLARE_ATOMSORT(prefix, type, field, prefix##__cmp,                  \
+			  prefix##__cmp_uq);                                   \
+	MACRO_REQUIRE_SEMICOLON() /* end */
 
 struct atomsort_item *atomsort_add(struct atomsort_head *h,
-		struct atomsort_item *item, int (*cmpfn)(
-			const struct atomsort_item *,
-			const struct atomsort_item *));
+				   struct atomsort_item *item,
+				   int (*cmpfn)(const struct atomsort_item *,
+						const struct atomsort_item *));
 
-void atomsort_del_hint(struct atomsort_head *h,
-		struct atomsort_item *item, atomic_atomptr_t *hint);
+void atomsort_del_hint(struct atomsort_head *h, struct atomsort_item *item,
+		       atomic_atomptr_t *hint);
 
 struct atomsort_item *atomsort_pop(struct atomsort_head *h);
 

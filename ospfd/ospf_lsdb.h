@@ -30,18 +30,18 @@ struct ospf_lsdb {
 		for ((N) = route_top((T)); ((N)); ((N)) = route_next((N)))     \
 			if (((L) = (N)->info))
 
-#define ROUTER_LSDB(A)       ((A)->lsdb->type[OSPF_ROUTER_LSA].db)
-#define NETWORK_LSDB(A)	     ((A)->lsdb->type[OSPF_NETWORK_LSA].db)
-#define SUMMARY_LSDB(A)      ((A)->lsdb->type[OSPF_SUMMARY_LSA].db)
+#define ROUTER_LSDB(A) ((A)->lsdb->type[OSPF_ROUTER_LSA].db)
+#define NETWORK_LSDB(A) ((A)->lsdb->type[OSPF_NETWORK_LSA].db)
+#define SUMMARY_LSDB(A) ((A)->lsdb->type[OSPF_SUMMARY_LSA].db)
 #define ASBR_SUMMARY_LSDB(A) ((A)->lsdb->type[OSPF_ASBR_SUMMARY_LSA].db)
-#define EXTERNAL_LSDB(O)     ((O)->lsdb->type[OSPF_AS_EXTERNAL_LSA].db)
-#define NSSA_LSDB(A)         ((A)->lsdb->type[OSPF_AS_NSSA_LSA].db)
-#define OPAQUE_LINK_LSDB(A)  ((A)->lsdb->type[OSPF_OPAQUE_LINK_LSA].db)
-#define OPAQUE_AREA_LSDB(A)  ((A)->lsdb->type[OSPF_OPAQUE_AREA_LSA].db)
-#define OPAQUE_AS_LSDB(O)    ((O)->lsdb->type[OSPF_OPAQUE_AS_LSA].db)
+#define EXTERNAL_LSDB(O) ((O)->lsdb->type[OSPF_AS_EXTERNAL_LSA].db)
+#define NSSA_LSDB(A) ((A)->lsdb->type[OSPF_AS_NSSA_LSA].db)
+#define OPAQUE_LINK_LSDB(A) ((A)->lsdb->type[OSPF_OPAQUE_LINK_LSA].db)
+#define OPAQUE_AREA_LSDB(A) ((A)->lsdb->type[OSPF_OPAQUE_AREA_LSA].db)
+#define OPAQUE_AS_LSDB(O) ((O)->lsdb->type[OSPF_OPAQUE_AS_LSA].db)
 
-#define AREA_LSDB(A,T)       ((A)->lsdb->type[(T)].db)
-#define AS_LSDB(O,T)         ((O)->lsdb->type[(T)].db)
+#define AREA_LSDB(A, T) ((A)->lsdb->type[(T)].db)
+#define AS_LSDB(O, T) ((O)->lsdb->type[(T)].db)
 
 /* OSPF LSDB related functions. */
 extern struct ospf_lsdb *ospf_lsdb_new(void);

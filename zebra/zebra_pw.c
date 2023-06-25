@@ -135,8 +135,8 @@ struct zebra_pw *zebra_pw_find(struct zebra_vrf *zvrf, const char *ifname)
 static int zebra_pw_enabled(struct zebra_pw *pw)
 {
 	if (pw->protocol == ZEBRA_ROUTE_STATIC) {
-		if (pw->local_label == MPLS_NO_LABEL
-		    || pw->remote_label == MPLS_NO_LABEL || pw->af == AF_UNSPEC)
+		if (pw->local_label == MPLS_NO_LABEL ||
+		    pw->remote_label == MPLS_NO_LABEL || pw->af == AF_UNSPEC)
 			return 0;
 		return 1;
 	} else
@@ -202,9 +202,8 @@ static void zebra_pw_uninstall(struct zebra_pw *pw)
 void zebra_pw_install_failure(struct zebra_pw *pw, int pwstatus)
 {
 	if (IS_ZEBRA_DEBUG_PW)
-		zlog_debug(
-			"%u: failed installing pseudowire %s, scheduling retry in %u seconds",
-			pw->vrf_id, pw->ifname, PW_INSTALL_RETRY_INTERVAL);
+		zlog_debug("%u: failed installing pseudowire %s, scheduling retry in %u seconds",
+			   pw->vrf_id, pw->ifname, PW_INSTALL_RETRY_INTERVAL);
 
 	/* schedule to retry later */
 	EVENT_OFF(pw->install_retry_timer);
@@ -283,8 +282,8 @@ done:
 
 	if (fail_p || !found_p) {
 		if (IS_ZEBRA_DEBUG_PW)
-			zlog_debug("%s: unlabeled route for %s",
-				   __func__, pw->ifname);
+			zlog_debug("%s: unlabeled route for %s", __func__,
+				   pw->ifname);
 		return -1;
 	}
 
@@ -351,8 +350,8 @@ static int zebra_pw_check_reachability(const struct zebra_pw *pw)
 
 	if (!found_p) {
 		if (IS_ZEBRA_DEBUG_PW)
-			zlog_debug("%s: unlabeled route for %s",
-				   __func__, pw->ifname);
+			zlog_debug("%s: unlabeled route for %s", __func__,
+				   pw->ifname);
 		return -1;
 	}
 
@@ -396,11 +395,9 @@ void zebra_pw_exit(struct zebra_vrf *zvrf)
 	}
 }
 
-DEFUN_NOSH (pseudowire_if,
-	    pseudowire_if_cmd,
-	    "pseudowire IFNAME",
-	    "Static pseudowire configuration\n"
-	    "Pseudowire name\n")
+DEFUN_NOSH(pseudowire_if, pseudowire_if_cmd, "pseudowire IFNAME",
+	   "Static pseudowire configuration\n"
+	   "Pseudowire name\n")
 {
 	struct zebra_vrf *zvrf;
 	struct zebra_pw *pw;
@@ -427,12 +424,10 @@ DEFUN_NOSH (pseudowire_if,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_pseudowire_if,
-       no_pseudowire_if_cmd,
-       "no pseudowire IFNAME",
-       NO_STR
-       "Static pseudowire configuration\n"
-       "Pseudowire name\n")
+DEFUN(no_pseudowire_if, no_pseudowire_if_cmd, "no pseudowire IFNAME",
+      NO_STR
+      "Static pseudowire configuration\n"
+      "Pseudowire name\n")
 {
 	struct zebra_vrf *zvrf;
 	struct zebra_pw *pw;
@@ -458,16 +453,15 @@ DEFUN (no_pseudowire_if,
 	return CMD_SUCCESS;
 }
 
-DEFUN (pseudowire_labels,
-       pseudowire_labels_cmd,
-       "[no] mpls label local (16-1048575) remote (16-1048575)",
-       NO_STR
-       "MPLS L2VPN PW command\n"
-       "MPLS L2VPN static labels\n"
-       "Local pseudowire label\n"
-       "Local pseudowire label\n"
-       "Remote pseudowire label\n"
-       "Remote pseudowire label\n")
+DEFUN(pseudowire_labels, pseudowire_labels_cmd,
+      "[no] mpls label local (16-1048575) remote (16-1048575)",
+      NO_STR
+      "MPLS L2VPN PW command\n"
+      "MPLS L2VPN static labels\n"
+      "Local pseudowire label\n"
+      "Local pseudowire label\n"
+      "Remote pseudowire label\n"
+      "Remote pseudowire label\n")
 {
 	VTY_DECLVAR_CONTEXT(zebra_pw, pw);
 	int idx = 0;
@@ -489,13 +483,12 @@ DEFUN (pseudowire_labels,
 	return CMD_SUCCESS;
 }
 
-DEFUN (pseudowire_neighbor,
-       pseudowire_neighbor_cmd,
-       "[no] neighbor <A.B.C.D|X:X::X:X>",
-       NO_STR
-       "Specify the IPv4 or IPv6 address of the remote endpoint\n"
-       "IPv4 address\n"
-       "IPv6 address\n")
+DEFUN(pseudowire_neighbor, pseudowire_neighbor_cmd,
+      "[no] neighbor <A.B.C.D|X:X::X:X>",
+      NO_STR
+      "Specify the IPv4 or IPv6 address of the remote endpoint\n"
+      "IPv4 address\n"
+      "IPv6 address\n")
 {
 	VTY_DECLVAR_CONTEXT(zebra_pw, pw);
 	int idx = 0;
@@ -521,19 +514,17 @@ DEFUN (pseudowire_neighbor,
 	}
 
 	zebra_pw_change(pw, pw->ifindex, pw->type, af, &nexthop,
-			pw->local_label, pw->remote_label, pw->flags,
-			&pw->data);
+			pw->local_label, pw->remote_label, pw->flags, &pw->data);
 
 	return CMD_SUCCESS;
 }
 
-DEFUN (pseudowire_control_word,
-       pseudowire_control_word_cmd,
-       "[no] control-word <exclude|include>",
-       NO_STR
-       "Control-word options\n"
-       "Exclude control-word in pseudowire packets\n"
-       "Include control-word in pseudowire packets\n")
+DEFUN(pseudowire_control_word, pseudowire_control_word_cmd,
+      "[no] control-word <exclude|include>",
+      NO_STR
+      "Control-word options\n"
+      "Exclude control-word in pseudowire packets\n"
+      "Include control-word in pseudowire packets\n")
 {
 	VTY_DECLVAR_CONTEXT(zebra_pw, pw);
 	int idx = 0;
@@ -553,12 +544,8 @@ DEFUN (pseudowire_control_word,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_pseudowires,
-       show_pseudowires_cmd,
-       "show mpls pseudowires",
-       SHOW_STR
-       MPLS_STR
-       "Pseudowires\n")
+DEFUN(show_pseudowires, show_pseudowires_cmd, "show mpls pseudowires",
+      SHOW_STR MPLS_STR "Pseudowires\n")
 {
 	struct zebra_vrf *zvrf;
 	struct zebra_pw *pw;
@@ -576,8 +563,8 @@ DEFUN (show_pseudowires,
 
 		inet_ntop(pw->af, &pw->nexthop, buf_nbr, sizeof(buf_nbr));
 
-		if (pw->local_label != MPLS_NO_LABEL
-		    && pw->remote_label != MPLS_NO_LABEL)
+		if (pw->local_label != MPLS_NO_LABEL &&
+		    pw->remote_label != MPLS_NO_LABEL)
 			snprintf(buf_labels, sizeof(buf_labels), "%u/%u",
 				 pw->local_label, pw->remote_label);
 		else
@@ -628,8 +615,8 @@ static void vty_show_mpls_pseudowire_detail(struct vty *vty)
 			vty_out(vty, "  VC-ID: %u\n", pw->data.ldp.pwid);
 		vty_out(vty, "  Status: %s \n",
 			(zebra_pw_enabled(pw) && pw->status == PW_FORWARDING)
-			? "Up"
-			: "Down");
+				? "Up"
+				: "Down");
 		re = rib_match(family2afi(pw->af), SAFI_UNICAST, pw->vrf_id,
 			       &pw->nexthop, NULL);
 		if (re == NULL)
@@ -637,15 +624,13 @@ static void vty_show_mpls_pseudowire_detail(struct vty *vty)
 
 		nhg = rib_get_fib_nhg(re);
 		for (ALL_NEXTHOPS_PTR(nhg, nexthop)) {
-			snprintfrr(buf_nh, sizeof(buf_nh), "%pNHv",
-				   nexthop);
+			snprintfrr(buf_nh, sizeof(buf_nh), "%pNHv", nexthop);
 			vty_out(vty, "  Next Hop: %s\n", buf_nh);
 			if (nexthop->nh_label)
 				vty_out(vty, "  Next Hop label: %u\n",
 					nexthop->nh_label->label[0]);
 			else
-				vty_out(vty, "  Next Hop label: %s\n",
-					"-");
+				vty_out(vty, "  Next Hop label: %s\n", "-");
 		}
 
 		/* Include any installed backups */
@@ -654,15 +639,13 @@ static void vty_show_mpls_pseudowire_detail(struct vty *vty)
 			continue;
 
 		for (ALL_NEXTHOPS_PTR(nhg, nexthop)) {
-			snprintfrr(buf_nh, sizeof(buf_nh), "%pNHv",
-				   nexthop);
+			snprintfrr(buf_nh, sizeof(buf_nh), "%pNHv", nexthop);
 			vty_out(vty, "  Next Hop: %s\n", buf_nh);
 			if (nexthop->nh_label)
 				vty_out(vty, "  Next Hop label: %u\n",
 					nexthop->nh_label->label[0]);
 			else
-				vty_out(vty, "  Next Hop label: %s\n",
-					"-");
+				vty_out(vty, "  Next Hop label: %s\n", "-");
 		}
 	}
 }
@@ -700,10 +683,11 @@ static void vty_show_mpls_pseudowire(struct zebra_pw *pw, json_object *json_pws)
 			       zebra_route_string(pw->protocol));
 	if (pw->protocol == ZEBRA_ROUTE_LDP)
 		json_object_int_add(json_pw, "vcId", pw->data.ldp.pwid);
-	json_object_string_add(
-		json_pw, "Status",
-		(zebra_pw_enabled(pw) && pw->status == PW_FORWARDING) ? "Up"
-								      : "Down");
+	json_object_string_add(json_pw, "Status",
+			       (zebra_pw_enabled(pw) &&
+				pw->status == PW_FORWARDING)
+				       ? "Up"
+				       : "Down");
 	re = rib_match(family2afi(pw->af), SAFI_UNICAST, pw->vrf_id,
 		       &pw->nexthop, NULL);
 	if (re == NULL)
@@ -715,12 +699,10 @@ static void vty_show_mpls_pseudowire(struct zebra_pw *pw, json_object *json_pws)
 		snprintfrr(buf_nh, sizeof(buf_nh), "%pNHv", nexthop);
 		json_object_string_add(json_nexthop, "nexthop", buf_nh);
 		if (nexthop->nh_label)
-			json_object_int_add(
-				json_nexthop, "nhLabel",
-				nexthop->nh_label->label[0]);
+			json_object_int_add(json_nexthop, "nhLabel",
+					    nexthop->nh_label->label[0]);
 		else
-			json_object_string_add(json_nexthop, "nhLabel",
-					       "-");
+			json_object_string_add(json_nexthop, "nhLabel", "-");
 
 		json_object_array_add(json_nexthops, json_nexthop);
 	}
@@ -735,12 +717,10 @@ static void vty_show_mpls_pseudowire(struct zebra_pw *pw, json_object *json_pws)
 		snprintfrr(buf_nh, sizeof(buf_nh), "%pNHv", nexthop);
 		json_object_string_add(json_nexthop, "nexthop", buf_nh);
 		if (nexthop->nh_label)
-			json_object_int_add(
-				json_nexthop, "nhLabel",
-				nexthop->nh_label->label[0]);
+			json_object_int_add(json_nexthop, "nhLabel",
+					    nexthop->nh_label->label[0]);
 		else
-			json_object_string_add(json_nexthop, "nhLabel",
-					       "-");
+			json_object_string_add(json_nexthop, "nhLabel", "-");
 
 		json_object_array_add(json_nexthops, json_nexthop);
 	}
@@ -800,8 +780,8 @@ static int zebra_pw_config(struct vty *vty)
 
 	RB_FOREACH (pw, zebra_static_pw_head, &zvrf->static_pseudowires) {
 		vty_out(vty, "pseudowire %s\n", pw->ifname);
-		if (pw->local_label != MPLS_NO_LABEL
-		    && pw->remote_label != MPLS_NO_LABEL)
+		if (pw->local_label != MPLS_NO_LABEL &&
+		    pw->remote_label != MPLS_NO_LABEL)
 			vty_out(vty, " mpls label local %u remote %u\n",
 				pw->local_label, pw->remote_label);
 		else

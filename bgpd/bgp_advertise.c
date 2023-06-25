@@ -80,8 +80,7 @@ void bgp_advertise_free(struct bgp_advertise *adv)
 	XFREE(MTYPE_BGP_ADVERTISE, adv);
 }
 
-void bgp_advertise_add(struct bgp_advertise_attr *baa,
-		       struct bgp_advertise *adv)
+void bgp_advertise_add(struct bgp_advertise_attr *baa, struct bgp_advertise *adv)
 {
 	adv->next = baa->adv;
 	if (baa->adv)
@@ -107,8 +106,8 @@ struct bgp_advertise_attr *bgp_advertise_attr_intern(struct hash *hash,
 	struct bgp_advertise_attr *baa;
 
 	ref.attr = bgp_attr_intern(attr);
-	baa = (struct bgp_advertise_attr *)hash_get(
-		hash, &ref, bgp_advertise_attr_hash_alloc);
+	baa = (struct bgp_advertise_attr *)
+		hash_get(hash, &ref, bgp_advertise_attr_hash_alloc);
 	baa->refcnt++;
 
 	return baa;
@@ -152,13 +151,12 @@ bool bgp_adj_out_lookup(struct peer *peer, struct bgp_dest *dest,
 				 * using addpath for
 				 * this
 				 * peer and if an addpath_tx_id was specified */
-				if (addpath_capable && addpath_tx_id
-				    && adj->addpath_tx_id != addpath_tx_id)
+				if (addpath_capable && addpath_tx_id &&
+				    adj->addpath_tx_id != addpath_tx_id)
 					continue;
 
-				return (adj->adv
-						? (adj->adv->baa ? true : false)
-						: (adj->attr ? true : false));
+				return (adj->adv ? (adj->adv->baa ? true : false)
+						 : (adj->attr ? true : false));
 			}
 
 	return false;

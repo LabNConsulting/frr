@@ -27,8 +27,7 @@
 #include "clippy.h"
 
 struct wrap_graph;
-static PyObject *graph_to_pyobj(struct wrap_graph *graph,
-				struct graph_node *gn);
+static PyObject *graph_to_pyobj(struct wrap_graph *graph, struct graph_node *gn);
 
 /*
  * nodes are wrapped as follows:
@@ -86,7 +85,7 @@ static PyObject *refuse_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static PyMemberDef members_graph_node[] = {
 	member(allowrepeat, T_BOOL), member(type, T_STRING),
 	member(deprecated, T_BOOL),  member(hidden, T_BOOL),
-	member(text, T_STRING),      member(desc, T_STRING),
+	member(text, T_STRING),	     member(desc, T_STRING),
 	member(min, T_LONGLONG),     member(max, T_LONGLONG),
 	member(varname, T_STRING),   {},
 };
@@ -101,8 +100,8 @@ static PyObject *graph_node_next(PyObject *self, PyObject *args)
 	struct wrap_graph_node *wrap = (struct wrap_graph_node *)self;
 	PyObject *pylist;
 
-	if (wrap->node->data
-	    && ((struct cmd_token *)wrap->node->data)->type == END_TKN)
+	if (wrap->node->data &&
+	    ((struct cmd_token *)wrap->node->data)->type == END_TKN)
 		return PyList_New(0);
 	pylist = PyList_New(vector_active(wrap->node->to));
 	for (size_t i = 0; i < vector_active(wrap->node->to); i++) {
@@ -119,8 +118,8 @@ static PyObject *graph_node_join(PyObject *self, PyObject *args)
 {
 	struct wrap_graph_node *wrap = (struct wrap_graph_node *)self;
 
-	if (!wrap->node->data
-	    || ((struct cmd_token *)wrap->node->data)->type == END_TKN)
+	if (!wrap->node->data ||
+	    ((struct cmd_token *)wrap->node->data)->type == END_TKN)
 		Py_RETURN_NONE;
 
 	struct cmd_token *tok = wrap->node->data;
@@ -130,10 +129,11 @@ static PyObject *graph_node_join(PyObject *self, PyObject *args)
 	return graph_to_pyobj(wrap->wgraph, tok->forkjoin);
 };
 
-static PyMethodDef methods_graph_node[] = {
-	{"next", graph_node_next, METH_NOARGS, "outbound graph edge list"},
-	{"join", graph_node_join, METH_NOARGS, "outbound join node"},
-	{}};
+static PyMethodDef methods_graph_node[] = {{"next", graph_node_next, METH_NOARGS,
+					    "outbound graph edge list"},
+					   {"join", graph_node_join,
+					    METH_NOARGS, "outbound join node"},
+					   {}};
 
 static void graph_node_wrap_free(void *arg)
 {
@@ -153,8 +153,7 @@ static PyTypeObject typeobj_graph_node = {
 	.tp_methods = methods_graph_node,
 };
 
-static PyObject *graph_to_pyobj(struct wrap_graph *wgraph,
-				struct graph_node *gn)
+static PyObject *graph_to_pyobj(struct wrap_graph *wgraph, struct graph_node *gn)
 {
 	struct wrap_graph_node *wrap;
 	size_t i;
@@ -172,8 +171,8 @@ static PyObject *graph_to_pyobj(struct wrap_graph *wgraph,
 		return obj;
 	}
 
-	wrap = (struct wrap_graph_node *)typeobj_graph_node.tp_alloc(
-		&typeobj_graph_node, 0);
+	wrap = (struct wrap_graph_node *)
+		       typeobj_graph_node.tp_alloc(&typeobj_graph_node, 0);
 	if (!wrap)
 		return NULL;
 	wgraph->nodewrappers[i] = wrap;
@@ -246,12 +245,11 @@ static PyObject *graph_first(PyObject *self, PyObject *args)
 	return graph_to_pyobj(gwrap, gn);
 };
 
-static PyMethodDef methods_graph[] = {
-	{"first", graph_first, METH_NOARGS, "first graph node"},
-	{}};
+static PyMethodDef methods_graph[] = {{"first", graph_first, METH_NOARGS,
+				       "first graph node"},
+				      {}};
 
-static PyObject *graph_parse(PyTypeObject *type, PyObject *args,
-			     PyObject *kwds);
+static PyObject *graph_parse(PyTypeObject *type, PyObject *args, PyObject *kwds);
 
 static void graph_wrap_free(void *arg)
 {
@@ -303,9 +301,9 @@ static PyObject *graph_parse(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	return (PyObject *)gwrap;
 }
 
-static PyMethodDef clippy_methods[] = {
-	{"parse", clippy_parse, METH_VARARGS, "Parse a C file"},
-	{NULL, NULL, 0, NULL}};
+static PyMethodDef clippy_methods[] = {{"parse", clippy_parse, METH_VARARGS,
+					"Parse a C file"},
+				       {NULL, NULL, 0, NULL}};
 
 #if PY_MAJOR_VERSION >= 3
 static struct PyModuleDef pymoddef_clippy = {
@@ -341,10 +339,10 @@ PyMODINIT_FUNC command_py_init(void)
 	if (!pymod)
 		initret(NULL);
 
-	if (PyModule_AddIntMacro(pymod, CMD_ATTR_YANG)
-	    || PyModule_AddIntMacro(pymod, CMD_ATTR_HIDDEN)
-	    || PyModule_AddIntMacro(pymod, CMD_ATTR_DEPRECATED)
-	    || PyModule_AddIntMacro(pymod, CMD_ATTR_NOSH))
+	if (PyModule_AddIntMacro(pymod, CMD_ATTR_YANG) ||
+	    PyModule_AddIntMacro(pymod, CMD_ATTR_HIDDEN) ||
+	    PyModule_AddIntMacro(pymod, CMD_ATTR_DEPRECATED) ||
+	    PyModule_AddIntMacro(pymod, CMD_ATTR_NOSH))
 		initret(NULL);
 
 	Py_INCREF(&typeobj_graph_node);

@@ -9,27 +9,27 @@
 #include "jhash.h"
 
 /* Master Community-list. */
-#define COMMUNITY_LIST_MASTER          0
-#define EXTCOMMUNITY_LIST_MASTER       1
-#define LARGE_COMMUNITY_LIST_MASTER    2
+#define COMMUNITY_LIST_MASTER 0
+#define EXTCOMMUNITY_LIST_MASTER 1
+#define LARGE_COMMUNITY_LIST_MASTER 2
 
 /* Community-list deny and permit.  */
-#define COMMUNITY_DENY                 0
-#define COMMUNITY_PERMIT               1
+#define COMMUNITY_DENY 0
+#define COMMUNITY_PERMIT 1
 
 /* Number and string based community-list name.  */
-#define COMMUNITY_LIST_STRING          0
-#define COMMUNITY_LIST_NUMBER          1
+#define COMMUNITY_LIST_STRING 0
+#define COMMUNITY_LIST_NUMBER 1
 
-#define COMMUNITY_SEQ_NUMBER_AUTO     -1
+#define COMMUNITY_SEQ_NUMBER_AUTO -1
 
 /* Community-list entry types.  */
-#define COMMUNITY_LIST_STANDARD        0 /* Standard community-list.  */
-#define COMMUNITY_LIST_EXPANDED        1 /* Expanded community-list.  */
-#define EXTCOMMUNITY_LIST_STANDARD     2 /* Standard extcommunity-list.  */
-#define EXTCOMMUNITY_LIST_EXPANDED     3 /* Expanded extcommunity-list.  */
-#define LARGE_COMMUNITY_LIST_STANDARD  4 /* Standard Large community-list.  */
-#define LARGE_COMMUNITY_LIST_EXPANDED  5 /* Expanded Large community-list.  */
+#define COMMUNITY_LIST_STANDARD 0	/* Standard community-list.  */
+#define COMMUNITY_LIST_EXPANDED 1	/* Expanded community-list.  */
+#define EXTCOMMUNITY_LIST_STANDARD 2	/* Standard extcommunity-list.  */
+#define EXTCOMMUNITY_LIST_EXPANDED 3	/* Expanded extcommunity-list.  */
+#define LARGE_COMMUNITY_LIST_STANDARD 4 /* Standard Large community-list.  */
+#define LARGE_COMMUNITY_LIST_EXPANDED 5 /* Expanded Large community-list.  */
 
 /* Community-list.  */
 struct community_list {
@@ -109,10 +109,10 @@ struct community_list_handler {
 };
 
 /* Error code of community-list.  */
-#define COMMUNITY_LIST_ERR_CANT_FIND_LIST        -1
-#define COMMUNITY_LIST_ERR_MALFORMED_VAL         -2
-#define COMMUNITY_LIST_ERR_STANDARD_CONFLICT     -3
-#define COMMUNITY_LIST_ERR_EXPANDED_CONFLICT     -4
+#define COMMUNITY_LIST_ERR_CANT_FIND_LIST -1
+#define COMMUNITY_LIST_ERR_MALFORMED_VAL -2
+#define COMMUNITY_LIST_ERR_STANDARD_CONFLICT -3
+#define COMMUNITY_LIST_ERR_EXPANDED_CONFLICT -4
 
 /* Handler.  */
 extern struct community_list_handler *bgp_clist;

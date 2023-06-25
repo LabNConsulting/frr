@@ -167,43 +167,38 @@ static struct variable mpls_l3vpn_variables[] = {
 	 RONLY,
 	 mplsL3vpnConfiguredVrfs,
 	 3,
-	 {1, 1, 1} },
-	{MPLSL3VPNACTIVEVRFS,
-	 GAUGE32,
-	 RONLY,
-	 mplsL3vpnActiveVrfs,
-	 3,
-	 {1, 1, 2} },
+	 {1, 1, 1}},
+	{MPLSL3VPNACTIVEVRFS, GAUGE32, RONLY, mplsL3vpnActiveVrfs, 3, {1, 1, 2}},
 	{MPLSL3VPNCONNECTEDINTERFACES,
 	 GAUGE32,
 	 RONLY,
 	 mplsL3vpnConnectedInterfaces,
 	 3,
-	 {1, 1, 3} },
+	 {1, 1, 3}},
 	{MPLSL3VPNNOTIFICATIONENABLE,
 	 INTEGER,
 	 RWRITE,
 	 mplsL3vpnNotificationEnable,
 	 3,
-	 {1, 1, 4} },
+	 {1, 1, 4}},
 	{MPLSL3VPNCONFMAXPOSSRTS,
 	 GAUGE32,
 	 RONLY,
 	 mplsL3vpnVrfConfMaxPossRts,
 	 3,
-	 {1, 1, 5} },
+	 {1, 1, 5}},
 	{MPLSL3VPNVRFCONFRTEMXTHRSHTIME,
 	 GAUGE32,
 	 RONLY,
 	 mplsL3vpnVrfConfRteMxThrshTime,
 	 3,
-	 {1, 1, 6} },
+	 {1, 1, 6}},
 	{MPLSL3VPNILLLBLRCVTHRSH,
 	 GAUGE32,
 	 RONLY,
 	 mplsL3vpnIllLblRcvThrsh,
 	 3,
-	 {1, 1, 7} },
+	 {1, 1, 7}},
 
 	/* Ifconf Table */
 	{MPLSL3VPNIFVPNCLASSIFICATION,
@@ -211,19 +206,19 @@ static struct variable mpls_l3vpn_variables[] = {
 	 RONLY,
 	 mplsL3vpnIfConfTable,
 	 5,
-	 {1, 2, 1, 1, 2} },
+	 {1, 2, 1, 1, 2}},
 	{MPLSL3VPNIFCONFSTORAGETYPE,
 	 INTEGER,
 	 RONLY,
 	 mplsL3vpnIfConfTable,
 	 5,
-	 {1, 2, 1, 1, 4} },
+	 {1, 2, 1, 1, 4}},
 	{MPLSL3VPNIFCONFROWSTATUS,
 	 INTEGER,
 	 RONLY,
 	 mplsL3vpnIfConfTable,
 	 5,
-	 {1, 2, 1, 1, 5} },
+	 {1, 2, 1, 1, 5}},
 
 	/* mplsL3VpnVrf Table */
 	{MPLSL3VPNVRFVPNID,
@@ -231,85 +226,85 @@ static struct variable mpls_l3vpn_variables[] = {
 	 RONLY,
 	 mplsL3vpnVrfTable,
 	 5,
-	 {1, 2, 2, 1, 2} },
+	 {1, 2, 2, 1, 2}},
 	{MPLSL3VPNVRFDESC,
 	 OCTET_STRING,
 	 RONLY,
 	 mplsL3vpnVrfTable,
 	 5,
-	 {1, 2, 2, 1, 3} },
+	 {1, 2, 2, 1, 3}},
 	{MPLSL3VPNVRFRD,
 	 OCTET_STRING,
 	 RONLY,
 	 mplsL3vpnVrfTable,
 	 5,
-	 {1, 2, 2, 1, 4} },
+	 {1, 2, 2, 1, 4}},
 	{MPLSL3VPNVRFCREATIONTIME,
 	 TIMETICKS,
 	 RONLY,
 	 mplsL3vpnVrfTable,
 	 5,
-	 {1, 2, 2, 1, 5} },
+	 {1, 2, 2, 1, 5}},
 	{MPLSL3VPNVRFOPERSTATUS,
 	 INTEGER,
 	 RONLY,
 	 mplsL3vpnVrfTable,
 	 5,
-	 {1, 2, 2, 1, 6} },
+	 {1, 2, 2, 1, 6}},
 	{MPLSL3VPNVRFACTIVEINTERFACES,
 	 GAUGE32,
 	 RONLY,
 	 mplsL3vpnVrfTable,
 	 5,
-	 {1, 2, 2, 1, 7} },
+	 {1, 2, 2, 1, 7}},
 	{MPLSL3VPNVRFASSOCIATEDINTERFACES,
 	 GAUGE32,
 	 RONLY,
 	 mplsL3vpnVrfTable,
 	 5,
-	 {1, 2, 2, 1, 8} },
+	 {1, 2, 2, 1, 8}},
 	{MPLSL3VPNVRFCONFMIDRTETHRESH,
 	 GAUGE32,
 	 RONLY,
 	 mplsL3vpnVrfTable,
 	 5,
-	 {1, 2, 2, 1, 9} },
+	 {1, 2, 2, 1, 9}},
 	{MPLSL3VPNVRFCONFHIGHRTETHRSH,
 	 GAUGE32,
 	 RONLY,
 	 mplsL3vpnVrfTable,
 	 5,
-	 {1, 2, 2, 1, 10} },
+	 {1, 2, 2, 1, 10}},
 	{MPLSL3VPNVRFCONFMAXROUTES,
 	 GAUGE32,
 	 RONLY,
 	 mplsL3vpnVrfTable,
 	 5,
-	 {1, 2, 2, 1, 11} },
+	 {1, 2, 2, 1, 11}},
 	{MPLSL3VPNVRFCONFLASTCHANGED,
 	 TIMETICKS,
 	 RONLY,
 	 mplsL3vpnVrfTable,
 	 5,
-	 {1, 2, 2, 1, 12} },
+	 {1, 2, 2, 1, 12}},
 	{MPLSL3VPNVRFCONFROWSTATUS,
 	 INTEGER,
 	 RONLY,
 	 mplsL3vpnVrfTable,
 	 5,
-	 {1, 2, 2, 1, 13} },
+	 {1, 2, 2, 1, 13}},
 	{MPLSL3VPNVRFCONFADMINSTATUS,
 	 INTEGER,
 	 RONLY,
 	 mplsL3vpnVrfTable,
 	 5,
-	 {1, 2, 2, 1, 14} },
+	 {1, 2, 2, 1, 14}},
 	{MPLSL3VPNVRFCONFSTORAGETYPE,
 	 INTEGER,
 	 RONLY,
 	 mplsL3vpnVrfTable,
 	 5,
-	 {1, 2, 2, 1, 15} },
+	 {1, 2, 2, 1, 15}},
 
 	/* mplsL3vpnVrfRt Table */
 	{MPLSL3VPNVRFRT,
@@ -317,25 +312,25 @@ static struct variable mpls_l3vpn_variables[] = {
 	 RONLY,
 	 mplsL3vpnVrfRtTable,
 	 5,
-	 {1, 2, 3, 1, 4} },
+	 {1, 2, 3, 1, 4}},
 	{MPLSL3VPNVRFRTDESCR,
 	 OCTET_STRING,
 	 RONLY,
 	 mplsL3vpnVrfRtTable,
 	 5,
-	 {1, 2, 3, 1, 5} },
+	 {1, 2, 3, 1, 5}},
 	{MPLSL3VPNVRFRTROWSTATUS,
 	 INTEGER,
 	 RONLY,
 	 mplsL3vpnVrfRtTable,
 	 5,
-	 {1, 2, 3, 1, 6} },
+	 {1, 2, 3, 1, 6}},
 	{MPLSL3VPNVRFRTSTORAGETYPE,
 	 INTEGER,
 	 RONLY,
 	 mplsL3vpnVrfRtTable,
 	 5,
-	 {1, 2, 3, 1, 7} },
+	 {1, 2, 3, 1, 7}},
 
 	/* mplsL3VpnPerfTable */
 	{MPLSL3VPNVRFPERFROUTESADDED,
@@ -343,19 +338,19 @@ static struct variable mpls_l3vpn_variables[] = {
 	 RONLY,
 	 mplsL3vpnPerfTable,
 	 5,
-	 {1, 3, 1, 1, 1} },
+	 {1, 3, 1, 1, 1}},
 	{MPLSL3VPNVRFPERFROUTESDELETED,
 	 COUNTER32,
 	 RONLY,
 	 mplsL3vpnPerfTable,
 	 5,
-	 {1, 3, 1, 1, 2} },
+	 {1, 3, 1, 1, 2}},
 	{MPLSL3VPNVRFPERFCURRNUMROUTES,
 	 GAUGE32,
 	 RONLY,
 	 mplsL3vpnPerfTable,
 	 5,
-	 {1, 3, 1, 1, 3} },
+	 {1, 3, 1, 1, 3}},
 
 	/* mplsVpnRteTable */
 	{MPLSL3VPNVRFRTEINETCIDRDESTTYPE,
@@ -363,109 +358,109 @@ static struct variable mpls_l3vpn_variables[] = {
 	 RONLY,
 	 mplsL3vpnRteTable,
 	 5,
-	 {1, 4, 1, 1, 1} },
+	 {1, 4, 1, 1, 1}},
 	{MPLSL3VPNVRFRTEINETCIDRDEST,
 	 OCTET_STRING,
 	 RONLY,
 	 mplsL3vpnRteTable,
 	 5,
-	 {1, 4, 1, 1, 2} },
+	 {1, 4, 1, 1, 2}},
 	{MPLSL3VPNVRFRTEINETCIDRPFXLEN,
 	 GAUGE32,
 	 RONLY,
 	 mplsL3vpnRteTable,
 	 5,
-	 {1, 4, 1, 1, 3} },
+	 {1, 4, 1, 1, 3}},
 	{MPLSL3VPNVRFRTEINETCIDRPOLICY,
 	 OID,
 	 RONLY,
 	 mplsL3vpnRteTable,
 	 5,
-	 {1, 4, 1, 1, 4} },
+	 {1, 4, 1, 1, 4}},
 	{MPLSL3VPNVRFRTEINETCIDRNHOPTYPE,
 	 INTEGER,
 	 RONLY,
 	 mplsL3vpnRteTable,
 	 5,
-	 {1, 4, 1, 1, 5} },
+	 {1, 4, 1, 1, 5}},
 	{MPLSL3VPNVRFRTEINETCIDRNEXTHOP,
 	 OCTET_STRING,
 	 RONLY,
 	 mplsL3vpnRteTable,
 	 5,
-	 {1, 4, 1, 1, 6} },
+	 {1, 4, 1, 1, 6}},
 	{MPLSL3VPNVRFRTEINETCIDRIFINDEX,
 	 INTEGER,
 	 RONLY,
 	 mplsL3vpnRteTable,
 	 5,
-	 {1, 4, 1, 1, 7} },
+	 {1, 4, 1, 1, 7}},
 	{MPLSL3VPNVRFRTEINETCIDRTYPE,
 	 INTEGER,
 	 RONLY,
 	 mplsL3vpnRteTable,
 	 5,
-	 {1, 4, 1, 1, 8} },
+	 {1, 4, 1, 1, 8}},
 	{MPLSL3VPNVRFRTEINETCIDRPROTO,
 	 INTEGER,
 	 RONLY,
 	 mplsL3vpnRteTable,
 	 5,
-	 {1, 4, 1, 1, 9} },
+	 {1, 4, 1, 1, 9}},
 	{MPLSL3VPNVRFRTEINETCIDRAGE,
 	 GAUGE32,
 	 RONLY,
 	 mplsL3vpnRteTable,
 	 5,
-	 {1, 4, 1, 1, 10} },
+	 {1, 4, 1, 1, 10}},
 	{MPLSL3VPNVRFRTEINETCIDRNEXTHOPAS,
 	 GAUGE32,
 	 RONLY,
 	 mplsL3vpnRteTable,
 	 5,
-	 {1, 4, 1, 1, 11} },
+	 {1, 4, 1, 1, 11}},
 	{MPLSL3VPNVRFRTEINETCIDRMETRIC1,
 	 INTEGER,
 	 RONLY,
 	 mplsL3vpnRteTable,
 	 5,
-	 {1, 4, 1, 1, 12} },
+	 {1, 4, 1, 1, 12}},
 	{MPLSL3VPNVRFRTEINETCIDRMETRIC2,
 	 INTEGER,
 	 RONLY,
 	 mplsL3vpnRteTable,
 	 5,
-	 {1, 4, 1, 1, 13} },
+	 {1, 4, 1, 1, 13}},
 	{MPLSL3VPNVRFRTEINETCIDRMETRIC3,
 	 INTEGER,
 	 RONLY,
 	 mplsL3vpnRteTable,
 	 5,
-	 {1, 4, 1, 1, 14} },
+	 {1, 4, 1, 1, 14}},
 	{MPLSL3VPNVRFRTEINETCIDRMETRIC4,
 	 INTEGER,
 	 RONLY,
 	 mplsL3vpnRteTable,
 	 5,
-	 {1, 4, 1, 1, 15} },
+	 {1, 4, 1, 1, 15}},
 	{MPLSL3VPNVRFRTEINETCIDRMETRIC5,
 	 INTEGER,
 	 RONLY,
 	 mplsL3vpnRteTable,
 	 5,
-	 {1, 4, 1, 1, 16} },
+	 {1, 4, 1, 1, 16}},
 	{MPLSL3VPNVRFRTEINETCIDRXCPOINTER,
 	 OCTET_STRING,
 	 RONLY,
 	 mplsL3vpnRteTable,
 	 5,
-	 {1, 4, 1, 1, 17} },
+	 {1, 4, 1, 1, 17}},
 	{MPLSL3VPNVRFRTEINETCIDRSTATUS,
 	 INTEGER,
 	 RONLY,
 	 mplsL3vpnRteTable,
 	 5,
-	 {1, 4, 1, 1, 18} },
+	 {1, 4, 1, 1, 18}},
 };
 
 /* timeticks are in hundredths of a second */
@@ -480,8 +475,7 @@ static void bgp_mpls_l3vpn_update_timeticks(time_t *counter)
 static int bgp_mpls_l3vpn_update_last_changed(struct bgp *bgp)
 {
 	if (bgp->snmp_stats)
-		bgp_mpls_l3vpn_update_timeticks(
-			&(bgp->snmp_stats->modify_time));
+		bgp_mpls_l3vpn_update_timeticks(&(bgp->snmp_stats->modify_time));
 	return 0;
 }
 
@@ -511,8 +505,8 @@ static int bgp_init_snmp_stats(struct bgp *bgp)
 {
 	if (is_bgp_vrf_mplsvpn(bgp)) {
 		if (bgp->snmp_stats == NULL) {
-			bgp->snmp_stats = XCALLOC(
-				MTYPE_BGP, sizeof(struct bgp_snmp_stats));
+			bgp->snmp_stats = XCALLOC(MTYPE_BGP,
+						  sizeof(struct bgp_snmp_stats));
 			/* fix up added routes */
 			if (bgp->snmp_stats) {
 				bgp->snmp_stats->routes_added =
@@ -573,8 +567,8 @@ static bool is_bgp_vrf_active(struct bgp *bgp)
 }
 
 /* BGP Traps. */
-static struct trap_object l3vpn_trap_list[] = {{5, {1, 2, 1, 1, 5} },
-					       {5, {1, 2, 2, 1, 6} } };
+static struct trap_object l3vpn_trap_list[] = {{5, {1, 2, 1, 1, 5}},
+					       {5, {1, 2, 2, 1, 6}}};
 
 static int bgp_vrf_check_update_active(struct bgp *bgp, struct interface *ifp)
 {
@@ -582,8 +576,8 @@ static int bgp_vrf_check_update_active(struct bgp *bgp, struct interface *ifp)
 	oid trap;
 	struct index_oid trap_index[2];
 
-	if (!is_bgp_vrf_mplsvpn(bgp) || bgp->snmp_stats == NULL
-	    || !bgp_mplsvpn_notif_enable)
+	if (!is_bgp_vrf_mplsvpn(bgp) || bgp->snmp_stats == NULL ||
+	    !bgp_mplsvpn_notif_enable)
 		return 0;
 	new_active = is_bgp_vrf_active(bgp);
 	if (bgp->snmp_stats->active != new_active) {
@@ -610,12 +604,15 @@ static int bgp_vrf_check_update_active(struct bgp *bgp, struct interface *ifp)
 		oid_copy_int(trap_index[0].indexname + trap_index[1].indexlen,
 			     (int *)&(ifp->ifindex));
 
-		smux_trap_multi_index(
-			mpls_l3vpn_variables, array_size(mpls_l3vpn_variables),
-			mpls_l3vpn_trap_oid, array_size(mpls_l3vpn_trap_oid),
-			mpls_l3vpn_oid, sizeof(mpls_l3vpn_oid) / sizeof(oid),
-			trap_index, array_size(trap_index), l3vpn_trap_list,
-			array_size(l3vpn_trap_list), trap);
+		smux_trap_multi_index(mpls_l3vpn_variables,
+				      array_size(mpls_l3vpn_variables),
+				      mpls_l3vpn_trap_oid,
+				      array_size(mpls_l3vpn_trap_oid),
+				      mpls_l3vpn_oid,
+				      sizeof(mpls_l3vpn_oid) / sizeof(oid),
+				      trap_index, array_size(trap_index),
+				      l3vpn_trap_list,
+				      array_size(l3vpn_trap_list), trap);
 	}
 	bgp_mpls_l3vpn_update_last_changed(bgp);
 	return 0;
@@ -630,8 +627,8 @@ static uint8_t *mplsL3vpnConfiguredVrfs(struct variable *v, oid name[],
 	struct bgp *bgp;
 	uint32_t count = 0;
 
-	if (smux_header_generic(v, name, length, exact, var_len, write_method)
-	    == MATCH_FAILED)
+	if (smux_header_generic(v, name, length, exact, var_len,
+				write_method) == MATCH_FAILED)
 		return NULL;
 
 	for (ALL_LIST_ELEMENTS(bm->bgp, node, nnode, bgp)) {
@@ -649,8 +646,8 @@ static uint8_t *mplsL3vpnActiveVrfs(struct variable *v, oid name[],
 	struct bgp *bgp;
 	uint32_t count = 0;
 
-	if (smux_header_generic(v, name, length, exact, var_len, write_method)
-	    == MATCH_FAILED)
+	if (smux_header_generic(v, name, length, exact, var_len,
+				write_method) == MATCH_FAILED)
 		return NULL;
 
 	for (ALL_LIST_ELEMENTS(bm->bgp, node, nnode, bgp)) {
@@ -670,8 +667,8 @@ static uint8_t *mplsL3vpnConnectedInterfaces(struct variable *v, oid name[],
 	uint32_t count = 0;
 	struct vrf *vrf;
 
-	if (smux_header_generic(v, name, length, exact, var_len, write_method)
-	    == MATCH_FAILED)
+	if (smux_header_generic(v, name, length, exact, var_len,
+				write_method) == MATCH_FAILED)
 		return NULL;
 
 	for (ALL_LIST_ELEMENTS(bm->bgp, node, nnode, bgp)) {
@@ -710,8 +707,8 @@ static uint8_t *mplsL3vpnNotificationEnable(struct variable *v, oid name[],
 					    size_t *var_len,
 					    WriteMethod **write_method)
 {
-	if (smux_header_generic(v, name, length, exact, var_len, write_method)
-	    == MATCH_FAILED)
+	if (smux_header_generic(v, name, length, exact, var_len,
+				write_method) == MATCH_FAILED)
 		return NULL;
 
 	*write_method = write_mplsL3vpnNotificationEnable;
@@ -723,8 +720,8 @@ static uint8_t *mplsL3vpnVrfConfMaxPossRts(struct variable *v, oid name[],
 					   size_t *var_len,
 					   WriteMethod **write_method)
 {
-	if (smux_header_generic(v, name, length, exact, var_len, write_method)
-	    == MATCH_FAILED)
+	if (smux_header_generic(v, name, length, exact, var_len,
+				write_method) == MATCH_FAILED)
 		return NULL;
 
 	return SNMP_INTEGER(0);
@@ -735,8 +732,8 @@ static uint8_t *mplsL3vpnVrfConfRteMxThrshTime(struct variable *v, oid name[],
 					       size_t *var_len,
 					       WriteMethod **write_method)
 {
-	if (smux_header_generic(v, name, length, exact, var_len, write_method)
-	    == MATCH_FAILED)
+	if (smux_header_generic(v, name, length, exact, var_len,
+				write_method) == MATCH_FAILED)
 		return NULL;
 
 	return SNMP_INTEGER(0);
@@ -747,8 +744,8 @@ static uint8_t *mplsL3vpnIllLblRcvThrsh(struct variable *v, oid name[],
 					size_t *var_len,
 					WriteMethod **write_method)
 {
-	if (smux_header_generic(v, name, length, exact, var_len, write_method)
-	    == MATCH_FAILED)
+	if (smux_header_generic(v, name, length, exact, var_len,
+				write_method) == MATCH_FAILED)
 		return NULL;
 
 	return SNMP_INTEGER(0);
@@ -777,8 +774,8 @@ static struct bgp *bgp_lookup_by_name_next(char *vrf_name)
 		if (first || strncmp(bgp->name, vrf_name, VRF_NAMSIZ) > 0) {
 			if (bgp_next == NULL)
 				bgp_next = bgp;
-			else if (strncmp(bgp->name, bgp_next->name, VRF_NAMSIZ)
-				 < 0)
+			else if (strncmp(bgp->name, bgp_next->name,
+					 VRF_NAMSIZ) < 0)
 				bgp_next = bgp;
 		}
 	}
@@ -824,8 +821,7 @@ static struct bgp *bgpL3vpnIfConf_lookup(struct variable *v, oid name[],
 			bgp = bgp_lookup_by_name(vrf_name);
 
 		while (bgp) {
-			ifp = if_vrf_lookup_by_index_next(*ifindex,
-							  bgp->vrf_id);
+			ifp = if_vrf_lookup_by_index_next(*ifindex, bgp->vrf_id);
 			if (ifp) {
 				vrf_name_len = strnlen(bgp->name, VRF_NAMSIZ);
 				*ifindex = ifp->ifindex;
@@ -855,8 +851,8 @@ static uint8_t *mplsL3vpnIfConfTable(struct variable *v, oid name[],
 	ifindex_t ifindex = 0;
 	struct bgp *l3vpn_bgp;
 
-	if (smux_header_table(v, name, length, exact, var_len, write_method)
-	    == MATCH_FAILED)
+	if (smux_header_table(v, name, length, exact, var_len, write_method) ==
+	    MATCH_FAILED)
 		return NULL;
 
 	memset(vrf_name, 0, VRF_NAMSIZ);
@@ -914,8 +910,8 @@ static uint8_t *mplsL3vpnVrfTable(struct variable *v, oid name[],
 	char vrf_name[VRF_NAMSIZ];
 	struct bgp *l3vpn_bgp;
 
-	if (smux_header_table(v, name, length, exact, var_len, write_method)
-	    == MATCH_FAILED)
+	if (smux_header_table(v, name, length, exact, var_len, write_method) ==
+	    MATCH_FAILED)
 		return NULL;
 
 	memset(vrf_name, 0, VRF_NAMSIZ);
@@ -996,8 +992,8 @@ static struct bgp *bgpL3vpnVrfRt_lookup(struct variable *v, oid name[],
 	int vrf_name_len, len;
 
 	/* too long ? */
-	if (*length - namelen
-	    > (VRF_NAMSIZ + sizeof(uint32_t)) + sizeof(uint8_t))
+	if (*length - namelen >
+	    (VRF_NAMSIZ + sizeof(uint32_t)) + sizeof(uint8_t))
 		return NULL;
 
 	type_index_size = sizeof(uint32_t) + sizeof(uint8_t);
@@ -1024,9 +1020,9 @@ static struct bgp *bgpL3vpnVrfRt_lookup(struct variable *v, oid name[],
 			return NULL;
 		/* do we have RT config */
 		if (!(l3vpn_bgp->vpn_policy[*rt_index]
-			      .rtlist[BGP_VPN_POLICY_DIR_FROMVPN]
-		      || l3vpn_bgp->vpn_policy[*rt_index]
-				 .rtlist[BGP_VPN_POLICY_DIR_TOVPN]))
+			      .rtlist[BGP_VPN_POLICY_DIR_FROMVPN] ||
+		      l3vpn_bgp->vpn_policy[*rt_index]
+			      .rtlist[BGP_VPN_POLICY_DIR_TOVPN]))
 			return NULL;
 		return l3vpn_bgp;
 	}
@@ -1065,19 +1061,18 @@ static struct bgp *bgpL3vpnVrfRt_lookup(struct variable *v, oid name[],
 				import =
 					(!!l3vpn_bgp->vpn_policy[*rt_index].rtlist
 						   [BGP_VPN_POLICY_DIR_FROMVPN]);
-				export =
-					(!!l3vpn_bgp->vpn_policy[*rt_index].rtlist
-						   [BGP_VPN_POLICY_DIR_TOVPN]);
-				if (*rt_type == MPLSVPNVRFRTTYPEIMPORT
-				    && !import)
+				export = (!!l3vpn_bgp->vpn_policy[*rt_index].rtlist
+						    [BGP_VPN_POLICY_DIR_TOVPN]);
+				if (*rt_type == MPLSVPNVRFRTTYPEIMPORT &&
+				    !import)
 					continue;
-				if (*rt_type == MPLSVPNVRFRTTYPEEXPORT
-				    && !export)
+				if (*rt_type == MPLSVPNVRFRTTYPEEXPORT &&
+				    !export)
 					continue;
 				/* ckeck for both */
-				if (*rt_type == MPLSVPNVRFRTTYPEIMPORT && import
-				    && export
-				    && ecommunity_cmp(
+				if (*rt_type == MPLSVPNVRFRTTYPEIMPORT &&
+				    import && export &&
+				    ecommunity_cmp(
 					    l3vpn_bgp->vpn_policy[*rt_index].rtlist
 						    [BGP_VPN_POLICY_DIR_FROMVPN],
 					    l3vpn_bgp->vpn_policy[*rt_index].rtlist
@@ -1087,8 +1082,8 @@ static struct bgp *bgpL3vpnVrfRt_lookup(struct variable *v, oid name[],
 				/* we have a match copy the oid info */
 				vrf_name_len =
 					strnlen(l3vpn_bgp->name, VRF_NAMSIZ);
-				len = vrf_name_len + sizeof(uint32_t)
-				      + sizeof(uint8_t);
+				len = vrf_name_len + sizeof(uint32_t) +
+				      sizeof(uint8_t);
 				oid_copy_str(name + namelen, l3vpn_bgp->name,
 					     vrf_name_len);
 				oid_copy_int(name + namelen + vrf_name_len,
@@ -1127,8 +1122,8 @@ static uint8_t *mplsL3vpnVrfRtTable(struct variable *v, oid name[],
 	char *rt_b = NULL;
 	static char rt_b_str[BUFSIZ] = {};
 
-	if (smux_header_table(v, name, length, exact, var_len, write_method)
-	    == MATCH_FAILED)
+	if (smux_header_table(v, name, length, exact, var_len, write_method) ==
+	    MATCH_FAILED)
 		return NULL;
 
 	memset(vrf_name, 0, VRF_NAMSIZ);
@@ -1194,8 +1189,8 @@ static uint8_t *mplsL3vpnPerfTable(struct variable *v, oid name[],
 	char vrf_name[VRF_NAMSIZ];
 	struct bgp *l3vpn_bgp;
 
-	if (smux_header_table(v, name, length, exact, var_len, write_method)
-	    == MATCH_FAILED)
+	if (smux_header_table(v, name, length, exact, var_len, write_method) ==
+	    MATCH_FAILED)
 		return NULL;
 
 	memset(vrf_name, 0, VRF_NAMSIZ);
@@ -1243,15 +1238,14 @@ bgp_lookup_route(struct bgp *l3vpn_bgp, struct bgp_dest **dest,
 	for (; pi; pi = pi->next) {
 		switch (nexthop->ipa_type) {
 		case IPADDR_V4:
-			if (nexthop->ip._v4_addr.s_addr
-			    == pi->attr->nexthop.s_addr)
+			if (nexthop->ip._v4_addr.s_addr ==
+			    pi->attr->nexthop.s_addr)
 				return pi;
 			break;
 		case IPADDR_V6:
 			if (memcmp(&nexthop->ip._v6_addr,
 				   &pi->attr->mp_nexthop_global,
-				   sizeof(struct in6_addr))
-			    == 0)
+				   sizeof(struct in6_addr)) == 0)
 				return pi;
 			break;
 		case IPADDR_NONE:
@@ -1332,8 +1326,7 @@ static struct bgp_path_info *bgp_lookup_route_next(struct bgp **l3vpn_bgp,
 					return pi;
 			}
 			if (family == AF_INET) {
-				table = (*l3vpn_bgp)
-						->rib[AFI_IP6][SAFI_UNICAST];
+				table = (*l3vpn_bgp)->rib[AFI_IP6][SAFI_UNICAST];
 				*dest = bgp_table_top(table);
 				family = AF_INET6;
 				continue;
@@ -1500,9 +1493,8 @@ static struct bgp_path_info *bgpL3vpnRte_lookup(struct variable *v, oid name[],
 						INETADDRESSTYPEUNKNOWN;
 				else {
 					name[oid_index++] = INETADDRESSTYPEIPV6;
-					oid_copy_in6_addr(
-						&name[oid_index],
-						&attr->mp_nexthop_global);
+					oid_copy_in6_addr(&name[oid_index],
+							  &attr->mp_nexthop_global);
 					oid_index += sizeof(struct in6_addr);
 				}
 			}
@@ -1523,8 +1515,8 @@ static uint8_t *mplsL3vpnRteTable(struct variable *v, oid name[],
 	const struct prefix *p;
 	uint16_t policy = 0;
 
-	if (smux_header_table(v, name, length, exact, var_len, write_method)
-	    == MATCH_FAILED)
+	if (smux_header_table(v, name, length, exact, var_len, write_method) ==
+	    MATCH_FAILED)
 		return NULL;
 
 	memset(vrf_name, 0, VRF_NAMSIZ);
@@ -1575,8 +1567,7 @@ static uint8_t *mplsL3vpnRteTable(struct variable *v, oid name[],
 				return SNMP_INTEGER(INETADDRESSTYPEUNKNOWN);
 			else
 				return SNMP_INTEGER(INETADDRESSTYPEIPV4);
-		} else if (IN6_IS_ADDR_UNSPECIFIED(
-				   &pi->attr->mp_nexthop_global))
+		} else if (IN6_IS_ADDR_UNSPECIFIED(&pi->attr->mp_nexthop_global))
 			return SNMP_INTEGER(INETADDRESSTYPEUNKNOWN);
 		else
 			return SNMP_INTEGER(INETADDRESSTYPEIPV6);
@@ -1588,8 +1579,7 @@ static uint8_t *mplsL3vpnRteTable(struct variable *v, oid name[],
 				return (uint8_t *)empty_nhop;
 			} else
 				return SNMP_IPADDRESS(pi->attr->nexthop);
-		else if (IN6_IS_ADDR_UNSPECIFIED(
-				 &pi->attr->mp_nexthop_global)) {
+		else if (IN6_IS_ADDR_UNSPECIFIED(&pi->attr->mp_nexthop_global)) {
 			*var_len = 0;
 			return (uint8_t *)empty_nhop;
 		} else

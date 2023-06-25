@@ -55,16 +55,16 @@
 
 /* Global use constant numbers */
 
-#define MAX_LEGAL_EXT_INSTANCE_NUM	(0xffff)
-#define LEGAL_EXT_INSTANCE_RANGE(i)	(0 <= (i) && (i) <= 0xffff)
+#define MAX_LEGAL_EXT_INSTANCE_NUM (0xffff)
+#define LEGAL_EXT_INSTANCE_RANGE(i) (0 <= (i) && (i) <= 0xffff)
 
 /* Flags to manage Extended Link/Prefix Opaque LSA */
-#define EXT_LPFLG_LSA_INACTIVE          0x00
-#define EXT_LPFLG_LSA_ACTIVE            0x01
-#define EXT_LPFLG_LSA_ENGAGED           0x02
-#define EXT_LPFLG_LSA_LOOKUP_DONE       0x04
-#define EXT_LPFLG_LSA_FORCED_REFRESH    0x08
-#define EXT_LPFLG_FIB_ENTRY_SET         0x10
+#define EXT_LPFLG_LSA_INACTIVE 0x00
+#define EXT_LPFLG_LSA_ACTIVE 0x01
+#define EXT_LPFLG_LSA_ENGAGED 0x02
+#define EXT_LPFLG_LSA_LOOKUP_DONE 0x04
+#define EXT_LPFLG_LSA_FORCED_REFRESH 0x08
+#define EXT_LPFLG_FIB_ENTRY_SET 0x10
 
 /*
  * Following section defines TLV (tag, length, value) structures,
@@ -72,31 +72,31 @@
  */
 
 /* Extended Prefix TLV Route Types */
-#define EXT_TLV_PREF_ROUTE_UNSPEC	0
-#define EXT_TLV_PREF_ROUTE_INTRA_AREA	1
-#define EXT_TLV_PREF_ROUTE_INTER_AREA	3
-#define EXT_TLV_PREF_ROUTE_AS_EXT	5
-#define EXT_TLV_PREF_ROUTE_NSSA_EXT	7
+#define EXT_TLV_PREF_ROUTE_UNSPEC 0
+#define EXT_TLV_PREF_ROUTE_INTRA_AREA 1
+#define EXT_TLV_PREF_ROUTE_INTER_AREA 3
+#define EXT_TLV_PREF_ROUTE_AS_EXT 5
+#define EXT_TLV_PREF_ROUTE_NSSA_EXT 7
 
 /*
  * Extended Prefix and Extended Prefix Range TLVs'
  * Address family flag for IPv4
  */
-#define EXT_TLV_PREF_AF_IPV4		0
+#define EXT_TLV_PREF_AF_IPV4 0
 
 /* Extended Prefix TLV Flags */
-#define EXT_TLV_PREF_AFLG		0x80
-#define EXT_TLV_PREF_NFLG		0x40
+#define EXT_TLV_PREF_AFLG 0x80
+#define EXT_TLV_PREF_NFLG 0x40
 
 /* Extended Prefix Range TLV Flags */
-#define EXT_TLV_PREF_RANGE_IAFLG	0x80
+#define EXT_TLV_PREF_RANGE_IAFLG 0x80
 
 /* ERO subtlvs Flags */
-#define EXT_SUBTLV_ERO_LFLG		0x80
+#define EXT_SUBTLV_ERO_LFLG 0x80
 
 /* Extended Prefix TLV see RFC 7684 section 2.1 */
-#define EXT_TLV_PREFIX			1
-#define EXT_TLV_PREFIX_SIZE		8
+#define EXT_TLV_PREFIX 1
+#define EXT_TLV_PREFIX_SIZE 8
 struct ext_tlv_prefix {
 	struct tlv_header header;
 	uint8_t route_type;
@@ -107,8 +107,8 @@ struct ext_tlv_prefix {
 };
 
 /* Extended Link TLV see RFC 7684 section 3.1 */
-#define EXT_TLV_LINK			1
-#define EXT_TLV_LINK_SIZE		12
+#define EXT_TLV_LINK 1
+#define EXT_TLV_LINK_SIZE 12
 struct ext_tlv_link {
 	struct tlv_header header;
 	uint8_t link_type;
@@ -118,8 +118,8 @@ struct ext_tlv_link {
 };
 
 /* Remote Interface Address Sub-TLV, Cisco experimental use Sub-TLV */
-#define EXT_SUBTLV_RMT_ITF_ADDR         32768
-#define EXT_SUBTLV_RMT_ITF_ADDR_SIZE	4
+#define EXT_SUBTLV_RMT_ITF_ADDR 32768
+#define EXT_SUBTLV_RMT_ITF_ADDR_SIZE 4
 struct ext_subtlv_rmt_itf_addr {
 	struct tlv_header header;
 	struct in_addr value;

@@ -108,8 +108,8 @@ static void bgp_node_destroy(route_table_delegate_t *delegate,
 
 	if (rt->bgp) {
 		bgp_addpath_free_node_data(&rt->bgp->tx_addpath,
-					 &bgp_node->tx_addpath,
-					 rt->afi, rt->safi);
+					   &bgp_node->tx_addpath, rt->afi,
+					   rt->safi);
 	}
 
 	XFREE(MTYPE_BGP_NODE, bgp_node);
@@ -211,8 +211,8 @@ struct bgp_node *bgp_table_subtree_lookup(const struct bgp_table *table,
 			break;
 		}
 
-		node = bgp_dest_from_rnode(node->link[prefix_bit(
-			&p->u.prefix, node_p->prefixlen)]);
+		node = bgp_dest_from_rnode(
+			node->link[prefix_bit(&p->u.prefix, node_p->prefixlen)]);
 	}
 
 	if (!matched)

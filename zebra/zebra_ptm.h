@@ -11,7 +11,7 @@ extern const char ZEBRA_PTM_SOCK_NAME[];
 #define ZEBRA_PTM_MAX_SOCKBUF 3200 /* 25B *128 ports */
 #define ZEBRA_PTM_SEND_MAX_SOCKBUF 512
 
-#define ZEBRA_PTM_BFD_CLIENT_FLAG_REG   (1 << 1) /* client registered with BFD */
+#define ZEBRA_PTM_BFD_CLIENT_FLAG_REG (1 << 1) /* client registered with BFD */
 
 #include "zebra/zserv.h"
 #include "zebra/interface.h"
@@ -44,8 +44,8 @@ struct zebra_ptm_cb {
 #define ZEBRA_PTM_STATUS_UNKNOWN 2
 
 /* For interface ptm-enable configuration. */
-#define ZEBRA_IF_PTM_ENABLE_OFF    0
-#define ZEBRA_IF_PTM_ENABLE_ON     1
+#define ZEBRA_IF_PTM_ENABLE_OFF 0
+#define ZEBRA_IF_PTM_ENABLE_ON 1
 #define ZEBRA_IF_PTM_ENABLE_UNSPEC 2
 
 #define IS_BFD_ENABLED_PROTOCOL(protocol)                                      \

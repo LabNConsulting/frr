@@ -17,11 +17,11 @@
 #ifndef HAVE_STRLCAT
 #undef strlcat
 
-size_t strlcat(char *__restrict dest,
-	       const char *__restrict src, size_t destsize);
+size_t strlcat(char *__restrict dest, const char *__restrict src,
+	       size_t destsize);
 
-size_t strlcat(char *__restrict dest,
-	       const char *__restrict src, size_t destsize)
+size_t strlcat(char *__restrict dest, const char *__restrict src,
+	       size_t destsize)
 {
 	size_t src_length = strlen(src);
 
@@ -45,12 +45,12 @@ size_t strlcat(char *__restrict dest,
 		target[to_copy] = '\0';
 	}
 
-/* If the sum wraps around, we have more than SIZE_MAX + 2 bytes in
-   the two input strings (including both null terminators).  If each
-   byte in the address space can be assigned a unique size_t value
-   (which the static_assert checks), then by the pigeonhole
-   principle, the two input strings must overlap, which is
-   undefined.  */
+	/* If the sum wraps around, we have more than SIZE_MAX + 2 bytes in
+	   the two input strings (including both null terminators).  If each
+	   byte in the address space can be assigned a unique size_t value
+	   (which the static_assert checks), then by the pigeonhole
+	   principle, the two input strings must overlap, which is
+	   undefined.  */
 	_Static_assert(sizeof(uintptr_t) == sizeof(size_t),
 		       "theoretical maximum object size covers address space");
 	return dest_length + src_length;

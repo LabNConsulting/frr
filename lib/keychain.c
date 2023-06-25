@@ -136,8 +136,8 @@ struct key *key_lookup_for_accept(const struct keychain *keychain,
 				return key;
 
 			if (key->accept.start <= now)
-				if (key->accept.end >= now
-				    || key->accept.end == -1)
+				if (key->accept.end >= now ||
+				    key->accept.end == -1)
 					return key;
 		}
 	}
@@ -154,10 +154,11 @@ struct key *key_match_for_accept(const struct keychain *keychain,
 	now = time(NULL);
 
 	for (ALL_LIST_ELEMENTS_RO(keychain->key, node, key)) {
-		if (key->accept.start == 0
-		    || (key->accept.start <= now
-			&& (key->accept.end >= now || key->accept.end == -1)))
-			if (key->string && (strncmp(key->string, auth_str, 16) == 0))
+		if (key->accept.start == 0 ||
+		    (key->accept.start <= now &&
+		     (key->accept.end >= now || key->accept.end == -1)))
+			if (key->string &&
+			    (strncmp(key->string, auth_str, 16) == 0))
 				return key;
 	}
 	return NULL;
@@ -207,12 +208,10 @@ static void key_delete(struct keychain *keychain, struct key *key)
 	key_free(key);
 }
 
-DEFUN_NOSH (key_chain,
-       key_chain_cmd,
-       "key chain WORD",
-       "Authentication key management\n"
-       "Key-chain management\n"
-       "Key-chain name\n")
+DEFUN_NOSH(key_chain, key_chain_cmd, "key chain WORD",
+	   "Authentication key management\n"
+	   "Key-chain management\n"
+	   "Key-chain name\n")
 {
 	int idx_word = 2;
 	struct keychain *keychain;
@@ -223,13 +222,11 @@ DEFUN_NOSH (key_chain,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_key_chain,
-       no_key_chain_cmd,
-       "no key chain WORD",
-       NO_STR
-       "Authentication key management\n"
-       "Key-chain management\n"
-       "Key-chain name\n")
+DEFUN(no_key_chain, no_key_chain_cmd, "no key chain WORD",
+      NO_STR
+      "Authentication key management\n"
+      "Key-chain management\n"
+      "Key-chain name\n")
 {
 	int idx_word = 3;
 	struct keychain *keychain;
@@ -246,11 +243,9 @@ DEFUN (no_key_chain,
 	return CMD_SUCCESS;
 }
 
-DEFUN_NOSH (key,
-       key_cmd,
-       "key (0-2147483647)",
-       "Configure a key\n"
-       "Key identifier number\n")
+DEFUN_NOSH(key, key_cmd, "key (0-2147483647)",
+	   "Configure a key\n"
+	   "Key identifier number\n")
 {
 	int idx_number = 1;
 	VTY_DECLVAR_CONTEXT(keychain, keychain);
@@ -264,12 +259,10 @@ DEFUN_NOSH (key,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_key,
-       no_key_cmd,
-       "no key (0-2147483647)",
-       NO_STR
-       "Delete a key\n"
-       "Key identifier number\n")
+DEFUN(no_key, no_key_cmd, "no key (0-2147483647)",
+      NO_STR
+      "Delete a key\n"
+      "Key identifier number\n")
 {
 	int idx_number = 2;
 	VTY_DECLVAR_CONTEXT(keychain, keychain);
@@ -290,11 +283,9 @@ DEFUN (no_key,
 	return CMD_SUCCESS;
 }
 
-DEFUN (key_string,
-       key_string_cmd,
-       "key-string LINE",
-       "Set key string\n"
-       "The key\n")
+DEFUN(key_string, key_string_cmd, "key-string LINE",
+      "Set key string\n"
+      "The key\n")
 {
 	int idx_line = 1;
 	VTY_DECLVAR_CONTEXT_SUB(key, key);
@@ -306,12 +297,10 @@ DEFUN (key_string,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_key_string,
-       no_key_string_cmd,
-       "no key-string [LINE]",
-       NO_STR
-       "Unset key string\n"
-       "The key\n")
+DEFUN(no_key_string, no_key_string_cmd, "no key-string [LINE]",
+      NO_STR
+      "Unset key string\n"
+      "The key\n")
 {
 	VTY_DECLVAR_CONTEXT_SUB(key, key);
 
@@ -323,24 +312,23 @@ DEFUN (no_key_string,
 	return CMD_SUCCESS;
 }
 
-const struct keychain_algo_info algo_info[] = {
-	{KEYCHAIN_ALGO_NULL, "null", 0, 0, "NULL"},
-	{KEYCHAIN_ALGO_MD5, "md5", KEYCHAIN_MD5_HASH_SIZE,
-	 KEYCHAIN_ALGO_MD5_INTERNAL_BLK_SIZE, "MD5"},
-	{KEYCHAIN_ALGO_HMAC_SHA1, "hmac-sha-1", KEYCHAIN_HMAC_SHA1_HASH_SIZE,
-	 KEYCHAIN_ALGO_SHA1_INTERNAL_BLK_SIZE, "HMAC-SHA-1"},
-	{KEYCHAIN_ALGO_HMAC_SHA256, "hmac-sha-256",
-	 KEYCHAIN_HMAC_SHA256_HASH_SIZE, KEYCHAIN_ALGO_SHA256_INTERNAL_BLK_SIZE,
-	 "HMAC-SHA-256"},
-	{KEYCHAIN_ALGO_HMAC_SHA384, "hmac-sha-384",
-	 KEYCHAIN_HMAC_SHA384_HASH_SIZE, KEYCHAIN_ALGO_SHA384_INTERNAL_BLK_SIZE,
-	 "HMAC-SHA-384"},
-	{KEYCHAIN_ALGO_HMAC_SHA512, "hmac-sha-512",
-	 KEYCHAIN_HMAC_SHA512_HASH_SIZE, KEYCHAIN_ALGO_SHA512_INTERNAL_BLK_SIZE,
-	 "HMAC-SHA-512"},
-	{KEYCHAIN_ALGO_MAX, "max", KEYCHAIN_MAX_HASH_SIZE,
-	 KEYCHAIN_ALGO_MAX_INTERNAL_BLK_SIZE, "Not defined"}
-};
+const struct keychain_algo_info algo_info[] =
+	{{KEYCHAIN_ALGO_NULL, "null", 0, 0, "NULL"},
+	 {KEYCHAIN_ALGO_MD5, "md5", KEYCHAIN_MD5_HASH_SIZE,
+	  KEYCHAIN_ALGO_MD5_INTERNAL_BLK_SIZE, "MD5"},
+	 {KEYCHAIN_ALGO_HMAC_SHA1, "hmac-sha-1", KEYCHAIN_HMAC_SHA1_HASH_SIZE,
+	  KEYCHAIN_ALGO_SHA1_INTERNAL_BLK_SIZE, "HMAC-SHA-1"},
+	 {KEYCHAIN_ALGO_HMAC_SHA256, "hmac-sha-256",
+	  KEYCHAIN_HMAC_SHA256_HASH_SIZE,
+	  KEYCHAIN_ALGO_SHA256_INTERNAL_BLK_SIZE, "HMAC-SHA-256"},
+	 {KEYCHAIN_ALGO_HMAC_SHA384, "hmac-sha-384",
+	  KEYCHAIN_HMAC_SHA384_HASH_SIZE,
+	  KEYCHAIN_ALGO_SHA384_INTERNAL_BLK_SIZE, "HMAC-SHA-384"},
+	 {KEYCHAIN_ALGO_HMAC_SHA512, "hmac-sha-512",
+	  KEYCHAIN_HMAC_SHA512_HASH_SIZE,
+	  KEYCHAIN_ALGO_SHA512_INTERNAL_BLK_SIZE, "HMAC-SHA-512"},
+	 {KEYCHAIN_ALGO_MAX, "max", KEYCHAIN_MAX_HASH_SIZE,
+	  KEYCHAIN_ALGO_MAX_INTERNAL_BLK_SIZE, "Not defined"}};
 
 uint16_t keychain_get_block_size(enum keychain_hash_algo key)
 {
@@ -357,8 +345,7 @@ const char *keychain_get_description(enum keychain_hash_algo key)
 	return algo_info[key].desc;
 }
 
-struct keychain_algo_info
-keychain_get_hash_algo_info(enum keychain_hash_algo key)
+struct keychain_algo_info keychain_get_hash_algo_info(enum keychain_hash_algo key)
 {
 	return algo_info[key];
 }
@@ -462,10 +449,11 @@ static time_t key_str2time(const char *time_str, const char *day_str,
 	unsigned int sec, min, hour;
 	unsigned int day, month, year;
 
-	const char *month_name[] = {
-		"January",  "February", "March",  "April",     "May",
-		"June",     "July",     "August", "September", "October",
-		"November", "December", NULL};
+	const char *month_name[] = {"January", "February", "March",
+				    "April",   "May",	   "June",
+				    "July",    "August",   "September",
+				    "October", "November", "December",
+				    NULL};
 
 #define _GET_LONG_RANGE(V, STR, MMCOND)                                        \
 	{                                                                      \
@@ -516,8 +504,8 @@ static time_t key_str2time(const char *time_str, const char *day_str,
 	month = 0;
 	if (strlen(month_str) >= 3)
 		for (i = 0; month_name[i]; i++)
-			if (strncmp(month_str, month_name[i], strlen(month_str))
-			    == 0) {
+			if (strncmp(month_str, month_name[i],
+				    strlen(month_str)) == 0) {
 				month = i;
 				break;
 			}
@@ -574,8 +562,7 @@ static int key_lifetime_set(struct vty *vty, struct key_range *krange,
 }
 
 static int key_lifetime_duration_set(struct vty *vty, struct key_range *krange,
-				     const char *stime_str,
-				     const char *sday_str,
+				     const char *stime_str, const char *sday_str,
 				     const char *smonth_str,
 				     const char *syear_str,
 				     const char *duration_str)
@@ -598,8 +585,7 @@ static int key_lifetime_duration_set(struct vty *vty, struct key_range *krange,
 }
 
 static int key_lifetime_infinite_set(struct vty *vty, struct key_range *krange,
-				     const char *stime_str,
-				     const char *sday_str,
+				     const char *stime_str, const char *sday_str,
 				     const char *smonth_str,
 				     const char *syear_str)
 {
@@ -617,18 +603,18 @@ static int key_lifetime_infinite_set(struct vty *vty, struct key_range *krange,
 	return CMD_SUCCESS;
 }
 
-DEFUN (accept_lifetime_day_month_day_month,
-       accept_lifetime_day_month_day_month_cmd,
-       "accept-lifetime HH:MM:SS (1-31) MONTH (1993-2035) HH:MM:SS (1-31) MONTH (1993-2035)",
-       "Set accept lifetime of the key\n"
-       "Time to start\n"
-       "Day of th month to start\n"
-       "Month of the year to start\n"
-       "Year to start\n"
-       "Time to expire\n"
-       "Day of th month to expire\n"
-       "Month of the year to expire\n"
-       "Year to expire\n")
+DEFUN(accept_lifetime_day_month_day_month,
+      accept_lifetime_day_month_day_month_cmd,
+      "accept-lifetime HH:MM:SS (1-31) MONTH (1993-2035) HH:MM:SS (1-31) MONTH (1993-2035)",
+      "Set accept lifetime of the key\n"
+      "Time to start\n"
+      "Day of th month to start\n"
+      "Month of the year to start\n"
+      "Year to start\n"
+      "Time to expire\n"
+      "Day of th month to expire\n"
+      "Month of the year to expire\n"
+      "Year to expire\n")
 {
 	int idx_hhmmss = 1;
 	int idx_number = 2;
@@ -640,25 +626,25 @@ DEFUN (accept_lifetime_day_month_day_month,
 	int idx_number_4 = 8;
 	VTY_DECLVAR_CONTEXT_SUB(key, key);
 
-	return key_lifetime_set(
-		vty, &key->accept, argv[idx_hhmmss]->arg, argv[idx_number]->arg,
-		argv[idx_month]->arg, argv[idx_number_2]->arg,
-		argv[idx_hhmmss_2]->arg, argv[idx_number_3]->arg,
-		argv[idx_month_2]->arg, argv[idx_number_4]->arg);
+	return key_lifetime_set(vty, &key->accept, argv[idx_hhmmss]->arg,
+				argv[idx_number]->arg, argv[idx_month]->arg,
+				argv[idx_number_2]->arg, argv[idx_hhmmss_2]->arg,
+				argv[idx_number_3]->arg, argv[idx_month_2]->arg,
+				argv[idx_number_4]->arg);
 }
 
-DEFUN (accept_lifetime_day_month_month_day,
-       accept_lifetime_day_month_month_day_cmd,
-       "accept-lifetime HH:MM:SS (1-31) MONTH (1993-2035) HH:MM:SS MONTH (1-31) (1993-2035)",
-       "Set accept lifetime of the key\n"
-       "Time to start\n"
-       "Day of th month to start\n"
-       "Month of the year to start\n"
-       "Year to start\n"
-       "Time to expire\n"
-       "Month of the year to expire\n"
-       "Day of th month to expire\n"
-       "Year to expire\n")
+DEFUN(accept_lifetime_day_month_month_day,
+      accept_lifetime_day_month_month_day_cmd,
+      "accept-lifetime HH:MM:SS (1-31) MONTH (1993-2035) HH:MM:SS MONTH (1-31) (1993-2035)",
+      "Set accept lifetime of the key\n"
+      "Time to start\n"
+      "Day of th month to start\n"
+      "Month of the year to start\n"
+      "Year to start\n"
+      "Time to expire\n"
+      "Month of the year to expire\n"
+      "Day of th month to expire\n"
+      "Year to expire\n")
 {
 	int idx_hhmmss = 1;
 	int idx_number = 2;
@@ -670,25 +656,25 @@ DEFUN (accept_lifetime_day_month_month_day,
 	int idx_number_4 = 8;
 	VTY_DECLVAR_CONTEXT_SUB(key, key);
 
-	return key_lifetime_set(
-		vty, &key->accept, argv[idx_hhmmss]->arg, argv[idx_number]->arg,
-		argv[idx_month]->arg, argv[idx_number_2]->arg,
-		argv[idx_hhmmss_2]->arg, argv[idx_number_3]->arg,
-		argv[idx_month_2]->arg, argv[idx_number_4]->arg);
+	return key_lifetime_set(vty, &key->accept, argv[idx_hhmmss]->arg,
+				argv[idx_number]->arg, argv[idx_month]->arg,
+				argv[idx_number_2]->arg, argv[idx_hhmmss_2]->arg,
+				argv[idx_number_3]->arg, argv[idx_month_2]->arg,
+				argv[idx_number_4]->arg);
 }
 
-DEFUN (accept_lifetime_month_day_day_month,
-       accept_lifetime_month_day_day_month_cmd,
-       "accept-lifetime HH:MM:SS MONTH (1-31) (1993-2035) HH:MM:SS (1-31) MONTH (1993-2035)",
-       "Set accept lifetime of the key\n"
-       "Time to start\n"
-       "Month of the year to start\n"
-       "Day of th month to start\n"
-       "Year to start\n"
-       "Time to expire\n"
-       "Day of th month to expire\n"
-       "Month of the year to expire\n"
-       "Year to expire\n")
+DEFUN(accept_lifetime_month_day_day_month,
+      accept_lifetime_month_day_day_month_cmd,
+      "accept-lifetime HH:MM:SS MONTH (1-31) (1993-2035) HH:MM:SS (1-31) MONTH (1993-2035)",
+      "Set accept lifetime of the key\n"
+      "Time to start\n"
+      "Month of the year to start\n"
+      "Day of th month to start\n"
+      "Year to start\n"
+      "Time to expire\n"
+      "Day of th month to expire\n"
+      "Month of the year to expire\n"
+      "Year to expire\n")
 {
 	int idx_hhmmss = 1;
 	int idx_month = 2;
@@ -700,25 +686,25 @@ DEFUN (accept_lifetime_month_day_day_month,
 	int idx_number_4 = 8;
 	VTY_DECLVAR_CONTEXT_SUB(key, key);
 
-	return key_lifetime_set(
-		vty, &key->accept, argv[idx_hhmmss]->arg, argv[idx_number]->arg,
-		argv[idx_month]->arg, argv[idx_number_2]->arg,
-		argv[idx_hhmmss_2]->arg, argv[idx_number_3]->arg,
-		argv[idx_month_2]->arg, argv[idx_number_4]->arg);
+	return key_lifetime_set(vty, &key->accept, argv[idx_hhmmss]->arg,
+				argv[idx_number]->arg, argv[idx_month]->arg,
+				argv[idx_number_2]->arg, argv[idx_hhmmss_2]->arg,
+				argv[idx_number_3]->arg, argv[idx_month_2]->arg,
+				argv[idx_number_4]->arg);
 }
 
-DEFUN (accept_lifetime_month_day_month_day,
-       accept_lifetime_month_day_month_day_cmd,
-       "accept-lifetime HH:MM:SS MONTH (1-31) (1993-2035) HH:MM:SS MONTH (1-31) (1993-2035)",
-       "Set accept lifetime of the key\n"
-       "Time to start\n"
-       "Month of the year to start\n"
-       "Day of th month to start\n"
-       "Year to start\n"
-       "Time to expire\n"
-       "Month of the year to expire\n"
-       "Day of th month to expire\n"
-       "Year to expire\n")
+DEFUN(accept_lifetime_month_day_month_day,
+      accept_lifetime_month_day_month_day_cmd,
+      "accept-lifetime HH:MM:SS MONTH (1-31) (1993-2035) HH:MM:SS MONTH (1-31) (1993-2035)",
+      "Set accept lifetime of the key\n"
+      "Time to start\n"
+      "Month of the year to start\n"
+      "Day of th month to start\n"
+      "Year to start\n"
+      "Time to expire\n"
+      "Month of the year to expire\n"
+      "Day of th month to expire\n"
+      "Year to expire\n")
 {
 	int idx_hhmmss = 1;
 	int idx_month = 2;
@@ -730,22 +716,21 @@ DEFUN (accept_lifetime_month_day_month_day,
 	int idx_number_4 = 8;
 	VTY_DECLVAR_CONTEXT_SUB(key, key);
 
-	return key_lifetime_set(
-		vty, &key->accept, argv[idx_hhmmss]->arg, argv[idx_number]->arg,
-		argv[idx_month]->arg, argv[idx_number_2]->arg,
-		argv[idx_hhmmss_2]->arg, argv[idx_number_3]->arg,
-		argv[idx_month_2]->arg, argv[idx_number_4]->arg);
+	return key_lifetime_set(vty, &key->accept, argv[idx_hhmmss]->arg,
+				argv[idx_number]->arg, argv[idx_month]->arg,
+				argv[idx_number_2]->arg, argv[idx_hhmmss_2]->arg,
+				argv[idx_number_3]->arg, argv[idx_month_2]->arg,
+				argv[idx_number_4]->arg);
 }
 
-DEFUN (accept_lifetime_infinite_day_month,
-       accept_lifetime_infinite_day_month_cmd,
-       "accept-lifetime HH:MM:SS (1-31) MONTH (1993-2035) infinite",
-       "Set accept lifetime of the key\n"
-       "Time to start\n"
-       "Day of th month to start\n"
-       "Month of the year to start\n"
-       "Year to start\n"
-       "Never expires\n")
+DEFUN(accept_lifetime_infinite_day_month, accept_lifetime_infinite_day_month_cmd,
+      "accept-lifetime HH:MM:SS (1-31) MONTH (1993-2035) infinite",
+      "Set accept lifetime of the key\n"
+      "Time to start\n"
+      "Day of th month to start\n"
+      "Month of the year to start\n"
+      "Year to start\n"
+      "Never expires\n")
 {
 	int idx_hhmmss = 1;
 	int idx_number = 2;
@@ -753,20 +738,21 @@ DEFUN (accept_lifetime_infinite_day_month,
 	int idx_number_2 = 4;
 	VTY_DECLVAR_CONTEXT_SUB(key, key);
 
-	return key_lifetime_infinite_set(
-		vty, &key->accept, argv[idx_hhmmss]->arg, argv[idx_number]->arg,
-		argv[idx_month]->arg, argv[idx_number_2]->arg);
+	return key_lifetime_infinite_set(vty, &key->accept,
+					 argv[idx_hhmmss]->arg,
+					 argv[idx_number]->arg,
+					 argv[idx_month]->arg,
+					 argv[idx_number_2]->arg);
 }
 
-DEFUN (accept_lifetime_infinite_month_day,
-       accept_lifetime_infinite_month_day_cmd,
-       "accept-lifetime HH:MM:SS MONTH (1-31) (1993-2035) infinite",
-       "Set accept lifetime of the key\n"
-       "Time to start\n"
-       "Month of the year to start\n"
-       "Day of th month to start\n"
-       "Year to start\n"
-       "Never expires\n")
+DEFUN(accept_lifetime_infinite_month_day, accept_lifetime_infinite_month_day_cmd,
+      "accept-lifetime HH:MM:SS MONTH (1-31) (1993-2035) infinite",
+      "Set accept lifetime of the key\n"
+      "Time to start\n"
+      "Month of the year to start\n"
+      "Day of th month to start\n"
+      "Year to start\n"
+      "Never expires\n")
 {
 	int idx_hhmmss = 1;
 	int idx_month = 2;
@@ -774,21 +760,22 @@ DEFUN (accept_lifetime_infinite_month_day,
 	int idx_number_2 = 4;
 	VTY_DECLVAR_CONTEXT_SUB(key, key);
 
-	return key_lifetime_infinite_set(
-		vty, &key->accept, argv[idx_hhmmss]->arg, argv[idx_number]->arg,
-		argv[idx_month]->arg, argv[idx_number_2]->arg);
+	return key_lifetime_infinite_set(vty, &key->accept,
+					 argv[idx_hhmmss]->arg,
+					 argv[idx_number]->arg,
+					 argv[idx_month]->arg,
+					 argv[idx_number_2]->arg);
 }
 
-DEFUN (accept_lifetime_duration_day_month,
-       accept_lifetime_duration_day_month_cmd,
-       "accept-lifetime HH:MM:SS (1-31) MONTH (1993-2035) duration (1-2147483646)",
-       "Set accept lifetime of the key\n"
-       "Time to start\n"
-       "Day of th month to start\n"
-       "Month of the year to start\n"
-       "Year to start\n"
-       "Duration of the key\n"
-       "Duration seconds\n")
+DEFUN(accept_lifetime_duration_day_month, accept_lifetime_duration_day_month_cmd,
+      "accept-lifetime HH:MM:SS (1-31) MONTH (1993-2035) duration (1-2147483646)",
+      "Set accept lifetime of the key\n"
+      "Time to start\n"
+      "Day of th month to start\n"
+      "Month of the year to start\n"
+      "Year to start\n"
+      "Duration of the key\n"
+      "Duration seconds\n")
 {
 	int idx_hhmmss = 1;
 	int idx_number = 2;
@@ -797,22 +784,23 @@ DEFUN (accept_lifetime_duration_day_month,
 	int idx_number_3 = 6;
 	VTY_DECLVAR_CONTEXT_SUB(key, key);
 
-	return key_lifetime_duration_set(
-		vty, &key->accept, argv[idx_hhmmss]->arg, argv[idx_number]->arg,
-		argv[idx_month]->arg, argv[idx_number_2]->arg,
-		argv[idx_number_3]->arg);
+	return key_lifetime_duration_set(vty, &key->accept,
+					 argv[idx_hhmmss]->arg,
+					 argv[idx_number]->arg,
+					 argv[idx_month]->arg,
+					 argv[idx_number_2]->arg,
+					 argv[idx_number_3]->arg);
 }
 
-DEFUN (accept_lifetime_duration_month_day,
-       accept_lifetime_duration_month_day_cmd,
-       "accept-lifetime HH:MM:SS MONTH (1-31) (1993-2035) duration (1-2147483646)",
-       "Set accept lifetime of the key\n"
-       "Time to start\n"
-       "Month of the year to start\n"
-       "Day of th month to start\n"
-       "Year to start\n"
-       "Duration of the key\n"
-       "Duration seconds\n")
+DEFUN(accept_lifetime_duration_month_day, accept_lifetime_duration_month_day_cmd,
+      "accept-lifetime HH:MM:SS MONTH (1-31) (1993-2035) duration (1-2147483646)",
+      "Set accept lifetime of the key\n"
+      "Time to start\n"
+      "Month of the year to start\n"
+      "Day of th month to start\n"
+      "Year to start\n"
+      "Duration of the key\n"
+      "Duration seconds\n")
 {
 	int idx_hhmmss = 1;
 	int idx_month = 2;
@@ -821,17 +809,16 @@ DEFUN (accept_lifetime_duration_month_day,
 	int idx_number_3 = 6;
 	VTY_DECLVAR_CONTEXT_SUB(key, key);
 
-	return key_lifetime_duration_set(
-		vty, &key->accept, argv[idx_hhmmss]->arg, argv[idx_number]->arg,
-		argv[idx_month]->arg, argv[idx_number_2]->arg,
-		argv[idx_number_3]->arg);
+	return key_lifetime_duration_set(vty, &key->accept,
+					 argv[idx_hhmmss]->arg,
+					 argv[idx_number]->arg,
+					 argv[idx_month]->arg,
+					 argv[idx_number_2]->arg,
+					 argv[idx_number_3]->arg);
 }
 
-DEFUN (no_accept_lifetime,
-       no_accept_lifetime_cmd,
-       "no accept-lifetime",
-       NO_STR
-       "Unset accept-lifetime\n")
+DEFUN(no_accept_lifetime, no_accept_lifetime_cmd, "no accept-lifetime",
+      NO_STR "Unset accept-lifetime\n")
 {
 	VTY_DECLVAR_CONTEXT_SUB(key, key);
 
@@ -845,18 +832,17 @@ DEFUN (no_accept_lifetime,
 	return CMD_SUCCESS;
 }
 
-DEFUN (send_lifetime_day_month_day_month,
-       send_lifetime_day_month_day_month_cmd,
-       "send-lifetime HH:MM:SS (1-31) MONTH (1993-2035) HH:MM:SS (1-31) MONTH (1993-2035)",
-       "Set send lifetime of the key\n"
-       "Time to start\n"
-       "Day of th month to start\n"
-       "Month of the year to start\n"
-       "Year to start\n"
-       "Time to expire\n"
-       "Day of th month to expire\n"
-       "Month of the year to expire\n"
-       "Year to expire\n")
+DEFUN(send_lifetime_day_month_day_month, send_lifetime_day_month_day_month_cmd,
+      "send-lifetime HH:MM:SS (1-31) MONTH (1993-2035) HH:MM:SS (1-31) MONTH (1993-2035)",
+      "Set send lifetime of the key\n"
+      "Time to start\n"
+      "Day of th month to start\n"
+      "Month of the year to start\n"
+      "Year to start\n"
+      "Time to expire\n"
+      "Day of th month to expire\n"
+      "Month of the year to expire\n"
+      "Year to expire\n")
 {
 	int idx_hhmmss = 1;
 	int idx_number = 2;
@@ -868,25 +854,24 @@ DEFUN (send_lifetime_day_month_day_month,
 	int idx_number_4 = 8;
 	VTY_DECLVAR_CONTEXT_SUB(key, key);
 
-	return key_lifetime_set(
-		vty, &key->send, argv[idx_hhmmss]->arg, argv[idx_number]->arg,
-		argv[idx_month]->arg, argv[idx_number_2]->arg,
-		argv[idx_hhmmss_2]->arg, argv[idx_number_3]->arg,
-		argv[idx_month_2]->arg, argv[idx_number_4]->arg);
+	return key_lifetime_set(vty, &key->send, argv[idx_hhmmss]->arg,
+				argv[idx_number]->arg, argv[idx_month]->arg,
+				argv[idx_number_2]->arg, argv[idx_hhmmss_2]->arg,
+				argv[idx_number_3]->arg, argv[idx_month_2]->arg,
+				argv[idx_number_4]->arg);
 }
 
-DEFUN (send_lifetime_day_month_month_day,
-       send_lifetime_day_month_month_day_cmd,
-       "send-lifetime HH:MM:SS (1-31) MONTH (1993-2035) HH:MM:SS MONTH (1-31) (1993-2035)",
-       "Set send lifetime of the key\n"
-       "Time to start\n"
-       "Day of th month to start\n"
-       "Month of the year to start\n"
-       "Year to start\n"
-       "Time to expire\n"
-       "Month of the year to expire\n"
-       "Day of th month to expire\n"
-       "Year to expire\n")
+DEFUN(send_lifetime_day_month_month_day, send_lifetime_day_month_month_day_cmd,
+      "send-lifetime HH:MM:SS (1-31) MONTH (1993-2035) HH:MM:SS MONTH (1-31) (1993-2035)",
+      "Set send lifetime of the key\n"
+      "Time to start\n"
+      "Day of th month to start\n"
+      "Month of the year to start\n"
+      "Year to start\n"
+      "Time to expire\n"
+      "Month of the year to expire\n"
+      "Day of th month to expire\n"
+      "Year to expire\n")
 {
 	int idx_hhmmss = 1;
 	int idx_number = 2;
@@ -898,25 +883,24 @@ DEFUN (send_lifetime_day_month_month_day,
 	int idx_number_4 = 8;
 	VTY_DECLVAR_CONTEXT_SUB(key, key);
 
-	return key_lifetime_set(
-		vty, &key->send, argv[idx_hhmmss]->arg, argv[idx_number]->arg,
-		argv[idx_month]->arg, argv[idx_number_2]->arg,
-		argv[idx_hhmmss_2]->arg, argv[idx_number_3]->arg,
-		argv[idx_month_2]->arg, argv[idx_number_4]->arg);
+	return key_lifetime_set(vty, &key->send, argv[idx_hhmmss]->arg,
+				argv[idx_number]->arg, argv[idx_month]->arg,
+				argv[idx_number_2]->arg, argv[idx_hhmmss_2]->arg,
+				argv[idx_number_3]->arg, argv[idx_month_2]->arg,
+				argv[idx_number_4]->arg);
 }
 
-DEFUN (send_lifetime_month_day_day_month,
-       send_lifetime_month_day_day_month_cmd,
-       "send-lifetime HH:MM:SS MONTH (1-31) (1993-2035) HH:MM:SS (1-31) MONTH (1993-2035)",
-       "Set send lifetime of the key\n"
-       "Time to start\n"
-       "Month of the year to start\n"
-       "Day of th month to start\n"
-       "Year to start\n"
-       "Time to expire\n"
-       "Day of th month to expire\n"
-       "Month of the year to expire\n"
-       "Year to expire\n")
+DEFUN(send_lifetime_month_day_day_month, send_lifetime_month_day_day_month_cmd,
+      "send-lifetime HH:MM:SS MONTH (1-31) (1993-2035) HH:MM:SS (1-31) MONTH (1993-2035)",
+      "Set send lifetime of the key\n"
+      "Time to start\n"
+      "Month of the year to start\n"
+      "Day of th month to start\n"
+      "Year to start\n"
+      "Time to expire\n"
+      "Day of th month to expire\n"
+      "Month of the year to expire\n"
+      "Year to expire\n")
 {
 	int idx_hhmmss = 1;
 	int idx_month = 2;
@@ -928,25 +912,24 @@ DEFUN (send_lifetime_month_day_day_month,
 	int idx_number_4 = 8;
 	VTY_DECLVAR_CONTEXT_SUB(key, key);
 
-	return key_lifetime_set(
-		vty, &key->send, argv[idx_hhmmss]->arg, argv[idx_number]->arg,
-		argv[idx_month]->arg, argv[idx_number_2]->arg,
-		argv[idx_hhmmss_2]->arg, argv[idx_number_3]->arg,
-		argv[idx_month_2]->arg, argv[idx_number_4]->arg);
+	return key_lifetime_set(vty, &key->send, argv[idx_hhmmss]->arg,
+				argv[idx_number]->arg, argv[idx_month]->arg,
+				argv[idx_number_2]->arg, argv[idx_hhmmss_2]->arg,
+				argv[idx_number_3]->arg, argv[idx_month_2]->arg,
+				argv[idx_number_4]->arg);
 }
 
-DEFUN (send_lifetime_month_day_month_day,
-       send_lifetime_month_day_month_day_cmd,
-       "send-lifetime HH:MM:SS MONTH (1-31) (1993-2035) HH:MM:SS MONTH (1-31) (1993-2035)",
-       "Set send lifetime of the key\n"
-       "Time to start\n"
-       "Month of the year to start\n"
-       "Day of th month to start\n"
-       "Year to start\n"
-       "Time to expire\n"
-       "Month of the year to expire\n"
-       "Day of th month to expire\n"
-       "Year to expire\n")
+DEFUN(send_lifetime_month_day_month_day, send_lifetime_month_day_month_day_cmd,
+      "send-lifetime HH:MM:SS MONTH (1-31) (1993-2035) HH:MM:SS MONTH (1-31) (1993-2035)",
+      "Set send lifetime of the key\n"
+      "Time to start\n"
+      "Month of the year to start\n"
+      "Day of th month to start\n"
+      "Year to start\n"
+      "Time to expire\n"
+      "Month of the year to expire\n"
+      "Day of th month to expire\n"
+      "Year to expire\n")
 {
 	int idx_hhmmss = 1;
 	int idx_month = 2;
@@ -958,22 +941,21 @@ DEFUN (send_lifetime_month_day_month_day,
 	int idx_number_4 = 8;
 	VTY_DECLVAR_CONTEXT_SUB(key, key);
 
-	return key_lifetime_set(
-		vty, &key->send, argv[idx_hhmmss]->arg, argv[idx_number]->arg,
-		argv[idx_month]->arg, argv[idx_number_2]->arg,
-		argv[idx_hhmmss_2]->arg, argv[idx_number_3]->arg,
-		argv[idx_month_2]->arg, argv[idx_number_4]->arg);
+	return key_lifetime_set(vty, &key->send, argv[idx_hhmmss]->arg,
+				argv[idx_number]->arg, argv[idx_month]->arg,
+				argv[idx_number_2]->arg, argv[idx_hhmmss_2]->arg,
+				argv[idx_number_3]->arg, argv[idx_month_2]->arg,
+				argv[idx_number_4]->arg);
 }
 
-DEFUN (send_lifetime_infinite_day_month,
-       send_lifetime_infinite_day_month_cmd,
-       "send-lifetime HH:MM:SS (1-31) MONTH (1993-2035) infinite",
-       "Set send lifetime of the key\n"
-       "Time to start\n"
-       "Day of th month to start\n"
-       "Month of the year to start\n"
-       "Year to start\n"
-       "Never expires\n")
+DEFUN(send_lifetime_infinite_day_month, send_lifetime_infinite_day_month_cmd,
+      "send-lifetime HH:MM:SS (1-31) MONTH (1993-2035) infinite",
+      "Set send lifetime of the key\n"
+      "Time to start\n"
+      "Day of th month to start\n"
+      "Month of the year to start\n"
+      "Year to start\n"
+      "Never expires\n")
 {
 	int idx_hhmmss = 1;
 	int idx_number = 2;
@@ -981,20 +963,20 @@ DEFUN (send_lifetime_infinite_day_month,
 	int idx_number_2 = 4;
 	VTY_DECLVAR_CONTEXT_SUB(key, key);
 
-	return key_lifetime_infinite_set(
-		vty, &key->send, argv[idx_hhmmss]->arg, argv[idx_number]->arg,
-		argv[idx_month]->arg, argv[idx_number_2]->arg);
+	return key_lifetime_infinite_set(vty, &key->send, argv[idx_hhmmss]->arg,
+					 argv[idx_number]->arg,
+					 argv[idx_month]->arg,
+					 argv[idx_number_2]->arg);
 }
 
-DEFUN (send_lifetime_infinite_month_day,
-       send_lifetime_infinite_month_day_cmd,
-       "send-lifetime HH:MM:SS MONTH (1-31) (1993-2035) infinite",
-       "Set send lifetime of the key\n"
-       "Time to start\n"
-       "Month of the year to start\n"
-       "Day of th month to start\n"
-       "Year to start\n"
-       "Never expires\n")
+DEFUN(send_lifetime_infinite_month_day, send_lifetime_infinite_month_day_cmd,
+      "send-lifetime HH:MM:SS MONTH (1-31) (1993-2035) infinite",
+      "Set send lifetime of the key\n"
+      "Time to start\n"
+      "Month of the year to start\n"
+      "Day of th month to start\n"
+      "Year to start\n"
+      "Never expires\n")
 {
 	int idx_hhmmss = 1;
 	int idx_month = 2;
@@ -1002,21 +984,21 @@ DEFUN (send_lifetime_infinite_month_day,
 	int idx_number_2 = 4;
 	VTY_DECLVAR_CONTEXT_SUB(key, key);
 
-	return key_lifetime_infinite_set(
-		vty, &key->send, argv[idx_hhmmss]->arg, argv[idx_number]->arg,
-		argv[idx_month]->arg, argv[idx_number_2]->arg);
+	return key_lifetime_infinite_set(vty, &key->send, argv[idx_hhmmss]->arg,
+					 argv[idx_number]->arg,
+					 argv[idx_month]->arg,
+					 argv[idx_number_2]->arg);
 }
 
-DEFUN (send_lifetime_duration_day_month,
-       send_lifetime_duration_day_month_cmd,
-       "send-lifetime HH:MM:SS (1-31) MONTH (1993-2035) duration (1-2147483646)",
-       "Set send lifetime of the key\n"
-       "Time to start\n"
-       "Day of th month to start\n"
-       "Month of the year to start\n"
-       "Year to start\n"
-       "Duration of the key\n"
-       "Duration seconds\n")
+DEFUN(send_lifetime_duration_day_month, send_lifetime_duration_day_month_cmd,
+      "send-lifetime HH:MM:SS (1-31) MONTH (1993-2035) duration (1-2147483646)",
+      "Set send lifetime of the key\n"
+      "Time to start\n"
+      "Day of th month to start\n"
+      "Month of the year to start\n"
+      "Year to start\n"
+      "Duration of the key\n"
+      "Duration seconds\n")
 {
 	int idx_hhmmss = 1;
 	int idx_number = 2;
@@ -1025,22 +1007,22 @@ DEFUN (send_lifetime_duration_day_month,
 	int idx_number_3 = 6;
 	VTY_DECLVAR_CONTEXT_SUB(key, key);
 
-	return key_lifetime_duration_set(
-		vty, &key->send, argv[idx_hhmmss]->arg, argv[idx_number]->arg,
-		argv[idx_month]->arg, argv[idx_number_2]->arg,
-		argv[idx_number_3]->arg);
+	return key_lifetime_duration_set(vty, &key->send, argv[idx_hhmmss]->arg,
+					 argv[idx_number]->arg,
+					 argv[idx_month]->arg,
+					 argv[idx_number_2]->arg,
+					 argv[idx_number_3]->arg);
 }
 
-DEFUN (send_lifetime_duration_month_day,
-       send_lifetime_duration_month_day_cmd,
-       "send-lifetime HH:MM:SS MONTH (1-31) (1993-2035) duration (1-2147483646)",
-       "Set send lifetime of the key\n"
-       "Time to start\n"
-       "Month of the year to start\n"
-       "Day of th month to start\n"
-       "Year to start\n"
-       "Duration of the key\n"
-       "Duration seconds\n")
+DEFUN(send_lifetime_duration_month_day, send_lifetime_duration_month_day_cmd,
+      "send-lifetime HH:MM:SS MONTH (1-31) (1993-2035) duration (1-2147483646)",
+      "Set send lifetime of the key\n"
+      "Time to start\n"
+      "Month of the year to start\n"
+      "Day of th month to start\n"
+      "Year to start\n"
+      "Duration of the key\n"
+      "Duration seconds\n")
 {
 	int idx_hhmmss = 1;
 	int idx_month = 2;
@@ -1049,17 +1031,15 @@ DEFUN (send_lifetime_duration_month_day,
 	int idx_number_3 = 6;
 	VTY_DECLVAR_CONTEXT_SUB(key, key);
 
-	return key_lifetime_duration_set(
-		vty, &key->send, argv[idx_hhmmss]->arg, argv[idx_number]->arg,
-		argv[idx_month]->arg, argv[idx_number_2]->arg,
-		argv[idx_number_3]->arg);
+	return key_lifetime_duration_set(vty, &key->send, argv[idx_hhmmss]->arg,
+					 argv[idx_number]->arg,
+					 argv[idx_month]->arg,
+					 argv[idx_number_2]->arg,
+					 argv[idx_number_3]->arg);
 }
 
-DEFUN (no_send_lifetime,
-       no_send_lifetime_cmd,
-       "no send-lifetime",
-       NO_STR
-       "Unset send-lifetime\n")
+DEFUN(no_send_lifetime, no_send_lifetime_cmd, "no send-lifetime",
+      NO_STR "Unset send-lifetime\n")
 {
 	VTY_DECLVAR_CONTEXT_SUB(key, key);
 
@@ -1132,8 +1112,8 @@ static int keychain_config_write(struct vty *vty)
 					vty_out(vty, " infinite");
 				else if (key->accept.duration)
 					vty_out(vty, " duration %ld",
-						(long)(key->accept.end
-						       - key->accept.start));
+						(long)(key->accept.end -
+						       key->accept.start));
 				else {
 					keychain_strftime(buf, BUFSIZ,
 							  &key->accept.end);
@@ -1143,16 +1123,15 @@ static int keychain_config_write(struct vty *vty)
 			}
 
 			if (key->send.start) {
-				keychain_strftime(buf, BUFSIZ,
-						  &key->send.start);
+				keychain_strftime(buf, BUFSIZ, &key->send.start);
 				vty_out(vty, "  send-lifetime %s", buf);
 
 				if (key->send.end == -1)
 					vty_out(vty, " infinite");
 				else if (key->send.duration)
 					vty_out(vty, " duration %ld",
-						(long)(key->send.end
-						       - key->send.start));
+						(long)(key->send.end -
+						       key->send.start));
 				else {
 					keychain_strftime(buf, BUFSIZ,
 							  &key->send.end);
@@ -1180,12 +1159,11 @@ static void keychain_active_config(vector comps, struct cmd_token *token)
 		vector_set(comps, XSTRDUP(MTYPE_COMPLETION, keychain->name));
 }
 
-static const struct cmd_variable_handler keychain_var_handlers[] = {
-	{.varname = "key_chain", .completions = keychain_active_config},
-	{.tokenname = "KEYCHAIN_NAME", .completions = keychain_active_config},
-	{.tokenname = "KCHAIN_NAME", .completions = keychain_active_config},
-	{.completions = NULL}
-};
+static const struct cmd_variable_handler keychain_var_handlers[] =
+	{{.varname = "key_chain", .completions = keychain_active_config},
+	 {.tokenname = "KEYCHAIN_NAME", .completions = keychain_active_config},
+	 {.tokenname = "KCHAIN_NAME", .completions = keychain_active_config},
+	 {.completions = NULL}};
 
 void keychain_init(void)
 {

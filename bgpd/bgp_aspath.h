@@ -10,29 +10,29 @@
 #include "bgpd/bgp_route.h"
 
 /* AS path segment type.  */
-#define AS_SET                       1
-#define AS_SEQUENCE                  2
-#define AS_CONFED_SEQUENCE           3
-#define AS_CONFED_SET                4
+#define AS_SET 1
+#define AS_SEQUENCE 2
+#define AS_CONFED_SEQUENCE 3
+#define AS_CONFED_SET 4
 
 /* Private AS range defined in RFC2270.  */
-#define BGP_PRIVATE_AS_MIN       64512U
+#define BGP_PRIVATE_AS_MIN 64512U
 #define BGP_PRIVATE_AS_MAX UINT16_MAX
 
 /* Private 4 byte AS range defined in RFC6996.  */
-#define BGP_PRIVATE_AS4_MIN     4200000000U
-#define BGP_PRIVATE_AS4_MAX     4294967294U
+#define BGP_PRIVATE_AS4_MIN 4200000000U
+#define BGP_PRIVATE_AS4_MAX 4294967294U
 
 /* we leave BGP_AS_MAX as the 16bit AS MAX number.  */
-#define BGP_AS_ZERO		          0
+#define BGP_AS_ZERO 0
 #define BGP_AS_MAX UINT16_MAX
-#define BGP_AS4_MAX		4294967295U
+#define BGP_AS4_MAX 4294967295U
 /* Transition 16Bit AS as defined by IANA */
-#define BGP_AS_TRANS		 23456U
+#define BGP_AS_TRANS 23456U
 
 #define BGP_AS_IS_PRIVATE(ASN)                                                 \
-	(((ASN) >= BGP_PRIVATE_AS_MIN && (ASN) <= BGP_PRIVATE_AS_MAX)          \
-	 || ((ASN) >= BGP_PRIVATE_AS4_MIN && (ASN) <= BGP_PRIVATE_AS4_MAX))
+	(((ASN) >= BGP_PRIVATE_AS_MIN && (ASN) <= BGP_PRIVATE_AS_MAX) ||       \
+	 ((ASN) >= BGP_PRIVATE_AS4_MIN && (ASN) <= BGP_PRIVATE_AS4_MAX))
 
 /* AS_PATH segment data in abstracted form, no limit is placed on length */
 struct assegment {
@@ -67,8 +67,7 @@ struct aspath {
 /* Prototypes. */
 extern void aspath_init(void);
 extern void aspath_finish(void);
-extern struct aspath *aspath_parse(struct stream *s, size_t length,
-				   int use32bit,
+extern struct aspath *aspath_parse(struct stream *s, size_t length, int use32bit,
 				   enum asnotation_mode asnotation);
 
 extern struct aspath *aspath_dup(struct aspath *aspath);
@@ -105,8 +104,7 @@ extern int aspath_loop_check(struct aspath *aspath, as_t asno);
 extern int aspath_loop_check_confed(struct aspath *aspath, as_t asno);
 extern bool aspath_private_as_check(struct aspath *aspath);
 extern struct aspath *aspath_replace_specific_asn(struct aspath *aspath,
-						  as_t target_asn,
-						  as_t our_asn);
+						  as_t target_asn, as_t our_asn);
 extern struct aspath *aspath_replace_all_asn(struct aspath *aspath,
 					     as_t our_asn);
 extern struct aspath *aspath_replace_private_asns(struct aspath *aspath,
@@ -141,9 +139,8 @@ extern void bgp_compute_aggregate_aspath_hash(struct bgp_aggregate *aggregate,
 extern void bgp_compute_aggregate_aspath_val(struct bgp_aggregate *aggregate);
 extern void bgp_remove_aspath_from_aggregate(struct bgp_aggregate *aggregate,
 					     struct aspath *aspath);
-extern void bgp_remove_aspath_from_aggregate_hash(
-						struct bgp_aggregate *aggregate,
-						struct aspath *aspath);
+extern void bgp_remove_aspath_from_aggregate_hash(struct bgp_aggregate *aggregate,
+						  struct aspath *aspath);
 
 extern void bgp_aggr_aspath_remove(void *arg);
 

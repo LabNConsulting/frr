@@ -66,8 +66,8 @@ static void map_slaves_to_bridge(struct interface *br_if, int link,
 			br_slave = &zif->brslave_info;
 
 			if (link) {
-				if (br_slave->bridge_ifindex == br_if->ifindex
-				    && br_slave->ns_id == zns->ns_id) {
+				if (br_slave->bridge_ifindex == br_if->ifindex &&
+				    br_slave->ns_id == zns->ns_id) {
 					br_slave->br_if = br_if;
 					if (update_slave) {
 						zebra_l2if_update_bridge_slave(
@@ -168,8 +168,9 @@ void zebra_l2_map_slave_to_bond(struct zebra_if *zif, vrf_id_t vrf_id)
 			listnode_add(bond_zif->bond_info.mbr_zifs, zif);
 			/* inherit protodown flags from the es-bond */
 			if (zebra_evpn_is_es_bond(bond_if))
-				zebra_evpn_mh_update_protodown_bond_mbr(
-					zif, false /*clear*/, __func__);
+				zebra_evpn_mh_update_protodown_bond_mbr(zif,
+									false /*clear*/,
+									__func__);
 			zebra_l2_bond_lacp_bypass_eval(bond_zif);
 		}
 	} else {
@@ -218,8 +219,7 @@ void zebra_l2if_update_bond(struct interface *ifp, bool add)
 	if (add) {
 		if (!bond->mbr_zifs) {
 			if (IS_ZEBRA_DEBUG_EVPN_MH_ES || IS_ZEBRA_DEBUG_EVENT)
-				zlog_debug("bond %s mbr list create",
-					   ifp->name);
+				zlog_debug("bond %s mbr list create", ifp->name);
 			bond->mbr_zifs = list_new();
 		}
 	} else {
@@ -244,8 +244,7 @@ void zebra_l2if_update_bond(struct interface *ifp, bool add)
  * map slaves (if any) to the bridge.
  */
 void zebra_l2_bridge_add_update(struct interface *ifp,
-				struct zebra_l2info_bridge *bridge_info,
-				int add)
+				struct zebra_l2info_bridge *bridge_info, int add)
 {
 	struct zebra_if *zif;
 	struct zebra_l2_bridge_if *br;
@@ -438,8 +437,8 @@ void zebra_l2if_update_bridge_slave(struct interface *ifp,
 	if (!zvrf)
 		return;
 
-	if (zif->zif_type == ZEBRA_IF_VXLAN
-	    && chgflags != ZEBRA_BRIDGE_NO_ACTION) {
+	if (zif->zif_type == ZEBRA_IF_VXLAN &&
+	    chgflags != ZEBRA_BRIDGE_NO_ACTION) {
 		if (chgflags & ZEBRA_BRIDGE_MASTER_MAC_CHANGE) {
 			ctx.chgflags = ZEBRA_VXLIF_MASTER_MAC_CHANGE;
 			zebra_vxlan_if_update(ifp, &ctx);
@@ -525,8 +524,8 @@ void zebra_l2if_update_bond_slave(struct interface *ifp, ifindex_t bond_ifindex,
 		zebra_l2_unmap_slave_from_bond(zif);
 }
 
-void zebra_vlan_bitmap_compute(struct interface *ifp,
-		uint32_t vid_start, uint16_t vid_end)
+void zebra_vlan_bitmap_compute(struct interface *ifp, uint32_t vid_start,
+			       uint16_t vid_end)
 {
 	uint32_t vid;
 	struct zebra_if *zif;
@@ -550,7 +549,8 @@ void zebra_vlan_mbr_re_eval(struct interface *ifp, bitfield_t old_vlan_bitmap)
 		/* no change */
 		return;
 
-	bf_for_each_set_bit(zif->vlan_bitmap, vid, IF_VLAN_BITMAP_MAX) {
+	bf_for_each_set_bit(zif->vlan_bitmap, vid, IF_VLAN_BITMAP_MAX)
+	{
 		/* if not already set create new reference */
 		if (!bf_test_index(old_vlan_bitmap, vid))
 			zebra_evpn_vl_mbr_ref(vid, zif);
@@ -560,7 +560,8 @@ void zebra_vlan_mbr_re_eval(struct interface *ifp, bitfield_t old_vlan_bitmap)
 	}
 
 	/* any bits remaining in the old vlan bitmap are stale references */
-	bf_for_each_set_bit(old_vlan_bitmap, vid, IF_VLAN_BITMAP_MAX) {
+	bf_for_each_set_bit(old_vlan_bitmap, vid, IF_VLAN_BITMAP_MAX)
+	{
 		zebra_evpn_vl_mbr_deref(vid, zif);
 	}
 }

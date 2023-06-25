@@ -34,10 +34,10 @@
 #if defined(HAVE_NETLINK)
 
 #define NETLINK_SOCKET_BUFFER_SIZE 512
-#define NETLINK_ALIGNTO             4
+#define NETLINK_ALIGNTO 4
 #define NETLINK_ALIGN(len)                                                     \
 	(((len) + NETLINK_ALIGNTO - 1) & ~(NETLINK_ALIGNTO - 1))
-#define NETLINK_NLATTR_LEN(_a, _b)   (unsigned int)((char *)_a - (char *)_b)
+#define NETLINK_NLATTR_LEN(_a, _b) (unsigned int)((char *)_a - (char *)_b)
 
 #endif /* defined(HAVE_NETLINK) */
 
@@ -82,7 +82,8 @@ static int send_receive(int sock, struct nlmsghdr *nlh, unsigned int seq,
 	/* reception */
 	struct sockaddr_nl addr;
 	struct iovec iov = {
-		.iov_base = buf, .iov_len = NETLINK_SOCKET_BUFFER_SIZE,
+		.iov_base = buf,
+		.iov_len = NETLINK_SOCKET_BUFFER_SIZE,
 	};
 	struct msghdr msg = {
 		.msg_name = &addr,
@@ -96,8 +97,7 @@ static int send_receive(int sock, struct nlmsghdr *nlh, unsigned int seq,
 	ret = recvmsg(sock, &msg, 0);
 	if (ret < 0) {
 		flog_err_sys(EC_LIB_SOCKET,
-			     "netlink recvmsg: error %d (errno %u)", ret,
-			     errno);
+			     "netlink recvmsg: error %d (errno %u)", ret, errno);
 		return -1;
 	}
 	if (msg.msg_flags & MSG_TRUNC) {
@@ -107,10 +107,9 @@ static int send_receive(int sock, struct nlmsghdr *nlh, unsigned int seq,
 	}
 	/* nlh already points to buf */
 	if (nlh->nlmsg_seq != seq) {
-		flog_err(
-			EC_ZEBRA_NETLINK_BAD_SEQUENCE,
-			"netlink recvmsg: bad sequence number %x (expected %x)",
-			seq, nlh->nlmsg_seq);
+		flog_err(EC_ZEBRA_NETLINK_BAD_SEQUENCE,
+			 "netlink recvmsg: bad sequence number %x (expected %x)",
+			 seq, nlh->nlmsg_seq);
 		return -1;
 	}
 	return ret;
@@ -122,15 +121,15 @@ static int send_receive(int sock, struct nlmsghdr *nlh, unsigned int seq,
 static ns_id_t extract_nsid(struct nlmsghdr *nlh, char *buf)
 {
 	ns_id_t ns_id = NS_UNKNOWN;
-	int offset = NETLINK_ALIGN(sizeof(struct nlmsghdr))
-		     + NETLINK_ALIGN(sizeof(struct rtgenmsg));
+	int offset = NETLINK_ALIGN(sizeof(struct nlmsghdr)) +
+		     NETLINK_ALIGN(sizeof(struct rtgenmsg));
 	void *tail = (void *)((char *)nlh + NETLINK_ALIGN(nlh->nlmsg_len));
 	struct nlattr *attr;
 
 	for (attr = (struct nlattr *)(buf + offset);
-	     NETLINK_NLATTR_LEN(tail, attr) >= sizeof(struct nlattr)
-	     && attr->nla_len >= sizeof(struct nlattr)
-	     && attr->nla_len <= NETLINK_NLATTR_LEN(tail, attr);
+	     NETLINK_NLATTR_LEN(tail, attr) >= sizeof(struct nlattr) &&
+	     attr->nla_len >= sizeof(struct nlattr) &&
+	     attr->nla_len <= NETLINK_NLATTR_LEN(tail, attr);
 	     attr += NETLINK_ALIGN(attr->nla_len)) {
 		if ((attr->nla_type & NLA_TYPE_MASK) == NETNSA_NSID) {
 			uint32_t *ptr = (uint32_t *)(attr);
@@ -157,7 +156,7 @@ ns_id_t zebra_ns_id_get(const char *netnspath, int fd_param)
 	/* netns path check */
 	if (!netnspath && fd_param == -1)
 		return NS_UNKNOWN;
-	if (netnspath)  {
+	if (netnspath) {
 		fd = open(netnspath, O_RDONLY);
 		if (fd == -1)
 			return NS_UNKNOWN;
@@ -218,10 +217,9 @@ ns_id_t zebra_ns_id_get(const char *netnspath, int fd_param)
 	} else {
 		if (nlh->nlmsg_type == NLMSG_ERROR) {
 			struct nlmsgerr *err =
-				(struct nlmsgerr
-					 *)((char *)nlh
-					    + NETLINK_ALIGN(
-						      sizeof(struct nlmsghdr)));
+				(struct nlmsgerr *)((char *)nlh +
+						    NETLINK_ALIGN(sizeof(
+							    struct nlmsghdr)));
 
 			ret = -1;
 			if (err->error < 0)
@@ -304,7 +302,7 @@ ns_id_t zebra_ns_id_get(const char *netnspath, int fd_param)
 }
 
 #else
-ns_id_t zebra_ns_id_get(const char *netnspath, int fd __attribute__ ((unused)))
+ns_id_t zebra_ns_id_get(const char *netnspath, int fd __attribute__((unused)))
 {
 	return zebra_ns_id_get_fallback(netnspath);
 }

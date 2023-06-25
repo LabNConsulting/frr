@@ -28,7 +28,7 @@ struct bgp_path_info_mpath {
 	/* Flags - relevant as noted. */
 	uint16_t mp_flags;
 #define BGP_MP_LB_PRESENT 0x1 /* Link-bandwidth present for >= 1 path */
-#define BGP_MP_LB_ALL 0x2 /* Link-bandwidth present for all multipaths */
+#define BGP_MP_LB_ALL 0x2     /* Link-bandwidth present for all multipaths */
 
 	/* Aggregated attribute for advertising multipath route */
 	struct attr *mp_attr;
@@ -58,9 +58,8 @@ extern void bgp_path_info_mpath_update(struct bgp *bgp, struct bgp_dest *dest,
 				       struct bgp_path_info *old_best,
 				       struct list *mp_list,
 				       struct bgp_maxpaths_cfg *mpath_cfg);
-extern void
-bgp_path_info_mpath_aggregate_update(struct bgp_path_info *new_best,
-				     struct bgp_path_info *old_best);
+extern void bgp_path_info_mpath_aggregate_update(struct bgp_path_info *new_best,
+						 struct bgp_path_info *old_best);
 
 /* Unlink and free multipath information associated with a bgp_path_info */
 extern void bgp_path_info_mpath_dequeue(struct bgp_path_info *path);
@@ -69,8 +68,7 @@ extern void bgp_path_info_mpath_free(struct bgp_path_info_mpath **mpath);
 /* Walk list of multipaths associated with a best path */
 extern struct bgp_path_info *
 bgp_path_info_mpath_first(struct bgp_path_info *path);
-extern struct bgp_path_info *
-bgp_path_info_mpath_next(struct bgp_path_info *path);
+extern struct bgp_path_info *bgp_path_info_mpath_next(struct bgp_path_info *path);
 
 /* Accessors for multipath information */
 extern uint32_t bgp_path_info_mpath_count(struct bgp_path_info *path);

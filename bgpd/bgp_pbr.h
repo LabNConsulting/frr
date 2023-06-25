@@ -23,17 +23,17 @@ enum bgp_pbr_action_enum {
 	ACTION_REDIRECT_IP = 5
 };
 
-#define TRAFFIC_ACTION_SAMPLE     (1 << 0)
-#define TRAFFIC_ACTION_TERMINATE  (1 << 1)
+#define TRAFFIC_ACTION_SAMPLE (1 << 0)
+#define TRAFFIC_ACTION_TERMINATE (1 << 1)
 #define TRAFFIC_ACTION_DISTRIBUTE (1 << 2)
 
-#define OPERATOR_COMPARE_LESS_THAN    (1<<1)
-#define OPERATOR_COMPARE_GREATER_THAN (1<<2)
-#define OPERATOR_COMPARE_EQUAL_TO     (1<<3)
-#define OPERATOR_COMPARE_EXACT_MATCH  (1<<4)
+#define OPERATOR_COMPARE_LESS_THAN (1 << 1)
+#define OPERATOR_COMPARE_GREATER_THAN (1 << 2)
+#define OPERATOR_COMPARE_EQUAL_TO (1 << 3)
+#define OPERATOR_COMPARE_EXACT_MATCH (1 << 4)
 
-#define OPERATOR_UNARY_OR    (1<<1)
-#define OPERATOR_UNARY_AND   (1<<2)
+#define OPERATOR_UNARY_OR (1 << 1)
+#define OPERATOR_UNARY_AND (1 << 2)
 
 /* struct used to store values [0;65535]
  * this can be used for port number of protocol
@@ -46,10 +46,10 @@ struct bgp_pbr_match_val {
 	uint8_t unary_operator;
 };
 
-#define FRAGMENT_DONT  1
-#define FRAGMENT_IS    2
+#define FRAGMENT_DONT 1
+#define FRAGMENT_IS 2
 #define FRAGMENT_FIRST 4
-#define FRAGMENT_LAST  8
+#define FRAGMENT_LAST 8
 
 struct bgp_pbr_entry_action {
 	/* used to store enum bgp_pbr_action_enum enumerate */
@@ -75,9 +75,9 @@ struct bgp_pbr_entry_action {
 
 /* BGP Policy Route structure */
 struct bgp_pbr_entry_main {
-#define BGP_PBR_UNDEFINED	0
-#define BGP_PBR_IPSET		1
-#define BGP_PBR_IPRULE		2
+#define BGP_PBR_UNDEFINED 0
+#define BGP_PBR_IPSET 1
+#define BGP_PBR_IPRULE 2
 	uint8_t type;
 
 	/*
@@ -204,7 +204,6 @@ struct bgp_pbr_match {
 	struct hash *entry_hash;
 
 	struct bgp_pbr_action *action;
-
 };
 
 struct bgp_pbr_match_entry {
@@ -263,9 +262,8 @@ extern struct bgp_pbr_action *bgp_pbr_action_rule_lookup(vrf_id_t vrf_id,
 extern struct bgp_pbr_match *bgp_pbr_match_ipset_lookup(vrf_id_t vrf_id,
 							uint32_t unique);
 
-extern struct bgp_pbr_match_entry *bgp_pbr_match_ipset_entry_lookup(
-					    vrf_id_t vrf_id, char *name,
-					    uint32_t unique);
+extern struct bgp_pbr_match_entry *
+bgp_pbr_match_ipset_entry_lookup(vrf_id_t vrf_id, char *name, uint32_t unique);
 extern struct bgp_pbr_match *bgp_pbr_match_iptable_lookup(vrf_id_t vrf_id,
 							  uint32_t unique);
 
@@ -273,17 +271,13 @@ extern void bgp_pbr_cleanup(struct bgp *bgp);
 extern void bgp_pbr_init(struct bgp *bgp);
 
 extern uint32_t bgp_pbr_rule_hash_key(const void *arg);
-extern bool bgp_pbr_rule_hash_equal(const void *arg1,
-				   const void *arg2);
+extern bool bgp_pbr_rule_hash_equal(const void *arg1, const void *arg2);
 extern uint32_t bgp_pbr_action_hash_key(const void *arg);
-extern bool bgp_pbr_action_hash_equal(const void *arg1,
-				     const void *arg2);
+extern bool bgp_pbr_action_hash_equal(const void *arg1, const void *arg2);
 extern uint32_t bgp_pbr_match_entry_hash_key(const void *arg);
-extern bool bgp_pbr_match_entry_hash_equal(const void *arg1,
-					  const void *arg2);
+extern bool bgp_pbr_match_entry_hash_equal(const void *arg1, const void *arg2);
 extern uint32_t bgp_pbr_match_hash_key(const void *arg);
-extern bool bgp_pbr_match_hash_equal(const void *arg1,
-				    const void *arg2);
+extern bool bgp_pbr_match_hash_equal(const void *arg1, const void *arg2);
 
 void bgp_pbr_print_policy_route(struct bgp_pbr_entry_main *api);
 
@@ -295,8 +289,8 @@ extern void bgp_pbr_update_entry(struct bgp *bgp, const struct prefix *p,
 /* bgp pbr utilities */
 extern struct bgp_pbr_interface *pbr_interface_lookup(const char *name);
 extern void bgp_pbr_reset(struct bgp *bgp, afi_t afi);
-extern struct bgp_pbr_interface *bgp_pbr_interface_lookup(const char *name,
-				   struct bgp_pbr_interface_head *head);
+extern struct bgp_pbr_interface *
+bgp_pbr_interface_lookup(const char *name, struct bgp_pbr_interface_head *head);
 
 extern int bgp_pbr_build_and_validate_entry(const struct prefix *p,
 					    struct bgp_path_info *path,

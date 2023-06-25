@@ -91,14 +91,14 @@ struct bgp_node {
 	mpls_label_t local_label;
 
 	uint16_t flags;
-#define BGP_NODE_PROCESS_SCHEDULED	(1 << 0)
-#define BGP_NODE_USER_CLEAR             (1 << 1)
-#define BGP_NODE_LABEL_CHANGED          (1 << 2)
-#define BGP_NODE_REGISTERED_FOR_LABEL   (1 << 3)
-#define BGP_NODE_SELECT_DEFER           (1 << 4)
-#define BGP_NODE_FIB_INSTALL_PENDING    (1 << 5)
-#define BGP_NODE_FIB_INSTALLED          (1 << 6)
-#define BGP_NODE_LABEL_REQUESTED        (1 << 7)
+#define BGP_NODE_PROCESS_SCHEDULED (1 << 0)
+#define BGP_NODE_USER_CLEAR (1 << 1)
+#define BGP_NODE_LABEL_CHANGED (1 << 2)
+#define BGP_NODE_REGISTERED_FOR_LABEL (1 << 3)
+#define BGP_NODE_SELECT_DEFER (1 << 4)
+#define BGP_NODE_FIB_INSTALL_PENDING (1 << 5)
+#define BGP_NODE_FIB_INSTALLED (1 << 6)
+#define BGP_NODE_LABEL_REQUESTED (1 << 7)
 #define BGP_NODE_SOFT_RECONFIG (1 << 8)
 #define BGP_NODE_PROCESS_CLEAR (1 << 9)
 
@@ -185,8 +185,7 @@ bgp_table_top_nolock(const struct bgp_table *const table)
 /*
  * bgp_table_top
  */
-static inline struct bgp_dest *
-bgp_table_top(const struct bgp_table *const table)
+static inline struct bgp_dest *bgp_table_top(const struct bgp_table *const table)
 {
 	return bgp_dest_from_rnode(route_top(table->route_table));
 }
@@ -208,7 +207,7 @@ static inline struct bgp_dest *bgp_route_next_until(struct bgp_dest *dest,
 	struct route_node *rnode;
 
 	rnode = route_next_until(bgp_dest_to_rnode(dest),
-			bgp_dest_to_rnode(limit));
+				 bgp_dest_to_rnode(limit));
 
 	return bgp_dest_from_rnode(rnode);
 }
@@ -354,8 +353,7 @@ static inline void bgp_dest_set_bgp_path_info(struct bgp_dest *dest,
 	dest->info = bi;
 }
 
-static inline struct bgp_table *
-bgp_dest_get_bgp_table_info(struct bgp_dest *dest)
+static inline struct bgp_table *bgp_dest_get_bgp_table_info(struct bgp_dest *dest)
 {
 	return dest->info;
 }
@@ -371,7 +369,8 @@ static inline bool bgp_dest_has_bgp_path_info_data(struct bgp_dest *dest)
 	return !!dest->info;
 }
 
-static inline const struct prefix *bgp_dest_get_prefix(const struct bgp_dest *dest)
+static inline const struct prefix *
+bgp_dest_get_prefix(const struct bgp_dest *dest)
 {
 	return &dest->p;
 }
@@ -382,8 +381,8 @@ static inline unsigned int bgp_dest_get_lock_count(const struct bgp_dest *dest)
 }
 
 #ifdef _FRR_ATTRIBUTE_PRINTFRR
-#pragma FRR printfrr_ext "%pRN"  (struct bgp_node *)
-#pragma FRR printfrr_ext "%pBD"  (struct bgp_dest *)
+#pragma FRR printfrr_ext "%pRN"(struct bgp_node *)
+#pragma FRR printfrr_ext "%pBD"(struct bgp_dest *)
 #endif
 
 #endif /* _QUAGGA_BGP_TABLE_H */

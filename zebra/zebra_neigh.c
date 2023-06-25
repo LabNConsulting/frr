@@ -203,8 +203,7 @@ static void zebra_neigh_read_on_first_ref(void)
 	}
 }
 
-void zebra_neigh_ref(int ifindex, struct ipaddr *ip,
-		     struct zebra_pbr_rule *rule)
+void zebra_neigh_ref(int ifindex, struct ipaddr *ip, struct zebra_pbr_rule *rule)
 {
 	struct zebra_neigh_ent *n;
 
@@ -235,8 +234,7 @@ static void zebra_neigh_show_one(struct vty *vty, struct zebra_neigh_ent *n)
 	char ip_buf[INET6_ADDRSTRLEN];
 	struct interface *ifp;
 
-	ifp = if_lookup_by_index_per_ns(zebra_ns_lookup(NS_DEFAULT),
-					n->ifindex);
+	ifp = if_lookup_by_index_per_ns(zebra_ns_lookup(NS_DEFAULT), n->ifindex);
 	ipaddr2str(&n->ip, ip_buf, sizeof(ip_buf));
 	prefix_mac2str(&n->mac, mac_buf, sizeof(mac_buf));
 	vty_out(vty, "%-20s %-30s %-18s %u\n", ifp ? ifp->name : "-", ip_buf,

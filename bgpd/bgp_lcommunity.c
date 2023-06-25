@@ -78,8 +78,7 @@ static bool lcommunity_add_val(struct lcommunity *lcom,
 
 	/* Add the value to the structure with numerical sorting.  */
 	lcom->size++;
-	lcom->val =
-		XREALLOC(MTYPE_LCOMMUNITY_VAL, lcom->val, lcom_length(lcom));
+	lcom->val = XREALLOC(MTYPE_LCOMMUNITY_VAL, lcom->val, lcom_length(lcom));
 
 	memmove(lcom->val + (c + 1) * LCOMMUNITY_SIZE,
 		lcom->val + c * LCOMMUNITY_SIZE,
@@ -104,8 +103,8 @@ struct lcommunity *lcommunity_uniq_sort(struct lcommunity *lcom)
 	new = lcommunity_new();
 
 	for (i = 0; i < lcom->size; i++) {
-		lval = (struct lcommunity_val *)(lcom->val
-						 + (i * LCOMMUNITY_SIZE));
+		lval = (struct lcommunity_val *)(lcom->val +
+						 (i * LCOMMUNITY_SIZE));
 		lcommunity_add_val(new, lval);
 	}
 	return new;
@@ -213,8 +212,7 @@ static void set_lcommunity_string(struct lcommunity *lcom, bool make_json,
 
 		char lcsb[LCOMMUNITY_STRLEN + 1];
 
-		snprintf(lcsb, sizeof(lcsb), "%u:%u:%u", global, local1,
-			 local2);
+		snprintf(lcsb, sizeof(lcsb), "%u:%u:%u", global, local1, local2);
 
 		/*
 		 * Aliases can cause havoc, if the alias length is greater
@@ -235,15 +233,13 @@ static void set_lcommunity_string(struct lcommunity *lcom, bool make_json,
 
 		if (make_json) {
 			json_string = json_object_new_string(com2alias);
-			json_object_array_add(json_lcommunity_list,
-					      json_string);
+			json_object_array_add(json_lcommunity_list, json_string);
 		}
 	}
 
 	if (make_json) {
 		json_object_string_add(lcom->json, "string", str_buf);
-		json_object_object_add(lcom->json, "list",
-				       json_lcommunity_list);
+		json_object_object_add(lcom->json, "list", json_lcommunity_list);
 	}
 
 	lcom->str = str_buf;
@@ -327,8 +323,8 @@ bool lcommunity_cmp(const void *arg1, const void *arg2)
 	if (lcom1 == NULL || lcom2 == NULL)
 		return false;
 
-	return (lcom1->size == lcom2->size
-		&& memcmp(lcom1->val, lcom2->val, lcom_length(lcom1)) == 0);
+	return (lcom1->size == lcom2->size &&
+		memcmp(lcom1->val, lcom2->val, lcom_length(lcom1)) == 0);
 }
 
 /* Return communities hash.  */
@@ -477,8 +473,8 @@ bool lcommunity_match(const struct lcommunity *lcom1,
 	/* Every community on com2 needs to be on com1 for this to match */
 	while (i < lcom1->size && j < lcom2->size) {
 		if (memcmp(lcom1->val + (i * LCOMMUNITY_SIZE),
-			   lcom2->val + (j * LCOMMUNITY_SIZE), LCOMMUNITY_SIZE)
-		    == 0)
+			   lcom2->val + (j * LCOMMUNITY_SIZE),
+			   LCOMMUNITY_SIZE) == 0)
 			j++;
 		i++;
 	}
@@ -500,8 +496,7 @@ void lcommunity_del_val(struct lcommunity *lcom, uint8_t *ptr)
 
 	while (i < lcom->size) {
 		if (memcmp(lcom->val + i * LCOMMUNITY_SIZE, ptr,
-			   LCOMMUNITY_SIZE)
-		    == 0) {
+			   LCOMMUNITY_SIZE) == 0) {
 			c = lcom->size - i - 1;
 
 			if (c > 0)
@@ -524,9 +519,9 @@ void lcommunity_del_val(struct lcommunity *lcom, uint8_t *ptr)
 	}
 }
 
-static struct lcommunity *bgp_aggr_lcommunity_lookup(
-						struct bgp_aggregate *aggregate,
-						struct lcommunity *lcommunity)
+static struct lcommunity *
+bgp_aggr_lcommunity_lookup(struct bgp_aggregate *aggregate,
+			   struct lcommunity *lcommunity)
 {
 	return hash_lookup(aggregate->lcommunity_hash, lcommunity);
 }
@@ -546,8 +541,8 @@ static void bgp_aggr_lcommunity_prepare(struct hash_bucket *hb, void *arg)
 	struct lcommunity **aggr_lcommunity = arg;
 
 	if (*aggr_lcommunity)
-		*aggr_lcommunity = lcommunity_merge(*aggr_lcommunity,
-						    hb_lcommunity);
+		*aggr_lcommunity =
+			lcommunity_merge(*aggr_lcommunity, hb_lcommunity);
 	else
 		*aggr_lcommunity = lcommunity_dup(hb_lcommunity);
 }
@@ -579,17 +574,17 @@ void bgp_compute_aggregate_lcommunity_hash(struct bgp_aggregate *aggregate,
 	/* Create hash if not already created.
 	 */
 	if (aggregate->lcommunity_hash == NULL)
-		aggregate->lcommunity_hash = hash_create(
-					lcommunity_hash_make, lcommunity_cmp,
-					"BGP Aggregator lcommunity hash");
+		aggregate->lcommunity_hash =
+			hash_create(lcommunity_hash_make, lcommunity_cmp,
+				    "BGP Aggregator lcommunity hash");
 
 	aggr_lcommunity = bgp_aggr_lcommunity_lookup(aggregate, lcommunity);
 	if (aggr_lcommunity == NULL) {
 		/* Insert lcommunity into hash.
 		 */
-		aggr_lcommunity = hash_get(aggregate->lcommunity_hash,
-					   lcommunity,
-					   bgp_aggr_lcommunty_hash_alloc);
+		aggr_lcommunity =
+			hash_get(aggregate->lcommunity_hash, lcommunity,
+				 bgp_aggr_lcommunty_hash_alloc);
 	}
 
 	/* Increment reference counter.
@@ -608,8 +603,7 @@ void bgp_compute_aggregate_lcommunity_val(struct bgp_aggregate *aggregate)
 	 */
 	if (aggregate->lcommunity)
 		lcommunity_free(&aggregate->lcommunity);
-	if (aggregate->lcommunity_hash &&
-	    aggregate->lcommunity_hash->count) {
+	if (aggregate->lcommunity_hash && aggregate->lcommunity_hash->count) {
 		hash_iterate(aggregate->lcommunity_hash,
 			     bgp_aggr_lcommunity_prepare,
 			     &aggregate->lcommunity);
@@ -626,9 +620,7 @@ void bgp_remove_lcommunity_from_aggregate(struct bgp_aggregate *aggregate,
 	struct lcommunity *aggr_lcommunity = NULL;
 	struct lcommunity *ret_lcomm = NULL;
 
-	if ((!aggregate)
-	    || (!aggregate->lcommunity_hash)
-	    || (!lcommunity))
+	if ((!aggregate) || (!aggregate->lcommunity_hash) || (!lcommunity))
 		return;
 
 	/* Look-up the lcommunity in the hash.
@@ -643,7 +635,6 @@ void bgp_remove_lcommunity_from_aggregate(struct bgp_aggregate *aggregate,
 			lcommunity_free(&ret_lcomm);
 
 			bgp_compute_aggregate_lcommunity_val(aggregate);
-
 		}
 	}
 }
@@ -654,9 +645,7 @@ void bgp_remove_lcomm_from_aggregate_hash(struct bgp_aggregate *aggregate,
 	struct lcommunity *aggr_lcommunity = NULL;
 	struct lcommunity *ret_lcomm = NULL;
 
-	if ((!aggregate)
-	    || (!aggregate->lcommunity_hash)
-	    || (!lcommunity))
+	if ((!aggregate) || (!aggregate->lcommunity_hash) || (!lcommunity))
 		return;
 
 	/* Look-up the lcommunity in the hash.

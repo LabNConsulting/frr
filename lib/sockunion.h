@@ -40,20 +40,20 @@ enum connect_result { connect_error, connect_success, connect_in_progress };
 /* Macro to set link local index to the IPv6 address.  For KAME IPv6
    stack. */
 #ifdef KAME
-#define	IN6_LINKLOCAL_IFINDEX(a)  ((a).s6_addr[2] << 8 | (a).s6_addr[3])
+#define IN6_LINKLOCAL_IFINDEX(a) ((a).s6_addr[2] << 8 | (a).s6_addr[3])
 #define SET_IN6_LINKLOCAL_IFINDEX(a, i)                                        \
 	do {                                                                   \
 		(a).s6_addr[2] = ((i) >> 8) & 0xff;                            \
 		(a).s6_addr[3] = (i)&0xff;                                     \
 	} while (0)
 #else
-#define	IN6_LINKLOCAL_IFINDEX(a)
+#define IN6_LINKLOCAL_IFINDEX(a)
 #define SET_IN6_LINKLOCAL_IFINDEX(a, i)
 #endif /* KAME */
 
-#define sockunion_family(X)  (X)->sa.sa_family
+#define sockunion_family(X) (X)->sa.sa_family
 
-#define sockunion2ip(X)      (X)->sin.sin_addr.s_addr
+#define sockunion2ip(X) (X)->sin.sin_addr.s_addr
 
 /* Prototypes. */
 extern int str2sockunion(const char *, union sockunion *);
@@ -92,17 +92,17 @@ extern void sockunion_init(union sockunion *);
 extern int sockunion_is_null(const union sockunion *su);
 
 #ifdef _FRR_ATTRIBUTE_PRINTFRR
-#pragma FRR printfrr_ext "%pSU"  (union sockunion *)
-#pragma FRR printfrr_ext "%pSU"  (struct sockaddr *)
-#pragma FRR printfrr_ext "%pSU"  (struct sockaddr_storage *)
-#pragma FRR printfrr_ext "%pSU"  (struct sockaddr_in *)
-#pragma FRR printfrr_ext "%pSU"  (struct sockaddr_in6 *)
-#pragma FRR printfrr_ext "%pSU"  (struct sockaddr_un *)
+#pragma FRR printfrr_ext "%pSU"(union sockunion *)
+#pragma FRR printfrr_ext "%pSU"(struct sockaddr *)
+#pragma FRR printfrr_ext "%pSU"(struct sockaddr_storage *)
+#pragma FRR printfrr_ext "%pSU"(struct sockaddr_in *)
+#pragma FRR printfrr_ext "%pSU"(struct sockaddr_in6 *)
+#pragma FRR printfrr_ext "%pSU"(struct sockaddr_un *)
 
 /* AF_INET/PF_INET & co., using "PF" to avoid confusion with AFI/SAFI */
-#pragma FRR printfrr_ext "%dPF"  (int)
+#pragma FRR printfrr_ext "%dPF"(int)
 /* SOCK_STREAM & co. */
-#pragma FRR printfrr_ext "%dSO"  (int)
+#pragma FRR printfrr_ext "%dSO"(int)
 #endif
 
 #ifdef __cplusplus

@@ -48,8 +48,7 @@ static struct ospf_neighbor *ospf_dr_election_sub(struct list *routers)
 				max = nbr;
 			else if (max->priority == nbr->priority)
 				if (IPV4_ADDR_CMP(&max->router_id,
-						  &nbr->router_id)
-				    < 0)
+						  &nbr->router_id) < 0)
 					max = nbr;
 		}
 	}
@@ -179,9 +178,9 @@ static void ospf_dr_change(struct ospf *ospf, struct route_table *nbrs)
 		 * Is neighbor 2-Way?
 		 * Ignore myself
 		 */
-		if (nbr->router_id.s_addr != INADDR_ANY
-		    && nbr->state >= NSM_TwoWay
-		    && !IPV4_ADDR_SAME(&nbr->router_id, &ospf->router_id))
+		if (nbr->router_id.s_addr != INADDR_ANY &&
+		    nbr->state >= NSM_TwoWay &&
+		    !IPV4_ADDR_SAME(&nbr->router_id, &ospf->router_id))
 			OSPF_NSM_EVENT_SCHEDULE(nbr, NSM_AdjOK);
 	}
 }
@@ -213,8 +212,8 @@ int ospf_dr_election(struct ospf_interface *oi)
 		zlog_debug("DR-Election[1st]: DR     %pI4", &DR(oi));
 	}
 
-	if (new_state != old_state
-	    && !(new_state == ISM_DROther && old_state < ISM_DROther)) {
+	if (new_state != old_state &&
+	    !(new_state == ISM_DROther && old_state < ISM_DROther)) {
 		ospf_elect_bdr(oi, el_list);
 		ospf_elect_dr(oi, el_list);
 
@@ -229,8 +228,8 @@ int ospf_dr_election(struct ospf_interface *oi)
 	list_delete(&el_list);
 
 	/* if DR or BDR changes, cause AdjOK? neighbor event. */
-	if (!IPV4_ADDR_SAME(&old_dr, &DR(oi))
-	    || !IPV4_ADDR_SAME(&old_bdr, &BDR(oi)))
+	if (!IPV4_ADDR_SAME(&old_dr, &DR(oi)) ||
+	    !IPV4_ADDR_SAME(&old_bdr, &BDR(oi)))
 		ospf_dr_change(oi->ospf, oi->nbrs);
 
 	return new_state;
@@ -314,8 +313,7 @@ static void ism_timer_set(struct ospf_interface *oi)
 		/* send first hello immediately */
 		OSPF_ISM_TIMER_MSEC_ON(oi->t_hello, ospf_hello_timer, 1);
 		EVENT_OFF(oi->t_wait);
-		OSPF_ISM_TIMER_ON(oi->t_ls_ack, ospf_ls_ack_timer,
-				  oi->v_ls_ack);
+		OSPF_ISM_TIMER_ON(oi->t_ls_ack, ospf_ls_ack_timer, oi->v_ls_ack);
 		break;
 	case ISM_DROther:
 		/* The network type of the interface is broadcast or NBMA
@@ -324,8 +322,7 @@ static void ism_timer_set(struct ospf_interface *oi)
 		   Backup Designated Router. */
 		OSPF_HELLO_TIMER_ON(oi);
 		EVENT_OFF(oi->t_wait);
-		OSPF_ISM_TIMER_ON(oi->t_ls_ack, ospf_ls_ack_timer,
-				  oi->v_ls_ack);
+		OSPF_ISM_TIMER_ON(oi->t_ls_ack, ospf_ls_ack_timer, oi->v_ls_ack);
 		break;
 	case ISM_Backup:
 		/* The network type of the interface is broadcast os NBMA
@@ -333,8 +330,7 @@ static void ism_timer_set(struct ospf_interface *oi)
 		   and the router is Backup Designated Router. */
 		OSPF_HELLO_TIMER_ON(oi);
 		EVENT_OFF(oi->t_wait);
-		OSPF_ISM_TIMER_ON(oi->t_ls_ack, ospf_ls_ack_timer,
-				  oi->v_ls_ack);
+		OSPF_ISM_TIMER_ON(oi->t_ls_ack, ospf_ls_ack_timer, oi->v_ls_ack);
 		break;
 	case ISM_DR:
 		/* The network type of the interface is broadcast or NBMA
@@ -342,8 +338,7 @@ static void ism_timer_set(struct ospf_interface *oi)
 		   and the router is Designated Router. */
 		OSPF_HELLO_TIMER_ON(oi);
 		EVENT_OFF(oi->t_wait);
-		OSPF_ISM_TIMER_ON(oi->t_ls_ack, ospf_ls_ack_timer,
-				  oi->v_ls_ack);
+		OSPF_ISM_TIMER_ON(oi->t_ls_ack, ospf_ls_ack_timer, oi->v_ls_ack);
 		break;
 	}
 }
@@ -355,9 +350,9 @@ static int ism_interface_up(struct ospf_interface *oi)
 	/* if network type is point-to-point, Point-to-MultiPoint or virtual
 	   link,
 	   the state transitions to Point-to-Point. */
-	if (oi->type == OSPF_IFTYPE_POINTOPOINT
-	    || oi->type == OSPF_IFTYPE_POINTOMULTIPOINT
-	    || oi->type == OSPF_IFTYPE_VIRTUALLINK)
+	if (oi->type == OSPF_IFTYPE_POINTOPOINT ||
+	    oi->type == OSPF_IFTYPE_POINTOMULTIPOINT ||
+	    oi->type == OSPF_IFTYPE_VIRTUALLINK)
 		next_state = ISM_PointToPoint;
 	/* Else if the router is not eligible to DR, the state transitions to
 	   DROther. */
@@ -431,86 +426,86 @@ const struct {
 	},
 	{
 		/* Down:*/
-		{ism_ignore, ISM_DependUpon},       /* NoEvent        */
+		{ism_ignore, ISM_DependUpon},	    /* NoEvent        */
 		{ism_interface_up, ISM_DependUpon}, /* InterfaceUp    */
 		{ism_ignore, ISM_Down},		    /* WaitTimer      */
 		{ism_ignore, ISM_Down},		    /* BackupSeen     */
 		{ism_ignore, ISM_Down},		    /* NeighborChange */
-		{ism_loop_ind, ISM_Loopback},       /* LoopInd        */
+		{ism_loop_ind, ISM_Loopback},	    /* LoopInd        */
 		{ism_ignore, ISM_Down},		    /* UnloopInd      */
-		{ism_interface_down, ISM_Down},     /* InterfaceDown  */
+		{ism_interface_down, ISM_Down},	    /* InterfaceDown  */
 	},
 	{
 		/* Loopback: */
-		{ism_ignore, ISM_DependUpon},   /* NoEvent        */
-		{ism_ignore, ISM_Loopback},     /* InterfaceUp    */
-		{ism_ignore, ISM_Loopback},     /* WaitTimer      */
-		{ism_ignore, ISM_Loopback},     /* BackupSeen     */
-		{ism_ignore, ISM_Loopback},     /* NeighborChange */
-		{ism_ignore, ISM_Loopback},     /* LoopInd        */
+		{ism_ignore, ISM_DependUpon},	/* NoEvent        */
+		{ism_ignore, ISM_Loopback},	/* InterfaceUp    */
+		{ism_ignore, ISM_Loopback},	/* WaitTimer      */
+		{ism_ignore, ISM_Loopback},	/* BackupSeen     */
+		{ism_ignore, ISM_Loopback},	/* NeighborChange */
+		{ism_ignore, ISM_Loopback},	/* LoopInd        */
 		{ism_ignore, ISM_Down},		/* UnloopInd      */
 		{ism_interface_down, ISM_Down}, /* InterfaceDown  */
 	},
 	{
 		/* Waiting: */
-		{ism_ignore, ISM_DependUpon},      /* NoEvent        */
-		{ism_ignore, ISM_Waiting},	 /* InterfaceUp    */
+		{ism_ignore, ISM_DependUpon},	   /* NoEvent        */
+		{ism_ignore, ISM_Waiting},	   /* InterfaceUp    */
 		{ism_wait_timer, ISM_DependUpon},  /* WaitTimer      */
 		{ism_backup_seen, ISM_DependUpon}, /* BackupSeen     */
-		{ism_ignore, ISM_Waiting},	 /* NeighborChange */
-		{ism_loop_ind, ISM_Loopback},      /* LoopInd        */
-		{ism_ignore, ISM_Waiting},	 /* UnloopInd      */
-		{ism_interface_down, ISM_Down},    /* InterfaceDown  */
+		{ism_ignore, ISM_Waiting},	   /* NeighborChange */
+		{ism_loop_ind, ISM_Loopback},	   /* LoopInd        */
+		{ism_ignore, ISM_Waiting},	   /* UnloopInd      */
+		{ism_interface_down, ISM_Down},	   /* InterfaceDown  */
 	},
 	{
 		/* Point-to-Point: */
-		{ism_ignore, ISM_DependUpon},   /* NoEvent        */
+		{ism_ignore, ISM_DependUpon},	/* NoEvent        */
 		{ism_ignore, ISM_PointToPoint}, /* InterfaceUp    */
 		{ism_ignore, ISM_PointToPoint}, /* WaitTimer      */
 		{ism_ignore, ISM_PointToPoint}, /* BackupSeen     */
 		{ism_ignore, ISM_PointToPoint}, /* NeighborChange */
-		{ism_loop_ind, ISM_Loopback},   /* LoopInd        */
+		{ism_loop_ind, ISM_Loopback},	/* LoopInd        */
 		{ism_ignore, ISM_PointToPoint}, /* UnloopInd      */
 		{ism_interface_down, ISM_Down}, /* InterfaceDown  */
 	},
 	{
 		/* DROther: */
-		{ism_ignore, ISM_DependUpon},	  /* NoEvent        */
-		{ism_ignore, ISM_DROther},	     /* InterfaceUp    */
-		{ism_ignore, ISM_DROther},	     /* WaitTimer      */
-		{ism_ignore, ISM_DROther},	     /* BackupSeen     */
+		{ism_ignore, ISM_DependUpon},	       /* NoEvent        */
+		{ism_ignore, ISM_DROther},	       /* InterfaceUp    */
+		{ism_ignore, ISM_DROther},	       /* WaitTimer      */
+		{ism_ignore, ISM_DROther},	       /* BackupSeen     */
 		{ism_neighbor_change, ISM_DependUpon}, /* NeighborChange */
-		{ism_loop_ind, ISM_Loopback},	  /* LoopInd        */
-		{ism_ignore, ISM_DROther},	     /* UnloopInd      */
-		{ism_interface_down, ISM_Down},	/* InterfaceDown  */
+		{ism_loop_ind, ISM_Loopback},	       /* LoopInd        */
+		{ism_ignore, ISM_DROther},	       /* UnloopInd      */
+		{ism_interface_down, ISM_Down},	       /* InterfaceDown  */
 	},
 	{
 		/* Backup: */
-		{ism_ignore, ISM_DependUpon},	  /* NoEvent        */
-		{ism_ignore, ISM_Backup},	      /* InterfaceUp    */
-		{ism_ignore, ISM_Backup},	      /* WaitTimer      */
-		{ism_ignore, ISM_Backup},	      /* BackupSeen     */
+		{ism_ignore, ISM_DependUpon},	       /* NoEvent        */
+		{ism_ignore, ISM_Backup},	       /* InterfaceUp    */
+		{ism_ignore, ISM_Backup},	       /* WaitTimer      */
+		{ism_ignore, ISM_Backup},	       /* BackupSeen     */
 		{ism_neighbor_change, ISM_DependUpon}, /* NeighborChange */
-		{ism_loop_ind, ISM_Loopback},	  /* LoopInd        */
-		{ism_ignore, ISM_Backup},	      /* UnloopInd      */
-		{ism_interface_down, ISM_Down},	/* InterfaceDown  */
+		{ism_loop_ind, ISM_Loopback},	       /* LoopInd        */
+		{ism_ignore, ISM_Backup},	       /* UnloopInd      */
+		{ism_interface_down, ISM_Down},	       /* InterfaceDown  */
 	},
 	{
 		/* DR: */
-		{ism_ignore, ISM_DependUpon},	  /* NoEvent        */
+		{ism_ignore, ISM_DependUpon},	       /* NoEvent        */
 		{ism_ignore, ISM_DR},		       /* InterfaceUp    */
 		{ism_ignore, ISM_DR},		       /* WaitTimer      */
 		{ism_ignore, ISM_DR},		       /* BackupSeen     */
 		{ism_neighbor_change, ISM_DependUpon}, /* NeighborChange */
-		{ism_loop_ind, ISM_Loopback},	  /* LoopInd        */
+		{ism_loop_ind, ISM_Loopback},	       /* LoopInd        */
 		{ism_ignore, ISM_DR},		       /* UnloopInd      */
-		{ism_interface_down, ISM_Down},	/* InterfaceDown  */
+		{ism_interface_down, ISM_Down},	       /* InterfaceDown  */
 	},
 };
 
 static const char *const ospf_ism_event_str[] = {
-	"NoEvent",	"InterfaceUp", "WaitTimer", "BackupSeen",
-	"NeighborChange", "LoopInd",     "UnLoopInd", "InterfaceDown",
+	"NoEvent",	  "InterfaceUp", "WaitTimer", "BackupSeen",
+	"NeighborChange", "LoopInd",	 "UnLoopInd", "InterfaceDown",
 };
 
 static void ism_change_state(struct ospf_interface *oi, int state)

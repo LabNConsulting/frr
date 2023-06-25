@@ -17,20 +17,19 @@
 		}                                                              \
 	}
 
-#define VTY_GET_OSPF_AREA_ID_NO_BB(NAME, V, F, STR)                            \
-	{                                                                      \
-		int retv;                                                      \
-		retv = str2area_id((STR), &(V), &(F));                         \
-		if (retv < 0) {                                                \
-			vty_out(vty, "%% Invalid OSPF area ID\n");             \
-			return CMD_WARNING;                                    \
-		}                                                              \
-		if (OSPF_IS_AREA_ID_BACKBONE((V))) {                           \
-			vty_out(vty,                                           \
-				"%% You can't configure %s to backbone\n",     \
-				NAME);                                         \
-			return CMD_WARNING;                                    \
-		}                                                              \
+#define VTY_GET_OSPF_AREA_ID_NO_BB(NAME, V, F, STR)                             \
+	{                                                                       \
+		int retv;                                                       \
+		retv = str2area_id((STR), &(V), &(F));                          \
+		if (retv < 0) {                                                 \
+			vty_out(vty, "%% Invalid OSPF area ID\n");              \
+			return CMD_WARNING;                                     \
+		}                                                               \
+		if (OSPF_IS_AREA_ID_BACKBONE((V))) {                            \
+			vty_out(vty, "%% You can't configure %s to backbone\n", \
+				NAME);                                          \
+			return CMD_WARNING;                                     \
+		}                                                               \
 	}
 
 /* Prototypes. */

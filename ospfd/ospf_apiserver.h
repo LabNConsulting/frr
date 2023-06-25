@@ -97,8 +97,7 @@ extern int ospf_apiserver_lsa11_originator(void *arg);
 
 extern void ospf_apiserver_clients_notify_all(struct msg *msg);
 
-extern void
-ospf_apiserver_clients_notify_ready_type9(struct ospf_interface *oi);
+extern void ospf_apiserver_clients_notify_ready_type9(struct ospf_interface *oi);
 extern void ospf_apiserver_clients_notify_ready_type10(struct ospf_area *area);
 extern void ospf_apiserver_clients_notify_ready_type11(struct ospf *top);
 
@@ -127,9 +126,8 @@ ospf_apiserver_handle_unregister_opaque_type(struct ospf_apiserver *apiserv,
 					     struct msg *msg);
 extern int ospf_apiserver_handle_register_event(struct ospf_apiserver *apiserv,
 						struct msg *msg);
-extern int
-ospf_apiserver_handle_originate_request(struct ospf_apiserver *apiserv,
-					struct msg *msg);
+extern int ospf_apiserver_handle_originate_request(struct ospf_apiserver *apiserv,
+						   struct msg *msg);
 extern int ospf_apiserver_handle_delete_request(struct ospf_apiserver *apiserv,
 						struct msg *msg);
 extern int ospf_apiserver_handle_sync_lsdb(struct ospf_apiserver *apiserv,
@@ -164,8 +162,7 @@ extern struct ospf_interface *
 ospf_apiserver_if_lookup_by_addr(struct in_addr address);
 extern struct ospf_interface *
 ospf_apiserver_if_lookup_by_ifp(struct interface *ifp);
-extern int ospf_apiserver_originate1(struct ospf_lsa *lsa,
-				     struct ospf_lsa *old);
+extern int ospf_apiserver_originate1(struct ospf_lsa *lsa, struct ospf_lsa *old);
 extern void ospf_apiserver_flood_opaque_lsa(struct ospf_lsa *lsa);
 
 
@@ -176,10 +173,8 @@ extern void ospf_apiserver_flood_opaque_lsa(struct ospf_lsa *lsa);
 
 extern int ospf_apiserver_new_if(struct interface *ifp);
 extern int ospf_apiserver_del_if(struct interface *ifp);
-extern void ospf_apiserver_ism_change(struct ospf_interface *oi,
-				      int old_status);
-extern void ospf_apiserver_nsm_change(struct ospf_neighbor *nbr,
-				      int old_status);
+extern void ospf_apiserver_ism_change(struct ospf_interface *oi, int old_status);
+extern void ospf_apiserver_nsm_change(struct ospf_neighbor *nbr, int old_status);
 extern void ospf_apiserver_config_write_router(struct vty *vty);
 extern void ospf_apiserver_config_write_if(struct vty *vty,
 					   struct interface *ifp);

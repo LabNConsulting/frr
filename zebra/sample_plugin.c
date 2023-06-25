@@ -90,11 +90,8 @@ static int init_sample_plugin(struct event_loop *tm)
 	 * our init, process work, and shutdown callbacks.
 	 */
 	ret = dplane_provider_register(plugin_name, DPLANE_PRIO_PRE_KERNEL,
-				       DPLANE_PROV_FLAGS_DEFAULT,
-				       sample_start,
-				       sample_process,
-				       sample_fini,
-				       NULL,
+				       DPLANE_PROV_FLAGS_DEFAULT, sample_start,
+				       sample_process, sample_fini, NULL,
 				       &prov_p);
 
 	if (IS_ZEBRA_DEBUG_DPLANE)
@@ -112,9 +109,6 @@ static int module_init(void)
 	return 0;
 }
 
-FRR_MODULE_SETUP(
-	.name = "dplane_sample",
-	.version = "0.0.1",
-	.description = "Dataplane Sample Plugin",
-	.init = module_init,
-);
+FRR_MODULE_SETUP(.name = "dplane_sample", .version = "0.0.1",
+		 .description = "Dataplane Sample Plugin",
+		 .init = module_init, );

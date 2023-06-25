@@ -44,8 +44,8 @@ struct xref_logmsg {
 };
 
 /* whether flag was added in config mode or enable mode */
-#define LOGMSG_FLAG_EPHEMERAL	(1 << 0)
-#define LOGMSG_FLAG_PERSISTENT	(1 << 1)
+#define LOGMSG_FLAG_EPHEMERAL (1 << 0)
+#define LOGMSG_FLAG_PERSISTENT (1 << 1)
 
 struct xrefdata_logmsg {
 	struct xrefdata xrefdata;
@@ -75,8 +75,7 @@ static inline void zlog(int prio, const char *fmt, ...)
 }
 
 PRINTFRR(2, 3)
-static inline void zlog_ref(const struct xref_logmsg *xref,
-			    const char *fmt, ...)
+static inline void zlog_ref(const struct xref_logmsg *xref, const char *fmt, ...)
 {
 	va_list ap;
 
@@ -85,48 +84,47 @@ static inline void zlog_ref(const struct xref_logmsg *xref,
 	va_end(ap);
 }
 
-#define _zlog_ecref(ec_, prio, msg, ...)                                       \
-	do {                                                                   \
-		static struct xrefdata_logmsg _xrefdata = {                    \
-			.xrefdata =                                            \
-				{                                              \
-					.xref = NULL,                          \
-					.uid = {},                             \
-					.hashstr = (msg),                      \
-					.hashu32 = {(prio), (ec_)},            \
-				},                                             \
-		};                                                             \
-		static const struct xref_logmsg _xref __attribute__(           \
-			(used)) = {                                            \
-			.xref = XREF_INIT(XREFT_LOGMSG, &_xrefdata.xrefdata,   \
-					  __func__),                           \
-			.fmtstring = (msg),                                    \
-			.priority = (prio),                                    \
-			.ec = (ec_),                                           \
-			.args = (#__VA_ARGS__),                                \
-		};                                                             \
-		XREF_LINK(_xref.xref);                                         \
-		zlog_ref(&_xref, (msg), ##__VA_ARGS__);                        \
+#define _zlog_ecref(ec_, prio, msg, ...)                                        \
+	do {                                                                    \
+		static struct xrefdata_logmsg _xrefdata = {                     \
+			.xrefdata =                                             \
+				{                                               \
+					.xref = NULL,                           \
+					.uid = {},                              \
+					.hashstr = (msg),                       \
+					.hashu32 = {(prio), (ec_)},             \
+				},                                              \
+		};                                                              \
+		static const struct xref_logmsg _xref __attribute__((used)) = { \
+			.xref = XREF_INIT(XREFT_LOGMSG, &_xrefdata.xrefdata,    \
+					  __func__),                            \
+			.fmtstring = (msg),                                     \
+			.priority = (prio),                                     \
+			.ec = (ec_),                                            \
+			.args = (#__VA_ARGS__),                                 \
+		};                                                              \
+		XREF_LINK(_xref.xref);                                          \
+		zlog_ref(&_xref, (msg), ##__VA_ARGS__);                         \
 	} while (0)
 
-#define zlog_err(...)    _zlog_ecref(0, LOG_ERR, __VA_ARGS__)
-#define zlog_warn(...)   _zlog_ecref(0, LOG_WARNING, __VA_ARGS__)
-#define zlog_info(...)   _zlog_ecref(0, LOG_INFO, __VA_ARGS__)
+#define zlog_err(...) _zlog_ecref(0, LOG_ERR, __VA_ARGS__)
+#define zlog_warn(...) _zlog_ecref(0, LOG_WARNING, __VA_ARGS__)
+#define zlog_info(...) _zlog_ecref(0, LOG_INFO, __VA_ARGS__)
 #define zlog_notice(...) _zlog_ecref(0, LOG_NOTICE, __VA_ARGS__)
-#define zlog_debug(...)  _zlog_ecref(0, LOG_DEBUG, __VA_ARGS__)
+#define zlog_debug(...) _zlog_ecref(0, LOG_DEBUG, __VA_ARGS__)
 
 #define flog_err(ferr_id, format, ...)                                         \
-	_zlog_ecref(ferr_id, LOG_ERR, format, ## __VA_ARGS__)
+	_zlog_ecref(ferr_id, LOG_ERR, format, ##__VA_ARGS__)
 #define flog_warn(ferr_id, format, ...)                                        \
-	_zlog_ecref(ferr_id, LOG_WARNING, format, ## __VA_ARGS__)
+	_zlog_ecref(ferr_id, LOG_WARNING, format, ##__VA_ARGS__)
 
 #define flog_err_sys(ferr_id, format, ...)                                     \
-	_zlog_ecref(ferr_id, LOG_ERR, format, ## __VA_ARGS__)
+	_zlog_ecref(ferr_id, LOG_ERR, format, ##__VA_ARGS__)
 
 extern void zlog_sigsafe(const char *text, size_t len);
 
 /* extra priority value to disable a target without deleting it */
-#define ZLOG_DISABLED	(LOG_EMERG-1)
+#define ZLOG_DISABLED (LOG_EMERG - 1)
 
 /* zlog_msg encapsulates a particular logging call from somewhere in the code.
  * The same struct is passed around to all zlog_targets.
@@ -160,17 +158,17 @@ extern void zlog_msg_args(struct zlog_msg *msg, size_t *hdrlen,
 /* timestamp formatting control flags */
 
 /* sub-second digit count */
-#define ZLOG_TS_PREC		0xfU
+#define ZLOG_TS_PREC 0xfU
 
 /* 8601:   0000-00-00T00:00:00Z      (if used with ZLOG_TS_UTC)
  *         0000-00-00T00:00:00+00:00 (otherwise)
  * Legacy: 0000/00/00 00:00:00       (no TZ indicated!)
  */
-#define ZLOG_TS_ISO8601		(1 << 8)
-#define ZLOG_TS_LEGACY		(1 << 9)
+#define ZLOG_TS_ISO8601 (1 << 8)
+#define ZLOG_TS_LEGACY (1 << 9)
 
 /* default is local time zone */
-#define ZLOG_TS_UTC		(1 << 10)
+#define ZLOG_TS_UTC (1 << 10)
 
 struct timespec;
 
@@ -228,9 +226,8 @@ struct zlog_target {
 };
 
 /* make a copy for RCUpdating.  oldzt may be NULL to allocate a fresh one. */
-extern struct zlog_target *zlog_target_clone(struct memtype *mt,
-					     struct zlog_target *oldzt,
-					     size_t size);
+extern struct zlog_target *
+zlog_target_clone(struct memtype *mt, struct zlog_target *oldzt, size_t size);
 
 /* update the zlog_targets list;  both oldzt and newzt may be NULL.  You
  * still need to zlog_target_free() the old target afterwards if it wasn't
@@ -244,14 +241,14 @@ extern struct zlog_target *zlog_target_replace(struct zlog_target *oldzt,
 					       struct zlog_target *newzt);
 
 /* Mostly for symmetry for zlog_target_clone(), just rcu_free() internally. */
-#define zlog_target_free(mt, zt) \
-	rcu_free(mt, zt, rcu_head)
+#define zlog_target_free(mt, zt) rcu_free(mt, zt, rcu_head)
 
 extern void zlog_init(const char *progname, const char *protoname,
 		      unsigned short instance, uid_t uid, gid_t gid);
-DECLARE_HOOK(zlog_init, (const char *progname, const char *protoname,
-			 unsigned short instance, uid_t uid, gid_t gid),
-			(progname, protoname, instance, uid, gid));
+DECLARE_HOOK(zlog_init,
+	     (const char *progname, const char *protoname,
+	      unsigned short instance, uid_t uid, gid_t gid),
+	     (progname, protoname, instance, uid, gid));
 
 extern void zlog_fini(void);
 DECLARE_KOOH(zlog_fini, (), ());
@@ -266,7 +263,7 @@ extern bool zlog_get_prefix_xid(void);
  */
 extern void zlog_aux_init(const char *prefix, int prio_min);
 DECLARE_HOOK(zlog_aux_init, (const char *prefix, int prio_min),
-			    (prefix, prio_min));
+	     (prefix, prio_min));
 
 extern void zlog_startup_end(void);
 

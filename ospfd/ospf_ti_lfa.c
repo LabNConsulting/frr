@@ -31,8 +31,8 @@ ospf_ti_lfa_generate_p_space(struct ospf_area *area, struct vertex *child,
 			     struct protected_resource *protected_resource,
 			     bool recursive, struct list *pc_path);
 
-void ospf_print_protected_resource(
-	struct protected_resource *protected_resource, char *buf)
+void ospf_print_protected_resource(struct protected_resource *protected_resource,
+				   char *buf)
 {
 	struct router_lsa_link *link;
 
@@ -76,8 +76,9 @@ ospf_ti_lfa_find_p_node(struct vertex *pc_node, struct p_space *p_space,
 
 		if (curr_node->next->next) {
 			p_node_pc_parent = listgetdata(curr_node->next->next);
-			pc_vertex_parent = ospf_spf_vertex_parent_find(
-				p_node_pc_parent->id, pc_node_parent);
+			pc_vertex_parent =
+				ospf_spf_vertex_parent_find(p_node_pc_parent->id,
+							    pc_node_parent);
 			q_space->p_node_info->nexthop =
 				pc_vertex_parent->nexthop->router;
 		} else {
@@ -177,8 +178,8 @@ ospf_ti_lfa_create_label_stack(mpls_label_t labels[], uint32_t num_labels)
 	}
 
 	label_stack = XCALLOC(MTYPE_OSPF_Q_SPACE,
-			      sizeof(struct mpls_label_stack)
-				      + MPLS_MAX_LABELS * sizeof(mpls_label_t));
+			      sizeof(struct mpls_label_stack) +
+				      MPLS_MAX_LABELS * sizeof(mpls_label_t));
 	label_stack->num_labels = num_labels;
 
 	for (i = 0; i < num_labels; i++)
@@ -233,8 +234,7 @@ static struct list *ospf_ti_lfa_cut_out_pc_path(struct list *pc_vertex_list,
 }
 
 static void ospf_ti_lfa_generate_inner_label_stack(
-	struct ospf_area *area, struct p_space *p_space,
-	struct q_space *q_space,
+	struct ospf_area *area, struct p_space *p_space, struct q_space *q_space,
 	struct ospf_ti_lfa_inner_backup_path_info *inner_backup_path_info)
 {
 	struct route_table *new_table;
@@ -328,10 +328,10 @@ static void ospf_ti_lfa_generate_inner_label_stack(
 	if (start_label != MPLS_INVALID_LABEL) {
 		inner_backup_path_info->label_stack =
 			ospf_ti_lfa_create_label_stack(&start_label, 1);
-		ospf_ti_lfa_append_label_stack(
-			inner_backup_path_info->label_stack,
-			inner_q_space->label_stack->label,
-			inner_q_space->label_stack->num_labels);
+		ospf_ti_lfa_append_label_stack(inner_backup_path_info->label_stack,
+					       inner_q_space->label_stack->label,
+					       inner_q_space->label_stack
+						       ->num_labels);
 		inner_backup_path_info->p_node_info.node = start_vertex;
 		inner_backup_path_info->p_node_info.type = OSPF_TI_LFA_P_NODE;
 		vertex_parent = ospf_spf_vertex_parent_find(p_space->root->id,
@@ -341,10 +341,9 @@ static void ospf_ti_lfa_generate_inner_label_stack(
 	} else {
 		memcpy(inner_backup_path_info->label_stack,
 		       inner_q_space->label_stack,
-		       sizeof(struct mpls_label_stack)
-			       + sizeof(mpls_label_t)
-					 * inner_q_space->label_stack
-						   ->num_labels);
+		       sizeof(struct mpls_label_stack) +
+			       sizeof(mpls_label_t) *
+				       inner_q_space->label_stack->num_labels);
 		memcpy(&inner_backup_path_info->p_node_info,
 		       inner_q_space->p_node_info,
 		       sizeof(struct ospf_ti_lfa_node_info));
@@ -380,17 +379,15 @@ static void ospf_ti_lfa_generate_label_stack(struct ospf_area *area,
 	struct ospf_ti_lfa_inner_backup_path_info inner_backup_path_info;
 
 	if (IS_DEBUG_OSPF_TI_LFA)
-		zlog_debug(
-			"%s: Generating Label stack for src %pI4 and dest %pI4.",
-			__func__, &p_space->root->id, &q_space->root->id);
+		zlog_debug("%s: Generating Label stack for src %pI4 and dest %pI4.",
+			   __func__, &p_space->root->id, &q_space->root->id);
 
 	pc_node = listnode_head(q_space->pc_path);
 
 	if (!pc_node) {
 		if (IS_DEBUG_OSPF_TI_LFA)
-			zlog_debug(
-				"%s: There seems to be no post convergence path (yet).",
-				__func__);
+			zlog_debug("%s: There seems to be no post convergence path (yet).",
+				   __func__);
 		return;
 	}
 
@@ -409,15 +406,15 @@ static void ospf_ti_lfa_generate_label_stack(struct ospf_area *area,
 		 */
 		if (ospf_spf_vertex_parent_find(p_space->root->id,
 						q_space->q_node_info->node))
-			labels[0] = ospf_sr_get_adj_sid_by_id(
-				&p_space->root->id,
-				&q_space->q_node_info->node->id);
+			labels[0] =
+				ospf_sr_get_adj_sid_by_id(&p_space->root->id,
+							  &q_space->q_node_info
+								   ->node->id);
 		else
 			labels[0] = ospf_sr_get_prefix_sid_by_id(
 				&q_space->q_node_info->node->id);
 
-		q_space->label_stack =
-			ospf_ti_lfa_create_label_stack(labels, 1);
+		q_space->label_stack = ospf_ti_lfa_create_label_stack(labels, 1);
 		q_space->nexthop = q_space->q_node_info->nexthop;
 
 		return;
@@ -445,11 +442,12 @@ static void ospf_ti_lfa_generate_label_stack(struct ospf_area *area,
 		 * we don't need a label for it. So just one adjacency SID for
 		 * the Q node.
 		 */
-		if (q_space->p_node_info->node->id.s_addr
-		    == p_space->root->id.s_addr) {
-			labels[0] = ospf_sr_get_adj_sid_by_id(
-				&p_space->root->id,
-				&q_space->q_node_info->node->id);
+		if (q_space->p_node_info->node->id.s_addr ==
+		    p_space->root->id.s_addr) {
+			labels[0] =
+				ospf_sr_get_adj_sid_by_id(&p_space->root->id,
+							  &q_space->q_node_info
+								   ->node->id);
 			q_space->label_stack =
 				ospf_ti_lfa_create_label_stack(labels, 1);
 			q_space->nexthop = q_space->q_node_info->nexthop;
@@ -466,19 +464,19 @@ static void ospf_ti_lfa_generate_label_stack(struct ospf_area *area,
 		 */
 		if (ospf_spf_vertex_parent_find(p_space->root->id,
 						q_space->p_node_info->node))
-			labels[0] = ospf_sr_get_adj_sid_by_id(
-				&p_space->root->id,
-				&q_space->p_node_info->node->id);
+			labels[0] =
+				ospf_sr_get_adj_sid_by_id(&p_space->root->id,
+							  &q_space->p_node_info
+								   ->node->id);
 		else
 			labels[0] = ospf_sr_get_prefix_sid_by_id(
 				&q_space->p_node_info->node->id);
 
-		labels[1] = ospf_sr_get_adj_sid_by_id(
-			&q_space->p_node_info->node->id,
-			&q_space->q_node_info->node->id);
+		labels[1] =
+			ospf_sr_get_adj_sid_by_id(&q_space->p_node_info->node->id,
+						  &q_space->q_node_info->node->id);
 
-		q_space->label_stack =
-			ospf_ti_lfa_create_label_stack(labels, 2);
+		q_space->label_stack = ospf_ti_lfa_create_label_stack(labels, 2);
 		q_space->nexthop = q_space->p_node_info->nexthop;
 
 	} else {
@@ -491,10 +489,10 @@ static void ospf_ti_lfa_generate_label_stack(struct ospf_area *area,
 		 * After having found the inner label stack it is stitched
 		 * together with the outer labels.
 		 */
-		inner_backup_path_info.label_stack = XCALLOC(
-			MTYPE_OSPF_PATH,
-			sizeof(struct mpls_label_stack)
-				+ sizeof(mpls_label_t) * MPLS_MAX_LABELS);
+		inner_backup_path_info.label_stack =
+			XCALLOC(MTYPE_OSPF_PATH,
+				sizeof(struct mpls_label_stack) +
+					sizeof(mpls_label_t) * MPLS_MAX_LABELS);
 		ospf_ti_lfa_generate_inner_label_stack(area, p_space, q_space,
 						       &inner_backup_path_info);
 
@@ -502,8 +500,8 @@ static void ospf_ti_lfa_generate_label_stack(struct ospf_area *area,
 		 * First stitch together the outer P node label with the inner
 		 * label stack.
 		 */
-		if (q_space->p_node_info->node->id.s_addr
-		    == p_space->root->id.s_addr) {
+		if (q_space->p_node_info->node->id.s_addr ==
+		    p_space->root->id.s_addr) {
 			/*
 			 * It can happen that the P node is the root itself,
 			 * therefore we don't need a label for it. Just take
@@ -514,32 +512,35 @@ static void ospf_ti_lfa_generate_label_stack(struct ospf_area *area,
 				inner_backup_path_info.label_stack->num_labels);
 
 			/* Use the inner P or Q node for the nexthop */
-			if (inner_backup_path_info.p_node_info.type
-			    != OSPF_TI_LFA_UNDEFINED_NODE)
+			if (inner_backup_path_info.p_node_info.type !=
+			    OSPF_TI_LFA_UNDEFINED_NODE)
 				q_space->nexthop = inner_backup_path_info
 							   .p_node_info.nexthop;
 			else
 				q_space->nexthop = inner_backup_path_info
 							   .q_node_info.nexthop;
 
-		} else if (ospf_spf_vertex_parent_find(
-				   p_space->root->id,
-				   q_space->p_node_info->node)) {
+		} else if (ospf_spf_vertex_parent_find(p_space->root->id,
+						       q_space->p_node_info
+							       ->node)) {
 			/*
 			 * It can happen that the outer P node is a child of
 			 * the root, therefore we might just need the
 			 * adjacency SID for the outer P node instead of the
 			 * prefix SID. Then just append the inner label stack.
 			 */
-			labels[0] = ospf_sr_get_adj_sid_by_id(
-				&p_space->root->id,
-				&q_space->p_node_info->node->id);
+			labels[0] =
+				ospf_sr_get_adj_sid_by_id(&p_space->root->id,
+							  &q_space->p_node_info
+								   ->node->id);
 			q_space->label_stack =
 				ospf_ti_lfa_create_label_stack(labels, 1);
-			ospf_ti_lfa_append_label_stack(
-				q_space->label_stack,
-				inner_backup_path_info.label_stack->label,
-				inner_backup_path_info.label_stack->num_labels);
+			ospf_ti_lfa_append_label_stack(q_space->label_stack,
+						       inner_backup_path_info
+							       .label_stack->label,
+						       inner_backup_path_info
+							       .label_stack
+							       ->num_labels);
 			q_space->nexthop = q_space->p_node_info->nexthop;
 		} else {
 			/* The outer P node needs a Prefix-SID here */
@@ -547,24 +548,29 @@ static void ospf_ti_lfa_generate_label_stack(struct ospf_area *area,
 				&q_space->p_node_info->node->id);
 			q_space->label_stack =
 				ospf_ti_lfa_create_label_stack(labels, 1);
-			ospf_ti_lfa_append_label_stack(
-				q_space->label_stack,
-				inner_backup_path_info.label_stack->label,
-				inner_backup_path_info.label_stack->num_labels);
+			ospf_ti_lfa_append_label_stack(q_space->label_stack,
+						       inner_backup_path_info
+							       .label_stack->label,
+						       inner_backup_path_info
+							       .label_stack
+							       ->num_labels);
 			q_space->nexthop = q_space->p_node_info->nexthop;
 		}
 
 		/* Now the outer Q node needs to be considered */
-		if (ospf_spf_vertex_parent_find(
-			    inner_backup_path_info.q_node_info.node->id,
-			    q_space->q_node_info->node)) {
+		if (ospf_spf_vertex_parent_find(inner_backup_path_info
+							.q_node_info.node->id,
+						q_space->q_node_info->node)) {
 			/*
 			 * The outer Q node can be a child of the inner Q node,
 			 * hence just add an Adjacency-SID.
 			 */
-			labels[0] = ospf_sr_get_adj_sid_by_id(
-				&inner_backup_path_info.q_node_info.node->id,
-				&q_space->q_node_info->node->id);
+			labels[0] =
+				ospf_sr_get_adj_sid_by_id(&inner_backup_path_info
+								   .q_node_info
+								   .node->id,
+							  &q_space->q_node_info
+								   ->node->id);
 			ospf_ti_lfa_append_label_stack(q_space->label_stack,
 						       labels, 1);
 		} else {
@@ -592,9 +598,8 @@ ospf_ti_lfa_generate_post_convergence_path(struct list *pc_vertex_list,
 	current_vertex = ospf_spf_vertex_find(dest->id, pc_vertex_list);
 	if (!current_vertex) {
 		if (IS_DEBUG_OSPF_TI_LFA)
-			zlog_debug(
-				"%s: There seems to be no post convergence path (yet).",
-				__func__);
+			zlog_debug("%s: There seems to be no post convergence path (yet).",
+				   __func__);
 		return NULL;
 	}
 
@@ -628,10 +633,10 @@ static void ospf_ti_lfa_generate_q_spaces(struct ospf_area *area,
 	bool node_protected;
 
 	ospf_print_protected_resource(p_space->protected_resource, res_buf);
-	node_protected =
-		p_space->protected_resource->type == OSPF_TI_LFA_NODE_PROTECTION
-		&& dest->id.s_addr
-			   == p_space->protected_resource->router_id.s_addr;
+	node_protected = p_space->protected_resource->type ==
+				 OSPF_TI_LFA_NODE_PROTECTION &&
+			 dest->id.s_addr ==
+				 p_space->protected_resource->router_id.s_addr;
 
 	/*
 	 * If node protection is used, don't build a Q space for the protected
@@ -677,18 +682,19 @@ static void ospf_ti_lfa_generate_q_spaces(struct ospf_area *area,
 	q_space->label_stack = NULL;
 
 	if (pc_path)
-		q_space->pc_path = ospf_ti_lfa_map_path_to_pc_vertices(
-			pc_path, p_space->pc_vertex_list);
+		q_space->pc_path =
+			ospf_ti_lfa_map_path_to_pc_vertices(pc_path,
+							    p_space->pc_vertex_list);
 	else
-		q_space->pc_path = ospf_ti_lfa_generate_post_convergence_path(
-			p_space->pc_vertex_list, q_space->root);
+		q_space->pc_path =
+			ospf_ti_lfa_generate_post_convergence_path(p_space->pc_vertex_list,
+								   q_space->root);
 
 	/* If there's no backup path available then we are done here. */
 	if (!q_space->pc_path) {
-		zlog_info(
-			"%s: NO backup path found for root %pI4 and destination %pI4 for %s, aborting ...",
-			__func__, &p_space->root->id, &q_space->root->id,
-			res_buf);
+		zlog_info("%s: NO backup path found for root %pI4 and destination %pI4 for %s, aborting ...",
+			  __func__, &p_space->root->id, &q_space->root->id,
+			  res_buf);
 
 		XFREE(MTYPE_OSPF_Q_SPACE, q_space->p_node_info);
 		XFREE(MTYPE_OSPF_Q_SPACE, q_space->q_node_info);
@@ -711,15 +717,13 @@ static void ospf_ti_lfa_generate_q_spaces(struct ospf_area *area,
 		mpls_label2str(q_space->label_stack->num_labels,
 			       q_space->label_stack->label, label_buf,
 			       MPLS_LABEL_STRLEN, 0, true);
-		zlog_info(
-			"%s: Generated label stack %s for root %pI4 and destination %pI4 for %s",
-			__func__, label_buf, &p_space->root->id,
-			&q_space->root->id, res_buf);
+		zlog_info("%s: Generated label stack %s for root %pI4 and destination %pI4 for %s",
+			  __func__, label_buf, &p_space->root->id,
+			  &q_space->root->id, res_buf);
 	} else {
-		zlog_info(
-			"%s: NO label stack generated for root %pI4 and destination %pI4 for %s",
-			__func__, &p_space->root->id, &q_space->root->id,
-			res_buf);
+		zlog_info("%s: NO label stack generated for root %pI4 and destination %pI4 for %s",
+			  __func__, &p_space->root->id, &q_space->root->id,
+			  res_buf);
 	}
 
 	/* We are finished, store the new Q space in the P space struct */
@@ -851,24 +855,24 @@ void ospf_ti_lfa_generate_p_spaces(struct ospf_area *area,
 	 */
 	while (p < lim) {
 		l = (struct router_lsa_link *)p;
-		p += (OSPF_ROUTER_LSA_LINK_SIZE
-		      + (l->m[0].tos_count * OSPF_ROUTER_LSA_TOS_SIZE));
+		p += (OSPF_ROUTER_LSA_LINK_SIZE +
+		      (l->m[0].tos_count * OSPF_ROUTER_LSA_TOS_SIZE));
 
 		/* First comes node protection */
 		if (protection_type == OSPF_TI_LFA_NODE_PROTECTION) {
 			if (l->m[0].type == LSA_LINK_TYPE_POINTOPOINT) {
-				protected_resource = XCALLOC(
-					MTYPE_OSPF_P_SPACE,
-					sizeof(struct protected_resource));
+				protected_resource =
+					XCALLOC(MTYPE_OSPF_P_SPACE,
+						sizeof(struct protected_resource));
 				protected_resource->type = protection_type;
 				protected_resource->router_id = l->link_id;
-				child = ospf_spf_vertex_find(
-					protected_resource->router_id,
-					root->children);
+				child = ospf_spf_vertex_find(protected_resource
+								     ->router_id,
+							     root->children);
 				if (child)
-					ospf_ti_lfa_generate_p_space(
-						area, child, protected_resource,
-						true, NULL);
+					ospf_ti_lfa_generate_p_space(area, child,
+								     protected_resource,
+								     true, NULL);
 			}
 
 			continue;
@@ -903,21 +907,19 @@ void ospf_ti_lfa_generate_p_spaces(struct ospf_area *area,
 				 * backup path for the link.
 				 */
 				if (prefix_match(&stub_prefix, &child_prefix)) {
-					zlog_info(
-						"%s: Generating P space for %pI4",
-						__func__, &l->link_id);
+					zlog_info("%s: Generating P space for %pI4",
+						  __func__, &l->link_id);
 
-					protected_resource = XCALLOC(
-						MTYPE_OSPF_P_SPACE,
-						sizeof(struct
-						       protected_resource));
+					protected_resource =
+						XCALLOC(MTYPE_OSPF_P_SPACE,
+							sizeof(struct protected_resource));
 					protected_resource->type =
 						protection_type;
 					protected_resource->link = l;
 
-					ospf_ti_lfa_generate_p_space(
-						area, child, protected_resource,
-						true, NULL);
+					ospf_ti_lfa_generate_p_space(area, child,
+								     protected_resource,
+								     true, NULL);
 				}
 			}
 		}
@@ -932,22 +934,22 @@ static struct p_space *ospf_ti_lfa_get_p_space_by_path(struct ospf_area *area,
 	struct vertex *child;
 	int type;
 
-	frr_each(p_spaces, area->p_spaces, p_space) {
+	frr_each (p_spaces, area->p_spaces, p_space) {
 		type = p_space->protected_resource->type;
 
 		if (type == OSPF_TI_LFA_LINK_PROTECTION) {
 			link = p_space->protected_resource->link;
-			if ((path->nexthop.s_addr & link->link_data.s_addr)
-			    == (link->link_id.s_addr & link->link_data.s_addr))
+			if ((path->nexthop.s_addr & link->link_data.s_addr) ==
+			    (link->link_id.s_addr & link->link_data.s_addr))
 				return p_space;
 		}
 
 		if (type == OSPF_TI_LFA_NODE_PROTECTION) {
 			child = ospf_spf_vertex_by_nexthop(area->spf,
 							   &path->nexthop);
-			if (child
-			    && p_space->protected_resource->router_id.s_addr
-				       == child->id.s_addr)
+			if (child &&
+			    p_space->protected_resource->router_id.s_addr ==
+				    child->id.s_addr)
 				return p_space;
 		}
 	}
@@ -959,7 +961,7 @@ void ospf_ti_lfa_insert_backup_paths(struct ospf_area *area,
 				     struct route_table *new_table)
 {
 	struct route_node *rn;
-	struct ospf_route *or;
+	struct ospf_route * or ;
 	struct ospf_path *path;
 	struct listnode *node;
 	struct p_space *p_space;
@@ -975,23 +977,21 @@ void ospf_ti_lfa_insert_backup_paths(struct ospf_area *area,
 		/* Insert a backup path for all OSPF paths */
 		for (ALL_LIST_ELEMENTS_RO(or->paths, node, path)) {
 
-			if (path->adv_router.s_addr == INADDR_ANY
-			    || path->nexthop.s_addr == INADDR_ANY)
+			if (path->adv_router.s_addr == INADDR_ANY ||
+			    path->nexthop.s_addr == INADDR_ANY)
 				continue;
 
 			if (IS_DEBUG_OSPF_TI_LFA)
-				zlog_debug(
-					"%s: attempting to insert backup path for prefix %pFX, router id %pI4 and nexthop %pI4.",
-					__func__, &rn->p, &path->adv_router,
-					&path->nexthop);
+				zlog_debug("%s: attempting to insert backup path for prefix %pFX, router id %pI4 and nexthop %pI4.",
+					   __func__, &rn->p, &path->adv_router,
+					   &path->nexthop);
 
 			p_space = ospf_ti_lfa_get_p_space_by_path(area, path);
 			if (!p_space) {
 				if (IS_DEBUG_OSPF_TI_LFA)
-					zlog_debug(
-						"%s: P space not found for router id %pI4 and nexthop %pI4.",
-						__func__, &path->adv_router,
-						&path->nexthop);
+					zlog_debug("%s: P space not found for router id %pI4 and nexthop %pI4.",
+						   __func__, &path->adv_router,
+						   &path->nexthop);
 				continue;
 			}
 
@@ -1001,54 +1001,51 @@ void ospf_ti_lfa_insert_backup_paths(struct ospf_area *area,
 						&q_space_search);
 			if (!q_space) {
 				if (IS_DEBUG_OSPF_TI_LFA)
-					zlog_debug(
-						"%s: Q space not found for advertising router %pI4.",
-						__func__, &path->adv_router);
+					zlog_debug("%s: Q space not found for advertising router %pI4.",
+						   __func__, &path->adv_router);
 				continue;
 			}
 
 			/* If there's a backup label stack, insert it*/
 			if (q_space->label_stack) {
 				/* Init the backup path data in path */
-				path->srni.backup_label_stack = XCALLOC(
-					MTYPE_OSPF_PATH,
-					sizeof(struct mpls_label_stack)
-						+ sizeof(mpls_label_t)
-							  * q_space->label_stack
-								    ->num_labels);
+				path->srni.backup_label_stack =
+					XCALLOC(MTYPE_OSPF_PATH,
+						sizeof(struct mpls_label_stack) +
+							sizeof(mpls_label_t) *
+								q_space->label_stack
+									->num_labels);
 
 				/* Copy over the label stack */
 				path->srni.backup_label_stack->num_labels =
 					q_space->label_stack->num_labels;
 				memcpy(path->srni.backup_label_stack->label,
 				       q_space->label_stack->label,
-				       sizeof(mpls_label_t)
-					       * q_space->label_stack
-							 ->num_labels);
+				       sizeof(mpls_label_t) *
+					       q_space->label_stack->num_labels);
 
 				/* Set the backup nexthop too */
 				path->srni.backup_nexthop = q_space->nexthop;
 			}
 
 			if (path->srni.backup_label_stack) {
-				mpls_label2str(
-					path->srni.backup_label_stack
-						->num_labels,
-					path->srni.backup_label_stack->label,
-					label_buf, MPLS_LABEL_STRLEN, 0, true);
+				mpls_label2str(path->srni.backup_label_stack
+						       ->num_labels,
+					       path->srni.backup_label_stack
+						       ->label,
+					       label_buf, MPLS_LABEL_STRLEN, 0,
+					       true);
 				if (IS_DEBUG_OSPF_TI_LFA)
-					zlog_debug(
-						"%s: inserted backup path %s for prefix %pFX, router id %pI4 and nexthop %pI4.",
-						__func__, label_buf, &rn->p,
-						&path->adv_router,
-						&path->nexthop);
+					zlog_debug("%s: inserted backup path %s for prefix %pFX, router id %pI4 and nexthop %pI4.",
+						   __func__, label_buf, &rn->p,
+						   &path->adv_router,
+						   &path->nexthop);
 			} else {
 				if (IS_DEBUG_OSPF_TI_LFA)
-					zlog_debug(
-						"%s: inserted NO backup path for prefix %pFX, router id %pI4 and nexthop %pI4.",
-						__func__, &rn->p,
-						&path->adv_router,
-						&path->nexthop);
+					zlog_debug("%s: inserted NO backup path for prefix %pFX, router id %pI4 and nexthop %pI4.",
+						   __func__, &rn->p,
+						   &path->adv_router,
+						   &path->nexthop);
 			}
 		}
 	}

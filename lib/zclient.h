@@ -41,34 +41,34 @@ typedef uint16_t zebra_size_t;
  * the command value in the old zserv header. To allow old and new
  * Zserv headers to be distinguished from each other.
  */
-#define ZEBRA_HEADER_MARKER              254
+#define ZEBRA_HEADER_MARKER 254
 
 /* For input/output buffer to zebra. */
-#define ZEBRA_MAX_PACKET_SIZ          16384U
-#define ZEBRA_SMALL_PACKET_SIZE       200U
+#define ZEBRA_MAX_PACKET_SIZ 16384U
+#define ZEBRA_SMALL_PACKET_SIZE 200U
 
 /* Zebra header size. */
-#define ZEBRA_HEADER_SIZE             10
+#define ZEBRA_HEADER_SIZE 10
 
 /* special socket path name to use TCP
  * @ is used as first character because that's abstract socket names on Linux
  */
-#define ZAPI_TCP_PATHNAME             "@tcp"
+#define ZAPI_TCP_PATHNAME "@tcp"
 
 /* IPset size name stands for the name of the ipset entry
  * that can be created by using some zapi interfaces
  */
-#define ZEBRA_IPSET_NAME_SIZE   32
+#define ZEBRA_IPSET_NAME_SIZE 32
 
 /* IPTable action is defined by two values: either
  * forward or drop
  */
 #define ZEBRA_IPTABLES_FORWARD 0
-#define ZEBRA_IPTABLES_DROP    1
+#define ZEBRA_IPTABLES_DROP 1
 
 /* Zebra FEC register command flags. */
-#define ZEBRA_FEC_REGISTER_LABEL          0x1
-#define ZEBRA_FEC_REGISTER_LABEL_INDEX    0x2
+#define ZEBRA_FEC_REGISTER_LABEL 0x1
+#define ZEBRA_FEC_REGISTER_LABEL_INDEX 0x2
 
 /* Client capabilities */
 enum zserv_client_capabilities {
@@ -235,7 +235,7 @@ typedef enum {
 } zebra_message_types_t;
 
 enum zebra_error_types {
-	ZEBRA_UNKNOWN_ERROR,    /* Error of unknown type */
+	ZEBRA_UNKNOWN_ERROR,	/* Error of unknown type */
 	ZEBRA_NO_VRF,		/* Vrf in header was not found */
 	ZEBRA_INVALID_MSG_TYPE, /* No handler found for msg type */
 };
@@ -365,12 +365,12 @@ extern int zclient_bfd_session_replay(ZAPI_CALLBACK_ARGS);
 extern int zclient_bfd_session_update(ZAPI_CALLBACK_ARGS);
 
 /* Zebra API message flag. */
-#define ZAPI_MESSAGE_NEXTHOP  0x01
+#define ZAPI_MESSAGE_NEXTHOP 0x01
 #define ZAPI_MESSAGE_DISTANCE 0x02
-#define ZAPI_MESSAGE_METRIC   0x04
-#define ZAPI_MESSAGE_TAG      0x08
-#define ZAPI_MESSAGE_MTU      0x10
-#define ZAPI_MESSAGE_SRCPFX   0x20
+#define ZAPI_MESSAGE_METRIC 0x04
+#define ZAPI_MESSAGE_TAG 0x08
+#define ZAPI_MESSAGE_MTU 0x10
+#define ZAPI_MESSAGE_SRCPFX 0x20
 /* Backup nexthops are present */
 #define ZAPI_MESSAGE_BACKUP_NEXTHOPS 0x40
 #define ZAPI_MESSAGE_NHG 0x80
@@ -440,13 +440,13 @@ struct zapi_nexthop {
  * to match the number of valid flags.
  */
 
-#define ZAPI_NEXTHOP_FLAG_ONLINK	0x01
-#define ZAPI_NEXTHOP_FLAG_LABEL		0x02
-#define ZAPI_NEXTHOP_FLAG_WEIGHT	0x04
-#define ZAPI_NEXTHOP_FLAG_HAS_BACKUP	0x08 /* Nexthop has a backup */
-#define ZAPI_NEXTHOP_FLAG_SEG6		0x10
-#define ZAPI_NEXTHOP_FLAG_SEG6LOCAL	0x20
-#define ZAPI_NEXTHOP_FLAG_EVPN		0x40
+#define ZAPI_NEXTHOP_FLAG_ONLINK 0x01
+#define ZAPI_NEXTHOP_FLAG_LABEL 0x02
+#define ZAPI_NEXTHOP_FLAG_WEIGHT 0x04
+#define ZAPI_NEXTHOP_FLAG_HAS_BACKUP 0x08 /* Nexthop has a backup */
+#define ZAPI_NEXTHOP_FLAG_SEG6 0x10
+#define ZAPI_NEXTHOP_FLAG_SEG6LOCAL 0x20
+#define ZAPI_NEXTHOP_FLAG_EVPN 0x40
 
 /*
  * ZAPI Nexthop Group. For use with protocol creation of nexthop groups.
@@ -480,66 +480,66 @@ struct zapi_route {
 /*
  * Cause Zebra to consider this routes nexthops recursively
  */
-#define ZEBRA_FLAG_ALLOW_RECURSION    0x01
+#define ZEBRA_FLAG_ALLOW_RECURSION 0x01
 /*
  * This is a route that is read in on startup that was left around
  * from a previous run of FRR
  */
-#define ZEBRA_FLAG_SELFROUTE          0x02
+#define ZEBRA_FLAG_SELFROUTE 0x02
 /*
  * This flag is used to tell Zebra that the BGP route being passed
  * down is a IBGP route
  */
-#define ZEBRA_FLAG_IBGP               0x04
+#define ZEBRA_FLAG_IBGP 0x04
 /*
  * This is a route that has been selected for FIB installation.
  * This flag is set in zebra and can be passed up to routing daemons
  */
-#define ZEBRA_FLAG_SELECTED           0x08
+#define ZEBRA_FLAG_SELECTED 0x08
 /*
  * This is a route that we are telling Zebra that this route *must*
  * win and will be installed even over ZEBRA_FLAG_SELECTED
  */
-#define ZEBRA_FLAG_FIB_OVERRIDE       0x10
+#define ZEBRA_FLAG_FIB_OVERRIDE 0x10
 /*
  * This flag tells Zebra that the route is a EVPN route and should
  * be treated specially
  */
-#define ZEBRA_FLAG_EVPN_ROUTE         0x20
+#define ZEBRA_FLAG_EVPN_ROUTE 0x20
 /*
  * This flag tells Zebra that it should treat the distance passed
  * down as an additional discriminator for route selection of the
  * route entry.  This mainly is used for backup static routes.
  */
-#define ZEBRA_FLAG_RR_USE_DISTANCE    0x40
+#define ZEBRA_FLAG_RR_USE_DISTANCE 0x40
 /*
  * This flag tells everyone that the route was intentionally
  * not offloaded and the route will be sent to the cpu for
  * forwarding.  This flag makes no sense unless you are in
  * an asic offload situation
  */
-#define ZEBRA_FLAG_TRAPPED            0x80
+#define ZEBRA_FLAG_TRAPPED 0x80
 /*
  * This flag tells everyone that the route has been
  * successfully offloaded to an asic for forwarding.
  * This flag makes no sense unless you are in an asic
  * offload situation.
  */
-#define ZEBRA_FLAG_OFFLOADED          0x100
+#define ZEBRA_FLAG_OFFLOADED 0x100
 /*
  * This flag tells everyone that the route has
  * failed offloading.
  * This flag makes no sense unless you are in an asic
  * offload situation.
  */
-#define ZEBRA_FLAG_OFFLOAD_FAILED     0x200
+#define ZEBRA_FLAG_OFFLOAD_FAILED 0x200
 
 /*
  * This flag lets us know that we think the route entry
  * received has caused us to be out of sync with the
  * kernel (NLM_F_APPEND at the very least )
  */
-#define ZEBRA_FLAG_OUTOFSYNC          0x400
+#define ZEBRA_FLAG_OUTOFSYNC 0x400
 
 	/* The older XXX_MESSAGE flags live here */
 	uint32_t message;
@@ -588,8 +588,8 @@ extern char *zclient_dump_route_flags(uint32_t flags, char *buf, size_t len);
 
 struct zapi_labels {
 	uint8_t message;
-#define ZAPI_LABELS_FTN           0x01
-#define ZAPI_LABELS_HAS_BACKUPS   0x02
+#define ZAPI_LABELS_FTN 0x01
+#define ZAPI_LABELS_HAS_BACKUPS 0x02
 	enum lsp_types_t type;
 	mpls_label_t local_label;
 	struct {
@@ -789,19 +789,18 @@ zapi_rule_notify_owner2str(enum zapi_rule_notify_owner note)
 }
 
 /* Zebra MAC types */
-#define ZEBRA_MACIP_TYPE_STICKY                0x01 /* Sticky MAC*/
-#define ZEBRA_MACIP_TYPE_GW                    0x02 /* gateway (SVI) mac*/
-#define ZEBRA_MACIP_TYPE_ROUTER_FLAG           0x04 /* Router Flag - proxy NA */
-#define ZEBRA_MACIP_TYPE_OVERRIDE_FLAG         0x08 /* Override Flag */
-#define ZEBRA_MACIP_TYPE_SVI_IP                0x10 /* SVI MAC-IP */
-#define ZEBRA_MACIP_TYPE_PROXY_ADVERT          0x20 /* Not locally active */
-#define ZEBRA_MACIP_TYPE_SYNC_PATH             0x40 /* sync path */
+#define ZEBRA_MACIP_TYPE_STICKY 0x01	    /* Sticky MAC*/
+#define ZEBRA_MACIP_TYPE_GW 0x02	    /* gateway (SVI) mac*/
+#define ZEBRA_MACIP_TYPE_ROUTER_FLAG 0x04   /* Router Flag - proxy NA */
+#define ZEBRA_MACIP_TYPE_OVERRIDE_FLAG 0x08 /* Override Flag */
+#define ZEBRA_MACIP_TYPE_SVI_IP 0x10	    /* SVI MAC-IP */
+#define ZEBRA_MACIP_TYPE_PROXY_ADVERT 0x20  /* Not locally active */
+#define ZEBRA_MACIP_TYPE_SYNC_PATH 0x40	    /* sync path */
 /* XXX - flags is an u8; that needs to be changed to u32 if you need
  * to allocate past 0x80.  Additionally touch zclient_evpn_dump_macip_flags
  */
 #define MACIP_BUF_SIZE 128
-extern char *zclient_evpn_dump_macip_flags(uint8_t flags, char *buf,
-					   size_t len);
+extern char *zclient_evpn_dump_macip_flags(uint8_t flags, char *buf, size_t len);
 
 /* Zebra ES VTEP flags (ZEBRA_REMOTE_ES_VTEP_ADD) */
 /* ESR has been rxed from the VTEP. Only VTEPs that have advertised the
@@ -937,8 +936,8 @@ extern void zclient_redistribute(int command, struct zclient *, afi_t, int type,
 				 unsigned short instance, vrf_id_t vrf_id);
 
 /* If state has changed, update state and send the command to zebra. */
-extern void zclient_redistribute_default(int command, struct zclient *,
-					 afi_t, vrf_id_t vrf_id);
+extern void zclient_redistribute_default(int command, struct zclient *, afi_t,
+					 vrf_id_t vrf_id);
 
 /*
  * Send the message in zclient->obuf to the zebra daemon (or enqueue it).
@@ -1054,8 +1053,7 @@ extern int zapi_sr_policy_notify_status_decode(struct stream *s,
 extern enum zclient_send_status zebra_send_mpls_labels(struct zclient *zclient,
 						       int cmd,
 						       struct zapi_labels *zl);
-extern int zapi_labels_encode(struct stream *s, int cmd,
-			      struct zapi_labels *zl);
+extern int zapi_labels_encode(struct stream *s, int cmd, struct zapi_labels *zl);
 extern int zapi_labels_decode(struct stream *s, struct zapi_labels *zl);
 
 extern int zapi_srv6_locator_encode(struct stream *s,
@@ -1087,31 +1085,27 @@ bool zapi_nhg_notify_decode(struct stream *s, uint32_t *id,
 			    enum zapi_nhg_notify_owner *note);
 bool zapi_route_notify_decode(struct stream *s, struct prefix *p,
 			      uint32_t *tableid,
-			      enum zapi_route_notify_owner *note,
-			      afi_t *afi, safi_t *safi);
+			      enum zapi_route_notify_owner *note, afi_t *afi,
+			      safi_t *safi);
 bool zapi_rule_notify_decode(struct stream *s, uint32_t *seqno,
 			     uint32_t *priority, uint32_t *unique, char *ifname,
 			     enum zapi_rule_notify_owner *note);
-bool zapi_ipset_notify_decode(struct stream *s,
-			      uint32_t *unique,
-			     enum zapi_ipset_notify_owner *note);
+bool zapi_ipset_notify_decode(struct stream *s, uint32_t *unique,
+			      enum zapi_ipset_notify_owner *note);
 
 /* Nexthop-group message apis */
 extern enum zclient_send_status
 zclient_nhg_send(struct zclient *zclient, int cmd, struct zapi_nhg *api_nhg);
 
-#define ZEBRA_IPSET_NAME_SIZE   32
+#define ZEBRA_IPSET_NAME_SIZE 32
 
-bool zapi_ipset_entry_notify_decode(struct stream *s,
-	    uint32_t *unique,
-	    char *ipset_name,
-	    enum zapi_ipset_entry_notify_owner *note);
-bool zapi_iptable_notify_decode(struct stream *s,
-		uint32_t *unique,
-		enum zapi_iptable_notify_owner *note);
+bool zapi_ipset_entry_notify_decode(struct stream *s, uint32_t *unique,
+				    char *ipset_name,
+				    enum zapi_ipset_entry_notify_owner *note);
+bool zapi_iptable_notify_decode(struct stream *s, uint32_t *unique,
+				enum zapi_iptable_notify_owner *note);
 
-extern struct nexthop *
-nexthop_from_zapi_nexthop(const struct zapi_nexthop *znh);
+extern struct nexthop *nexthop_from_zapi_nexthop(const struct zapi_nexthop *znh);
 int zapi_nexthop_from_nexthop(struct zapi_nexthop *znh,
 			      const struct nexthop *nh);
 int zapi_backup_nexthop_from_nexthop(struct zapi_nexthop *znh,
@@ -1188,7 +1182,7 @@ struct zapi_opaque_msg {
 	uint32_t session_id;
 };
 
-#define ZAPI_OPAQUE_FLAG_UNICAST   0x01
+#define ZAPI_OPAQUE_FLAG_UNICAST 0x01
 
 /* Simple struct to convey registration/unreg requests */
 struct zapi_opaque_reg_info {

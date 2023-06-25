@@ -26,22 +26,25 @@ extern "C" {
 
 /* EVPN route types. */
 typedef enum {
-	BGP_EVPN_AD_ROUTE = 1,    /* Ethernet Auto-Discovery (A-D) route */
-	BGP_EVPN_MAC_IP_ROUTE,    /* MAC/IP Advertisement route */
-	BGP_EVPN_IMET_ROUTE,      /* Inclusive Multicast Ethernet Tag route */
-	BGP_EVPN_ES_ROUTE,        /* Ethernet Segment route */
+	BGP_EVPN_AD_ROUTE = 1,	  /* Ethernet Auto-Discovery (A-D) route */
+	BGP_EVPN_MAC_IP_ROUTE,	  /* MAC/IP Advertisement route */
+	BGP_EVPN_IMET_ROUTE,	  /* Inclusive Multicast Ethernet Tag route */
+	BGP_EVPN_ES_ROUTE,	  /* Ethernet Segment route */
 	BGP_EVPN_IP_PREFIX_ROUTE, /* IP Prefix route */
 } bgp_evpn_route_type;
 
 /* value of first byte of ESI */
-#define ESI_TYPE_ARBITRARY 0  /* */
-#define ESI_TYPE_LACP      1  /* <> */
-#define ESI_TYPE_BRIDGE    2  /* <Root bridge Mac-6B>:<Root Br Priority-2B>:00 */
-#define ESI_TYPE_MAC       3  /* <Syst Mac Add-6B>:<Local Discriminator Value-3B> */
-#define ESI_TYPE_ROUTER    4  /* <RouterId-4B>:<Local Discriminator Value-4B> */
-#define ESI_TYPE_AS        5  /* <AS-4B>:<Local Discriminator Value-4B> */
+#define ESI_TYPE_ARBITRARY 0 /* */
+#define ESI_TYPE_LACP 1	     /* <> */
+#define ESI_TYPE_BRIDGE 2    /* <Root bridge Mac-6B>:<Root Br Priority-2B>:00 */
+#define ESI_TYPE_MAC 3	  /* <Syst Mac Add-6B>:<Local Discriminator Value-3B> */
+#define ESI_TYPE_ROUTER 4 /* <RouterId-4B>:<Local Discriminator Value-4B> */
+#define ESI_TYPE_AS 5	  /* <AS-4B>:<Local Discriminator Value-4B> */
 
-#define MAX_ESI {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
+#define MAX_ESI                                                                \
+	{                                                                      \
+		0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff     \
+	}
 
 
 #define EVPN_ETH_TAG_BYTES 4
@@ -55,7 +58,7 @@ typedef enum {
 #define ES_VTEP_MAX_CNT 10
 #define ES_VTEP_LIST_STR_SZ (ES_VTEP_MAX_CNT * 16)
 
-#define ETHER_ADDR_STRLEN (3*ETH_ALEN)
+#define ETHER_ADDR_STRLEN (3 * ETH_ALEN)
 /*
  * there isn't a portable ethernet address type. We define our
  * own to simplify internal handling
@@ -66,11 +69,11 @@ struct ethaddr {
 
 
 /* length is the number of valuable bits of prefix structure
-* 18 bytes is current length in structure, if address is ipv4
-* 30 bytes is in case of ipv6
-*/
-#define PREFIX_LEN_ROUTE_TYPE_5_IPV4 (18*8)
-#define PREFIX_LEN_ROUTE_TYPE_5_IPV6 (30*8)
+ * 18 bytes is current length in structure, if address is ipv4
+ * 30 bytes is in case of ipv6
+ */
+#define PREFIX_LEN_ROUTE_TYPE_5_IPV4 (18 * 8)
+#define PREFIX_LEN_ROUTE_TYPE_5_IPV6 (30 * 8)
 
 typedef struct esi_t_ {
 	uint8_t val[ESI_BYTES];
@@ -180,7 +183,7 @@ struct prefix {
 		uint8_t val[16];
 		uint32_t val32[4];
 		uintptr_t ptr;
-		struct evpn_addr prefix_evpn; /* AF_EVPN */
+		struct evpn_addr prefix_evpn;		/* AF_EVPN */
 		struct flowspec_prefix prefix_flowspec; /* AF_FLOWSPEC */
 	} u __attribute__((aligned(8)));
 };
@@ -276,7 +279,7 @@ static inline int is_evpn_prefix_ipaddr_v6(const struct prefix_evpn *evp)
 struct prefix_fs {
 	uint8_t family;
 	uint16_t prefixlen; /* unused */
-	struct flowspec_prefix  prefix __attribute__((aligned(8)));
+	struct flowspec_prefix prefix __attribute__((aligned(8)));
 };
 
 struct prefix_sg {
@@ -287,21 +290,23 @@ struct prefix_sg {
 };
 
 union prefixptr {
-	prefixtype(prefixptr, struct prefix,      p)
-	prefixtype(prefixptr, struct prefix_ipv4, p4)
-	prefixtype(prefixptr, struct prefix_ipv6, p6)
-	prefixtype(prefixptr, struct prefix_evpn, evp)
-	prefixtype(prefixptr, struct prefix_fs,   fs)
-	prefixtype(prefixptr, struct prefix_rd,   rd)
+	prefixtype(prefixptr, struct prefix,
+		   p) prefixtype(prefixptr, struct prefix_ipv4, p4)
+		prefixtype(prefixptr, struct prefix_ipv6,
+			   p6) prefixtype(prefixptr, struct prefix_evpn, evp)
+			prefixtype(prefixptr, struct prefix_fs, fs)
+				prefixtype(prefixptr, struct prefix_rd, rd)
 } TRANSPARENT_UNION;
 
 union prefixconstptr {
-	prefixtype(prefixconstptr, const struct prefix,      p)
-	prefixtype(prefixconstptr, const struct prefix_ipv4, p4)
-	prefixtype(prefixconstptr, const struct prefix_ipv6, p6)
-	prefixtype(prefixconstptr, const struct prefix_evpn, evp)
-	prefixtype(prefixconstptr, const struct prefix_fs,   fs)
-	prefixtype(prefixconstptr, const struct prefix_rd,   rd)
+	prefixtype(prefixconstptr, const struct prefix,
+		   p) prefixtype(prefixconstptr, const struct prefix_ipv4, p4)
+		prefixtype(prefixconstptr, const struct prefix_ipv6, p6)
+			prefixtype(prefixconstptr, const struct prefix_evpn, evp)
+				prefixtype(prefixconstptr,
+					   const struct prefix_fs, fs)
+					prefixtype(prefixconstptr,
+						   const struct prefix_rd, rd)
 } TRANSPARENT_UNION;
 
 #ifndef INET_ADDRSTRLEN
@@ -330,23 +335,22 @@ union prefixconstptr {
 #define PREFIX_SG_STR_LEN 34
 
 /* Max bit/byte length of IPv4 address. */
-#define IPV4_MAX_BYTELEN    4
-#define IPV4_MAX_BITLEN    32
-#define IPV4_ADDR_CMP(D,S)   memcmp ((D), (S), IPV4_MAX_BYTELEN)
+#define IPV4_MAX_BYTELEN 4
+#define IPV4_MAX_BITLEN 32
+#define IPV4_ADDR_CMP(D, S) memcmp((D), (S), IPV4_MAX_BYTELEN)
 
 static inline bool ipv4_addr_same(const struct in_addr *a,
 				  const struct in_addr *b)
 {
 	return (a->s_addr == b->s_addr);
 }
-#define IPV4_ADDR_SAME(A,B)  ipv4_addr_same((A), (B))
+#define IPV4_ADDR_SAME(A, B) ipv4_addr_same((A), (B))
 
-static inline void ipv4_addr_copy(struct in_addr *dst,
-				  const struct in_addr *src)
+static inline void ipv4_addr_copy(struct in_addr *dst, const struct in_addr *src)
 {
 	dst->s_addr = src->s_addr;
 }
-#define IPV4_ADDR_COPY(D,S)  ipv4_addr_copy((D), (S))
+#define IPV4_ADDR_COPY(D, S) ipv4_addr_copy((D), (S))
 
 #define IPV4_NET0(a) ((((uint32_t)(a)) & 0xff000000) == 0x00000000)
 #define IPV4_NET127(a) ((((uint32_t)(a)) & 0xff000000) == 0x7f000000)
@@ -357,11 +361,11 @@ static inline void ipv4_addr_copy(struct in_addr *dst,
 #define IPV4_MC_LINKLOCAL(a) ((((uint32_t)(a)) & 0xffffff00) == 0xe0000000)
 
 /* Max bit/byte length of IPv6 address. */
-#define IPV6_MAX_BYTELEN    16
-#define IPV6_MAX_BITLEN    128
-#define IPV6_ADDR_CMP(D,S)   memcmp ((D), (S), IPV6_MAX_BYTELEN)
-#define IPV6_ADDR_SAME(D,S)  (memcmp ((D), (S), IPV6_MAX_BYTELEN) == 0)
-#define IPV6_ADDR_COPY(D,S)  memcpy ((D), (S), IPV6_MAX_BYTELEN)
+#define IPV6_MAX_BYTELEN 16
+#define IPV6_MAX_BITLEN 128
+#define IPV6_ADDR_CMP(D, S) memcmp((D), (S), IPV6_MAX_BYTELEN)
+#define IPV6_ADDR_SAME(D, S) (memcmp((D), (S), IPV6_MAX_BYTELEN) == 0)
+#define IPV6_ADDR_COPY(D, S) memcpy((D), (S), IPV6_MAX_BYTELEN)
 
 /* Count prefix size from mask length */
 #define PSIZE(a) (((a) + 7) / (8))
@@ -369,7 +373,7 @@ static inline void ipv4_addr_copy(struct in_addr *dst,
 #define BSIZE(a) ((a) * (8))
 
 /* Prefix's family member. */
-#define PREFIX_FAMILY(p)  ((p)->family)
+#define PREFIX_FAMILY(p) ((p)->family)
 
 /* glibc defines s6_addr32 to __in6_u.__u6_addr32 if __USE_{MISC || GNU} */
 #ifndef s6_addr32
@@ -411,10 +415,10 @@ extern const char *prefix_family_str(union prefixconstptr pu);
 extern int prefix_blen(union prefixconstptr pu);
 extern int str2prefix(const char *, struct prefix *);
 
-#define PREFIX2STR_BUFFER  PREFIX_STRLEN
+#define PREFIX2STR_BUFFER PREFIX_STRLEN
 
 extern void prefix_mcast_inet4_dump(const char *onfail, struct in_addr addr,
-				char *buf, int buf_size);
+				    char *buf, int buf_size);
 extern const char *prefix_sg2str(const struct prefix_sg *sg, char *str);
 extern const char *prefix2str(union prefixconstptr, char *, int);
 extern int evpn_type5_prefix_match(const struct prefix *evpn_pfx,
@@ -433,7 +437,11 @@ extern void apply_mask(union prefixptr pu);
  * target of prefix_copy is uninitialized.  So just memset the target.
  * cf. https://bugs.llvm.org/show_bug.cgi?id=42811
  */
-#define prefix_copy(a, b) ({ memset(a, 0, sizeof(*a)); prefix_copy(a, b); })
+#define prefix_copy(a, b)                                                      \
+	({                                                                     \
+		memset(a, 0, sizeof(*a));                                      \
+		prefix_copy(a, b);                                             \
+	})
 #endif
 
 extern struct prefix *sockunion2hostprefix(const union sockunion *,
@@ -506,15 +514,14 @@ static inline bool ipv4_martian(const struct in_addr *addr)
 
 static inline bool is_default_prefix4(const struct prefix_ipv4 *p)
 {
-	return p && p->family == AF_INET && p->prefixlen == 0
-	       && p->prefix.s_addr == INADDR_ANY;
+	return p && p->family == AF_INET && p->prefixlen == 0 &&
+	       p->prefix.s_addr == INADDR_ANY;
 }
 
 static inline bool is_default_prefix6(const struct prefix_ipv6 *p)
 {
-	return p && p->family == AF_INET6 && p->prefixlen == 0
-	       && memcmp(&p->prefix, &in6addr_any, sizeof(struct in6_addr))
-			  == 0;
+	return p && p->family == AF_INET6 && p->prefixlen == 0 &&
+	       memcmp(&p->prefix, &in6addr_any, sizeof(struct in6_addr)) == 0;
 }
 
 static inline bool is_default_prefix(const struct prefix *p)
@@ -637,25 +644,25 @@ static inline bool ipv4_mcast_ssm(const struct in_addr *addr)
 }
 
 #ifdef _FRR_ATTRIBUTE_PRINTFRR
-#pragma FRR printfrr_ext "%pEA"  (struct ethaddr *)
+#pragma FRR printfrr_ext "%pEA"(struct ethaddr *)
 
-#pragma FRR printfrr_ext "%pI4"  (struct in_addr *)
-#pragma FRR printfrr_ext "%pI4"  (in_addr_t *)
+#pragma FRR printfrr_ext "%pI4"(struct in_addr *)
+#pragma FRR printfrr_ext "%pI4"(in_addr_t *)
 
-#pragma FRR printfrr_ext "%pI6"  (struct in6_addr *)
+#pragma FRR printfrr_ext "%pI6"(struct in6_addr *)
 
-#pragma FRR printfrr_ext "%pFX"  (struct prefix *)
-#pragma FRR printfrr_ext "%pFX"  (struct prefix_ipv4 *)
-#pragma FRR printfrr_ext "%pFX"  (struct prefix_ipv6 *)
-#pragma FRR printfrr_ext "%pFX"  (struct prefix_eth *)
-#pragma FRR printfrr_ext "%pFX"  (struct prefix_evpn *)
-#pragma FRR printfrr_ext "%pFX"  (struct prefix_fs *)
-#pragma FRR printfrr_ext "%pRDP"  (struct prefix_rd *)
+#pragma FRR printfrr_ext "%pFX"(struct prefix *)
+#pragma FRR printfrr_ext "%pFX"(struct prefix_ipv4 *)
+#pragma FRR printfrr_ext "%pFX"(struct prefix_ipv6 *)
+#pragma FRR printfrr_ext "%pFX"(struct prefix_eth *)
+#pragma FRR printfrr_ext "%pFX"(struct prefix_evpn *)
+#pragma FRR printfrr_ext "%pFX"(struct prefix_fs *)
+#pragma FRR printfrr_ext "%pRDP"(struct prefix_rd *)
 /* RD with AS4B with dot and dot+ format */
-#pragma FRR printfrr_ext "%pRDD"  (struct prefix_rd *)
-#pragma FRR printfrr_ext "%pRDE"  (struct prefix_rd *)
+#pragma FRR printfrr_ext "%pRDD"(struct prefix_rd *)
+#pragma FRR printfrr_ext "%pRDE"(struct prefix_rd *)
 
-#pragma FRR printfrr_ext "%pPSG4" (struct prefix_sg *)
+#pragma FRR printfrr_ext "%pPSG4"(struct prefix_sg *)
 #endif
 
 #ifdef __cplusplus

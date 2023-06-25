@@ -21,7 +21,9 @@
 
 /* privileges */
 static zebra_capabilities_t _caps_p[] = {
-	ZCAP_BIND, ZCAP_NET_RAW, ZCAP_NET_ADMIN,
+	ZCAP_BIND,
+	ZCAP_NET_RAW,
+	ZCAP_NET_ADMIN,
 };
 
 struct zebra_privs_t bgpd_privs = {
@@ -43,13 +45,13 @@ enum MRT_MSG_TYPES {
 	MSG_DIE,		  /* receiver should shut down */
 	MSG_I_AM_DEAD,		  /* sender is shutting down */
 	MSG_PEER_DOWN,		  /* sender's peer is down */
-	MSG_PROTOCOL_BGP,	 /* msg is a BGP packet */
-	MSG_PROTOCOL_RIP,	 /* msg is a RIP packet */
-	MSG_PROTOCOL_IDRP,	/* msg is an IDRP packet */
-	MSG_PROTOCOL_RIPNG,       /* msg is a RIPNG packet */
-	MSG_PROTOCOL_BGP4PLUS,    /* msg is a BGP4+ packet */
+	MSG_PROTOCOL_BGP,	  /* msg is a BGP packet */
+	MSG_PROTOCOL_RIP,	  /* msg is a RIP packet */
+	MSG_PROTOCOL_IDRP,	  /* msg is an IDRP packet */
+	MSG_PROTOCOL_RIPNG,	  /* msg is a RIPNG packet */
+	MSG_PROTOCOL_BGP4PLUS,	  /* msg is a BGP4+ packet */
 	MSG_PROTOCOL_BGP4PLUS_01, /* msg is a BGP4+ (draft 01) packet */
-	MSG_PROTOCOL_OSPF,	/* msg is an OSPF packet */
+	MSG_PROTOCOL_OSPF,	  /* msg is an OSPF packet */
 	MSG_TABLE_DUMP		  /* routing table dump */
 };
 

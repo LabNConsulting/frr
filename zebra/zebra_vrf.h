@@ -54,8 +54,8 @@ struct zebra_vrf {
 
 	/* Flags. */
 	uint16_t flags;
-#define ZEBRA_VRF_RETAIN          (1 << 0)
-#define ZEBRA_PIM_SEND_VXLAN_SG   (1 << 1)
+#define ZEBRA_VRF_RETAIN (1 << 0)
+#define ZEBRA_PIM_SEND_VXLAN_SG (1 << 1)
 
 	uint32_t table_id;
 
@@ -112,7 +112,7 @@ struct zebra_vrf {
 
 	/* MPLS processing flags */
 	uint16_t mpls_flags;
-#define MPLS_FLAG_SCHEDULE_LSPS    (1 << 0)
+#define MPLS_FLAG_SCHEDULE_LSPS (1 << 0)
 
 	/*
 	 * EVPN hash table. Only in the EVPN instance.

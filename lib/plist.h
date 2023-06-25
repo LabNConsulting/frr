@@ -57,22 +57,18 @@ extern struct prefix_list *prefix_list_lookup(afi_t, const char *);
 extern enum prefix_list_type
 prefix_list_apply_ext(struct prefix_list *plist,
 		      const struct prefix_list_entry **matches,
-		      union prefixconstptr prefix,
-		      bool address_mode);
-#define prefix_list_apply(A, B) \
-	prefix_list_apply_ext((A), NULL, (B), false)
+		      union prefixconstptr prefix, bool address_mode);
+#define prefix_list_apply(A, B) prefix_list_apply_ext((A), NULL, (B), false)
 
 extern struct prefix_list *prefix_bgp_orf_lookup(afi_t, const char *);
-extern struct stream *prefix_bgp_orf_entry(struct stream *,
-					   struct prefix_list *, uint8_t,
-					   uint8_t, uint8_t);
+extern struct stream *prefix_bgp_orf_entry(struct stream *, struct prefix_list *,
+					   uint8_t, uint8_t, uint8_t);
 extern int prefix_bgp_orf_set(char *, afi_t, struct orf_prefix *, int, int);
 extern void prefix_bgp_orf_remove_all(afi_t, char *);
 extern int prefix_bgp_show_prefix_list(struct vty *vty, afi_t afi, char *name,
 				       bool use_json);
 
-extern struct prefix_list *prefix_list_get(afi_t afi, int orf,
-					   const char *name);
+extern struct prefix_list *prefix_list_get(afi_t afi, int orf, const char *name);
 extern void prefix_list_delete(struct prefix_list *plist);
 extern int64_t prefix_new_seq_get(struct prefix_list *plist);
 

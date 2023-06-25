@@ -77,13 +77,13 @@ struct route_table {
  * table->link should be - and is - NEVER written by outside code
  */
 #ifdef FRR_COMPILING_TABLE_C
-#define table_rdonly(x)		x
-#define table_internal(x)	x
+#define table_rdonly(x) x
+#define table_internal(x) x
 #else
-#define table_rdonly(x)		const x
+#define table_rdonly(x) const x
 #define table_internal(x)                                                      \
-	const x __attribute__(                                                 \
-		(deprecated("this should only be accessed by lib/table.c")))
+	const x __attribute__((                                                \
+		deprecated("this should only be accessed by lib/table.c")))
 /* table_internal is for node->link and node->lock, once we have done
  * something about remaining accesses */
 #endif
@@ -118,15 +118,15 @@ struct route_table {
                                                                                \
 	struct rn_hash_node_item nodehash;                                     \
 	/* Each node of route. */                                              \
-	void *info;                                                            \
+	void *info;
 
 
 /* Each routing entry. */
 struct route_node {
 	ROUTE_NODE_FIELDS
 
-#define l_left   link[0]
-#define l_right  link[1]
+#define l_left link[0]
+#define l_right link[1]
 };
 
 typedef struct route_table_iter_t_ route_table_iter_t;
@@ -318,7 +318,7 @@ static inline int route_table_iter_started(route_table_iter_t *iter)
 }
 
 #ifdef _FRR_ATTRIBUTE_PRINTFRR
-#pragma FRR printfrr_ext "%pRN"  (struct route_node *)
+#pragma FRR printfrr_ext "%pRN"(struct route_node *)
 #endif
 
 #ifdef __cplusplus

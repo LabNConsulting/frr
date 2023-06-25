@@ -11,15 +11,15 @@ extern "C" {
 #endif
 
 /* L2VPN name length. */
-#define L2VPN_NAME_LEN		32
+#define L2VPN_NAME_LEN 32
 
 /* Pseudowire type - LDP and BGP use the same values. */
-#define PW_TYPE_ETHERNET_TAGGED	0x0004	/* RFC 4446 */
-#define PW_TYPE_ETHERNET	0x0005	/* RFC 4446 */
-#define PW_TYPE_WILDCARD	0x7FFF	/* RFC 4863, RFC 6668 */
+#define PW_TYPE_ETHERNET_TAGGED 0x0004 /* RFC 4446 */
+#define PW_TYPE_ETHERNET 0x0005	       /* RFC 4446 */
+#define PW_TYPE_WILDCARD 0x7FFF	       /* RFC 4863, RFC 6668 */
 
 /* Pseudowire flags. */
-#define F_PSEUDOWIRE_CWORD	0x01
+#define F_PSEUDOWIRE_CWORD 0x01
 
 /* Pseudowire status TLV */
 #define PW_FORWARDING 0

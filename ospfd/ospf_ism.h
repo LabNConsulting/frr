@@ -11,26 +11,26 @@
 #include "hook.h"
 
 /* OSPF Interface State Machine Status. */
-#define ISM_DependUpon                    0
-#define ISM_Down                          1
-#define ISM_Loopback                      2
-#define ISM_Waiting                       3
-#define ISM_PointToPoint                  4
-#define ISM_DROther                       5
-#define ISM_Backup                        6
-#define ISM_DR                            7
-#define OSPF_ISM_STATE_MAX   	          8
+#define ISM_DependUpon 0
+#define ISM_Down 1
+#define ISM_Loopback 2
+#define ISM_Waiting 3
+#define ISM_PointToPoint 4
+#define ISM_DROther 5
+#define ISM_Backup 6
+#define ISM_DR 7
+#define OSPF_ISM_STATE_MAX 8
 
 /* OSPF Interface State Machine Event. */
-#define ISM_NoEvent                       0
-#define ISM_InterfaceUp                   1
-#define ISM_WaitTimer                     2
-#define ISM_BackupSeen                    3
-#define ISM_NeighborChange                4
-#define ISM_LoopInd                       5
-#define ISM_UnloopInd                     6
-#define ISM_InterfaceDown                 7
-#define OSPF_ISM_EVENT_MAX                8
+#define ISM_NoEvent 0
+#define ISM_InterfaceUp 1
+#define ISM_WaitTimer 2
+#define ISM_BackupSeen 3
+#define ISM_NeighborChange 4
+#define ISM_LoopInd 5
+#define ISM_UnloopInd 6
+#define ISM_InterfaceDown 7
+#define OSPF_ISM_EVENT_MAX 8
 
 #define OSPF_ISM_WRITE_ON(O)                                                   \
 	do {                                                                   \
@@ -52,15 +52,15 @@
 /* convenience macro to set hello timer correctly, according to
  * whether fast-hello is set or not
  */
-#define OSPF_HELLO_TIMER_ON(O)                                                 \
-	do {                                                                   \
-		if (OSPF_IF_PARAM((O), fast_hello))                            \
-			OSPF_ISM_TIMER_MSEC_ON(                                \
-				(O)->t_hello, ospf_hello_timer,                \
-				1000 / OSPF_IF_PARAM((O), fast_hello));        \
-		else                                                           \
-			OSPF_ISM_TIMER_ON((O)->t_hello, ospf_hello_timer,      \
-					  OSPF_IF_PARAM((O), v_hello));        \
+#define OSPF_HELLO_TIMER_ON(O)                                                    \
+	do {                                                                      \
+		if (OSPF_IF_PARAM((O), fast_hello))                               \
+			OSPF_ISM_TIMER_MSEC_ON((O)->t_hello, ospf_hello_timer,    \
+					       1000 / OSPF_IF_PARAM((O),          \
+								    fast_hello)); \
+		else                                                              \
+			OSPF_ISM_TIMER_ON((O)->t_hello, ospf_hello_timer,         \
+					  OSPF_IF_PARAM((O), v_hello));           \
 	} while (0)
 
 /* Macro for OSPF schedule event. */

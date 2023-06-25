@@ -318,9 +318,8 @@ extern struct list *list_dup(struct list *list);
  */
 #define ALL_LIST_ELEMENTS(list, node, nextnode, data)                          \
 	(node) = listhead(list), ((data) = NULL);                              \
-	(node) != NULL                                                         \
-		&& ((data) = static_cast(data, listgetdata(node)),             \
-		    (nextnode) = node->next, 1);                               \
+	(node) != NULL && ((data) = static_cast(data, listgetdata(node)),      \
+			   (nextnode) = node->next, 1);                        \
 	(node) = (nextnode), ((data) = NULL)
 
 /* read-only list iteration macro.

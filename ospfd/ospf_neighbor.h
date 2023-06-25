@@ -16,14 +16,14 @@ struct ospf_neighbor {
 	struct ospf_interface *oi;
 
 	/* OSPF neighbor Information */
-	uint8_t state;      /* NSM status. */
+	uint8_t state;	    /* NSM status. */
 	uint8_t dd_flags;   /* DD bit flags. */
 	uint32_t dd_seqnum; /* DD Sequence Number. */
 
 	/* Neighbor Information from Hello. */
 	struct prefix address; /* Neighbor Interface Address. */
 
-	struct in_addr src;       /* Src address. */
+	struct in_addr src;	  /* Src address. */
 	struct in_addr router_id; /* Router ID. */
 	uint8_t options;	  /* Options. */
 	int priority;		  /* Router Priority. */
@@ -68,8 +68,8 @@ struct ospf_neighbor {
 
 	/* Statistics */
 	struct timeval ts_last_progress; /* last advance of NSM            */
-	struct timeval ts_last_regress;  /* last regressive NSM change     */
-	const char *last_regress_str;    /* Event which last regressed NSM */
+	struct timeval ts_last_regress;	 /* last regressive NSM change     */
+	const char *last_regress_str;	 /* Event which last regressed NSM */
 	uint32_t state_change;		 /* NSM state change counter       */
 
 	/* BFD information */
@@ -80,8 +80,8 @@ struct ospf_neighbor {
 };
 
 /* Macros. */
-#define NBR_IS_DR(n)	IPV4_ADDR_SAME (&n->address.u.prefix4, &n->d_router)
-#define NBR_IS_BDR(n)   IPV4_ADDR_SAME (&n->address.u.prefix4, &n->bd_router)
+#define NBR_IS_DR(n) IPV4_ADDR_SAME(&n->address.u.prefix4, &n->d_router)
+#define NBR_IS_BDR(n) IPV4_ADDR_SAME(&n->address.u.prefix4, &n->bd_router)
 
 /* Prototypes. */
 extern struct ospf_neighbor *ospf_nbr_new(struct ospf_interface *);

@@ -33,10 +33,11 @@ DEFINE_MTYPE_STATIC(BGPD, PBR_VALMASK, "BGP PBR Val Mask Value");
 
 /* chain strings too long to fit in one line */
 #define FSPEC_ACTION_EXCEED_LIMIT "flowspec actions exceeds limit"
-#define IPV6_FRAGMENT_INVALID "fragment not valid for IPv6 for this implementation"
+#define IPV6_FRAGMENT_INVALID                                                  \
+	"fragment not valid for IPv6 for this implementation"
 
-RB_GENERATE(bgp_pbr_interface_head, bgp_pbr_interface,
-	    id_entry, bgp_pbr_interface_compare);
+RB_GENERATE(bgp_pbr_interface_head, bgp_pbr_interface, id_entry,
+	    bgp_pbr_interface_compare);
 struct bgp_pbr_interface_head ifaces_by_name_ipv4 =
 	RB_INITIALIZER(&ifaces_by_name_ipv4);
 
@@ -68,8 +69,7 @@ struct bgp_pbr_rule_unique {
 static int bgp_pbr_rule_walkcb(struct hash_bucket *bucket, void *arg)
 {
 	struct bgp_pbr_rule *bpr = (struct bgp_pbr_rule *)bucket->data;
-	struct bgp_pbr_rule_unique *bpru = (struct bgp_pbr_rule_unique *)
-		arg;
+	struct bgp_pbr_rule_unique *bpru = (struct bgp_pbr_rule_unique *)arg;
 	uint32_t unique = bpru->unique;
 
 	if (bpr->unique == unique) {
@@ -82,8 +82,7 @@ static int bgp_pbr_rule_walkcb(struct hash_bucket *bucket, void *arg)
 static int bgp_pbr_action_walkcb(struct hash_bucket *bucket, void *arg)
 {
 	struct bgp_pbr_action *bpa = (struct bgp_pbr_action *)bucket->data;
-	struct bgp_pbr_action_unique *bpau = (struct bgp_pbr_action_unique *)
-		arg;
+	struct bgp_pbr_action_unique *bpau = (struct bgp_pbr_action_unique *)arg;
 	uint32_t unique = bpau->unique;
 
 	if (bpa->unique == unique) {
@@ -120,8 +119,7 @@ static int bgp_pbr_match_pername_walkcb(struct hash_bucket *bucket, void *arg)
 		(struct bgp_pbr_match_ipsetname *)arg;
 	char *ipset_name = bpmi->ipsetname;
 
-	if (!strncmp(ipset_name, bpm->ipset_name,
-		     ZEBRA_IPSET_NAME_SIZE)) {
+	if (!strncmp(ipset_name, bpm->ipset_name, ZEBRA_IPSET_NAME_SIZE)) {
 		bpmi->bpm_found = bpm;
 		return HASHWALK_ABORT;
 	}
@@ -150,8 +148,7 @@ struct bgp_pbr_match_unique {
 static int bgp_pbr_match_walkcb(struct hash_bucket *bucket, void *arg)
 {
 	struct bgp_pbr_match *bpm = (struct bgp_pbr_match *)bucket->data;
-	struct bgp_pbr_match_unique *bpmu = (struct bgp_pbr_match_unique *)
-		arg;
+	struct bgp_pbr_match_unique *bpmu = (struct bgp_pbr_match_unique *)arg;
 	uint32_t unique = bpmu->unique;
 
 	if (bpm->unique == unique) {
@@ -208,15 +205,16 @@ static int snprintf_bgp_pbr_match_val(char *str, int len,
 	return (int)(ptr - str);
 }
 
-#define INCREMENT_DISPLAY(_ptr, _cnt, _len) do {	\
-		int sn_delta;				\
-							\
-		if (_cnt) {				\
-			sn_delta = snprintf((_ptr), (_len), "; ");\
-			(_len) -= sn_delta;		\
-			(_ptr) += sn_delta;		\
-		}				\
-		(_cnt)++;	\
+#define INCREMENT_DISPLAY(_ptr, _cnt, _len)                                    \
+	do {                                                                   \
+		int sn_delta;                                                  \
+                                                                               \
+		if (_cnt) {                                                    \
+			sn_delta = snprintf((_ptr), (_len), "; ");             \
+			(_len) -= sn_delta;                                    \
+			(_ptr) += sn_delta;                                    \
+		}                                                              \
+		(_cnt)++;                                                      \
 	} while (0)
 
 /* this structure can be used for port range,
@@ -280,16 +278,12 @@ static void bgp_pbr_policyroute_add_to_zebra_unit(struct bgp *bgp,
 static void bgp_pbr_dump_entry(struct bgp_pbr_filter *bpf, bool add);
 
 static bool bgp_pbr_extract_enumerate_unary_opposite(
-				 uint8_t unary_operator,
-				 struct bgp_pbr_val_mask *and_valmask,
-				 struct list *or_valmask, uint32_t value,
-				 uint8_t type_entry)
+	uint8_t unary_operator, struct bgp_pbr_val_mask *and_valmask,
+	struct list *or_valmask, uint32_t value, uint8_t type_entry)
 {
 	if (unary_operator == OPERATOR_UNARY_AND && and_valmask) {
 		if (type_entry == FLOWSPEC_TCP_FLAGS) {
-			and_valmask->mask |=
-				TCP_HEADER_ALL_FLAGS &
-				~(value);
+			and_valmask->mask |= TCP_HEADER_ALL_FLAGS & ~(value);
 		} else if (type_entry == FLOWSPEC_DSCP ||
 			   type_entry == FLOWSPEC_FLOW_LABEL ||
 			   type_entry == FLOWSPEC_PKT_LEN ||
@@ -302,9 +296,7 @@ static bool bgp_pbr_extract_enumerate_unary_opposite(
 				      sizeof(struct bgp_pbr_val_mask));
 		if (type_entry == FLOWSPEC_TCP_FLAGS) {
 			and_valmask->val = TCP_HEADER_ALL_FLAGS;
-			and_valmask->mask |=
-				TCP_HEADER_ALL_FLAGS &
-				~(value);
+			and_valmask->mask |= TCP_HEADER_ALL_FLAGS & ~(value);
 		} else if (type_entry == FLOWSPEC_DSCP ||
 			   type_entry == FLOWSPEC_FLOW_LABEL ||
 			   type_entry == FLOWSPEC_FRAGMENT ||
@@ -343,21 +335,17 @@ static bool bgp_pbr_extract_enumerate_unary(struct bgp_pbr_match_val list[],
 		}
 	}
 	for (i = 0; i < num; i++) {
-		if (i != 0 && list[i].unary_operator !=
-		    unary_operator)
+		if (i != 0 && list[i].unary_operator != unary_operator)
 			return false;
-		if (!(list[i].compare_operator &
-		    OPERATOR_COMPARE_EQUAL_TO) &&
-		    !(list[i].compare_operator &
-		      OPERATOR_COMPARE_EXACT_MATCH)) {
+		if (!(list[i].compare_operator & OPERATOR_COMPARE_EQUAL_TO) &&
+		    !(list[i].compare_operator & OPERATOR_COMPARE_EXACT_MATCH)) {
 			if ((list[i].compare_operator &
 			     OPERATOR_COMPARE_LESS_THAN) &&
 			    (list[i].compare_operator &
 			     OPERATOR_COMPARE_GREATER_THAN)) {
 				ret = bgp_pbr_extract_enumerate_unary_opposite(
-						 unary_operator, and_valmask,
-						 or_valmask, list[i].value,
-						 type_entry);
+					unary_operator, and_valmask, or_valmask,
+					list[i].value, type_entry);
 				if (!ret)
 					return ret;
 				continue;
@@ -385,8 +373,8 @@ static bool bgp_pbr_extract_enumerate_unary(struct bgp_pbr_match_val list[],
 			listnode_add(or_valmask, and_valmask);
 		}
 	}
-	if (unary_operator == OPERATOR_UNARY_AND && and_valmask
-	    && type_entry == FLOWSPEC_TCP_FLAGS)
+	if (unary_operator == OPERATOR_UNARY_AND && and_valmask &&
+	    type_entry == FLOWSPEC_TCP_FLAGS)
 		and_valmask->val = TCP_HEADER_ALL_FLAGS;
 	return true;
 }
@@ -394,9 +382,9 @@ static bool bgp_pbr_extract_enumerate_unary(struct bgp_pbr_match_val list[],
 /* if unary operator can either be UNARY_OR/AND/OR-AND.
  * in the latter case, combinationf of both is not handled
  */
-static bool bgp_pbr_extract_enumerate(struct bgp_pbr_match_val list[],
-				      int num, uint8_t unary_operator,
-				      void *valmask, uint8_t type_entry)
+static bool bgp_pbr_extract_enumerate(struct bgp_pbr_match_val list[], int num,
+				      uint8_t unary_operator, void *valmask,
+				      uint8_t type_entry)
 {
 	bool ret;
 	uint8_t unary_operator_val;
@@ -413,8 +401,7 @@ static bool bgp_pbr_extract_enumerate(struct bgp_pbr_match_val list[],
 	if (!ret && double_check)
 		ret = bgp_pbr_extract_enumerate_unary(list, num,
 						      OPERATOR_UNARY_OR,
-						      valmask,
-						      type_entry);
+						      valmask, type_entry);
 	return ret;
 }
 
@@ -433,10 +420,10 @@ static uint8_t bgp_pbr_match_val_get_operator(struct bgp_pbr_match_val list[],
 			continue;
 		if (list[i].unary_operator & OPERATOR_UNARY_OR)
 			unary_operator = OPERATOR_UNARY_OR;
-		if ((list[i].unary_operator & OPERATOR_UNARY_AND
-		     && unary_operator == OPERATOR_UNARY_OR) ||
-		    (list[i].unary_operator & OPERATOR_UNARY_OR
-		     && unary_operator == OPERATOR_UNARY_AND))
+		if ((list[i].unary_operator & OPERATOR_UNARY_AND &&
+		     unary_operator == OPERATOR_UNARY_OR) ||
+		    (list[i].unary_operator & OPERATOR_UNARY_OR &&
+		     unary_operator == OPERATOR_UNARY_AND))
 			return 0;
 	}
 	return unary_operator;
@@ -445,8 +432,7 @@ static uint8_t bgp_pbr_match_val_get_operator(struct bgp_pbr_match_val list[],
 
 /* return true if extraction ok
  */
-static bool bgp_pbr_extract(struct bgp_pbr_match_val list[],
-			    int num,
+static bool bgp_pbr_extract(struct bgp_pbr_match_val list[], int num,
 			    struct bgp_pbr_range_port *range)
 {
 	int i = 0;
@@ -458,20 +444,19 @@ static bool bgp_pbr_extract(struct bgp_pbr_match_val list[],
 	if (num > 2)
 		return false;
 	for (i = 0; i < num; i++) {
-		if (i != 0 && (list[i].compare_operator ==
-			       OPERATOR_COMPARE_EQUAL_TO))
+		if (i != 0 &&
+		    (list[i].compare_operator == OPERATOR_COMPARE_EQUAL_TO))
 			return false;
-		if (i == 0 && (list[i].compare_operator ==
-			       OPERATOR_COMPARE_EQUAL_TO)) {
+		if (i == 0 &&
+		    (list[i].compare_operator == OPERATOR_COMPARE_EQUAL_TO)) {
 			if (range)
 				range->min_port = list[i].value;
 			exact_match = true;
 		}
 		if (exact_match && i > 0)
 			return false;
-		if (list[i].compare_operator ==
-		    (OPERATOR_COMPARE_GREATER_THAN +
-		     OPERATOR_COMPARE_EQUAL_TO)) {
+		if (list[i].compare_operator == (OPERATOR_COMPARE_GREATER_THAN +
+						 OPERATOR_COMPARE_EQUAL_TO)) {
 			if (range)
 				range->min_port = list[i].value;
 		} else if (list[i].compare_operator ==
@@ -496,7 +481,7 @@ static int bgp_pbr_validate_policy_route(struct bgp_pbr_entry_main *api)
 {
 	bool enumerate_icmp = false;
 
-	if (api->type ==  BGP_PBR_UNDEFINED) {
+	if (api->type == BGP_PBR_UNDEFINED) {
 		if (BGP_DEBUG(pbr, PBR))
 			zlog_debug("BGP: pbr entry undefined. cancel.");
 		return 0;
@@ -513,14 +498,14 @@ static int bgp_pbr_validate_policy_route(struct bgp_pbr_entry_main *api)
 	if (api->match_protocol_num > 1) {
 		if (BGP_DEBUG(pbr, PBR))
 			zlog_debug("BGP: match protocol operations:multiple protocols ( %d). ignoring.",
-				 api->match_protocol_num);
+				   api->match_protocol_num);
 		return 0;
 	}
-	if (api->src_prefix_offset > 0 ||
-	    api->dst_prefix_offset > 0) {
+	if (api->src_prefix_offset > 0 || api->dst_prefix_offset > 0) {
 		if (BGP_DEBUG(pbr, PBR))
-			zlog_debug("BGP: match prefix offset:"
-				   "implementation does not support it.");
+			zlog_debug(
+				"BGP: match prefix offset:"
+				"implementation does not support it.");
 		return 0;
 	}
 	if (api->match_protocol_num == 1 &&
@@ -535,21 +520,22 @@ static int bgp_pbr_validate_policy_route(struct bgp_pbr_entry_main *api)
 	}
 	if (!bgp_pbr_extract(api->src_port, api->match_src_port_num, NULL)) {
 		if (BGP_DEBUG(pbr, PBR))
-			zlog_debug("BGP: match src port operations:too complex. ignoring.");
+			zlog_debug(
+				"BGP: match src port operations:too complex. ignoring.");
 		return 0;
 	}
 	if (!bgp_pbr_extract(api->dst_port, api->match_dst_port_num, NULL)) {
 		if (BGP_DEBUG(pbr, PBR))
-			zlog_debug("BGP: match dst port operations:too complex. ignoring.");
+			zlog_debug(
+				"BGP: match dst port operations:too complex. ignoring.");
 		return 0;
 	}
-	if (!bgp_pbr_extract_enumerate(api->tcpflags,
-				       api->match_tcpflags_num,
-				       OPERATOR_UNARY_AND |
-				       OPERATOR_UNARY_OR, NULL,
-				       FLOWSPEC_TCP_FLAGS)) {
+	if (!bgp_pbr_extract_enumerate(api->tcpflags, api->match_tcpflags_num,
+				       OPERATOR_UNARY_AND | OPERATOR_UNARY_OR,
+				       NULL, FLOWSPEC_TCP_FLAGS)) {
 		if (BGP_DEBUG(pbr, PBR))
-			zlog_debug("BGP: match tcp flags:too complex. ignoring.");
+			zlog_debug(
+				"BGP: match tcp flags:too complex. ignoring.");
 		return 0;
 	}
 	if (!bgp_pbr_extract(api->icmp_type, api->match_icmp_type_num, NULL)) {
@@ -558,7 +544,8 @@ static int bgp_pbr_validate_policy_route(struct bgp_pbr_entry_main *api)
 					       OPERATOR_UNARY_OR, NULL,
 					       FLOWSPEC_ICMP_TYPE)) {
 			if (BGP_DEBUG(pbr, PBR))
-				zlog_debug("BGP: match icmp type operations:too complex. ignoring.");
+				zlog_debug(
+					"BGP: match icmp type operations:too complex. ignoring.");
 			return 0;
 		}
 		enumerate_icmp = true;
@@ -569,18 +556,20 @@ static int bgp_pbr_validate_policy_route(struct bgp_pbr_entry_main *api)
 					       OPERATOR_UNARY_OR, NULL,
 					       FLOWSPEC_ICMP_CODE)) {
 			if (BGP_DEBUG(pbr, PBR))
-				zlog_debug("BGP: match icmp code operations:too complex. ignoring.");
+				zlog_debug(
+					"BGP: match icmp code operations:too complex. ignoring.");
 			return 0;
-		} else if (api->match_icmp_type_num > 1 &&
-			   !enumerate_icmp) {
+		} else if (api->match_icmp_type_num > 1 && !enumerate_icmp) {
 			if (BGP_DEBUG(pbr, PBR))
-				zlog_debug("BGP: match icmp code is enumerate, and icmp type is not. too complex. ignoring.");
+				zlog_debug(
+					"BGP: match icmp code is enumerate, and icmp type is not. too complex. ignoring.");
 			return 0;
 		}
 	}
 	if (!bgp_pbr_extract(api->port, api->match_port_num, NULL)) {
 		if (BGP_DEBUG(pbr, PBR))
-			zlog_debug("BGP: match port operations:too complex. ignoring.");
+			zlog_debug(
+				"BGP: match port operations:too complex. ignoring.");
 		return 0;
 	}
 	if (api->match_packet_length_num) {
@@ -590,44 +579,51 @@ static int bgp_pbr_validate_policy_route(struct bgp_pbr_entry_main *api)
 				      api->match_packet_length_num, NULL);
 		if (!ret)
 			ret = bgp_pbr_extract_enumerate(api->packet_length,
-						api->match_packet_length_num,
-						OPERATOR_UNARY_OR
-						| OPERATOR_UNARY_AND,
-						NULL, FLOWSPEC_PKT_LEN);
+							api->match_packet_length_num,
+							OPERATOR_UNARY_OR |
+								OPERATOR_UNARY_AND,
+							NULL, FLOWSPEC_PKT_LEN);
 		if (!ret) {
 			if (BGP_DEBUG(pbr, PBR))
-				zlog_debug("BGP: match packet length operations:too complex. ignoring.");
+				zlog_debug(
+					"BGP: match packet length operations:too complex. ignoring.");
 			return 0;
 		}
 	}
 	if (api->match_dscp_num) {
 		if (!bgp_pbr_extract_enumerate(api->dscp, api->match_dscp_num,
-				OPERATOR_UNARY_OR | OPERATOR_UNARY_AND,
+					       OPERATOR_UNARY_OR |
+						       OPERATOR_UNARY_AND,
 					       NULL, FLOWSPEC_DSCP)) {
 			if (BGP_DEBUG(pbr, PBR))
-				zlog_debug("BGP: match DSCP operations:too complex. ignoring.");
+				zlog_debug(
+					"BGP: match DSCP operations:too complex. ignoring.");
 			return 0;
 		}
 	}
 	if (api->match_flowlabel_num) {
 		if (api->afi == AFI_IP) {
 			if (BGP_DEBUG(pbr, PBR))
-				zlog_debug("BGP: match Flow Label operations:"
-					   "Not for IPv4.");
+				zlog_debug(
+					"BGP: match Flow Label operations:"
+					"Not for IPv4.");
 			return 0;
 		}
 		if (!bgp_pbr_extract_enumerate(api->flow_label,
 					       api->match_flowlabel_num,
-				OPERATOR_UNARY_OR | OPERATOR_UNARY_AND,
+					       OPERATOR_UNARY_OR |
+						       OPERATOR_UNARY_AND,
 					       NULL, FLOWSPEC_FLOW_LABEL)) {
 			if (BGP_DEBUG(pbr, PBR))
-				zlog_debug("BGP: match FlowLabel operations:"
-					   "too complex. ignoring.");
+				zlog_debug(
+					"BGP: match FlowLabel operations:"
+					"too complex. ignoring.");
 			return 0;
 		}
 		if (BGP_DEBUG(pbr, PBR))
-			zlog_debug("BGP: match FlowLabel operations "
-				   "not supported. ignoring.");
+			zlog_debug(
+				"BGP: match FlowLabel operations "
+				"not supported. ignoring.");
 		return 0;
 	}
 	if (api->match_fragment_num) {
@@ -636,8 +632,8 @@ static int bgp_pbr_validate_policy_route(struct bgp_pbr_entry_main *api)
 
 		success = bgp_pbr_extract_enumerate(api->fragment,
 						    api->match_fragment_num,
-						    OPERATOR_UNARY_OR
-						    | OPERATOR_UNARY_AND,
+						    OPERATOR_UNARY_OR |
+							    OPERATOR_UNARY_AND,
 						    NULL, FLOWSPEC_FRAGMENT);
 		if (success) {
 			int i;
@@ -648,10 +644,9 @@ static int bgp_pbr_validate_policy_route(struct bgp_pbr_entry_main *api)
 				    api->fragment[i].value != 4 &&
 				    api->fragment[i].value != 8) {
 					success = false;
-					snprintf(
-						fail_str, sizeof(fail_str),
-						"Value not valid (%d) for this implementation",
-						api->fragment[i].value);
+					snprintf(fail_str, sizeof(fail_str),
+						 "Value not valid (%d) for this implementation",
+						 api->fragment[i].value);
 				}
 				if (api->afi == AFI_IP6 &&
 				    api->fragment[i].value == 1) {
@@ -663,8 +658,8 @@ static int bgp_pbr_validate_policy_route(struct bgp_pbr_entry_main *api)
 			}
 			if (api->afi == AFI_IP6) {
 				success = false;
-				snprintf(fail_str, sizeof(fail_str),
-					 "%s", IPV6_FRAGMENT_INVALID);
+				snprintf(fail_str, sizeof(fail_str), "%s",
+					 IPV6_FRAGMENT_INVALID);
 			}
 		} else
 			snprintf(fail_str, sizeof(fail_str),
@@ -672,8 +667,7 @@ static int bgp_pbr_validate_policy_route(struct bgp_pbr_entry_main *api)
 		if (!success) {
 			if (BGP_DEBUG(pbr, PBR))
 				zlog_debug("BGP: match fragment operation (%d) %s",
-					   api->match_fragment_num,
-					   fail_str);
+					   api->match_fragment_num, fail_str);
 			return 0;
 		}
 	}
@@ -682,16 +676,19 @@ static int bgp_pbr_validate_policy_route(struct bgp_pbr_entry_main *api)
 	 * or port with src_port and dst_port
 	 */
 	if (api->match_src_port_num + api->match_dst_port_num +
-	    api->match_port_num > 3) {
+		    api->match_port_num >
+	    3) {
 		if (BGP_DEBUG(pbr, PBR))
-			zlog_debug("BGP: match multiple port operations: too complex. ignoring.");
+			zlog_debug(
+				"BGP: match multiple port operations: too complex. ignoring.");
 		return 0;
 	}
-	if ((api->match_src_port_num || api->match_dst_port_num
-	     || api->match_port_num) && (api->match_icmp_type_num
-					 || api->match_icmp_code_num)) {
+	if ((api->match_src_port_num || api->match_dst_port_num ||
+	     api->match_port_num) &&
+	    (api->match_icmp_type_num || api->match_icmp_code_num)) {
 		if (BGP_DEBUG(pbr, PBR))
-			zlog_debug("BGP: match multiple port/imcp operations: too complex. ignoring.");
+			zlog_debug(
+				"BGP: match multiple port/imcp operations: too complex. ignoring.");
 		return 0;
 	}
 	/* iprule only supports redirect IP */
@@ -703,7 +700,8 @@ static int bgp_pbr_validate_policy_route(struct bgp_pbr_entry_main *api)
 			    api->actions[i].u.r.rate == 0) {
 				if (BGP_DEBUG(pbr, PBR)) {
 					bgp_pbr_print_policy_route(api);
-					zlog_debug("BGP: iprule match actions drop not supported");
+					zlog_debug(
+						"BGP: iprule match actions drop not supported");
 				}
 				return 0;
 			}
@@ -711,14 +709,14 @@ static int bgp_pbr_validate_policy_route(struct bgp_pbr_entry_main *api)
 				if (BGP_DEBUG(pbr, PBR)) {
 					bgp_pbr_print_policy_route(api);
 					zlog_warn("PBR: iprule set DSCP/Flow Label %u not supported",
-						api->actions[i].u.marking_dscp);
+						  api->actions[i].u.marking_dscp);
 				}
 			}
 			if (api->actions[i].action == ACTION_REDIRECT) {
 				if (BGP_DEBUG(pbr, PBR)) {
 					bgp_pbr_print_policy_route(api);
 					zlog_warn("PBR: iprule redirect VRF %u not supported",
-						api->actions[i].u.redirect_vrf);
+						  api->actions[i].u.redirect_vrf);
 				}
 			}
 		}
@@ -727,7 +725,8 @@ static int bgp_pbr_validate_policy_route(struct bgp_pbr_entry_main *api)
 		   !(api->match_bitmask & PREFIX_DST_PRESENT)) {
 		if (BGP_DEBUG(pbr, PBR)) {
 			bgp_pbr_print_policy_route(api);
-			zlog_debug("BGP: match actions without src or dst address can not operate. ignoring.");
+			zlog_debug(
+				"BGP: match actions without src or dst address can not operate. ignoring.");
 		}
 		return 0;
 	}
@@ -753,24 +752,24 @@ int bgp_pbr_build_and_validate_entry(const struct prefix *p,
 
 	/* extract match from flowspec entries */
 	ret = bgp_flowspec_match_rules_fill((uint8_t *)p->u.prefix_flowspec.ptr,
-					    p->u.prefix_flowspec.prefixlen, api, afi);
+					    p->u.prefix_flowspec.prefixlen, api,
+					    afi);
 	if (ret < 0)
 		return -1;
 	/* extract actiosn from flowspec ecom list */
 	if (path && bgp_attr_get_ecommunity(path->attr)) {
 		ecom = bgp_attr_get_ecommunity(path->attr);
 		for (i = 0; i < ecom->size; i++) {
-			ecom_eval = (struct ecommunity_val *)
-				(ecom->val + (i * ECOMMUNITY_SIZE));
+			ecom_eval =
+				(struct ecommunity_val *)(ecom->val +
+							  (i * ECOMMUNITY_SIZE));
 			action_count++;
 			if (action_count > ACTIONS_MAX_NUM) {
 				if (BGP_DEBUG(pbr, PBR_ERROR))
-					flog_err(
-						EC_BGP_FLOWSPEC_PACKET,
-						"%s: %s (max %u)",
-						__func__,
-						FSPEC_ACTION_EXCEED_LIMIT,
-						action_count);
+					flog_err(EC_BGP_FLOWSPEC_PACKET,
+						 "%s: %s (max %u)", __func__,
+						 FSPEC_ACTION_EXCEED_LIMIT,
+						 action_count);
 				break;
 			}
 			api_action = &api->actions[action_count - 1];
@@ -778,26 +777,25 @@ int bgp_pbr_build_and_validate_entry(const struct prefix *p,
 			if ((ecom_eval->val[1] ==
 			     (char)ECOMMUNITY_REDIRECT_VRF) &&
 			    (ecom_eval->val[0] ==
-			     (char)ECOMMUNITY_ENCODE_TRANS_EXP ||
+				     (char)ECOMMUNITY_ENCODE_TRANS_EXP ||
 			     ecom_eval->val[0] ==
-			     (char)ECOMMUNITY_EXTENDED_COMMUNITY_PART_2 ||
+				     (char)ECOMMUNITY_EXTENDED_COMMUNITY_PART_2 ||
 			     ecom_eval->val[0] ==
-			     (char)ECOMMUNITY_EXTENDED_COMMUNITY_PART_3)) {
+				     (char)ECOMMUNITY_EXTENDED_COMMUNITY_PART_3)) {
 				struct ecommunity *eckey = ecommunity_new();
 				struct ecommunity_val ecom_copy;
 
 				memcpy(&ecom_copy, ecom_eval,
 				       sizeof(struct ecommunity_val));
-				ecom_copy.val[0] &=
-					~ECOMMUNITY_ENCODE_TRANS_EXP;
+				ecom_copy.val[0] &= ~ECOMMUNITY_ENCODE_TRANS_EXP;
 				ecom_copy.val[1] = ECOMMUNITY_ROUTE_TARGET;
-				ecommunity_add_val(eckey, &ecom_copy,
-						   false, false);
+				ecommunity_add_val(eckey, &ecom_copy, false,
+						   false);
 
 				api_action->action = ACTION_REDIRECT;
 				api_action->u.redirect_vrf =
 					get_first_vrf_for_redirect_with_rt(
-								eckey);
+						eckey);
 				ecommunity_free(&eckey);
 			} else if ((ecom_eval->val[0] ==
 				    (char)ECOMMUNITY_ENCODE_REDIRECT_IP_NH) &&
@@ -809,38 +807,39 @@ int bgp_pbr_build_and_validate_entry(const struct prefix *p,
 				 */
 				if (api_action_redirect_ip &&
 				    p->u.prefix_flowspec.family == AF_INET) {
-					if (api_action_redirect_ip->u
-					    .zr.redirect_ip_v4.s_addr
-					    != INADDR_ANY)
+					if (api_action_redirect_ip->u.zr
+						    .redirect_ip_v4.s_addr !=
+					    INADDR_ANY)
 						continue;
-					if (path->attr->nexthop.s_addr
-					    == INADDR_ANY)
+					if (path->attr->nexthop.s_addr ==
+					    INADDR_ANY)
 						continue;
 					api_action_redirect_ip->u.zr
 						.redirect_ip_v4.s_addr =
 						path->attr->nexthop.s_addr;
-					api_action_redirect_ip->u.zr.duplicate
-						= ecom_eval->val[7];
+					api_action_redirect_ip->u.zr.duplicate =
+						ecom_eval->val[7];
 					continue;
 				} else if (api_action_redirect_ip &&
-				    p->u.prefix_flowspec.family == AF_INET6) {
-					if (memcmp(&api_action_redirect_ip->u
-						   .zr.redirect_ip_v6,
+					   p->u.prefix_flowspec.family ==
+						   AF_INET6) {
+					if (memcmp(&api_action_redirect_ip->u.zr
+							    .redirect_ip_v6,
 						   &in6addr_any,
 						   sizeof(struct in6_addr)))
 						continue;
 					if (path->attr->mp_nexthop_len == 0 ||
 					    path->attr->mp_nexthop_len ==
-					    BGP_ATTR_NHLEN_IPV4 ||
+						    BGP_ATTR_NHLEN_IPV4 ||
 					    path->attr->mp_nexthop_len ==
-					    BGP_ATTR_NHLEN_VPNV4)
+						    BGP_ATTR_NHLEN_VPNV4)
 						continue;
-					memcpy(&api_action_redirect_ip->u
-					       .zr.redirect_ip_v6,
+					memcpy(&api_action_redirect_ip->u.zr
+							.redirect_ip_v6,
 					       &path->attr->mp_nexthop_global,
 					       sizeof(struct in6_addr));
-					api_action_redirect_ip->u.zr.duplicate
-						= ecom_eval->val[7];
+					api_action_redirect_ip->u.zr.duplicate =
+						ecom_eval->val[7];
 					continue;
 				} else if (p->u.prefix_flowspec.family ==
 					   AF_INET) {
@@ -853,12 +852,11 @@ int bgp_pbr_build_and_validate_entry(const struct prefix *p,
 				} else if (p->u.prefix_flowspec.family ==
 					   AF_INET6) {
 					api_action->action = ACTION_REDIRECT_IP;
-					memcpy(&api_action->u
-					       .zr.redirect_ip_v6,
+					memcpy(&api_action->u.zr.redirect_ip_v6,
 					       &path->attr->mp_nexthop_global,
 					       sizeof(struct in6_addr));
-					api_action->u.zr.duplicate
-						= ecom_eval->val[7];
+					api_action->u.zr.duplicate =
+						ecom_eval->val[7];
 					api_action_redirect_ip = api_action;
 				}
 			} else if ((ecom_eval->val[0] ==
@@ -870,18 +868,17 @@ int bgp_pbr_build_and_validate_entry(const struct prefix *p,
 				 * update redirect ip fields
 				 */
 				if (api_action_redirect_ip) {
-					memcpy(&(api_action_redirect_ip->u
-						 .zr.redirect_ip_v4.s_addr),
-					       (ecom_eval->val+2), 4);
-					api_action_redirect_ip->u
-						.zr.duplicate =
+					memcpy(&(api_action_redirect_ip->u.zr
+							 .redirect_ip_v4.s_addr),
+					       (ecom_eval->val + 2), 4);
+					api_action_redirect_ip->u.zr.duplicate =
 						ecom_eval->val[7];
 					continue;
 				} else {
 					api_action->action = ACTION_REDIRECT_IP;
-					memcpy(&(api_action->u
-						 .zr.redirect_ip_v4.s_addr),
-					       (ecom_eval->val+2), 4);
+					memcpy(&(api_action->u.zr.redirect_ip_v4
+							 .s_addr),
+					       (ecom_eval->val + 2), 4);
 					api_action->u.zr.duplicate =
 						ecom_eval->val[7];
 					api_action_redirect_ip = api_action;
@@ -895,8 +892,8 @@ int bgp_pbr_build_and_validate_entry(const struct prefix *p,
 								 afi);
 				if (ret != 0)
 					continue;
-				if ((api_action->action == ACTION_TRAFFICRATE)
-				    && api->actions[i].u.r.rate == 0)
+				if ((api_action->action == ACTION_TRAFFICRATE) &&
+				    api->actions[i].u.r.rate == 0)
 					discard_action_found = true;
 			}
 			api->action_num++;
@@ -907,15 +904,15 @@ int bgp_pbr_build_and_validate_entry(const struct prefix *p,
 
 		ecom = bgp_attr_get_ipv6_ecommunity(path->attr);
 		for (i = 0; i < ecom->size; i++) {
-			ipv6_ecom_eval = (struct ecommunity_val_ipv6 *)
-				(ecom->val + (i * ecom->unit_size));
+			ipv6_ecom_eval =
+				(struct ecommunity_val_ipv6
+					 *)(ecom->val + (i * ecom->unit_size));
 			action_count++;
 			if (action_count > ACTIONS_MAX_NUM) {
 				if (BGP_DEBUG(pbr, PBR_ERROR))
-					flog_err(
-						EC_BGP_FLOWSPEC_PACKET,
-						"%s: flowspec actions exceeds limit (max %u)",
-						__func__, action_count);
+					flog_err(EC_BGP_FLOWSPEC_PACKET,
+						 "%s: flowspec actions exceeds limit (max %u)",
+						 __func__, action_count);
 				break;
 			}
 			api_action = &api->actions[action_count - 1];
@@ -935,7 +932,7 @@ int bgp_pbr_build_and_validate_entry(const struct prefix *p,
 				api_action->action = ACTION_REDIRECT;
 				api_action->u.redirect_vrf =
 					get_first_vrf_for_redirect_with_rt(
-								eckey);
+						eckey);
 				ecommunity_free(&eckey);
 				api->action_num++;
 			}
@@ -946,8 +943,7 @@ int bgp_pbr_build_and_validate_entry(const struct prefix *p,
 	 */
 	if (api->action_num > 1 && discard_action_found) {
 		api->action_num = 1;
-		memset(&api->actions[0], 0,
-		       sizeof(struct bgp_pbr_entry_action));
+		memset(&api->actions[0], 0, sizeof(struct bgp_pbr_entry_action));
 		api->actions[0].action = ACTION_TRAFFICRATE;
 	}
 
@@ -969,7 +965,8 @@ int bgp_pbr_build_and_validate_entry(const struct prefix *p,
 			if (BGP_DEBUG(pbr, PBR)) {
 				bgp_pbr_print_policy_route(api);
 				zlog_debug("%s: inconsistency: no match for afi src and dst (%u/%u)",
-				     __func__, afi, family2afi(dst->family));
+					   __func__, afi,
+					   family2afi(dst->family));
 			}
 			return -1;
 		}
@@ -1004,8 +1001,7 @@ static void bgp_pbr_match_free(void *arg)
 		/* then delete ipset match */
 		if (bpm->installed) {
 			if (bpm->installed_in_iptable) {
-				bgp_send_pbr_iptable(bpm->action,
-						     bpm, false);
+				bgp_send_pbr_iptable(bpm->action, bpm, false);
 				bpm->installed_in_iptable = false;
 				bpm->action->refcnt--;
 			}
@@ -1207,12 +1203,10 @@ bool bgp_pbr_rule_hash_equal(const void *arg1, const void *arg2)
 	if (r1->action != r2->action)
 		return false;
 
-	if ((r1->flags & MATCH_IP_SRC_SET) &&
-	    !prefix_same(&r1->src, &r2->src))
+	if ((r1->flags & MATCH_IP_SRC_SET) && !prefix_same(&r1->src, &r2->src))
 		return false;
 
-	if ((r1->flags & MATCH_IP_DST_SET) &&
-	    !prefix_same(&r1->dst, &r2->dst))
+	if ((r1->flags & MATCH_IP_DST_SET) && !prefix_same(&r1->dst, &r2->dst))
 		return false;
 
 	return true;
@@ -1304,8 +1298,7 @@ bool bgp_pbr_action_hash_equal(const void *arg1, const void *arg2)
 	return nexthop_same(&r1->nh, &r2->nh);
 }
 
-struct bgp_pbr_rule *bgp_pbr_rule_lookup(vrf_id_t vrf_id,
-					 uint32_t unique)
+struct bgp_pbr_rule *bgp_pbr_rule_lookup(vrf_id_t vrf_id, uint32_t unique)
 {
 	struct bgp *bgp = bgp_lookup_by_vrf_id(vrf_id);
 	struct bgp_pbr_rule_unique bpru;
@@ -1347,8 +1340,8 @@ struct bgp_pbr_match *bgp_pbr_match_ipset_lookup(vrf_id_t vrf_id,
 }
 
 struct bgp_pbr_match_entry *bgp_pbr_match_ipset_entry_lookup(vrf_id_t vrf_id,
-						       char *ipset_name,
-						       uint32_t unique)
+							     char *ipset_name,
+							     uint32_t unique)
 {
 	struct bgp *bgp = bgp_lookup_by_vrf_id(vrf_id);
 	struct bgp_pbr_match_entry_unique bpmeu;
@@ -1365,8 +1358,8 @@ struct bgp_pbr_match_entry *bgp_pbr_match_ipset_entry_lookup(vrf_id_t vrf_id,
 		return NULL;
 	bpmeu.bpme_found = NULL;
 	bpmeu.unique = unique;
-	hash_walk(bpmi.bpm_found->entry_hash,
-		  bgp_pbr_match_entry_walkcb, &bpmeu);
+	hash_walk(bpmi.bpm_found->entry_hash, bgp_pbr_match_entry_walkcb,
+		  &bpmeu);
 	return bpmeu.bpme_found;
 }
 
@@ -1402,17 +1395,14 @@ void bgp_pbr_init(struct bgp *bgp)
 {
 	bgp->pbr_match_hash =
 		hash_create_size(8, bgp_pbr_match_hash_key,
-				 bgp_pbr_match_hash_equal,
-				 "Match Hash");
+				 bgp_pbr_match_hash_equal, "Match Hash");
 	bgp->pbr_action_hash =
 		hash_create_size(8, bgp_pbr_action_hash_key,
-				 bgp_pbr_action_hash_equal,
-				 "Match Hash Entry");
+				 bgp_pbr_action_hash_equal, "Match Hash Entry");
 
 	bgp->pbr_rule_hash =
 		hash_create_size(8, bgp_pbr_rule_hash_key,
-				 bgp_pbr_rule_hash_equal,
-				 "Match Rule");
+				 bgp_pbr_rule_hash_equal, "Match Rule");
 
 	bgp->bgp_pbr_cfg = XCALLOC(MTYPE_PBR, sizeof(struct bgp_pbr_config));
 	bgp->bgp_pbr_cfg->pbr_interface_any_ipv4 = true;
@@ -1426,7 +1416,7 @@ void bgp_pbr_print_policy_route(struct bgp_pbr_entry_main *api)
 	int nb_items = 0;
 	int delta, len = sizeof(return_string);
 
-	delta = snprintf(ptr, sizeof(return_string),  "MATCH : ");
+	delta = snprintf(ptr, sizeof(return_string), "MATCH : ");
 	len -= delta;
 	ptr += delta;
 	if (api->match_bitmask & PREFIX_SRC_PRESENT) {
@@ -1530,9 +1520,8 @@ void bgp_pbr_print_policy_route(struct bgp_pbr_entry_main *api)
 	if (api->match_flowlabel_num)
 		INCREMENT_DISPLAY(ptr, nb_items, len);
 	for (i = 0; i < api->match_flowlabel_num; i++) {
-		delta = snprintf_bgp_pbr_match_val(ptr, len,
-						  &api->flow_label[i],
-						  i > 0 ? NULL : "@flowlabel ");
+		delta = snprintf_bgp_pbr_match_val(ptr, len, &api->flow_label[i],
+						   i > 0 ? NULL : "@flowlabel ");
 		len -= delta;
 		ptr += delta;
 	}
@@ -1575,7 +1564,7 @@ void bgp_pbr_print_policy_route(struct bgp_pbr_entry_main *api)
 		case ACTION_TRAFFICRATE:
 			INCREMENT_DISPLAY(ptr, nb_items, len);
 			delta = snprintf(ptr, len, "@set rate %f",
-					api->actions[i].u.r.rate);
+					 api->actions[i].u.r.rate);
 			len -= delta;
 			ptr += delta;
 			break;
@@ -1584,21 +1573,20 @@ void bgp_pbr_print_policy_route(struct bgp_pbr_entry_main *api)
 			delta = snprintf(ptr, len, "@action ");
 			len -= delta;
 			ptr += delta;
-			if (api->actions[i].u.za.filter
-			    & TRAFFIC_ACTION_TERMINATE) {
+			if (api->actions[i].u.za.filter &
+			    TRAFFIC_ACTION_TERMINATE) {
 				delta = snprintf(ptr, len,
 						 " terminate (apply filter(s))");
 				len -= delta;
 				ptr += delta;
 			}
-			if (api->actions[i].u.za.filter
-			    & TRAFFIC_ACTION_DISTRIBUTE) {
+			if (api->actions[i].u.za.filter &
+			    TRAFFIC_ACTION_DISTRIBUTE) {
 				delta = snprintf(ptr, len, " distribute");
 				len -= delta;
 				ptr += delta;
 			}
-			if (api->actions[i].u.za.filter
-			    & TRAFFIC_ACTION_SAMPLE) {
+			if (api->actions[i].u.za.filter & TRAFFIC_ACTION_SAMPLE) {
 				delta = snprintf(ptr, len, " sample");
 				len -= delta;
 				ptr += delta;
@@ -1615,8 +1603,8 @@ void bgp_pbr_print_policy_route(struct bgp_pbr_entry_main *api)
 				ptr_ip = &api->actions[i].u.zr.redirect_ip_v6;
 			if (inet_ntop(afi2family(api->afi), ptr_ip, local_buff,
 				      sizeof(local_buff)) != NULL) {
-				delta = snprintf(ptr, len,
-					  "@redirect ip nh %s", local_buff);
+				delta = snprintf(ptr, len, "@redirect ip nh %s",
+						 local_buff);
 				len -= delta;
 				ptr += delta;
 			}
@@ -1649,7 +1637,7 @@ void bgp_pbr_print_policy_route(struct bgp_pbr_entry_main *api)
 }
 
 static void bgp_pbr_flush_iprule(struct bgp *bgp, struct bgp_pbr_action *bpa,
-				  struct bgp_pbr_rule *bpr)
+				 struct bgp_pbr_rule *bpr)
 {
 	/* if bpr is null, do nothing
 	 */
@@ -1707,8 +1695,7 @@ static void bgp_pbr_flush_entry(struct bgp *bgp, struct bgp_pbr_action *bpa,
 		/* then delete ipset match */
 		if (bpm->installed) {
 			if (bpm->installed_in_iptable) {
-				bgp_send_pbr_iptable(bpm->action,
-						     bpm, false);
+				bgp_send_pbr_iptable(bpm->action, bpm, false);
 				bpm->installed_in_iptable = false;
 				bpm->action->refcnt--;
 			}
@@ -1737,8 +1724,7 @@ struct bgp_pbr_rule_remain {
 static int bgp_pbr_get_same_rule(struct hash_bucket *bucket, void *arg)
 {
 	struct bgp_pbr_rule *r1 = (struct bgp_pbr_rule *)bucket->data;
-	struct bgp_pbr_rule_remain *ctxt =
-		(struct bgp_pbr_rule_remain *)arg;
+	struct bgp_pbr_rule_remain *ctxt = (struct bgp_pbr_rule_remain *)arg;
 	struct bgp_pbr_rule *r2;
 
 	r2 = ctxt->bpr_to_match;
@@ -1749,12 +1735,10 @@ static int bgp_pbr_get_same_rule(struct hash_bucket *bucket, void *arg)
 	if (r1->flags != r2->flags)
 		return HASHWALK_CONTINUE;
 
-	if ((r1->flags & MATCH_IP_SRC_SET) &&
-	    !prefix_same(&r1->src, &r2->src))
+	if ((r1->flags & MATCH_IP_SRC_SET) && !prefix_same(&r1->src, &r2->src))
 		return HASHWALK_CONTINUE;
 
-	if ((r1->flags & MATCH_IP_DST_SET) &&
-	    !prefix_same(&r1->dst, &r2->dst))
+	if ((r1->flags & MATCH_IP_DST_SET) && !prefix_same(&r1->dst, &r2->dst))
 		return HASHWALK_CONTINUE;
 
 	/* this function is used for two cases:
@@ -1765,8 +1749,7 @@ static int bgp_pbr_get_same_rule(struct hash_bucket *bucket, void *arg)
 	 * the old one is removed after the new one
 	 * this is to avoid disruption in traffic
 	 */
-	if (r2->action == NULL ||
-	    r1->action != r2->action) {
+	if (r2->action == NULL || r1->action != r2->action) {
 		ctxt->bpr_found = r1;
 		return HASHWALK_ABORT;
 	}
@@ -1781,14 +1764,12 @@ static int bgp_pbr_get_remaining_entry(struct hash_bucket *bucket, void *arg)
 	struct bgp_pbr_match *bpm_temp;
 	struct bgp_pbr_match_entry *bpme = bpmer->bpme_to_match;
 
-	if (!bpme->backpointer ||
-	    bpm == bpme->backpointer ||
+	if (!bpme->backpointer || bpm == bpme->backpointer ||
 	    bpme->backpointer->action == bpm->action)
 		return HASHWALK_CONTINUE;
 	/* ensure bpm other characteristics are equal */
 	bpm_temp = bpme->backpointer;
-	if (bpm_temp->vrf_id != bpm->vrf_id ||
-	    bpm_temp->type != bpm->type ||
+	if (bpm_temp->vrf_id != bpm->vrf_id || bpm_temp->type != bpm->type ||
 	    bpm_temp->flags != bpm->flags ||
 	    bpm_temp->tcp_flags != bpm->tcp_flags ||
 	    bpm_temp->tcp_mask_flags != bpm->tcp_mask_flags ||
@@ -1862,8 +1843,7 @@ static void bgp_pbr_policyroute_remove_from_zebra_unit(
 
 			local_bpr = bprr.bpr_found;
 			local_bpa = local_bpr->action;
-			bgp_pbr_flush_iprule(bgp, local_bpa,
-					     local_bpr);
+			bgp_pbr_flush_iprule(bgp, local_bpa, local_bpr);
 		}
 		return;
 	}
@@ -1965,8 +1945,7 @@ static void bgp_pbr_policyroute_remove_from_zebra_unit(
 
 		local_bpm = bpmer.bpme_found->backpointer;
 		local_bpa = local_bpm->action;
-		bgp_pbr_flush_entry(bgp, local_bpa,
-				    local_bpm, bpmer.bpme_found);
+		bgp_pbr_flush_entry(bgp, local_bpa, local_bpm, bpmer.bpme_found);
 	}
 }
 
@@ -2013,11 +1992,13 @@ static void bgp_pbr_icmp_action(struct bgp *bgp, struct bgp_path_info *path,
 		for (ALL_LIST_ELEMENTS_RO(bpof->icmp_code, cnode, icmp_code)) {
 			dstp.min_port = icmp_code->val;
 			if (add)
-				bgp_pbr_policyroute_add_to_zebra_unit(
-					bgp, path, bpf, nh, rate);
+				bgp_pbr_policyroute_add_to_zebra_unit(bgp, path,
+								      bpf, nh,
+								      rate);
 			else
-				bgp_pbr_policyroute_remove_from_zebra_unit(
-					bgp, path, bpf);
+				bgp_pbr_policyroute_remove_from_zebra_unit(bgp,
+									   path,
+									   bpf);
 		}
 		return;
 	}
@@ -2033,21 +2014,25 @@ static void bgp_pbr_icmp_action(struct bgp *bgp, struct bgp_path_info *path,
 			dstp.min_port = 0;
 			dstp.max_port = 255;
 			if (add)
-				bgp_pbr_policyroute_add_to_zebra_unit(
-					bgp, path, bpf, nh, rate);
+				bgp_pbr_policyroute_add_to_zebra_unit(bgp, path,
+								      bpf, nh,
+								      rate);
 			else
-				bgp_pbr_policyroute_remove_from_zebra_unit(
-					bgp, path, bpf);
+				bgp_pbr_policyroute_remove_from_zebra_unit(bgp,
+									   path,
+									   bpf);
 			continue;
 		}
 		for (ALL_LIST_ELEMENTS_RO(bpof->icmp_code, cnode, icmp_code)) {
 			dstp.min_port = icmp_code->val;
 			if (add)
-				bgp_pbr_policyroute_add_to_zebra_unit(
-					bgp, path, bpf, nh, rate);
+				bgp_pbr_policyroute_add_to_zebra_unit(bgp, path,
+								      bpf, nh,
+								      rate);
 			else
-				bgp_pbr_policyroute_remove_from_zebra_unit(
-					bgp, path, bpf);
+				bgp_pbr_policyroute_remove_from_zebra_unit(bgp,
+									   path,
+									   bpf);
 		}
 	}
 
@@ -2091,43 +2076,52 @@ static void bgp_pbr_policyroute_remove_from_zebra_recursive(
 		bgp_pbr_icmp_action(bgp, path, bpf, bpof, false, NULL, NULL);
 		return;
 	} else {
-		bgp_pbr_policyroute_remove_from_zebra_recursive(
-			bgp, path, bpf, bpof, next_type_entry);
+		bgp_pbr_policyroute_remove_from_zebra_recursive(bgp, path, bpf,
+								bpof,
+								next_type_entry);
 		return;
 	}
 	for (ALL_LIST_ELEMENTS(orig_list, node, nnode, valmask)) {
 		*target_val = valmask;
-		bgp_pbr_policyroute_remove_from_zebra_recursive(
-			bgp, path, bpf, bpof, next_type_entry);
+		bgp_pbr_policyroute_remove_from_zebra_recursive(bgp, path, bpf,
+								bpof,
+								next_type_entry);
 	}
 }
 
-static void bgp_pbr_policyroute_remove_from_zebra(
-	struct bgp *bgp, struct bgp_path_info *path, struct bgp_pbr_filter *bpf,
-	struct bgp_pbr_or_filter *bpof)
+static void bgp_pbr_policyroute_remove_from_zebra(struct bgp *bgp,
+						  struct bgp_path_info *path,
+						  struct bgp_pbr_filter *bpf,
+						  struct bgp_pbr_or_filter *bpof)
 {
 	if (!bpof) {
 		bgp_pbr_policyroute_remove_from_zebra_unit(bgp, path, bpf);
 		return;
 	}
 	if (bpof->tcpflags)
-		bgp_pbr_policyroute_remove_from_zebra_recursive(
-			bgp, path, bpf, bpof, FLOWSPEC_TCP_FLAGS);
+		bgp_pbr_policyroute_remove_from_zebra_recursive(bgp, path, bpf,
+								bpof,
+								FLOWSPEC_TCP_FLAGS);
 	else if (bpof->dscp)
-		bgp_pbr_policyroute_remove_from_zebra_recursive(
-			bgp, path, bpf, bpof, FLOWSPEC_DSCP);
+		bgp_pbr_policyroute_remove_from_zebra_recursive(bgp, path, bpf,
+								bpof,
+								FLOWSPEC_DSCP);
 	else if (bpof->flowlabel)
-		bgp_pbr_policyroute_remove_from_zebra_recursive(
-			bgp, path, bpf, bpof, FLOWSPEC_FLOW_LABEL);
+		bgp_pbr_policyroute_remove_from_zebra_recursive(bgp, path, bpf,
+								bpof,
+								FLOWSPEC_FLOW_LABEL);
 	else if (bpof->pkt_len)
-		bgp_pbr_policyroute_remove_from_zebra_recursive(
-			bgp, path, bpf, bpof, FLOWSPEC_PKT_LEN);
+		bgp_pbr_policyroute_remove_from_zebra_recursive(bgp, path, bpf,
+								bpof,
+								FLOWSPEC_PKT_LEN);
 	else if (bpof->fragment)
-		bgp_pbr_policyroute_remove_from_zebra_recursive(
-			bgp, path, bpf, bpof, FLOWSPEC_FRAGMENT);
+		bgp_pbr_policyroute_remove_from_zebra_recursive(bgp, path, bpf,
+								bpof,
+								FLOWSPEC_FRAGMENT);
 	else if (bpof->icmp_type || bpof->icmp_code)
-		bgp_pbr_policyroute_remove_from_zebra_recursive(
-			bgp, path, bpf, bpof, FLOWSPEC_ICMP_TYPE);
+		bgp_pbr_policyroute_remove_from_zebra_recursive(bgp, path, bpf,
+								bpof,
+								FLOWSPEC_ICMP_TYPE);
 	else
 		bgp_pbr_policyroute_remove_from_zebra_unit(bgp, path, bpf);
 	/* flush bpof */
@@ -2163,88 +2157,69 @@ static void bgp_pbr_dump_entry(struct bgp_pbr_filter *bpf, bool add)
 	if (bpf->tcp_flags && bpf->tcp_flags->mask)
 		bpf->protocol = IPPROTO_TCP;
 	if (bpf->protocol)
-		snprintf(protocol_str, sizeof(protocol_str),
-			 "proto %d", bpf->protocol);
+		snprintf(protocol_str, sizeof(protocol_str), "proto %d",
+			 bpf->protocol);
 	buffer[0] = '\0';
 	if (bpf->protocol == IPPROTO_ICMP && src_port && dst_port)
-		remaining_len += snprintf(buffer, sizeof(buffer),
-					  "type %d, code %d",
-					  src_port->min_port,
-					  dst_port->min_port);
-	else if (bpf->protocol == IPPROTO_UDP ||
-		 bpf->protocol == IPPROTO_TCP) {
+		remaining_len +=
+			snprintf(buffer, sizeof(buffer), "type %d, code %d",
+				 src_port->min_port, dst_port->min_port);
+	else if (bpf->protocol == IPPROTO_UDP || bpf->protocol == IPPROTO_TCP) {
 
 		if (src_port && src_port->min_port)
-			remaining_len += snprintf(buffer,
-						  sizeof(buffer),
-						  "from [%u:%u]",
-						  src_port->min_port,
-						  src_port->max_port ?
-						  src_port->max_port :
-						  src_port->min_port);
+			remaining_len +=
+				snprintf(buffer, sizeof(buffer), "from [%u:%u]",
+					 src_port->min_port,
+					 src_port->max_port
+						 ? src_port->max_port
+						 : src_port->min_port);
 		if (dst_port && dst_port->min_port)
-			remaining_len += snprintf(buffer +
-						  remaining_len,
-						  sizeof(buffer)
-						  - remaining_len,
-						  "to [%u:%u]",
-						  dst_port->min_port,
-						  dst_port->max_port ?
-						  dst_port->max_port :
-						  dst_port->min_port);
+			remaining_len +=
+				snprintf(buffer + remaining_len,
+					 sizeof(buffer) - remaining_len,
+					 "to [%u:%u]", dst_port->min_port,
+					 dst_port->max_port
+						 ? dst_port->max_port
+						 : dst_port->min_port);
 	}
 	if (pkt_len && (pkt_len->min_port || pkt_len->max_port)) {
 		remaining_len += snprintf(buffer + remaining_len,
-					  sizeof(buffer)
-					  - remaining_len,
-					  " len [%u:%u]",
-					  pkt_len->min_port,
-					  pkt_len->max_port ?
-					  pkt_len->max_port :
-					  pkt_len->min_port);
+					  sizeof(buffer) - remaining_len,
+					  " len [%u:%u]", pkt_len->min_port,
+					  pkt_len->max_port ? pkt_len->max_port
+							    : pkt_len->min_port);
 	} else if (bpf->pkt_len_val) {
-		remaining_len += snprintf(buffer + remaining_len,
-					  sizeof(buffer)
-					  - remaining_len,
-					  " %s len %u",
-					  bpf->pkt_len_val->mask
-					  ? "!" : "",
-					  bpf->pkt_len_val->val);
+		remaining_len +=
+			snprintf(buffer + remaining_len,
+				 sizeof(buffer) - remaining_len, " %s len %u",
+				 bpf->pkt_len_val->mask ? "!" : "",
+				 bpf->pkt_len_val->val);
 	}
 	if (bpf->tcp_flags) {
 		remaining_len += snprintf(buffer + remaining_len,
-					  sizeof(buffer)
-					  - remaining_len,
-					  "tcpflags %x/%x",
-					  bpf->tcp_flags->val,
+					  sizeof(buffer) - remaining_len,
+					  "tcpflags %x/%x", bpf->tcp_flags->val,
 					  bpf->tcp_flags->mask);
 	}
 	if (bpf->dscp) {
-		snprintf(buffer + remaining_len,
-			 sizeof(buffer)
-			 - remaining_len,
-			 "%s dscp %d",
-			 bpf->dscp->mask
-			 ? "!" : "",
+		snprintf(buffer + remaining_len, sizeof(buffer) - remaining_len,
+			 "%s dscp %d", bpf->dscp->mask ? "!" : "",
 			 bpf->dscp->val);
 	}
 	if (bpf->flow_label) {
-		snprintf(buffer + remaining_len,
-			 sizeof(buffer)
-			 - remaining_len,
-			 "%s flow_label %d",
-			 bpf->flow_label->mask
-			 ? "!" : "",
+		snprintf(buffer + remaining_len, sizeof(buffer) - remaining_len,
+			 "%s flow_label %d", bpf->flow_label->mask ? "!" : "",
 			 bpf->flow_label->val);
 	}
 	zlog_debug("BGP: %s FS PBR from %s to %s, %s %s",
-		  add ? "adding" : "removing",
-		  bpf->src == NULL ? "<all>" :
-		  prefix2str(bpf->src, bufsrc, sizeof(bufsrc)),
-		  bpf->dst == NULL ? "<all>" :
-		  prefix2str(bpf->dst, bufdst, sizeof(bufdst)),
-		  protocol_str, buffer);
-
+		   add ? "adding" : "removing",
+		   bpf->src == NULL
+			   ? "<all>"
+			   : prefix2str(bpf->src, bufsrc, sizeof(bufsrc)),
+		   bpf->dst == NULL
+			   ? "<all>"
+			   : prefix2str(bpf->dst, bufdst, sizeof(bufdst)),
+		   protocol_str, buffer);
 }
 
 static void bgp_pbr_policyroute_add_to_zebra_unit(struct bgp *bgp,
@@ -2302,8 +2277,8 @@ static void bgp_pbr_policyroute_add_to_zebra_unit(struct bgp *bgp,
 			/* if action is redirect-vrf, then
 			 * use directly table_id of vrf
 			 */
-			if (nh && vrf && !vrf_is_backend_netns()
-			    && bpf->vrf_id != vrf->vrf_id)
+			if (nh && vrf && !vrf_is_backend_netns() &&
+			    bpf->vrf_id != vrf->vrf_id)
 				bpa->table_id = vrf->data.l.table_id;
 			else
 				bpa->table_id = bpa->fwmark;
@@ -2343,8 +2318,7 @@ static void bgp_pbr_policyroute_add_to_zebra_unit(struct bgp *bgp,
 				bgp_path_info_extra_get(path);
 
 			if (extra &&
-			    listnode_lookup_nocheck(extra->bgp_fs_iprule,
-						    bpr)) {
+			    listnode_lookup_nocheck(extra->bgp_fs_iprule, bpr)) {
 				if (BGP_DEBUG(pbr, PBR_ERROR))
 					zlog_err("%s: entry %p/%p already installed in bgp pbr iprule",
 						 __func__, path, bpr);
@@ -2370,8 +2344,7 @@ static void bgp_pbr_policyroute_add_to_zebra_unit(struct bgp *bgp,
 
 			local_bpr = bprr.bpr_found;
 			local_bpa = local_bpr->action;
-			bgp_pbr_flush_iprule(bgp, local_bpa,
-					     local_bpr);
+			bgp_pbr_flush_iprule(bgp, local_bpa, local_bpr);
 		}
 		return;
 	}
@@ -2447,19 +2420,18 @@ static void bgp_pbr_policyroute_add_to_zebra_unit(struct bgp *bgp,
 		temp.flags |= MATCH_PROTOCOL_SET;
 	}
 	temp.action = bpa;
-	bpm = hash_get(bgp->pbr_match_hash, &temp,
-		       bgp_pbr_match_alloc_intern);
+	bpm = hash_get(bgp->pbr_match_hash, &temp, bgp_pbr_match_alloc_intern);
 
 	/* new, then self allocate ipset_name and unique */
 	if (bpm->unique == 0) {
 		bpm->unique = ++bgp_pbr_match_counter_unique;
 		/* 0 value is forbidden */
-		snprintf(bpm->ipset_name, sizeof(bpm->ipset_name),
-			 "match%p", bpm);
-		bpm->entry_hash = hash_create_size(8,
-				   bgp_pbr_match_entry_hash_key,
-				   bgp_pbr_match_entry_hash_equal,
-				   "Match Entry Hash");
+		snprintf(bpm->ipset_name, sizeof(bpm->ipset_name), "match%p",
+			 bpm);
+		bpm->entry_hash =
+			hash_create_size(8, bgp_pbr_match_entry_hash_key,
+					 bgp_pbr_match_entry_hash_equal,
+					 "Match Entry Hash");
 		bpm->installed = false;
 
 		/* unique2 should be updated too */
@@ -2501,12 +2473,10 @@ static void bgp_pbr_policyroute_add_to_zebra_unit(struct bgp *bgp,
 		struct bgp_path_info_extra *extra =
 			bgp_path_info_extra_get(path);
 
-		if (extra &&
-		    listnode_lookup_nocheck(extra->bgp_fs_pbr, bpme)) {
+		if (extra && listnode_lookup_nocheck(extra->bgp_fs_pbr, bpme)) {
 			if (BGP_DEBUG(pbr, PBR_ERROR))
-				zlog_err(
-					"%s: entry %p/%p already installed in bgp pbr",
-					__func__, path, bpme);
+				zlog_err("%s: entry %p/%p already installed in bgp pbr",
+					 __func__, path, bpme);
 			return;
 		}
 	}
@@ -2546,11 +2516,8 @@ static void bgp_pbr_policyroute_add_to_zebra_unit(struct bgp *bgp,
 
 		local_bpm = bpmer.bpme_found->backpointer;
 		local_bpa = local_bpm->action;
-		bgp_pbr_flush_entry(bgp, local_bpa,
-				    local_bpm, bpmer.bpme_found);
+		bgp_pbr_flush_entry(bgp, local_bpa, local_bpm, bpmer.bpme_found);
 	}
-
-
 }
 
 static void bgp_pbr_policyroute_add_to_zebra_recursive(
@@ -2587,14 +2554,16 @@ static void bgp_pbr_policyroute_add_to_zebra_recursive(
 		bgp_pbr_icmp_action(bgp, path, bpf, bpof, true, nh, rate);
 		return;
 	} else {
-		bgp_pbr_policyroute_add_to_zebra_recursive(
-			bgp, path, bpf, bpof, nh, rate, next_type_entry);
+		bgp_pbr_policyroute_add_to_zebra_recursive(bgp, path, bpf, bpof,
+							   nh, rate,
+							   next_type_entry);
 		return;
 	}
 	for (ALL_LIST_ELEMENTS(orig_list, node, nnode, valmask)) {
 		*target_val = valmask;
-		bgp_pbr_policyroute_add_to_zebra_recursive(
-			bgp, path, bpf, bpof, nh, rate, next_type_entry);
+		bgp_pbr_policyroute_add_to_zebra_recursive(bgp, path, bpf, bpof,
+							   nh, rate,
+							   next_type_entry);
 	}
 }
 
@@ -2609,20 +2578,25 @@ static void bgp_pbr_policyroute_add_to_zebra(struct bgp *bgp,
 		return;
 	}
 	if (bpof->tcpflags)
-		bgp_pbr_policyroute_add_to_zebra_recursive(
-			bgp, path, bpf, bpof, nh, rate, FLOWSPEC_TCP_FLAGS);
+		bgp_pbr_policyroute_add_to_zebra_recursive(bgp, path, bpf, bpof,
+							   nh, rate,
+							   FLOWSPEC_TCP_FLAGS);
 	else if (bpof->dscp)
-		bgp_pbr_policyroute_add_to_zebra_recursive(
-			bgp, path, bpf, bpof, nh, rate, FLOWSPEC_DSCP);
+		bgp_pbr_policyroute_add_to_zebra_recursive(bgp, path, bpf, bpof,
+							   nh, rate,
+							   FLOWSPEC_DSCP);
 	else if (bpof->pkt_len)
-		bgp_pbr_policyroute_add_to_zebra_recursive(
-			bgp, path, bpf, bpof, nh, rate, FLOWSPEC_PKT_LEN);
+		bgp_pbr_policyroute_add_to_zebra_recursive(bgp, path, bpf, bpof,
+							   nh, rate,
+							   FLOWSPEC_PKT_LEN);
 	else if (bpof->fragment)
-		bgp_pbr_policyroute_add_to_zebra_recursive(
-			bgp, path, bpf, bpof, nh, rate, FLOWSPEC_FRAGMENT);
+		bgp_pbr_policyroute_add_to_zebra_recursive(bgp, path, bpf, bpof,
+							   nh, rate,
+							   FLOWSPEC_FRAGMENT);
 	else if (bpof->icmp_type || bpof->icmp_code)
-		bgp_pbr_policyroute_add_to_zebra_recursive(
-			bgp, path, bpf, bpof, nh, rate, FLOWSPEC_ICMP_TYPE);
+		bgp_pbr_policyroute_add_to_zebra_recursive(bgp, path, bpf, bpof,
+							   nh, rate,
+							   FLOWSPEC_ICMP_TYPE);
 	else
 		bgp_pbr_policyroute_add_to_zebra_unit(bgp, path, bpf, nh, rate);
 	/* flush bpof */
@@ -2682,27 +2656,20 @@ static void bgp_pbr_handle_entry(struct bgp *bgp, struct bgp_path_info *path,
 	 * but not both at the same time
 	 */
 	if (api->match_port_num >= 1) {
-		bgp_pbr_extract(api->port,
-				api->match_port_num,
-				&range);
+		bgp_pbr_extract(api->port, api->match_port_num, &range);
 		srcp = dstp = &range;
 	} else if (api->match_src_port_num >= 1) {
-		bgp_pbr_extract(api->src_port,
-				api->match_src_port_num,
-				&range);
+		bgp_pbr_extract(api->src_port, api->match_src_port_num, &range);
 		srcp = &range;
 		dstp = NULL;
 	} else if (api->match_dst_port_num >= 1) {
-		bgp_pbr_extract(api->dst_port,
-				api->match_dst_port_num,
-				&range);
+		bgp_pbr_extract(api->dst_port, api->match_dst_port_num, &range);
 		dstp = &range;
 		srcp = NULL;
 	}
 	if (api->match_icmp_type_num >= 1) {
 		proto = IPPROTO_ICMP;
-		if (bgp_pbr_extract(api->icmp_type,
-				    api->match_icmp_type_num,
+		if (bgp_pbr_extract(api->icmp_type, api->match_icmp_type_num,
 				    &range))
 			srcp = &range;
 		else {
@@ -2716,8 +2683,7 @@ static void bgp_pbr_handle_entry(struct bgp *bgp, struct bgp_path_info *path,
 	}
 	if (api->match_icmp_code_num >= 1) {
 		proto = IPPROTO_ICMP;
-		if (bgp_pbr_extract(api->icmp_code,
-				    api->match_icmp_code_num,
+		if (bgp_pbr_extract(api->icmp_code, api->match_icmp_code_num,
 				    &range_icmp_code))
 			dstp = &range_icmp_code;
 		else {
@@ -2731,8 +2697,9 @@ static void bgp_pbr_handle_entry(struct bgp *bgp, struct bgp_path_info *path,
 	}
 
 	if (api->match_tcpflags_num) {
-		kind_enum = bgp_pbr_match_val_get_operator(api->tcpflags,
-						   api->match_tcpflags_num);
+		kind_enum =
+			bgp_pbr_match_val_get_operator(api->tcpflags,
+						       api->match_tcpflags_num);
 		if (kind_enum == OPERATOR_UNARY_AND) {
 			bpf.tcp_flags = &bpvm;
 			bgp_pbr_extract_enumerate(api->tcpflags,
@@ -2753,8 +2720,7 @@ static void bgp_pbr_handle_entry(struct bgp *bgp, struct bgp_path_info *path,
 		bool ret;
 
 		ret = bgp_pbr_extract(api->packet_length,
-				      api->match_packet_length_num,
-				      &pkt_len);
+				      api->match_packet_length_num, &pkt_len);
 		if (ret)
 			bpf.pkt_len = &pkt_len;
 		else {
@@ -2769,15 +2735,13 @@ static void bgp_pbr_handle_entry(struct bgp *bgp, struct bgp_path_info *path,
 	if (api->match_dscp_num >= 1) {
 		bpof.dscp = list_new();
 		bgp_pbr_extract_enumerate(api->dscp, api->match_dscp_num,
-					  OPERATOR_UNARY_OR,
-					  bpof.dscp, FLOWSPEC_DSCP);
+					  OPERATOR_UNARY_OR, bpof.dscp,
+					  FLOWSPEC_DSCP);
 	}
 	if (api->match_fragment_num) {
 		bpof.fragment = list_new();
-		bgp_pbr_extract_enumerate(api->fragment,
-					  api->match_fragment_num,
-					  OPERATOR_UNARY_OR,
-					  bpof.fragment,
+		bgp_pbr_extract_enumerate(api->fragment, api->match_fragment_num,
+					  OPERATOR_UNARY_OR, bpof.fragment,
 					  FLOWSPEC_FRAGMENT);
 	}
 	bpf.vrf_id = api->vrf_id;
@@ -2799,8 +2763,9 @@ static void bgp_pbr_handle_entry(struct bgp *bgp, struct bgp_path_info *path,
 			if (api->actions[i].u.r.rate == 0) {
 				nh.vrf_id = api->vrf_id;
 				nh.type = NEXTHOP_TYPE_BLACKHOLE;
-				bgp_pbr_policyroute_add_to_zebra(
-					bgp, path, &bpf, &bpof, &nh, &rate);
+				bgp_pbr_policyroute_add_to_zebra(bgp, path,
+								 &bpf, &bpof,
+								 &nh, &rate);
 			} else {
 				/* update rate. can be reentrant */
 				rate = api->actions[i].u.r.rate;
@@ -2812,8 +2777,7 @@ static void bgp_pbr_handle_entry(struct bgp *bgp, struct bgp_path_info *path,
 			}
 			break;
 		case ACTION_TRAFFIC_ACTION:
-			if (api->actions[i].u.za.filter
-			    & TRAFFIC_ACTION_SAMPLE) {
+			if (api->actions[i].u.za.filter & TRAFFIC_ACTION_SAMPLE) {
 				if (BGP_DEBUG(pbr, PBR)) {
 					bgp_pbr_print_policy_route(api);
 					zlog_warn("PBR: Sample action Ignored");
@@ -2827,8 +2791,7 @@ static void bgp_pbr_handle_entry(struct bgp *bgp, struct bgp_path_info *path,
 			if (api->afi == AFI_IP) {
 				nh.type = NEXTHOP_TYPE_IPV4;
 				nh.gate.ipv4.s_addr =
-					api->actions[i].u.zr.
-					redirect_ip_v4.s_addr;
+					api->actions[i].u.zr.redirect_ip_v4.s_addr;
 			} else {
 				nh.type = NEXTHOP_TYPE_IPV6;
 				memcpy(&nh.gate.ipv6,
@@ -2898,19 +2861,18 @@ void bgp_pbr_update_entry(struct bgp *bgp, const struct prefix *p,
 }
 
 int bgp_pbr_interface_compare(const struct bgp_pbr_interface *a,
-			  const struct bgp_pbr_interface *b)
+			      const struct bgp_pbr_interface *b)
 {
 	return strcmp(a->name, b->name);
 }
 
-struct bgp_pbr_interface *bgp_pbr_interface_lookup(const char *name,
-					   struct bgp_pbr_interface_head *head)
+struct bgp_pbr_interface *
+bgp_pbr_interface_lookup(const char *name, struct bgp_pbr_interface_head *head)
 {
 	struct bgp_pbr_interface pbr_if;
 
 	strlcpy(pbr_if.name, name, sizeof(pbr_if.name));
-	return (RB_FIND(bgp_pbr_interface_head,
-			head, &pbr_if));
+	return (RB_FIND(bgp_pbr_interface_head, head, &pbr_if));
 }
 
 /* this function resets to the default policy routing

@@ -53,17 +53,17 @@ struct zebra_pbr_rule {
 	vrf_id_t vrf_id;
 };
 
-#define IS_RULE_FILTERING_ON_SRC_IP(r) \
+#define IS_RULE_FILTERING_ON_SRC_IP(r)                                         \
 	(r->rule.filter.filter_bm & PBR_FILTER_SRC_IP)
-#define IS_RULE_FILTERING_ON_DST_IP(r) \
+#define IS_RULE_FILTERING_ON_DST_IP(r)                                         \
 	(r->rule.filter.filter_bm & PBR_FILTER_DST_IP)
-#define IS_RULE_FILTERING_ON_SRC_PORT(r) \
+#define IS_RULE_FILTERING_ON_SRC_PORT(r)                                       \
 	(r->rule.filter.filter_bm & PBR_FILTER_SRC_PORT)
-#define IS_RULE_FILTERING_ON_DST_PORT(r) \
+#define IS_RULE_FILTERING_ON_DST_PORT(r)                                       \
 	(r->rule.filter.filter_bm & PBR_FILTER_DST_PORT)
-#define IS_RULE_FILTERING_ON_DSFIELD(r) \
+#define IS_RULE_FILTERING_ON_DSFIELD(r)                                        \
 	(r->rule.filter.filter_bm & PBR_FILTER_DSFIELD)
-#define IS_RULE_FILTERING_ON_FWMARK(r) \
+#define IS_RULE_FILTERING_ON_FWMARK(r)                                         \
 	(r->rule.filter.filter_bm & PBR_FILTER_FWMARK)
 
 /*
@@ -217,11 +217,11 @@ extern void zebra_pbr_dplane_result(struct zebra_dplane_ctx *ctx);
  * Handle success or failure of ipset kinds (un)install in the kernel.
  */
 extern void kernel_pbr_ipset_add_del_status(struct zebra_pbr_ipset *ipset,
-					   enum zebra_dplane_status res);
+					    enum zebra_dplane_status res);
 
-extern void kernel_pbr_ipset_entry_add_del_status(
-				struct zebra_pbr_ipset_entry *ipset,
-				enum zebra_dplane_status res);
+extern void
+kernel_pbr_ipset_entry_add_del_status(struct zebra_pbr_ipset_entry *ipset,
+				      enum zebra_dplane_status res);
 
 /*
  * Handle rule delete notification from kernel.
@@ -243,8 +243,7 @@ extern bool zebra_pbr_ipset_hash_equal(const void *arg1, const void *arg2);
 
 extern void zebra_pbr_ipset_entry_free(void *arg);
 extern uint32_t zebra_pbr_ipset_entry_hash_key(const void *arg);
-extern bool zebra_pbr_ipset_entry_hash_equal(const void *arg1,
-					     const void *arg2);
+extern bool zebra_pbr_ipset_entry_hash_equal(const void *arg1, const void *arg2);
 
 extern void zebra_pbr_iptable_free(void *arg);
 extern uint32_t zebra_pbr_iptable_hash_key(const void *arg);
@@ -256,19 +255,18 @@ extern void zebra_pbr_init(void);
 extern void zebra_pbr_show_ipset_list(struct vty *vty, char *ipsetname);
 extern void zebra_pbr_show_iptable(struct vty *vty, char *iptable);
 extern void zebra_pbr_iptable_update_interfacelist(struct stream *s,
-				   struct zebra_pbr_iptable *zpi);
-size_t zebra_pbr_tcpflags_snprintf(char *buffer, size_t len,
-				   uint16_t tcp_val);
+						   struct zebra_pbr_iptable *zpi);
+size_t zebra_pbr_tcpflags_snprintf(char *buffer, size_t len, uint16_t tcp_val);
 extern void zebra_pbr_show_rule(struct vty *vty);
 extern void zebra_pbr_show_rule_unit(struct zebra_pbr_rule *rule,
 				     struct vty *vty);
 
 DECLARE_HOOK(zebra_pbr_ipset_entry_get_stat,
-	     (struct zebra_pbr_ipset_entry *ipset, uint64_t *pkts,
+	     (struct zebra_pbr_ipset_entry * ipset, uint64_t *pkts,
 	      uint64_t *bytes),
 	     (ipset, pkts, bytes));
 DECLARE_HOOK(zebra_pbr_iptable_get_stat,
-	     (struct zebra_pbr_iptable *iptable, uint64_t *pkts,
+	     (struct zebra_pbr_iptable * iptable, uint64_t *pkts,
 	      uint64_t *bytes),
 	     (iptable, pkts, bytes));
 DECLARE_HOOK(zebra_pbr_iptable_update,
@@ -276,8 +274,8 @@ DECLARE_HOOK(zebra_pbr_iptable_update,
 
 DECLARE_HOOK(zebra_pbr_ipset_entry_update,
 	     (int cmd, struct zebra_pbr_ipset_entry *ipset), (cmd, ipset));
-DECLARE_HOOK(zebra_pbr_ipset_update,
-	     (int cmd, struct zebra_pbr_ipset *ipset), (cmd, ipset));
+DECLARE_HOOK(zebra_pbr_ipset_update, (int cmd, struct zebra_pbr_ipset *ipset),
+	     (cmd, ipset));
 
 #ifdef __cplusplus
 }

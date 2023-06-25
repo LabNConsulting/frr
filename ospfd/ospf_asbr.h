@@ -132,8 +132,7 @@ extern void ospf_unlink_ei_from_aggr(struct ospf *ospf,
 				     struct ospf_external_aggr_rt *aggr,
 				     struct external_info *ei);
 extern struct ospf_lsa *
-ospf_originate_summary_lsa(struct ospf *ospf,
-			   struct ospf_external_aggr_rt *aggr,
+ospf_originate_summary_lsa(struct ospf *ospf, struct ospf_external_aggr_rt *aggr,
 			   struct external_info *ei);
 extern int ospf_external_aggregator_timer_set(struct ospf *ospf,
 					      uint16_t interval);

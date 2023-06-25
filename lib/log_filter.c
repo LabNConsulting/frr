@@ -21,8 +21,8 @@ static uint8_t zlog_filter_count;
 static int zlog_filter_lookup(const char *lookup)
 {
 	for (int i = 0; i < zlog_filter_count; i++) {
-		if (strncmp(lookup, zlog_filters[i], sizeof(zlog_filters[0]))
-		    == 0)
+		if (strncmp(lookup, zlog_filters[i], sizeof(zlog_filters[0])) ==
+		    0)
 			return i;
 	}
 	return -1;

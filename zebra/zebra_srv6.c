@@ -38,20 +38,14 @@ DEFINE_MTYPE_STATIC(SRV6_MGR, SRV6M_CHUNK, "SRv6 Manager Chunk");
  */
 
 DEFINE_HOOK(srv6_manager_client_connect,
-	    (struct zserv *client, vrf_id_t vrf_id),
-	    (client, vrf_id));
-DEFINE_HOOK(srv6_manager_client_disconnect,
-	    (struct zserv *client), (client));
+	    (struct zserv * client, vrf_id_t vrf_id), (client, vrf_id));
+DEFINE_HOOK(srv6_manager_client_disconnect, (struct zserv * client), (client));
 DEFINE_HOOK(srv6_manager_get_chunk,
-	    (struct srv6_locator **loc,
-	     struct zserv *client,
-	     const char *locator_name,
-	     vrf_id_t vrf_id),
+	    (struct srv6_locator * *loc, struct zserv *client,
+	     const char *locator_name, vrf_id_t vrf_id),
 	    (loc, client, locator_name, vrf_id));
 DEFINE_HOOK(srv6_manager_release_chunk,
-	    (struct zserv *client,
-	     const char *locator_name,
-	     vrf_id_t vrf_id),
+	    (struct zserv * client, const char *locator_name, vrf_id_t vrf_id),
 	    (client, locator_name, vrf_id));
 
 /* define wrappers to be called in zapi_msg.c (as hooks must be called in
@@ -140,9 +134,8 @@ void zebra_srv6_locator_delete(struct srv6_locator *locator)
 			continue;
 		client = zserv_find_client(c->proto, c->instance);
 		if (!client) {
-			zlog_warn(
-				"%s: Not found zclient(proto=%u, instance=%u).",
-				__func__, c->proto, c->instance);
+			zlog_warn("%s: Not found zclient(proto=%u, instance=%u).",
+				  __func__, c->proto, c->instance);
 			continue;
 		}
 		zsend_zebra_srv6_locator_delete(client, locator);
@@ -241,11 +234,10 @@ struct zebra_srv6 *zebra_srv6_get_default(void)
  * @return Pointer to the assigned srv6-locator chunk,
  *         or NULL if the request could not be satisfied
  */
-static struct srv6_locator *
-assign_srv6_locator_chunk(uint8_t proto,
-			  uint16_t instance,
-			  uint32_t session_id,
-			  const char *locator_name)
+static struct srv6_locator *assign_srv6_locator_chunk(uint8_t proto,
+						      uint16_t instance,
+						      uint32_t session_id,
+						      const char *locator_name)
 {
 	bool chunk_found = false;
 	struct listnode *node = NULL;
@@ -254,8 +246,8 @@ assign_srv6_locator_chunk(uint8_t proto,
 
 	loc = zebra_srv6_locator_lookup(locator_name);
 	if (!loc) {
-		zlog_info("%s: locator %s was not found",
-			  __func__, locator_name);
+		zlog_info("%s: locator %s was not found", __func__,
+			  locator_name);
 		return NULL;
 	}
 
@@ -329,8 +321,7 @@ static int release_srv6_locator_chunk(uint8_t proto, uint16_t instance,
 			   locator_name);
 
 	for (ALL_LIST_ELEMENTS_RO((struct list *)loc->chunks, node, chunk)) {
-		if (chunk->proto != proto ||
-		    chunk->instance != instance ||
+		if (chunk->proto != proto || chunk->instance != instance ||
 		    chunk->session_id != session_id)
 			continue;
 		chunk->proto = NO_PROTO;
@@ -392,9 +383,10 @@ int release_daemon_srv6_locator_chunks(struct zserv *client)
 			    chunk->instance == client->instance &&
 			    chunk->session_id == client->session_id &&
 			    chunk->keep == 0) {
-				ret = release_srv6_locator_chunk(
-						chunk->proto, chunk->instance,
-						chunk->session_id, loc->name);
+				ret = release_srv6_locator_chunk(chunk->proto,
+								 chunk->instance,
+								 chunk->session_id,
+								 loc->name);
 				if (ret == 0)
 					count++;
 			}
@@ -402,8 +394,8 @@ int release_daemon_srv6_locator_chunks(struct zserv *client)
 	}
 
 	if (IS_ZEBRA_DEBUG_PACKET)
-		zlog_debug("%s: Released %d srv6-locator chunks",
-			   __func__, count);
+		zlog_debug("%s: Released %d srv6-locator chunks", __func__,
+			   count);
 
 	return count;
 }

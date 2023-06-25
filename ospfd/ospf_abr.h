@@ -7,16 +7,16 @@
 #ifndef _ZEBRA_OSPF_ABR_H
 #define _ZEBRA_OSPF_ABR_H
 
-#define OSPF_ABR_TASK_DELAY 	5
+#define OSPF_ABR_TASK_DELAY 5
 #define OSPF_ABR_DNA_TIMER 10
 /* Delay in announceing Non-DNA routers
  * so that LSAs are completely synced
  * before generating indication LSAs.
  */
 
-#define OSPF_AREA_RANGE_ADVERTISE	(1 << 0)
-#define OSPF_AREA_RANGE_SUBSTITUTE	(1 << 1)
-#define OSPF_AREA_RANGE_NSSA		(1 << 2)
+#define OSPF_AREA_RANGE_ADVERTISE (1 << 0)
+#define OSPF_AREA_RANGE_SUBSTITUTE (1 << 1)
+#define OSPF_AREA_RANGE_NSSA (1 << 2)
 
 /* Area range. */
 struct ospf_area_range {

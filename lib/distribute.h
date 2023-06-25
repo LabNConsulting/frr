@@ -59,13 +59,10 @@ extern void distribute_list_delete_hook(struct distribute_ctx *ctx,
 						 struct distribute *));
 extern struct distribute *distribute_lookup(struct distribute_ctx *ctx,
 					    const char *ifname);
-extern int config_write_distribute(struct vty *vty,
-				   struct distribute_ctx *ctx);
-extern int config_show_distribute(struct vty *vty,
-				  struct distribute_ctx *ctx);
+extern int config_write_distribute(struct vty *vty, struct distribute_ctx *ctx);
+extern int config_show_distribute(struct vty *vty, struct distribute_ctx *ctx);
 
-extern enum filter_type distribute_apply_in(struct interface *,
-					    struct prefix *);
+extern enum filter_type distribute_apply_in(struct interface *, struct prefix *);
 extern enum filter_type distribute_apply_out(struct interface *,
 					     struct prefix *);
 

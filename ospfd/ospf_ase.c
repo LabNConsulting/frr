@@ -55,8 +55,7 @@ struct ospf_route *ospf_find_asbr_route(struct ospf *ospf,
 	if (!CHECK_FLAG(ospf->config, OSPF_RFC1583_COMPATIBLE))
 		for (ALL_LIST_ELEMENTS_RO((struct list *)rn->info, node, or))
 			if (or->cost < OSPF_LS_INFINITY)
-				if (!OSPF_IS_AREA_ID_BACKBONE(or->u.std.area_id)
-					    &&
+				if (!OSPF_IS_AREA_ID_BACKBONE(or->u.std.area_id) &&
 				    or->path_type == OSPF_PATH_INTRA_AREA)
 					listnode_add(chosen, or);
 
@@ -74,11 +73,9 @@ struct ospf_route *ospf_find_asbr_route(struct ospf *ospf,
 			else if (best->cost > or->cost)
 				best = or ;
 			else if (best->cost ==
-				 or->cost
-					   && IPV4_ADDR_CMP(
-						      &best->u.std.area_id,
-						      & or->u.std.area_id)
-						      < 0)
+				 or->cost && IPV4_ADDR_CMP(&best->u.std.area_id,
+							   & or->u.std.area_id) <
+						     0)
 				best = or ;
 		}
 
@@ -159,16 +156,15 @@ ospf_ase_calculate_new_route(struct ospf_lsa *lsa,
 
 	if (!IS_EXTERNAL_METRIC(al->e[0].tos)) {
 		if (IS_DEBUG_OSPF(lsa, LSA))
-			zlog_debug(
-				"Route[External]: type-1 created, asbr cost:%d  metric:%d.",
-				asbr_route->cost, metric);
+			zlog_debug("Route[External]: type-1 created, asbr cost:%d  metric:%d.",
+				   asbr_route->cost, metric);
 		new->path_type = OSPF_PATH_TYPE1_EXTERNAL;
 		new->cost = asbr_route->cost + metric; /* X + Y */
 	} else {
 		if (IS_DEBUG_OSPF(lsa, LSA))
 			zlog_debug("Route[External]: type-2 created.");
 		new->path_type = OSPF_PATH_TYPE2_EXTERNAL;
-		new->cost = asbr_route->cost;   /* X */
+		new->cost = asbr_route->cost;	/* X */
 		new->u.ext.type2_cost = metric; /* Y */
 	}
 
@@ -209,10 +205,9 @@ int ospf_ase_calculate_route(struct ospf *ospf, struct ospf_lsa *lsa)
 	}
 
 	if (IS_DEBUG_OSPF(lsa, LSA)) {
-		zlog_debug(
-			"Route[External]: Calculate AS-external-LSA to %pI4/%d adv_router %pI4",
-			&al->header.id, ip_masklen(al->mask),
-			&al->header.adv_router);
+		zlog_debug("Route[External]: Calculate AS-external-LSA to %pI4/%d adv_router %pI4",
+			   &al->header.id, ip_masklen(al->mask),
+			   &al->header.adv_router);
 	}
 
 	/* (1) If the cost specified by the LSA is LSInfinity, or if the
@@ -225,8 +220,7 @@ int ospf_ase_calculate_route(struct ospf *ospf, struct ospf_lsa *lsa)
 	}
 	if (IS_LSA_MAXAGE(lsa)) {
 		if (IS_DEBUG_OSPF(lsa, LSA))
-			zlog_debug(
-				"Route[External]: AS-external-LSA is MAXAGE");
+			zlog_debug("Route[External]: AS-external-LSA is MAXAGE");
 		return 0;
 	}
 
@@ -272,8 +266,8 @@ int ospf_ase_calculate_route(struct ospf *ospf, struct ospf_lsa *lsa)
 	 * NSSA ASBR. Ignore calculation, if the current LSA is type-5 and
 	 * originated ASBR's area is NSSA.
 	 */
-	if ((lsa->data->type == OSPF_AS_EXTERNAL_LSA)
-	    && (asbr_route->u.std.external_routing != OSPF_AREA_DEFAULT)) {
+	if ((lsa->data->type == OSPF_AS_EXTERNAL_LSA) &&
+	    (asbr_route->u.std.external_routing != OSPF_AREA_DEFAULT)) {
 		if (IS_DEBUG_OSPF(lsa, LSA))
 			zlog_debug(
 				"Route[External]: Ignore, If type-5 LSA from NSSA area.");
@@ -425,8 +419,8 @@ int ospf_ase_calculate_route(struct ospf *ospf, struct ospf_lsa *lsa)
 					"Route[External]: New route is better");
 			ospf_route_subst(rn, new, asbr_route);
 			if (al->e[0].fwd_addr.s_addr != INADDR_ANY)
-				ospf_ase_complete_direct_routes(
-					new, al->e[0].fwd_addr);
+				ospf_ase_complete_direct_routes(new,
+								al->e[0].fwd_addr);
 			or = new;
 			new = NULL;
 		}
@@ -443,8 +437,8 @@ int ospf_ase_calculate_route(struct ospf *ospf, struct ospf_lsa *lsa)
 				zlog_debug("Route[External]: Routes are equal");
 			ospf_route_copy_nexthops(or, asbr_route->paths);
 			if (al->e[0].fwd_addr.s_addr != INADDR_ANY)
-				ospf_ase_complete_direct_routes(
-					or, al->e[0].fwd_addr);
+				ospf_ase_complete_direct_routes(or,
+								al->e[0].fwd_addr);
 		}
 	}
 	/* Make sure setting newly calculated ASBR route.*/
@@ -461,7 +455,7 @@ static int ospf_ase_route_match_same(struct route_table *rt,
 				     struct ospf_route *newor)
 {
 	struct route_node *rn;
-	struct ospf_route *or;
+	struct ospf_route * or ;
 	struct ospf_path *op;
 	struct ospf_path *newop;
 	struct listnode *n1;
@@ -489,8 +483,8 @@ static int ospf_ase_route_match_same(struct route_table *rt,
 			return 0;
 		break;
 	case OSPF_PATH_TYPE2_EXTERNAL:
-		if ((or->cost != newor->cost)
-		    || (or->u.ext.type2_cost != newor->u.ext.type2_cost))
+		if ((or->cost != newor->cost) ||
+		    (or->u.ext.type2_cost != newor->u.ext.type2_cost))
 			return 0;
 		break;
 	default:
@@ -533,8 +527,9 @@ static int ospf_ase_compare_tables(struct ospf *ospf,
 		if ((or = rn->info)) {
 			if (!(new_rn = route_node_lookup(new_external_route,
 							 &rn->p)))
-				ospf_zebra_delete(
-					ospf, (struct prefix_ipv4 *)&rn->p, or);
+				ospf_zebra_delete(ospf,
+						  (struct prefix_ipv4 *)&rn->p,
+						  or);
 			else
 				route_unlock_node(new_rn);
 		}
@@ -545,8 +540,8 @@ static int ospf_ase_compare_tables(struct ospf *ospf,
 		if ((or = rn->info) != NULL)
 			if (!ospf_ase_route_match_same(old_external_route,
 						       &rn->p, or))
-				ospf_zebra_add(
-					ospf, (struct prefix_ipv4 *)&rn->p, or);
+				ospf_zebra_add(ospf,
+					       (struct prefix_ipv4 *)&rn->p, or);
 
 	return 0;
 }
@@ -601,12 +596,11 @@ static void ospf_ase_calculate_timer(struct event *t)
 		monotime(&stop_time);
 
 		if (IS_DEBUG_OSPF_EVENT)
-			zlog_info(
-				"SPF Processing Time(usecs): External Routes: %lld",
-				(stop_time.tv_sec - start_time.tv_sec)
-						* 1000000LL
-					+ (stop_time.tv_usec
-					   - start_time.tv_usec));
+			zlog_info("SPF Processing Time(usecs): External Routes: %lld",
+				  (stop_time.tv_sec - start_time.tv_sec) *
+						  1000000LL +
+					  (stop_time.tv_usec -
+					   start_time.tv_usec));
 	}
 
 	/*

@@ -14,21 +14,19 @@
 
 #include "lib/routemap_cli_clippy.c"
 
-#define ROUTE_MAP_CMD_STR \
-	"Create route-map or enter route-map command mode\n" \
+#define ROUTE_MAP_CMD_STR                                                      \
+	"Create route-map or enter route-map command mode\n"                   \
 	"Route map tag\n"
-#define ROUTE_MAP_OP_CMD_STR \
-	"Route map denies set operations\n" \
+#define ROUTE_MAP_OP_CMD_STR                                                   \
+	"Route map denies set operations\n"                                    \
 	"Route map permits set operations\n"
-#define ROUTE_MAP_SEQUENCE_CMD_STR \
+#define ROUTE_MAP_SEQUENCE_CMD_STR                                             \
 	"Sequence to insert to/delete from existing route-map entry\n"
 
 DEFPY_YANG_NOSH(
 	route_map, route_map_cmd,
 	"route-map RMAP_NAME$name <deny|permit>$action (1-65535)$sequence",
-	ROUTE_MAP_CMD_STR
-	ROUTE_MAP_OP_CMD_STR
-	ROUTE_MAP_SEQUENCE_CMD_STR)
+	ROUTE_MAP_CMD_STR ROUTE_MAP_OP_CMD_STR ROUTE_MAP_SEQUENCE_CMD_STR)
 {
 	char xpath_action[XPATH_MAXLEN + 64];
 	char xpath_index[XPATH_MAXLEN + 32];
@@ -53,11 +51,8 @@ DEFPY_YANG_NOSH(
 	return rv;
 }
 
-DEFPY_YANG(
-	no_route_map_all, no_route_map_all_cmd,
-	"no route-map RMAP_NAME$name",
-	NO_STR
-	ROUTE_MAP_CMD_STR)
+DEFPY_YANG(no_route_map_all, no_route_map_all_cmd,
+	   "no route-map RMAP_NAME$name", NO_STR ROUTE_MAP_CMD_STR)
 {
 	char xpath[XPATH_MAXLEN];
 
@@ -68,13 +63,10 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	no_route_map, no_route_map_cmd,
-	"no route-map RMAP_NAME$name <deny|permit>$action (1-65535)$sequence",
-	NO_STR
-	ROUTE_MAP_CMD_STR
-	ROUTE_MAP_OP_CMD_STR
-	ROUTE_MAP_SEQUENCE_CMD_STR)
+DEFPY_YANG(no_route_map, no_route_map_cmd,
+	   "no route-map RMAP_NAME$name <deny|permit>$action (1-65535)$sequence",
+	   NO_STR ROUTE_MAP_CMD_STR ROUTE_MAP_OP_CMD_STR
+		   ROUTE_MAP_SEQUENCE_CMD_STR)
 {
 	char xpath[XPATH_MAXLEN];
 
@@ -104,7 +96,6 @@ void route_map_instance_show(struct vty *vty, const struct lyd_node *dnode,
 	const char *sequence = yang_dnode_get_string(dnode, "./sequence");
 
 	vty_out(vty, "route-map %s %s %s\n", name, action, sequence);
-
 }
 
 void route_map_instance_show_end(struct vty *vty, const struct lyd_node *dnode)
@@ -113,12 +104,8 @@ void route_map_instance_show_end(struct vty *vty, const struct lyd_node *dnode)
 	vty_out(vty, "!\n");
 }
 
-DEFPY_YANG(
-	match_interface, match_interface_cmd,
-	"match interface IFNAME",
-	MATCH_STR
-	"Match first hop interface of route\n"
-	INTERFACE_STR)
+DEFPY_YANG(match_interface, match_interface_cmd, "match interface IFNAME",
+	   MATCH_STR "Match first hop interface of route\n" INTERFACE_STR)
 {
 	const char *xpath =
 		"./match-condition[condition='frr-route-map:interface']";
@@ -132,13 +119,9 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	no_match_interface, no_match_interface_cmd,
-	"no match interface [IFNAME]",
-	NO_STR
-	MATCH_STR
-	"Match first hop interface of route\n"
-	INTERFACE_STR)
+DEFPY_YANG(no_match_interface, no_match_interface_cmd,
+	   "no match interface [IFNAME]",
+	   NO_STR MATCH_STR "Match first hop interface of route\n" INTERFACE_STR)
 {
 	const char *xpath =
 		"./match-condition[condition='frr-route-map:interface']";
@@ -148,13 +131,11 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	match_ip_address, match_ip_address_cmd,
-	"match ip address ACCESSLIST4_NAME$name",
-	MATCH_STR
-	IP_STR
-	"Match address of route\n"
-	"IP Access-list name\n")
+DEFPY_YANG(match_ip_address, match_ip_address_cmd,
+	   "match ip address ACCESSLIST4_NAME$name",
+	   MATCH_STR IP_STR
+	   "Match address of route\n"
+	   "IP Access-list name\n")
 {
 	const char *xpath =
 		"./match-condition[condition='frr-route-map:ipv4-address-list']";
@@ -168,14 +149,11 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	no_match_ip_address, no_match_ip_address_cmd,
-	"no match ip address [ACCESSLIST4_NAME]",
-	NO_STR
-	MATCH_STR
-	IP_STR
-	"Match address of route\n"
-	"IP Access-list name\n")
+DEFPY_YANG(no_match_ip_address, no_match_ip_address_cmd,
+	   "no match ip address [ACCESSLIST4_NAME]",
+	   NO_STR MATCH_STR IP_STR
+	   "Match address of route\n"
+	   "IP Access-list name\n")
 {
 	const char *xpath =
 		"./match-condition[condition='frr-route-map:ipv4-address-list']";
@@ -185,15 +163,12 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	match_ip_address_prefix_list,
-	match_ip_address_prefix_list_cmd,
-	"match ip address prefix-list PREFIXLIST_NAME$name",
-	MATCH_STR
-	IP_STR
-	"Match address of route\n"
-	"Match entries of prefix-lists\n"
-	"IP prefix-list name\n")
+DEFPY_YANG(match_ip_address_prefix_list, match_ip_address_prefix_list_cmd,
+	   "match ip address prefix-list PREFIXLIST_NAME$name",
+	   MATCH_STR IP_STR
+	   "Match address of route\n"
+	   "Match entries of prefix-lists\n"
+	   "IP prefix-list name\n")
 {
 	const char *xpath =
 		"./match-condition[condition='frr-route-map:ipv4-prefix-list']";
@@ -207,15 +182,12 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	no_match_ip_address_prefix_list, no_match_ip_address_prefix_list_cmd,
-	"no match ip address prefix-list [PREFIXLIST_NAME]",
-	NO_STR
-	MATCH_STR
-	IP_STR
-	"Match address of route\n"
-	"Match entries of prefix-lists\n"
-	"IP prefix-list name\n")
+DEFPY_YANG(no_match_ip_address_prefix_list, no_match_ip_address_prefix_list_cmd,
+	   "no match ip address prefix-list [PREFIXLIST_NAME]",
+	   NO_STR MATCH_STR IP_STR
+	   "Match address of route\n"
+	   "Match entries of prefix-lists\n"
+	   "IP prefix-list name\n")
 {
 	const char *xpath =
 		"./match-condition[condition='frr-route-map:ipv4-prefix-list']";
@@ -225,13 +197,11 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	match_ip_next_hop, match_ip_next_hop_cmd,
-	"match ip next-hop ACCESSLIST4_NAME$name",
-	MATCH_STR
-	IP_STR
-	"Match next-hop address of route\n"
-	"IP Access-list name\n")
+DEFPY_YANG(match_ip_next_hop, match_ip_next_hop_cmd,
+	   "match ip next-hop ACCESSLIST4_NAME$name",
+	   MATCH_STR IP_STR
+	   "Match next-hop address of route\n"
+	   "IP Access-list name\n")
 {
 	const char *xpath =
 		"./match-condition[condition='frr-route-map:ipv4-next-hop-list']";
@@ -245,14 +215,11 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	no_match_ip_next_hop, no_match_ip_next_hop_cmd,
-	"no match ip next-hop [ACCESSLIST4_NAME]",
-	NO_STR
-	MATCH_STR
-	IP_STR
-	"Match address of route\n"
-	"IP Access-list name\n")
+DEFPY_YANG(no_match_ip_next_hop, no_match_ip_next_hop_cmd,
+	   "no match ip next-hop [ACCESSLIST4_NAME]",
+	   NO_STR MATCH_STR IP_STR
+	   "Match address of route\n"
+	   "IP Access-list name\n")
 {
 	const char *xpath =
 		"./match-condition[condition='frr-route-map:ipv4-next-hop-list']";
@@ -262,15 +229,12 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	match_ip_next_hop_prefix_list,
-	match_ip_next_hop_prefix_list_cmd,
-	"match ip next-hop prefix-list PREFIXLIST_NAME$name",
-	MATCH_STR
-	IP_STR
-	"Match next-hop address of route\n"
-	"Match entries of prefix-lists\n"
-	"IP prefix-list name\n")
+DEFPY_YANG(match_ip_next_hop_prefix_list, match_ip_next_hop_prefix_list_cmd,
+	   "match ip next-hop prefix-list PREFIXLIST_NAME$name",
+	   MATCH_STR IP_STR
+	   "Match next-hop address of route\n"
+	   "Match entries of prefix-lists\n"
+	   "IP prefix-list name\n")
 {
 	const char *xpath =
 		"./match-condition[condition='frr-route-map:ipv4-next-hop-prefix-list']";
@@ -284,16 +248,13 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	no_match_ip_next_hop_prefix_list,
-	no_match_ip_next_hop_prefix_list_cmd,
-	"no match ip next-hop prefix-list [PREFIXLIST_NAME]",
-	NO_STR
-	MATCH_STR
-	IP_STR
-	"Match next-hop address of route\n"
-	"Match entries of prefix-lists\n"
-	"IP prefix-list name\n")
+DEFPY_YANG(no_match_ip_next_hop_prefix_list,
+	   no_match_ip_next_hop_prefix_list_cmd,
+	   "no match ip next-hop prefix-list [PREFIXLIST_NAME]",
+	   NO_STR MATCH_STR IP_STR
+	   "Match next-hop address of route\n"
+	   "Match entries of prefix-lists\n"
+	   "IP prefix-list name\n")
 {
 	const char *xpath =
 		"./match-condition[condition='frr-route-map:ipv4-next-hop-prefix-list']";
@@ -303,14 +264,12 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	match_ip_next_hop_type, match_ip_next_hop_type_cmd,
-	"match ip next-hop type <blackhole>$type",
-	MATCH_STR
-	IP_STR
-	"Match next-hop address of route\n"
-	"Match entries by type\n"
-	"Blackhole\n")
+DEFPY_YANG(match_ip_next_hop_type, match_ip_next_hop_type_cmd,
+	   "match ip next-hop type <blackhole>$type",
+	   MATCH_STR IP_STR
+	   "Match next-hop address of route\n"
+	   "Match entries by type\n"
+	   "Blackhole\n")
 {
 	const char *xpath =
 		"./match-condition[condition='frr-route-map:ipv4-next-hop-type']";
@@ -324,13 +283,12 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	no_match_ip_next_hop_type, no_match_ip_next_hop_type_cmd,
-	"no match ip next-hop type [<blackhole>]",
-	NO_STR MATCH_STR IP_STR
-	"Match next-hop address of route\n"
-	"Match entries by type\n"
-	"Blackhole\n")
+DEFPY_YANG(no_match_ip_next_hop_type, no_match_ip_next_hop_type_cmd,
+	   "no match ip next-hop type [<blackhole>]",
+	   NO_STR MATCH_STR IP_STR
+	   "Match next-hop address of route\n"
+	   "Match entries by type\n"
+	   "Blackhole\n")
 {
 	const char *xpath =
 		"./match-condition[condition='frr-route-map:ipv4-next-hop-type']";
@@ -340,13 +298,11 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	match_ipv6_address, match_ipv6_address_cmd,
-	"match ipv6 address ACCESSLIST6_NAME$name",
-	MATCH_STR
-	IPV6_STR
-	"Match IPv6 address of route\n"
-	"IPv6 access-list name\n")
+DEFPY_YANG(match_ipv6_address, match_ipv6_address_cmd,
+	   "match ipv6 address ACCESSLIST6_NAME$name",
+	   MATCH_STR IPV6_STR
+	   "Match IPv6 address of route\n"
+	   "IPv6 access-list name\n")
 {
 	const char *xpath =
 		"./match-condition[condition='frr-route-map:ipv6-address-list']";
@@ -360,14 +316,11 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	no_match_ipv6_address, no_match_ipv6_address_cmd,
-	"no match ipv6 address [ACCESSLIST6_NAME]",
-	NO_STR
-	MATCH_STR
-	IPV6_STR
-	"Match IPv6 address of route\n"
-	"IPv6 access-list name\n")
+DEFPY_YANG(no_match_ipv6_address, no_match_ipv6_address_cmd,
+	   "no match ipv6 address [ACCESSLIST6_NAME]",
+	   NO_STR MATCH_STR IPV6_STR
+	   "Match IPv6 address of route\n"
+	   "IPv6 access-list name\n")
 {
 	const char *xpath =
 		"./match-condition[condition='frr-route-map:ipv6-address-list']";
@@ -377,14 +330,12 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	match_ipv6_address_prefix_list, match_ipv6_address_prefix_list_cmd,
-	"match ipv6 address prefix-list PREFIXLIST_NAME$name",
-	MATCH_STR
-	IPV6_STR
-	"Match address of route\n"
-	"Match entries of prefix-lists\n"
-	"IP prefix-list name\n")
+DEFPY_YANG(match_ipv6_address_prefix_list, match_ipv6_address_prefix_list_cmd,
+	   "match ipv6 address prefix-list PREFIXLIST_NAME$name",
+	   MATCH_STR IPV6_STR
+	   "Match address of route\n"
+	   "Match entries of prefix-lists\n"
+	   "IP prefix-list name\n")
 {
 	const char *xpath =
 		"./match-condition[condition='frr-route-map:ipv6-prefix-list']";
@@ -398,16 +349,13 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	no_match_ipv6_address_prefix_list,
-	no_match_ipv6_address_prefix_list_cmd,
-	"no match ipv6 address prefix-list [PREFIXLIST_NAME]",
-	NO_STR
-	MATCH_STR
-	IPV6_STR
-	"Match address of route\n"
-	"Match entries of prefix-lists\n"
-	"IP prefix-list name\n")
+DEFPY_YANG(no_match_ipv6_address_prefix_list,
+	   no_match_ipv6_address_prefix_list_cmd,
+	   "no match ipv6 address prefix-list [PREFIXLIST_NAME]",
+	   NO_STR MATCH_STR IPV6_STR
+	   "Match address of route\n"
+	   "Match entries of prefix-lists\n"
+	   "IP prefix-list name\n")
 {
 	const char *xpath =
 		"./match-condition[condition='frr-route-map:ipv6-prefix-list']";
@@ -417,13 +365,12 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	match_ipv6_next_hop_type, match_ipv6_next_hop_type_cmd,
-	"match ipv6 next-hop type <blackhole>$type",
-	MATCH_STR IPV6_STR
-	"Match next-hop address of route\n"
-	"Match entries by type\n"
-	"Blackhole\n")
+DEFPY_YANG(match_ipv6_next_hop_type, match_ipv6_next_hop_type_cmd,
+	   "match ipv6 next-hop type <blackhole>$type",
+	   MATCH_STR IPV6_STR
+	   "Match next-hop address of route\n"
+	   "Match entries by type\n"
+	   "Blackhole\n")
 {
 	const char *xpath =
 		"./match-condition[condition='frr-route-map:ipv6-next-hop-type']";
@@ -437,13 +384,12 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	no_match_ipv6_next_hop_type, no_match_ipv6_next_hop_type_cmd,
-	"no match ipv6 next-hop type [<blackhole>]",
-	NO_STR MATCH_STR IPV6_STR
-	"Match address of route\n"
-	"Match entries by type\n"
-	"Blackhole\n")
+DEFPY_YANG(no_match_ipv6_next_hop_type, no_match_ipv6_next_hop_type_cmd,
+	   "no match ipv6 next-hop type [<blackhole>]",
+	   NO_STR MATCH_STR IPV6_STR
+	   "Match address of route\n"
+	   "Match entries by type\n"
+	   "Blackhole\n")
 {
 	const char *xpath =
 		"./match-condition[condition='frr-route-map:ipv6-next-hop-type']";
@@ -453,12 +399,10 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	match_metric, match_metric_cmd,
-	"match metric (0-4294967295)$metric",
-	MATCH_STR
-	"Match metric of route\n"
-	"Metric value\n")
+DEFPY_YANG(match_metric, match_metric_cmd, "match metric (0-4294967295)$metric",
+	   MATCH_STR
+	   "Match metric of route\n"
+	   "Metric value\n")
 {
 	const char *xpath =
 		"./match-condition[condition='frr-route-map:match-metric']";
@@ -472,13 +416,11 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	no_match_metric, no_match_metric_cmd,
-	"no match metric [(0-4294967295)]",
-	NO_STR
-	MATCH_STR
-	"Match metric of route\n"
-	"Metric value\n")
+DEFPY_YANG(no_match_metric, no_match_metric_cmd,
+	   "no match metric [(0-4294967295)]",
+	   NO_STR MATCH_STR
+	   "Match metric of route\n"
+	   "Metric value\n")
 {
 	const char *xpath =
 		"./match-condition[condition='frr-route-map:match-metric']";
@@ -488,12 +430,10 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	match_tag, match_tag_cmd,
-	"match tag (1-4294967295)$tag",
-	MATCH_STR
-	"Match tag of route\n"
-	"Tag value\n")
+DEFPY_YANG(match_tag, match_tag_cmd, "match tag (1-4294967295)$tag",
+	   MATCH_STR
+	   "Match tag of route\n"
+	   "Tag value\n")
 {
 	const char *xpath =
 		"./match-condition[condition='frr-route-map:match-tag']";
@@ -507,13 +447,10 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	no_match_tag, no_match_tag_cmd,
-	"no match tag [(1-4294967295)]",
-	NO_STR
-	MATCH_STR
-	"Match tag of route\n"
-	"Tag value\n")
+DEFPY_YANG(no_match_tag, no_match_tag_cmd, "no match tag [(1-4294967295)]",
+	   NO_STR MATCH_STR
+	   "Match tag of route\n"
+	   "Tag value\n")
 {
 	const char *xpath =
 		"./match-condition[condition='frr-route-map:match-tag']";
@@ -532,40 +469,40 @@ void route_map_condition_show(struct vty *vty, const struct lyd_node *dnode,
 
 	if (IS_MATCH_INTERFACE(condition)) {
 		vty_out(vty, " match interface %s\n",
-			yang_dnode_get_string(
-				dnode, "./rmap-match-condition/interface"));
+			yang_dnode_get_string(dnode,
+					      "./rmap-match-condition/interface"));
 	} else if (IS_MATCH_IPv4_ADDRESS_LIST(condition)) {
 		vty_out(vty, " match ip address %s\n",
-			yang_dnode_get_string(
-				dnode, "./rmap-match-condition/list-name"));
+			yang_dnode_get_string(dnode,
+					      "./rmap-match-condition/list-name"));
 	} else if (IS_MATCH_IPv4_NEXTHOP_LIST(condition)) {
 		vty_out(vty, " match ip next-hop %s\n",
-			yang_dnode_get_string(
-				dnode, "./rmap-match-condition/list-name"));
+			yang_dnode_get_string(dnode,
+					      "./rmap-match-condition/list-name"));
 	} else if (IS_MATCH_IPv6_NEXTHOP_LIST(condition)) {
 		vty_out(vty, " match ipv6 next-hop %s\n",
-			yang_dnode_get_string(
-				dnode, "./rmap-match-condition/list-name"));
+			yang_dnode_get_string(dnode,
+					      "./rmap-match-condition/list-name"));
 	} else if (IS_MATCH_IPv4_PREFIX_LIST(condition)) {
 		vty_out(vty, " match ip address prefix-list %s\n",
-			yang_dnode_get_string(
-				dnode, "./rmap-match-condition/list-name"));
+			yang_dnode_get_string(dnode,
+					      "./rmap-match-condition/list-name"));
 	} else if (IS_MATCH_IPv4_NEXTHOP_PREFIX_LIST(condition)) {
 		vty_out(vty, " match ip next-hop prefix-list %s\n",
-			yang_dnode_get_string(
-				dnode, "./rmap-match-condition/list-name"));
+			yang_dnode_get_string(dnode,
+					      "./rmap-match-condition/list-name"));
 	} else if (IS_MATCH_IPv6_NEXTHOP_PREFIX_LIST(condition)) {
 		vty_out(vty, " match ipv6 next-hop prefix-list %s\n",
-			yang_dnode_get_string(
-				dnode, "./rmap-match-condition/list-name"));
+			yang_dnode_get_string(dnode,
+					      "./rmap-match-condition/list-name"));
 	} else if (IS_MATCH_IPv6_ADDRESS_LIST(condition)) {
 		vty_out(vty, " match ipv6 address %s\n",
-			yang_dnode_get_string(
-				dnode, "./rmap-match-condition/list-name"));
+			yang_dnode_get_string(dnode,
+					      "./rmap-match-condition/list-name"));
 	} else if (IS_MATCH_IPv6_PREFIX_LIST(condition)) {
 		vty_out(vty, " match ipv6 address prefix-list %s\n",
-			yang_dnode_get_string(
-				dnode, "./rmap-match-condition/list-name"));
+			yang_dnode_get_string(dnode,
+					      "./rmap-match-condition/list-name"));
 	} else if (IS_MATCH_IPv4_NEXTHOP_TYPE(condition)) {
 		vty_out(vty, " match ip next-hop type %s\n",
 			yang_dnode_get_string(
@@ -656,25 +593,22 @@ void route_map_condition_show(struct vty *vty, const struct lyd_node *dnode,
 		acl = NULL;
 		if ((ln = yang_dnode_get(
 			     dnode,
-			     "./rmap-match-condition/frr-bgp-route-map:peer-ipv4-address"))
-		    != NULL)
+			     "./rmap-match-condition/frr-bgp-route-map:peer-ipv4-address")) !=
+		    NULL)
 			acl = yang_dnode_get_string(ln, NULL);
-		else if (
-			(ln = yang_dnode_get(
-				 dnode,
-				 "./rmap-match-condition/frr-bgp-route-map:peer-ipv6-address"))
-			!= NULL)
+		else if ((ln = yang_dnode_get(
+				  dnode,
+				  "./rmap-match-condition/frr-bgp-route-map:peer-ipv6-address")) !=
+			 NULL)
 			acl = yang_dnode_get_string(ln, NULL);
-		else if (
-			(ln = yang_dnode_get(
-				 dnode,
-				 "./rmap-match-condition/frr-bgp-route-map:peer-interface"))
-			!= NULL)
+		else if ((ln = yang_dnode_get(
+				  dnode,
+				  "./rmap-match-condition/frr-bgp-route-map:peer-interface")) !=
+			 NULL)
 			acl = yang_dnode_get_string(ln, NULL);
-		else if (yang_dnode_get(
-				 dnode,
-				 "./rmap-match-condition/frr-bgp-route-map:peer-local")
-			!= NULL)
+		else if (yang_dnode_get(dnode,
+					"./rmap-match-condition/frr-bgp-route-map:peer-local") !=
+			 NULL)
 			acl = "local";
 
 		vty_out(vty, " match peer %s\n", acl);
@@ -758,16 +692,12 @@ void route_map_condition_show(struct vty *vty, const struct lyd_node *dnode,
 	}
 }
 
-DEFPY_YANG(
-	set_ip_nexthop, set_ip_nexthop_cmd,
-	"set ip next-hop A.B.C.D$addr",
-	SET_STR
-	IP_STR
-	"Next hop address\n"
-	"IP address of next hop\n")
+DEFPY_YANG(set_ip_nexthop, set_ip_nexthop_cmd, "set ip next-hop A.B.C.D$addr",
+	   SET_STR IP_STR
+	   "Next hop address\n"
+	   "IP address of next hop\n")
 {
-	const char *xpath =
-		"./set-action[action='frr-route-map:ipv4-next-hop']";
+	const char *xpath = "./set-action[action='frr-route-map:ipv4-next-hop']";
 	char xpath_value[XPATH_MAXLEN];
 
 	nb_cli_enqueue_change(vty, xpath, NB_OP_CREATE, NULL);
@@ -778,34 +708,27 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	no_set_ip_nexthop, no_set_ip_nexthop_cmd,
-	"no set ip next-hop [A.B.C.D]",
-	NO_STR
-	SET_STR
-	IP_STR
-	"Next hop address\n"
-	"IP address of next hop\n")
+DEFPY_YANG(no_set_ip_nexthop, no_set_ip_nexthop_cmd,
+	   "no set ip next-hop [A.B.C.D]",
+	   NO_STR SET_STR IP_STR
+	   "Next hop address\n"
+	   "IP address of next hop\n")
 {
-	const char *xpath =
-		"./set-action[action='frr-route-map:ipv4-next-hop']";
+	const char *xpath = "./set-action[action='frr-route-map:ipv4-next-hop']";
 
 	nb_cli_enqueue_change(vty, xpath, NB_OP_DESTROY, NULL);
 
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	set_ipv6_nexthop_local, set_ipv6_nexthop_local_cmd,
-	"set ipv6 next-hop local X:X::X:X$addr",
-	SET_STR
-	IPV6_STR
-	"IPv6 next-hop address\n"
-	"IPv6 local address\n"
-	"IPv6 address of next hop\n")
+DEFPY_YANG(set_ipv6_nexthop_local, set_ipv6_nexthop_local_cmd,
+	   "set ipv6 next-hop local X:X::X:X$addr",
+	   SET_STR IPV6_STR
+	   "IPv6 next-hop address\n"
+	   "IPv6 local address\n"
+	   "IPv6 address of next hop\n")
 {
-	const char *xpath =
-		"./set-action[action='frr-route-map:ipv6-next-hop']";
+	const char *xpath = "./set-action[action='frr-route-map:ipv6-next-hop']";
 	char xpath_value[XPATH_MAXLEN];
 
 	nb_cli_enqueue_change(vty, xpath, NB_OP_CREATE, NULL);
@@ -816,18 +739,14 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	no_set_ipv6_nexthop_local, no_set_ipv6_nexthop_local_cmd,
-	"no set ipv6 next-hop local [X:X::X:X]",
-	NO_STR
-	SET_STR
-	IPV6_STR
-	"IPv6 next-hop address\n"
-	"IPv6 local address\n"
-	"IPv6 address of next hop\n")
+DEFPY_YANG(no_set_ipv6_nexthop_local, no_set_ipv6_nexthop_local_cmd,
+	   "no set ipv6 next-hop local [X:X::X:X]",
+	   NO_STR SET_STR IPV6_STR
+	   "IPv6 next-hop address\n"
+	   "IPv6 local address\n"
+	   "IPv6 address of next hop\n")
 {
-	const char *xpath =
-		"./set-action[action='frr-route-map:ipv6-next-hop']";
+	const char *xpath = "./set-action[action='frr-route-map:ipv6-next-hop']";
 
 	nb_cli_enqueue_change(vty, xpath, NB_OP_DESTROY, NULL);
 
@@ -879,13 +798,10 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	no_set_metric, no_set_metric_cmd,
-	"no set metric [OPTVAL]",
-	NO_STR
-	SET_STR
-	"Metric value for destination routing protocol\n"
-	"Metric value\n")
+DEFPY_YANG(no_set_metric, no_set_metric_cmd, "no set metric [OPTVAL]",
+	   NO_STR SET_STR
+	   "Metric value for destination routing protocol\n"
+	   "Metric value\n")
 {
 	const char *xpath = "./set-action[action='frr-route-map:set-metric']";
 
@@ -963,12 +879,10 @@ DEFPY_YANG(no_set_max_metric, no_set_max_metric_cmd,
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	set_tag, set_tag_cmd,
-	"set tag (1-4294967295)$tag",
-	SET_STR
-	"Tag value for routing protocol\n"
-	"Tag value\n")
+DEFPY_YANG(set_tag, set_tag_cmd, "set tag (1-4294967295)$tag",
+	   SET_STR
+	   "Tag value for routing protocol\n"
+	   "Tag value\n")
 {
 	const char *xpath = "./set-action[action='frr-route-map:set-tag']";
 	char xpath_value[XPATH_MAXLEN];
@@ -981,13 +895,10 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	no_set_tag, no_set_tag_cmd,
-	"no set tag [(1-4294967295)]",
-	NO_STR
-	SET_STR
-	"Tag value for routing protocol\n"
-	"Tag value\n")
+DEFPY_YANG(no_set_tag, no_set_tag_cmd, "no set tag [(1-4294967295)]",
+	   NO_STR SET_STR
+	   "Tag value for routing protocol\n"
+	   "Tag value\n")
 {
 	const char *xpath = "./set-action[action='frr-route-map:set-tag']";
 
@@ -996,13 +907,9 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFUN_YANG (set_srte_color,
-	    set_srte_color_cmd,
-	    "set sr-te color (1-4294967295)",
-	    SET_STR
-	    SRTE_STR
-	    SRTE_COLOR_STR
-	    "Color of the SR-TE Policies to match with\n")
+DEFUN_YANG(set_srte_color, set_srte_color_cmd, "set sr-te color (1-4294967295)",
+	   SET_STR SRTE_STR SRTE_COLOR_STR
+	   "Color of the SR-TE Policies to match with\n")
 {
 	const char *xpath =
 		"./set-action[action='frr-route-map:set-sr-te-color']";
@@ -1010,25 +917,21 @@ DEFUN_YANG (set_srte_color,
 	int idx = 0;
 
 	char *arg = argv_find(argv, argc, "(1-4294967295)", &idx)
-		? argv[idx]->arg
-		: NULL;
+			    ? argv[idx]->arg
+			    : NULL;
 
 	nb_cli_enqueue_change(vty, xpath, NB_OP_CREATE, NULL);
-	snprintf(xpath_value, sizeof(xpath_value),
-		 "%s/rmap-set-action/policy", xpath);
+	snprintf(xpath_value, sizeof(xpath_value), "%s/rmap-set-action/policy",
+		 xpath);
 	nb_cli_enqueue_change(vty, xpath_value, NB_OP_MODIFY, arg);
 
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFUN_YANG (no_set_srte_color,
-	    no_set_srte_color_cmd,
-	    "no set sr-te color [(1-4294967295)]",
-	    NO_STR
-	    SET_STR
-	    SRTE_STR
-	    SRTE_COLOR_STR
-	    "Color of the SR-TE Policies to match with\n")
+DEFUN_YANG(no_set_srte_color, no_set_srte_color_cmd,
+	   "no set sr-te color [(1-4294967295)]",
+	   NO_STR SET_STR SRTE_STR SRTE_COLOR_STR
+	   "Color of the SR-TE Policies to match with\n")
 {
 	const char *xpath =
 		"./set-action[action='frr-route-map:set-sr-te-color']";
@@ -1048,41 +951,37 @@ void route_map_action_show(struct vty *vty, const struct lyd_node *dnode,
 
 	if (IS_SET_IPv4_NH(action)) {
 		vty_out(vty, " set ip next-hop %s\n",
-			yang_dnode_get_string(
-				dnode, "./rmap-set-action/ipv4-address"));
+			yang_dnode_get_string(dnode,
+					      "./rmap-set-action/ipv4-address"));
 	} else if (IS_SET_IPv6_NH(action)) {
 		vty_out(vty, " set ipv6 next-hop local %s\n",
-			yang_dnode_get_string(
-				dnode, "./rmap-set-action/ipv6-address"));
+			yang_dnode_get_string(dnode,
+					      "./rmap-set-action/ipv6-address"));
 	} else if (IS_SET_METRIC(action)) {
 		if (yang_dnode_get(dnode,
 				   "./rmap-set-action/use-round-trip-time")) {
 			vty_out(vty, " set metric rtt\n");
-		} else if (yang_dnode_get(
-				   dnode,
-				   "./rmap-set-action/add-round-trip-time")) {
+		} else if (yang_dnode_get(dnode,
+					  "./rmap-set-action/add-round-trip-time")) {
 			vty_out(vty, " set metric +rtt\n");
-		} else if (
-			yang_dnode_get(
-				dnode,
-				"./rmap-set-action/subtract-round-trip-time")) {
+		} else if (yang_dnode_get(dnode,
+					  "./rmap-set-action/subtract-round-trip-time")) {
 			vty_out(vty, " set metric -rtt\n");
 		} else if (yang_dnode_get(dnode,
 					  "./rmap-set-action/add-metric")) {
 			vty_out(vty, " set metric +%s\n",
-				yang_dnode_get_string(
-					dnode, "./rmap-set-action/add-metric"));
-		} else if (yang_dnode_get(
-				   dnode,
-				   "./rmap-set-action/subtract-metric")) {
+				yang_dnode_get_string(dnode,
+						      "./rmap-set-action/add-metric"));
+		} else if (yang_dnode_get(dnode,
+					  "./rmap-set-action/subtract-metric")) {
 			vty_out(vty, " set metric -%s\n",
 				yang_dnode_get_string(
 					dnode,
 					"./rmap-set-action/subtract-metric"));
 		} else {
 			vty_out(vty, " set metric %s\n",
-				yang_dnode_get_string(
-					dnode, "./rmap-set-action/value"));
+				yang_dnode_get_string(dnode,
+						      "./rmap-set-action/value"));
 		}
 	} else if (IS_SET_MIN_METRIC(action)) {
 		vty_out(vty, " set min-metric %s\n",
@@ -1100,9 +999,8 @@ void route_map_action_show(struct vty *vty, const struct lyd_node *dnode,
 			yang_dnode_get_string(dnode,
 					      "./rmap-set-action/policy"));
 	} else if (IS_SET_SRC(action)) {
-		if (yang_dnode_exists(
-			    dnode,
-			    "./rmap-set-action/frr-zebra-route-map:ipv4-src-address"))
+		if (yang_dnode_exists(dnode,
+				      "./rmap-set-action/frr-zebra-route-map:ipv4-src-address"))
 			vty_out(vty, " set src %s\n",
 				yang_dnode_get_string(
 					dnode,
@@ -1167,9 +1065,9 @@ void route_map_action_show(struct vty *vty, const struct lyd_node *dnode,
 	} else if (IS_SET_COMM_LIST_DEL(action)) {
 		acl = NULL;
 		if ((ln = yang_dnode_get(
-				 dnode,
-				 "./rmap-set-action/frr-bgp-route-map:comm-list-name"))
-			!= NULL)
+			     dnode,
+			     "./rmap-set-action/frr-bgp-route-map:comm-list-name")) !=
+		    NULL)
 			acl = yang_dnode_get_string(ln, NULL);
 
 		assert(acl);
@@ -1178,40 +1076,38 @@ void route_map_action_show(struct vty *vty, const struct lyd_node *dnode,
 	} else if (IS_SET_LCOMM_LIST_DEL(action)) {
 		acl = NULL;
 		if ((ln = yang_dnode_get(
-				 dnode,
-				 "./rmap-set-action/frr-bgp-route-map:comm-list-name"))
-			!= NULL)
+			     dnode,
+			     "./rmap-set-action/frr-bgp-route-map:comm-list-name")) !=
+		    NULL)
 			acl = yang_dnode_get_string(ln, NULL);
 
 		assert(acl);
 
 		vty_out(vty, " set large-comm-list %s delete\n", acl);
 	} else if (IS_SET_LCOMMUNITY(action)) {
-		if (yang_dnode_exists(
-			    dnode,
-			    "./rmap-set-action/frr-bgp-route-map:large-community-string"))
+		if (yang_dnode_exists(dnode,
+				      "./rmap-set-action/frr-bgp-route-map:large-community-string"))
 			vty_out(vty, " set large-community %s\n",
 				yang_dnode_get_string(
 					dnode,
 					"./rmap-set-action/frr-bgp-route-map:large-community-string"));
 		else {
-			if (true
-			    == yang_dnode_get_bool(
+			if (true ==
+			    yang_dnode_get_bool(
 				    dnode,
 				    "./rmap-set-action/frr-bgp-route-map:large-community-none"))
 				vty_out(vty, " set large-community none\n");
 		}
 	} else if (IS_SET_COMMUNITY(action)) {
-		if (yang_dnode_exists(
-			    dnode,
-			    "./rmap-set-action/frr-bgp-route-map:community-string"))
+		if (yang_dnode_exists(dnode,
+				      "./rmap-set-action/frr-bgp-route-map:community-string"))
 			vty_out(vty, " set community %s\n",
 				yang_dnode_get_string(
 					dnode,
 					"./rmap-set-action/frr-bgp-route-map:community-string"));
 		else {
-			if (true
-			    == yang_dnode_get_bool(
+			if (true ==
+			    yang_dnode_get_bool(
 				    dnode,
 				    "./rmap-set-action/frr-bgp-route-map:community-none"))
 				vty_out(vty, " set community none\n");
@@ -1283,9 +1179,8 @@ void route_map_action_show(struct vty *vty, const struct lyd_node *dnode,
 				dnode,
 				"./rmap-set-action/frr-bgp-route-map:replace-as-path"));
 	} else if (IS_SET_AS_PREPEND(action)) {
-		if (yang_dnode_exists(
-			    dnode,
-			    "./rmap-set-action/frr-bgp-route-map:prepend-as-path"))
+		if (yang_dnode_exists(dnode,
+				      "./rmap-set-action/frr-bgp-route-map:prepend-as-path"))
 			vty_out(vty, " set as-path prepend %s\n",
 				yang_dnode_get_string(
 					dnode,
@@ -1307,16 +1202,14 @@ void route_map_action_show(struct vty *vty, const struct lyd_node *dnode,
 				dnode,
 				"./rmap-set-action/frr-bgp-route-map:ipv6-address"));
 	} else if (IS_SET_IPV6_PEER_ADDR(action)) {
-		if (true
-		    == yang_dnode_get_bool(
-			    dnode,
-			    "./rmap-set-action/frr-bgp-route-map:preference"))
+		if (true ==
+		    yang_dnode_get_bool(dnode,
+					"./rmap-set-action/frr-bgp-route-map:preference"))
 			vty_out(vty, " set ipv6 next-hop peer-address\n");
 	} else if (IS_SET_IPV6_PREFER_GLOBAL(action)) {
-		if (true
-		    == yang_dnode_get_bool(
-			    dnode,
-			    "./rmap-set-action/frr-bgp-route-map:preference"))
+		if (true ==
+		    yang_dnode_get_bool(dnode,
+					"./rmap-set-action/frr-bgp-route-map:preference"))
 			vty_out(vty, " set ipv6 next-hop prefer-global\n");
 	} else if (IS_SET_IPV4_VPN_NH(action)) {
 		vty_out(vty, " set ipv4 vpn next-hop %s\n",
@@ -1346,36 +1239,30 @@ void route_map_action_show(struct vty *vty, const struct lyd_node *dnode,
 	}
 }
 
-DEFPY_YANG(
-	rmap_onmatch_next, rmap_onmatch_next_cmd,
-	"on-match next",
-	"Exit policy on matches\n"
-	"Next clause\n")
+DEFPY_YANG(rmap_onmatch_next, rmap_onmatch_next_cmd, "on-match next",
+	   "Exit policy on matches\n"
+	   "Next clause\n")
 {
 	nb_cli_enqueue_change(vty, "./exit-policy", NB_OP_MODIFY, "next");
 
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	no_rmap_onmatch_next,
-	no_rmap_onmatch_next_cmd,
-	"no on-match next",
-	NO_STR
-	"Exit policy on matches\n"
-	"Next clause\n")
+DEFPY_YANG(no_rmap_onmatch_next, no_rmap_onmatch_next_cmd, "no on-match next",
+	   NO_STR
+	   "Exit policy on matches\n"
+	   "Next clause\n")
 {
 	nb_cli_enqueue_change(vty, "./exit-policy", NB_OP_DESTROY, NULL);
 
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	rmap_onmatch_goto, rmap_onmatch_goto_cmd,
-	"on-match goto (1-65535)$rm_num",
-	"Exit policy on matches\n"
-	"Goto Clause number\n"
-	"Number\n")
+DEFPY_YANG(rmap_onmatch_goto, rmap_onmatch_goto_cmd,
+	   "on-match goto (1-65535)$rm_num",
+	   "Exit policy on matches\n"
+	   "Goto Clause number\n"
+	   "Number\n")
 {
 	nb_cli_enqueue_change(vty, "./exit-policy", NB_OP_MODIFY, "goto");
 	nb_cli_enqueue_change(vty, "./goto-value", NB_OP_MODIFY, rm_num_str);
@@ -1383,12 +1270,10 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	no_rmap_onmatch_goto, no_rmap_onmatch_goto_cmd,
-	"no on-match goto",
-	NO_STR
-	"Exit policy on matches\n"
-	"Goto Clause number\n")
+DEFPY_YANG(no_rmap_onmatch_goto, no_rmap_onmatch_goto_cmd, "no on-match goto",
+	   NO_STR
+	   "Exit policy on matches\n"
+	   "Goto Clause number\n")
 {
 	nb_cli_enqueue_change(vty, "./exit-policy", NB_OP_DESTROY, NULL);
 
@@ -1396,18 +1281,14 @@ DEFPY_YANG(
 }
 
 /* Cisco/GNU Zebra compatibility aliases */
-ALIAS_YANG(
-	rmap_onmatch_goto, rmap_continue_cmd,
-	"continue (1-65535)$rm_num",
-	"Continue on a different entry within the route-map\n"
-	"Route-map entry sequence number\n")
+ALIAS_YANG(rmap_onmatch_goto, rmap_continue_cmd, "continue (1-65535)$rm_num",
+	   "Continue on a different entry within the route-map\n"
+	   "Route-map entry sequence number\n")
 
-ALIAS_YANG(
-	no_rmap_onmatch_goto, no_rmap_continue_cmd,
-	"no continue [(1-65535)]",
-	NO_STR
-	"Continue on a different entry within the route-map\n"
-	"Route-map entry sequence number\n")
+ALIAS_YANG(no_rmap_onmatch_goto, no_rmap_continue_cmd, "no continue [(1-65535)]",
+	   NO_STR
+	   "Continue on a different entry within the route-map\n"
+	   "Route-map entry sequence number\n")
 
 void route_map_exit_policy_show(struct vty *vty, const struct lyd_node *dnode,
 				bool show_defaults)
@@ -1428,23 +1309,19 @@ void route_map_exit_policy_show(struct vty *vty, const struct lyd_node *dnode,
 	}
 }
 
-DEFPY_YANG(
-	rmap_call, rmap_call_cmd,
-	"call WORD$name",
-	"Jump to another Route-Map after match+set\n"
-	"Target route-map name\n")
+DEFPY_YANG(rmap_call, rmap_call_cmd, "call WORD$name",
+	   "Jump to another Route-Map after match+set\n"
+	   "Target route-map name\n")
 {
 	nb_cli_enqueue_change(vty, "./call", NB_OP_MODIFY, name);
 
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	no_rmap_call, no_rmap_call_cmd,
-	"no call [NAME]",
-	NO_STR
-	"Jump to another Route-Map after match+set\n"
-	"Target route-map name\n")
+DEFPY_YANG(no_rmap_call, no_rmap_call_cmd, "no call [NAME]",
+	   NO_STR
+	   "Jump to another Route-Map after match+set\n"
+	   "Target route-map name\n")
 {
 	nb_cli_enqueue_change(vty, "./call", NB_OP_DESTROY, NULL);
 
@@ -1457,11 +1334,9 @@ void route_map_call_show(struct vty *vty, const struct lyd_node *dnode,
 	vty_out(vty, " call %s\n", yang_dnode_get_string(dnode, NULL));
 }
 
-DEFPY_YANG(
-	rmap_description, rmap_description_cmd,
-	"description LINE...",
-	"Route-map comment\n"
-	"Comment describing this route-map rule\n")
+DEFPY_YANG(rmap_description, rmap_description_cmd, "description LINE...",
+	   "Route-map comment\n"
+	   "Comment describing this route-map rule\n")
 {
 	char *desc;
 	int rv;
@@ -1474,11 +1349,8 @@ DEFPY_YANG(
 	return rv;
 }
 
-DEFUN_YANG (no_rmap_description,
-       no_rmap_description_cmd,
-       "no description",
-       NO_STR
-       "Route-map comment\n")
+DEFUN_YANG(no_rmap_description, no_rmap_description_cmd, "no description",
+	   NO_STR "Route-map comment\n")
 {
 	nb_cli_enqueue_change(vty, "./description", NB_OP_DESTROY, NULL);
 
@@ -1491,12 +1363,9 @@ void route_map_description_show(struct vty *vty, const struct lyd_node *dnode,
 	vty_out(vty, " description %s\n", yang_dnode_get_string(dnode, NULL));
 }
 
-DEFPY_YANG(
-	route_map_optimization, route_map_optimization_cmd,
-	"[no] route-map RMAP_NAME$name optimization",
-	NO_STR
-	ROUTE_MAP_CMD_STR
-	"Configure route-map optimization\n")
+DEFPY_YANG(route_map_optimization, route_map_optimization_cmd,
+	   "[no] route-map RMAP_NAME$name optimization",
+	   NO_STR ROUTE_MAP_CMD_STR "Configure route-map optimization\n")
 {
 	char xpath[XPATH_MAXLEN];
 
@@ -1504,10 +1373,9 @@ DEFPY_YANG(
 		 "/frr-route-map:lib/route-map[name='%s']", name);
 	nb_cli_enqueue_change(vty, xpath, NB_OP_CREATE, NULL);
 
-	snprintf(
-		xpath, sizeof(xpath),
-		"/frr-route-map:lib/route-map[name='%s']/optimization-disabled",
-		name);
+	snprintf(xpath, sizeof(xpath),
+		 "/frr-route-map:lib/route-map[name='%s']/optimization-disabled",
+		 name);
 	nb_cli_enqueue_change(vty, xpath, NB_OP_MODIFY, no ? "true" : "false");
 
 	return nb_cli_apply_changes(vty, NULL);
@@ -1529,8 +1397,7 @@ static int route_map_config_write(struct vty *vty)
 	const struct lyd_node *dnode;
 	int written = 0;
 
-	dnode = yang_dnode_get(running_config->dnode,
-			       "/frr-route-map:lib");
+	dnode = yang_dnode_get(running_config->dnode, "/frr-route-map:lib");
 	if (dnode) {
 		nb_cli_show_dnode_cmds(vty, dnode, false);
 		written = 1;
@@ -1557,12 +1424,11 @@ static void rmap_autocomplete(vector comps, struct cmd_token *token)
 		vector_set(comps, XSTRDUP(MTYPE_COMPLETION, map->name));
 }
 
-static const struct cmd_variable_handler rmap_var_handlers[] = {
-	{.varname = "route_map", .completions = rmap_autocomplete},
-	{.tokenname = "ROUTEMAP_NAME", .completions = rmap_autocomplete},
-	{.tokenname = "RMAP_NAME", .completions = rmap_autocomplete},
-	{.completions = NULL}
-};
+static const struct cmd_variable_handler rmap_var_handlers[] =
+	{{.varname = "route_map", .completions = rmap_autocomplete},
+	 {.tokenname = "ROUTEMAP_NAME", .completions = rmap_autocomplete},
+	 {.tokenname = "RMAP_NAME", .completions = rmap_autocomplete},
+	 {.completions = NULL}};
 
 void route_map_cli_init(void)
 {

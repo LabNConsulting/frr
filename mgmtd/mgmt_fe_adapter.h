@@ -80,16 +80,13 @@ extern void mgmt_fe_adapter_destroy(void);
 extern void mgmt_fe_adapter_lock(struct mgmt_fe_client_adapter *adapter);
 
 /* Remove lock from frontend adapter */
-extern void
-mgmt_fe_adapter_unlock(struct mgmt_fe_client_adapter **adapter);
+extern void mgmt_fe_adapter_unlock(struct mgmt_fe_client_adapter **adapter);
 
 /* Create frontend adapter */
-extern struct msg_conn *mgmt_fe_create_adapter(int conn_fd,
-					       union sockunion *su);
+extern struct msg_conn *mgmt_fe_create_adapter(int conn_fd, union sockunion *su);
 
 /* Fetch frontend adapter given a name */
-extern struct mgmt_fe_client_adapter *
-mgmt_fe_get_adapter(const char *name);
+extern struct mgmt_fe_client_adapter *mgmt_fe_get_adapter(const char *name);
 
 /*
  * Send set-config reply to the frontend client.
@@ -119,44 +116,44 @@ mgmt_fe_get_adapter(const char *name);
  *    0 on success, -1 on failures.
  */
 extern int mgmt_fe_send_set_cfg_reply(uint64_t session_id, uint64_t txn_id,
-					  Mgmtd__DatastoreId ds_id,
-					  uint64_t req_id,
-					  enum mgmt_result result,
-					  const char *error_if_any,
-					  bool implcit_commit);
+				      Mgmtd__DatastoreId ds_id, uint64_t req_id,
+				      enum mgmt_result result,
+				      const char *error_if_any,
+				      bool implcit_commit);
 
 /*
  * Send commit-config reply to the frontend client.
  */
-extern int mgmt_fe_send_commit_cfg_reply(
-	uint64_t session_id, uint64_t txn_id, Mgmtd__DatastoreId src_ds_id,
-	Mgmtd__DatastoreId dst_ds_id, uint64_t req_id, bool validate_only,
-	enum mgmt_result result, const char *error_if_any);
+extern int mgmt_fe_send_commit_cfg_reply(uint64_t session_id, uint64_t txn_id,
+					 Mgmtd__DatastoreId src_ds_id,
+					 Mgmtd__DatastoreId dst_ds_id,
+					 uint64_t req_id, bool validate_only,
+					 enum mgmt_result result,
+					 const char *error_if_any);
 
 /*
  * Send get-config reply to the frontend client.
  */
 extern int mgmt_fe_send_get_cfg_reply(uint64_t session_id, uint64_t txn_id,
-					  Mgmtd__DatastoreId ds_id,
-					  uint64_t req_id,
-					  enum mgmt_result result,
-					  Mgmtd__YangDataReply *data_resp,
-					  const char *error_if_any);
+				      Mgmtd__DatastoreId ds_id, uint64_t req_id,
+				      enum mgmt_result result,
+				      Mgmtd__YangDataReply *data_resp,
+				      const char *error_if_any);
 
 /*
  * Send get-data reply to the frontend client.
  */
-extern int mgmt_fe_send_get_data_reply(
-	uint64_t session_id, uint64_t txn_id, Mgmtd__DatastoreId ds_id,
-	uint64_t req_id, enum mgmt_result result,
-	Mgmtd__YangDataReply *data_resp, const char *error_if_any);
+extern int mgmt_fe_send_get_data_reply(uint64_t session_id, uint64_t txn_id,
+				       Mgmtd__DatastoreId ds_id,
+				       uint64_t req_id, enum mgmt_result result,
+				       Mgmtd__YangDataReply *data_resp,
+				       const char *error_if_any);
 
 /*
  * Send data notify to the frontend client.
  */
 extern int mgmt_fe_send_data_notify(Mgmtd__DatastoreId ds_id,
-					Mgmtd__YangData * data_resp[],
-					int num_data);
+				    Mgmtd__YangData *data_resp[], int num_data);
 
 /* Fetch frontend client session set-config stats */
 extern struct mgmt_setcfg_stats *

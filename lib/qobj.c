@@ -29,11 +29,10 @@ static int qobj_cmp(const struct qobj_node *na, const struct qobj_node *nb)
 	return 0;
 }
 
-DECLARE_HASH(qobj_nodes, struct qobj_node, nodehash,
-			qobj_cmp, qobj_hash);
+DECLARE_HASH(qobj_nodes, struct qobj_node, nodehash, qobj_cmp, qobj_hash);
 
 static pthread_rwlock_t nodes_lock;
-static struct qobj_nodes_head nodes = { };
+static struct qobj_nodes_head nodes = {};
 
 
 void qobj_reg(struct qobj_node *node, const struct qobj_nodetype *type)

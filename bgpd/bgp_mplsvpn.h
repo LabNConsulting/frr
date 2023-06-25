@@ -16,9 +16,9 @@
 
 #define MPLS_LABEL_IS_SPECIAL(label) ((label) <= MPLS_LABEL_EXTENSION)
 #define MPLS_LABEL_IS_NULL(label)                                              \
-	((label) == MPLS_LABEL_IPV4_EXPLICIT_NULL                              \
-	 || (label) == MPLS_LABEL_IPV6_EXPLICIT_NULL                           \
-	 || (label) == MPLS_LABEL_IMPLICIT_NULL)
+	((label) == MPLS_LABEL_IPV4_EXPLICIT_NULL ||                           \
+	 (label) == MPLS_LABEL_IPV6_EXPLICIT_NULL ||                           \
+	 (label) == MPLS_LABEL_IMPLICIT_NULL)
 
 #define BGP_VPNVX_HELP_STR BGP_AF_STR BGP_AF_STR
 
@@ -63,8 +63,7 @@ extern void vpn_leak_to_vrf_update_all(struct bgp *to_bgp, struct bgp *from_bgp,
 				       afi_t afi);
 
 extern bool vpn_leak_to_vrf_no_retain_filter_check(struct bgp *from_bgp,
-						   struct attr *attr,
-						   afi_t afi);
+						   struct attr *attr, afi_t afi);
 
 extern void vpn_leak_to_vrf_update(struct bgp *from_bgp,
 				   struct bgp_path_info *path_vpn,
@@ -93,8 +92,8 @@ extern void transpose_sid(struct in6_addr *sid, uint32_t label, uint8_t offset,
 			  uint8_t size);
 extern void vrf_import_from_vrf(struct bgp *to_bgp, struct bgp *from_bgp,
 				afi_t afi, safi_t safi);
-void vrf_unimport_from_vrf(struct bgp *to_bgp, struct bgp *from_bgp,
-			   afi_t afi, safi_t safi);
+void vrf_unimport_from_vrf(struct bgp *to_bgp, struct bgp *from_bgp, afi_t afi,
+			   safi_t safi);
 
 static inline bool is_bgp_vrf_mplsvpn(struct bgp *bgp)
 {
@@ -103,9 +102,9 @@ static inline bool is_bgp_vrf_mplsvpn(struct bgp *bgp)
 	if (bgp->inst_type == BGP_INSTANCE_TYPE_VRF)
 		for (afi = 0; afi < AFI_MAX; ++afi) {
 			if (CHECK_FLAG(bgp->af_flags[afi][SAFI_UNICAST],
-				       BGP_CONFIG_VRF_TO_MPLSVPN_EXPORT)
-			    || CHECK_FLAG(bgp->af_flags[afi][SAFI_UNICAST],
-					  BGP_CONFIG_MPLSVPN_TO_VRF_IMPORT))
+				       BGP_CONFIG_VRF_TO_MPLSVPN_EXPORT) ||
+			    CHECK_FLAG(bgp->af_flags[afi][SAFI_UNICAST],
+				       BGP_CONFIG_MPLSVPN_TO_VRF_IMPORT))
 				return true;
 		}
 	return false;
@@ -114,8 +113,8 @@ static inline bool is_bgp_vrf_mplsvpn(struct bgp *bgp)
 static inline int vpn_leak_to_vpn_active(struct bgp *bgp_vrf, afi_t afi,
 					 const char **pmsg)
 {
-	if (bgp_vrf->inst_type != BGP_INSTANCE_TYPE_VRF
-		&& bgp_vrf->inst_type != BGP_INSTANCE_TYPE_DEFAULT) {
+	if (bgp_vrf->inst_type != BGP_INSTANCE_TYPE_VRF &&
+	    bgp_vrf->inst_type != BGP_INSTANCE_TYPE_DEFAULT) {
 
 		if (pmsg)
 			*pmsg = "source bgp instance neither vrf nor default";
@@ -124,9 +123,9 @@ static inline int vpn_leak_to_vpn_active(struct bgp *bgp_vrf, afi_t afi,
 
 	/* Is vrf configured to export to vpn? */
 	if (!CHECK_FLAG(bgp_vrf->af_flags[afi][SAFI_UNICAST],
-			BGP_CONFIG_VRF_TO_MPLSVPN_EXPORT)
-	    && !CHECK_FLAG(bgp_vrf->af_flags[afi][SAFI_UNICAST],
-			   BGP_CONFIG_VRF_TO_VRF_EXPORT)) {
+			BGP_CONFIG_VRF_TO_MPLSVPN_EXPORT) &&
+	    !CHECK_FLAG(bgp_vrf->af_flags[afi][SAFI_UNICAST],
+			BGP_CONFIG_VRF_TO_VRF_EXPORT)) {
 		if (pmsg)
 			*pmsg = "export not set";
 		return 0;
@@ -149,7 +148,7 @@ static inline int vpn_leak_to_vpn_active(struct bgp *bgp_vrf, afi_t afi,
 
 	/* Is a route-map specified, but not defined? */
 	if (bgp_vrf->vpn_policy[afi].rmap_name[BGP_VPN_POLICY_DIR_TOVPN] &&
-		!bgp_vrf->vpn_policy[afi].rmap[BGP_VPN_POLICY_DIR_TOVPN]) {
+	    !bgp_vrf->vpn_policy[afi].rmap[BGP_VPN_POLICY_DIR_TOVPN]) {
 		if (pmsg)
 			*pmsg = "route-map tovpn named but not defined";
 		return 0;
@@ -157,8 +156,8 @@ static inline int vpn_leak_to_vpn_active(struct bgp *bgp_vrf, afi_t afi,
 
 	/* Is there an "auto" export label that isn't allocated yet? */
 	if (CHECK_FLAG(bgp_vrf->vpn_policy[afi].flags,
-		BGP_VPN_POLICY_TOVPN_LABEL_AUTO) &&
-		(bgp_vrf->vpn_policy[afi].tovpn_label == MPLS_LABEL_NONE)) {
+		       BGP_VPN_POLICY_TOVPN_LABEL_AUTO) &&
+	    (bgp_vrf->vpn_policy[afi].tovpn_label == MPLS_LABEL_NONE)) {
 
 		if (pmsg)
 			*pmsg = "auto label not allocated";
@@ -171,8 +170,8 @@ static inline int vpn_leak_to_vpn_active(struct bgp *bgp_vrf, afi_t afi,
 static inline int vpn_leak_from_vpn_active(struct bgp *bgp_vrf, afi_t afi,
 					   const char **pmsg)
 {
-	if (bgp_vrf->inst_type != BGP_INSTANCE_TYPE_VRF
-		&& bgp_vrf->inst_type != BGP_INSTANCE_TYPE_DEFAULT) {
+	if (bgp_vrf->inst_type != BGP_INSTANCE_TYPE_VRF &&
+	    bgp_vrf->inst_type != BGP_INSTANCE_TYPE_DEFAULT) {
 
 		if (pmsg)
 			*pmsg = "destination bgp instance neither vrf nor default";
@@ -187,9 +186,9 @@ static inline int vpn_leak_from_vpn_active(struct bgp *bgp_vrf, afi_t afi,
 
 	/* Is vrf configured to import from vpn? */
 	if (!CHECK_FLAG(bgp_vrf->af_flags[afi][SAFI_UNICAST],
-			BGP_CONFIG_MPLSVPN_TO_VRF_IMPORT)
-	    && !CHECK_FLAG(bgp_vrf->af_flags[afi][SAFI_UNICAST],
-			   BGP_CONFIG_VRF_TO_VRF_IMPORT)) {
+			BGP_CONFIG_MPLSVPN_TO_VRF_IMPORT) &&
+	    !CHECK_FLAG(bgp_vrf->af_flags[afi][SAFI_UNICAST],
+			BGP_CONFIG_VRF_TO_VRF_IMPORT)) {
 		if (pmsg)
 			*pmsg = "import not set";
 		return 0;
@@ -204,7 +203,7 @@ static inline int vpn_leak_from_vpn_active(struct bgp *bgp_vrf, afi_t afi,
 
 	/* Is a route-map specified, but not defined? */
 	if (bgp_vrf->vpn_policy[afi].rmap_name[BGP_VPN_POLICY_DIR_FROMVPN] &&
-		!bgp_vrf->vpn_policy[afi].rmap[BGP_VPN_POLICY_DIR_FROMVPN]) {
+	    !bgp_vrf->vpn_policy[afi].rmap[BGP_VPN_POLICY_DIR_FROMVPN]) {
 		if (pmsg)
 			*pmsg = "route-map fromvpn named but not defined";
 		return 0;
@@ -221,12 +220,12 @@ static inline void vpn_leak_prechange(enum vpn_policy_direction direction,
 		return;
 
 	if ((direction == BGP_VPN_POLICY_DIR_FROMVPN) &&
-		vpn_leak_from_vpn_active(bgp_vrf, afi, NULL)) {
+	    vpn_leak_from_vpn_active(bgp_vrf, afi, NULL)) {
 
 		vpn_leak_to_vrf_withdraw_all(bgp_vrf, afi);
 	}
 	if ((direction == BGP_VPN_POLICY_DIR_TOVPN) &&
-		vpn_leak_to_vpn_active(bgp_vrf, afi, NULL)) {
+	    vpn_leak_to_vpn_active(bgp_vrf, afi, NULL)) {
 
 		vpn_leak_from_vrf_withdraw_all(bgp_vpn, bgp_vrf, afi);
 	}
@@ -251,8 +250,7 @@ static inline void vpn_leak_postchange(enum vpn_policy_direction direction,
 	if (direction == BGP_VPN_POLICY_DIR_TOVPN) {
 
 		if (bgp_vrf->vpn_policy[afi].tovpn_label !=
-			bgp_vrf->vpn_policy[afi]
-			       .tovpn_zebra_vrf_label_last_sent) {
+		    bgp_vrf->vpn_policy[afi].tovpn_zebra_vrf_label_last_sent) {
 			vpn_leak_zebra_vrf_label_update(bgp_vrf, afi);
 		}
 
@@ -298,8 +296,7 @@ static inline bool is_route_injectable_into_vpn(struct bgp_path_info *pi)
 	struct bgp_table *table;
 	struct bgp_dest *dest;
 
-	if (pi->sub_type != BGP_ROUTE_IMPORTED ||
-	    !pi->extra ||
+	if (pi->sub_type != BGP_ROUTE_IMPORTED || !pi->extra ||
 	    !pi->extra->parent)
 		return true;
 
@@ -308,8 +305,7 @@ static inline bool is_route_injectable_into_vpn(struct bgp_path_info *pi)
 	if (!dest)
 		return true;
 	table = bgp_dest_table(dest);
-	if (table &&
-	    (table->afi == AFI_IP || table->afi == AFI_IP6) &&
+	if (table && (table->afi == AFI_IP || table->afi == AFI_IP6) &&
 	    table->safi == SAFI_MPLS_VPN)
 		return false;
 	return true;
@@ -388,15 +384,14 @@ DECLARE_RBTREE_UNIQ(bgp_mplsvpn_nh_label_bind_cache,
 		    struct bgp_mplsvpn_nh_label_bind_cache, entry,
 		    bgp_mplsvpn_nh_label_bind_cmp);
 
-void bgp_mplsvpn_nh_label_bind_free(
-	struct bgp_mplsvpn_nh_label_bind_cache *bmnc);
+void bgp_mplsvpn_nh_label_bind_free(struct bgp_mplsvpn_nh_label_bind_cache *bmnc);
 
 struct bgp_mplsvpn_nh_label_bind_cache *
 bgp_mplsvpn_nh_label_bind_new(struct bgp_mplsvpn_nh_label_bind_cache_head *tree,
 			      struct prefix *p, mpls_label_t orig_label);
-struct bgp_mplsvpn_nh_label_bind_cache *bgp_mplsvpn_nh_label_bind_find(
-	struct bgp_mplsvpn_nh_label_bind_cache_head *tree, struct prefix *p,
-	mpls_label_t orig_label);
+struct bgp_mplsvpn_nh_label_bind_cache *
+bgp_mplsvpn_nh_label_bind_find(struct bgp_mplsvpn_nh_label_bind_cache_head *tree,
+			       struct prefix *p, mpls_label_t orig_label);
 void bgp_mplsvpn_nexthop_init(void);
 
 #endif /* _QUAGGA_BGP_MPLSVPN_H */

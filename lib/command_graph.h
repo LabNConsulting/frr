@@ -84,10 +84,10 @@ struct cmd_token {
 	uint8_t varname_src;
 	uint32_t refcnt;
 
-	char *text;	 // token text
-	char *desc;	 // token description
+	char *text;	    // token text
+	char *desc;	    // token description
 	long long min, max; // for ranges
-	char *arg;	  // user input that matches this token
+	char *arg;	    // user input that matches this token
 	char *varname;
 
 	struct graph_node *forkjoin; // paired FORK/JOIN for JOIN/FORK
@@ -97,8 +97,8 @@ struct cmd_token {
 struct cmd_element {
 	const char *string; /* Command specification by string. */
 	const char *doc;    /* Documentation of this command. */
-	int daemon;	 /* Daemon to which this command belong. */
-	uint32_t attr;       /* Command attributes */
+	int daemon;	    /* Daemon to which this command belong. */
+	uint32_t attr;	    /* Command attributes */
 
 	/* handler function for command */
 	int (*func)(const struct cmd_element *, struct vty *, int,
@@ -122,8 +122,7 @@ extern void cmd_token_varname_join(struct graph_node *n, const char *varname);
 
 extern void cmd_graph_parse(struct graph *graph, const struct cmd_element *cmd);
 extern void cmd_graph_names(struct graph *graph);
-extern void cmd_graph_merge(struct graph *old, struct graph *n,
-			    int direction);
+extern void cmd_graph_merge(struct graph *old, struct graph *n, int direction);
 /*
  * Print callback for DOT dumping.
  *

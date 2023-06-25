@@ -48,8 +48,8 @@ struct ttable_cell {
 
 /* table style and table */
 struct ttable_style {
-	char corner;     /* intersection */
-	int indent;      /* left table indent */
+	char corner;	 /* intersection */
+	int indent;	 /* left table indent */
 	bool rownums_on; /* show row numbers; unimplemented */
 
 	struct ttable_border border;
@@ -192,8 +192,7 @@ void ttable_del_row(struct ttable *tt, unsigned int row);
  * @param align the alignment to set
  */
 void ttable_align(struct ttable *tt, unsigned int srow, unsigned int scol,
-		  unsigned int erow, unsigned int ecol,
-		  enum ttable_align align);
+		  unsigned int erow, unsigned int ecol, enum ttable_align align);
 
 /**
  * Sets padding for a range of cells.

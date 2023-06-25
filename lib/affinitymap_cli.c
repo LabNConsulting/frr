@@ -49,10 +49,9 @@ DEFPY_YANG_NOSH(affinity_map, affinity_map_cmd,
 {
 	char xpathr[XPATH_MAXLEN];
 
-	snprintf(
-		xpathr, sizeof(xpathr),
-		"/frr-affinity-map:lib/affinity-maps/affinity-map[name='%s']/value",
-		name);
+	snprintf(xpathr, sizeof(xpathr),
+		 "/frr-affinity-map:lib/affinity-maps/affinity-map[name='%s']/value",
+		 name);
 	nb_cli_enqueue_change(vty, xpathr, NB_OP_MODIFY, position_str);
 	return nb_cli_apply_changes(vty, NULL);
 }

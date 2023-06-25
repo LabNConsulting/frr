@@ -139,9 +139,9 @@ long spf_backoff_schedule(struct spf_backoff *backoff)
 	switch (backoff->state) {
 	case SPF_BACKOFF_QUIET:
 		backoff->state = SPF_BACKOFF_SHORT_WAIT;
-		event_add_timer_msec(
-			backoff->m, spf_backoff_timetolearn_elapsed, backoff,
-			backoff->timetolearn, &backoff->t_timetolearn);
+		event_add_timer_msec(backoff->m, spf_backoff_timetolearn_elapsed,
+				     backoff, backoff->timetolearn,
+				     &backoff->t_timetolearn);
 		event_add_timer_msec(backoff->m, spf_backoff_holddown_elapsed,
 				     backoff, backoff->holddown,
 				     &backoff->t_holddown);
@@ -161,9 +161,8 @@ long spf_backoff_schedule(struct spf_backoff *backoff)
 		break;
 	}
 
-	backoff_debug(
-		"SPF Back-off(%s) changed state to %s and returned %ld delay",
-		backoff->name, spf_backoff_state2str(backoff->state), rv);
+	backoff_debug("SPF Back-off(%s) changed state to %s and returned %ld delay",
+		      backoff->name, spf_backoff_state2str(backoff->state), rv);
 	return rv;
 }
 
@@ -177,9 +176,8 @@ static const char *timeval_format(struct timeval *tv)
 		return "(never)";
 
 	tm = localtime_r(&tv->tv_sec, &tm_store);
-	if (!tm
-	    || strftime(timebuf, sizeof(timebuf), "%Z %a %Y-%m-%d %H:%M:%S", tm)
-		       == 0) {
+	if (!tm || strftime(timebuf, sizeof(timebuf), "%Z %a %Y-%m-%d %H:%M:%S",
+			    tm) == 0) {
 		return "???";
 	}
 
@@ -208,8 +206,7 @@ void spf_backoff_show(struct spf_backoff *backoff, struct vty *vty,
 
 		vty_out(vty, "%s                   Still runs for %lld msec\n",
 			prefix,
-			(long long)remain.tv_sec * 1000
-				+ remain.tv_usec / 1000);
+			(long long)remain.tv_sec * 1000 + remain.tv_usec / 1000);
 	} else {
 		vty_out(vty, "%s                   Inactive\n", prefix);
 	}
@@ -221,8 +218,7 @@ void spf_backoff_show(struct spf_backoff *backoff, struct vty *vty,
 			event_timer_remain(backoff->t_timetolearn);
 		vty_out(vty, "%s                   Still runs for %lld msec\n",
 			prefix,
-			(long long)remain.tv_sec * 1000
-				+ remain.tv_usec / 1000);
+			(long long)remain.tv_sec * 1000 + remain.tv_usec / 1000);
 	} else {
 		vty_out(vty, "%s                   Inactive\n", prefix);
 	}
@@ -233,22 +229,15 @@ void spf_backoff_show(struct spf_backoff *backoff, struct vty *vty,
 		timeval_format(&backoff->last_event_time));
 }
 
-DEFUN(spf_backoff_debug,
-      spf_backoff_debug_cmd,
-      "debug spf-delay-ietf",
-      DEBUG_STR
-      "SPF Back-off Debugging\n")
+DEFUN(spf_backoff_debug, spf_backoff_debug_cmd, "debug spf-delay-ietf",
+      DEBUG_STR "SPF Back-off Debugging\n")
 {
 	debug_spf_backoff = true;
 	return CMD_SUCCESS;
 }
 
-DEFUN(no_spf_backoff_debug,
-      no_spf_backoff_debug_cmd,
-      "no debug spf-delay-ietf",
-      NO_STR
-      DEBUG_STR
-      "SPF Back-off Debugging\n")
+DEFUN(no_spf_backoff_debug, no_spf_backoff_debug_cmd, "no debug spf-delay-ietf",
+      NO_STR DEBUG_STR "SPF Back-off Debugging\n")
 {
 	debug_spf_backoff = false;
 	return CMD_SUCCESS;

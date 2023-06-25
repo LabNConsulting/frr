@@ -45,7 +45,7 @@ struct buffer_data {
 
 /* Default buffer size (used if none specified).  It is rounded up to the
    next page boundary. */
-#define BUFFER_SIZE_DEFAULT		4096
+#define BUFFER_SIZE_DEFAULT 4096
 
 #define BUFFER_DATA_FREE(D) XFREE(MTYPE_BUFFER_DATA, (D))
 
@@ -62,8 +62,9 @@ struct buffer *buffer_new(size_t size)
 		static size_t default_size;
 		if (!default_size) {
 			long pgsz = sysconf(_SC_PAGESIZE);
-			default_size = ((((BUFFER_SIZE_DEFAULT - 1) / pgsz) + 1)
-					* pgsz);
+			default_size =
+				((((BUFFER_SIZE_DEFAULT - 1) / pgsz) + 1) *
+				 pgsz);
 		}
 		b->size = default_size;
 	}
@@ -220,8 +221,8 @@ buffer_status_t buffer_flush_all(struct buffer *b, int fd)
 	head_sp = (head = b->head)->sp;
 	/* Flush all data. */
 	while ((ret = buffer_flush_available(b, fd)) == BUFFER_PENDING) {
-		if ((b->head == head) && (head_sp == head->sp)
-		    && (errno != EINTR))
+		if ((b->head == head) && (head_sp == head->sp) &&
+		    (errno != EINTR))
 			/* No data was flushed, so kernel buffer must be full.
 			 */
 			return ret;
@@ -234,8 +235,7 @@ buffer_status_t buffer_flush_all(struct buffer *b, int fd)
 /* Flush enough data to fill a terminal window of the given scene (used only
    by vty telnet interface). */
 buffer_status_t buffer_flush_window(struct buffer *b, int fd, int width,
-				    int height, int erase_flag,
-				    int no_more_flag)
+				    int height, int erase_flag, int no_more_flag)
 {
 	int nbytes;
 	int iov_alloc;
@@ -244,8 +244,8 @@ buffer_status_t buffer_flush_window(struct buffer *b, int fd, int width,
 	struct iovec small_iov[3];
 	char more[] = " --More-- ";
 	char erase[] = {0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08,
-			0x08, 0x08, ' ',  ' ',  ' ',  ' ',  ' ',  ' ',
-			' ',  ' ',  ' ',  ' ',  0x08, 0x08, 0x08, 0x08,
+			0x08, 0x08, ' ',  ' ',	' ',  ' ',  ' ',  ' ',
+			' ',  ' ',  ' ',  ' ',	0x08, 0x08, 0x08, 0x08,
 			0x08, 0x08, 0x08, 0x08, 0x08, 0x08};
 	struct buffer_data *data;
 	int column;
@@ -289,8 +289,7 @@ buffer_status_t buffer_flush_window(struct buffer *b, int fd, int width,
 			   this character. */
 			if (data->data[cp] == '\r')
 				column = 1;
-			else if ((data->data[cp] == '\n')
-				 || (column == width)) {
+			else if ((data->data[cp] == '\n') || (column == width)) {
 				column = 1;
 				height--;
 			} else
@@ -310,11 +309,11 @@ buffer_status_t buffer_flush_window(struct buffer *b, int fd, int width,
 					       iov_alloc * sizeof(*iov));
 			} else {
 				/* This should absolutely never occur. */
-				flog_err_sys(
-					EC_LIB_SYSTEM_CALL,
-					"%s: corruption detected: iov_small overflowed; head %p, tail %p, head->next %p",
-					__func__, (void *)b->head,
-					(void *)b->tail, (void *)b->head->next);
+				flog_err_sys(EC_LIB_SYSTEM_CALL,
+					     "%s: corruption detected: iov_small overflowed; head %p, tail %p, head->next %p",
+					     __func__, (void *)b->head,
+					     (void *)b->tail,
+					     (void *)b->head->next);
 				iov = XMALLOC(MTYPE_TMP,
 					      iov_alloc * sizeof(*iov));
 				memcpy(iov, small_iov, sizeof(small_iov));
@@ -340,8 +339,7 @@ buffer_status_t buffer_flush_window(struct buffer *b, int fd, int width,
 		while (iov_index > 0) {
 			int iov_size;
 
-			iov_size =
-				((iov_index > IOV_MAX) ? IOV_MAX : iov_index);
+			iov_size = ((iov_index > IOV_MAX) ? IOV_MAX : iov_index);
 			nbytes = writev(fd, c_iov, iov_size);
 			if (nbytes < 0) {
 				flog_err(EC_LIB_SOCKET,
@@ -427,10 +425,9 @@ in one shot. */
 	/* Free printed buffer data. */
 	while (written > 0) {
 		if (!(d = b->head)) {
-			flog_err(
-				EC_LIB_DEVELOPMENT,
-				"%s: corruption detected: buffer queue empty, but written is %lu",
-				__func__, (unsigned long)written);
+			flog_err(EC_LIB_DEVELOPMENT,
+				 "%s: corruption detected: buffer queue empty, but written is %lu",
+				 __func__, (unsigned long)written);
 			break;
 		}
 		if (written < d->cp - d->sp) {

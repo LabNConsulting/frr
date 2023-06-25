@@ -16,7 +16,7 @@ struct bgp_path_info;
 struct peer;
 
 extern int bgp_reg_for_label_callback(mpls_label_t new_label, void *labelid,
-				    bool allocated);
+				      bool allocated);
 extern void bgp_reg_dereg_for_label(struct bgp_dest *dest,
 				    struct bgp_path_info *pi, bool reg);
 extern int bgp_parse_fec_update(void);
@@ -36,8 +36,8 @@ static inline int bgp_labeled_safi(safi_t safi)
 	/* NOTE: This API really says a label (tag) MAY be present. Not all EVPN
 	 * routes will have a label.
 	 */
-	if ((safi == SAFI_LABELED_UNICAST) || (safi == SAFI_MPLS_VPN)
-	    || (safi == SAFI_EVPN))
+	if ((safi == SAFI_LABELED_UNICAST) || (safi == SAFI_MPLS_VPN) ||
+	    (safi == SAFI_EVPN))
 		return 1;
 	return 0;
 }
@@ -48,8 +48,8 @@ static inline int bgp_is_withdraw_label(mpls_label_t *label)
 
 	/* The check on pkt[2] for 0x00 or 0x02 is in case bgp_set_valid_label()
 	 * was called on the withdraw label */
-	if (((pkt[0] == 0x80) || (pkt[0] == 0x00)) && (pkt[1] == 0x00)
-	    && ((pkt[2] == 0x00) || (pkt[2] == 0x02)))
+	if (((pkt[0] == 0x80) || (pkt[0] == 0x00)) && (pkt[1] == 0x00) &&
+	    ((pkt[2] == 0x00) || (pkt[2] == 0x02)))
 		return 1;
 	return 0;
 }

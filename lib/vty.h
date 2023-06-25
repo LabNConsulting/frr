@@ -72,10 +72,11 @@ struct vty {
 	bool is_paged;
 
 	/* Is this vty connect to file or not */
-	enum { VTY_TERM,       /* telnet conn or stdin/stdout UI */
-	       VTY_FILE,       /* reading and writing config files */
-	       VTY_SHELL,      /* vtysh client side UI */
-	       VTY_SHELL_SERV, /* server-side vtysh connection */
+	enum {
+		VTY_TERM,	/* telnet conn or stdin/stdout UI */
+		VTY_FILE,	/* reading and writing config files */
+		VTY_SHELL,	/* vtysh client side UI */
+		VTY_SHELL_SERV, /* server-side vtysh connection */
 	} type;
 
 	/* Node status of this vty */

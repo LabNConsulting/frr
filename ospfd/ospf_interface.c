@@ -90,8 +90,8 @@ int ospf_if_get_output_cost(struct ospf_interface *oi)
 	refbw = oi->ospf->ref_bandwidth;
 
 	/* A specified ip ospf cost overrides a calculated one. */
-	if (OSPF_IF_PARAM_CONFIGURED(IF_DEF_PARAMS(oi->ifp), output_cost_cmd)
-	    || OSPF_IF_PARAM_CONFIGURED(oi->params, output_cost_cmd))
+	if (OSPF_IF_PARAM_CONFIGURED(IF_DEF_PARAMS(oi->ifp), output_cost_cmd) ||
+	    OSPF_IF_PARAM_CONFIGURED(oi->params, output_cost_cmd))
 		cost = OSPF_IF_PARAM(oi, output_cost_cmd);
 	/* See if a cost can be calculated from the zebra processes
 	   interface bandwidth field. */
@@ -206,8 +206,7 @@ static void ospf_add_to_if(struct interface *ifp, struct ospf_interface *oi)
 	rn->info = oi;
 }
 
-static void ospf_delete_from_if(struct interface *ifp,
-				struct ospf_interface *oi)
+static void ospf_delete_from_if(struct interface *ifp, struct ospf_interface *oi)
 {
 	struct route_node *rn;
 	struct prefix p;
@@ -474,8 +473,8 @@ struct ospf_interface *ospf_if_lookup_recv_if(struct ospf *ospf,
 			unnumbered_match = oi;
 		else if (prefix_match(CONNECTED_PREFIX(oi->connected),
 				      (struct prefix *)&addr)) {
-			if ((match == NULL) || (match->address->prefixlen
-						< oi->address->prefixlen))
+			if ((match == NULL) || (match->address->prefixlen <
+						oi->address->prefixlen))
 				match = oi;
 		}
 	}
@@ -550,8 +549,7 @@ static struct ospf_if_params *ospf_new_if_params(void)
 	return oip;
 }
 
-static void ospf_del_if_params(struct interface *ifp,
-			       struct ospf_if_params *oip)
+static void ospf_del_if_params(struct interface *ifp, struct ospf_if_params *oip)
 {
 	list_delete(&oip->auth_crypt);
 	ospf_interface_disable_bfd(ifp, oip);
@@ -575,19 +573,19 @@ void ospf_free_if_params(struct interface *ifp, struct in_addr addr)
 	oip = rn->info;
 	route_unlock_node(rn);
 
-	if (!OSPF_IF_PARAM_CONFIGURED(oip, output_cost_cmd)
-	    && !OSPF_IF_PARAM_CONFIGURED(oip, transmit_delay)
-	    && !OSPF_IF_PARAM_CONFIGURED(oip, retransmit_interval)
-	    && !OSPF_IF_PARAM_CONFIGURED(oip, passive_interface)
-	    && !OSPF_IF_PARAM_CONFIGURED(oip, v_hello)
-	    && !OSPF_IF_PARAM_CONFIGURED(oip, fast_hello)
-	    && !OSPF_IF_PARAM_CONFIGURED(oip, v_wait)
-	    && !OSPF_IF_PARAM_CONFIGURED(oip, priority)
-	    && !OSPF_IF_PARAM_CONFIGURED(oip, type)
-	    && !OSPF_IF_PARAM_CONFIGURED(oip, auth_simple)
-	    && !OSPF_IF_PARAM_CONFIGURED(oip, auth_type)
-	    && !OSPF_IF_PARAM_CONFIGURED(oip, if_area)
-	    && listcount(oip->auth_crypt) == 0) {
+	if (!OSPF_IF_PARAM_CONFIGURED(oip, output_cost_cmd) &&
+	    !OSPF_IF_PARAM_CONFIGURED(oip, transmit_delay) &&
+	    !OSPF_IF_PARAM_CONFIGURED(oip, retransmit_interval) &&
+	    !OSPF_IF_PARAM_CONFIGURED(oip, passive_interface) &&
+	    !OSPF_IF_PARAM_CONFIGURED(oip, v_hello) &&
+	    !OSPF_IF_PARAM_CONFIGURED(oip, fast_hello) &&
+	    !OSPF_IF_PARAM_CONFIGURED(oip, v_wait) &&
+	    !OSPF_IF_PARAM_CONFIGURED(oip, priority) &&
+	    !OSPF_IF_PARAM_CONFIGURED(oip, type) &&
+	    !OSPF_IF_PARAM_CONFIGURED(oip, auth_simple) &&
+	    !OSPF_IF_PARAM_CONFIGURED(oip, auth_type) &&
+	    !OSPF_IF_PARAM_CONFIGURED(oip, if_area) &&
+	    listcount(oip->auth_crypt) == 0) {
 		ospf_del_if_params(ifp, oip);
 		rn->info = NULL;
 		route_unlock_node(rn);
@@ -645,8 +643,9 @@ void ospf_if_update_params(struct interface *ifp, struct in_addr addr)
 			continue;
 
 		if (IPV4_ADDR_SAME(&oi->address->u.prefix4, &addr))
-			oi->params = ospf_lookup_if_params(
-				ifp, oi->address->u.prefix4);
+			oi->params =
+				ospf_lookup_if_params(ifp,
+						      oi->address->u.prefix4);
 	}
 }
 
@@ -742,14 +741,13 @@ int ospf_if_is_enable(struct ospf_interface *oi)
 
 void ospf_if_set_multicast(struct ospf_interface *oi)
 {
-	if ((oi->state > ISM_Loopback) && (oi->type != OSPF_IFTYPE_LOOPBACK)
-	    && (oi->type != OSPF_IFTYPE_VIRTUALLINK)
-	    && (OSPF_IF_PASSIVE_STATUS(oi) == OSPF_IF_ACTIVE)) {
+	if ((oi->state > ISM_Loopback) && (oi->type != OSPF_IFTYPE_LOOPBACK) &&
+	    (oi->type != OSPF_IFTYPE_VIRTUALLINK) &&
+	    (OSPF_IF_PASSIVE_STATUS(oi) == OSPF_IF_ACTIVE)) {
 		/* The interface should belong to the OSPF-all-routers group. */
-		if (!OI_MEMBER_CHECK(oi, MEMBER_ALLROUTERS)
-		    && (ospf_if_add_allspfrouters(oi->ospf, oi->address,
-						  oi->ifp->ifindex)
-			>= 0))
+		if (!OI_MEMBER_CHECK(oi, MEMBER_ALLROUTERS) &&
+		    (ospf_if_add_allspfrouters(oi->ospf, oi->address,
+					       oi->ifp->ifindex) >= 0))
 			/* Set the flag only if the system call to join
 			 * succeeded. */
 			OI_MEMBER_JOINED(oi, MEMBER_ALLROUTERS);
@@ -759,8 +757,7 @@ void ospf_if_set_multicast(struct ospf_interface *oi)
 		if (OI_MEMBER_CHECK(oi, MEMBER_ALLROUTERS)) {
 			/* Only actually drop if this is the last reference */
 			if (OI_MEMBER_COUNT(oi, MEMBER_ALLROUTERS) == 1)
-				ospf_if_drop_allspfrouters(oi->ospf,
-							   oi->address,
+				ospf_if_drop_allspfrouters(oi->ospf, oi->address,
 							   oi->ifp->ifindex);
 			/* Unset the flag regardless of whether the system call
 			   to leave
@@ -771,16 +768,15 @@ void ospf_if_set_multicast(struct ospf_interface *oi)
 		}
 	}
 
-	if (((oi->type == OSPF_IFTYPE_BROADCAST)
-	     || (oi->type == OSPF_IFTYPE_POINTOPOINT))
-	    && ((oi->state == ISM_DR) || (oi->state == ISM_Backup))
-	    && (OSPF_IF_PASSIVE_STATUS(oi) == OSPF_IF_ACTIVE)) {
+	if (((oi->type == OSPF_IFTYPE_BROADCAST) ||
+	     (oi->type == OSPF_IFTYPE_POINTOPOINT)) &&
+	    ((oi->state == ISM_DR) || (oi->state == ISM_Backup)) &&
+	    (OSPF_IF_PASSIVE_STATUS(oi) == OSPF_IF_ACTIVE)) {
 		/* The interface should belong to the OSPF-designated-routers
 		 * group. */
-		if (!OI_MEMBER_CHECK(oi, MEMBER_DROUTERS)
-		    && (ospf_if_add_alldrouters(oi->ospf, oi->address,
-						oi->ifp->ifindex)
-			>= 0))
+		if (!OI_MEMBER_CHECK(oi, MEMBER_DROUTERS) &&
+		    (ospf_if_add_alldrouters(oi->ospf, oi->address,
+					     oi->ifp->ifindex) >= 0))
 			/* Set the flag only if the system call to join
 			 * succeeded. */
 			OI_MEMBER_JOINED(oi, MEMBER_DROUTERS);
@@ -821,7 +817,7 @@ int ospf_if_down(struct ospf_interface *oi)
 {
 	struct ospf *ospf;
 	struct route_node *rn;
-	struct ospf_route *or;
+	struct ospf_route * or ;
 	struct listnode *nh;
 	struct ospf_path *op;
 
@@ -837,8 +833,7 @@ int ospf_if_down(struct ospf_interface *oi)
 		struct route_node *rn = NULL;
 
 		if (ospf_interface_neighbor_count(oi)) {
-			for (rn = route_top(oi->nbrs); rn;
-			     rn = route_next(rn)) {
+			for (rn = route_top(oi->nbrs); rn; rn = route_next(rn)) {
 				struct ospf_neighbor *nbr = NULL;
 
 				if (!rn->info)
@@ -847,8 +842,8 @@ int ospf_if_down(struct ospf_interface *oi)
 				nbr = rn->info;
 
 				if (OSPF_GR_IS_ACTIVE_HELPER(nbr))
-					ospf_gr_helper_exit(
-						nbr, OSPF_GR_HELPER_TOPO_CHG);
+					ospf_gr_helper_exit(nbr,
+							    OSPF_GR_HELPER_TOPO_CHG);
 			}
 		}
 	}
@@ -865,7 +860,7 @@ int ospf_if_down(struct ospf_interface *oi)
 	for (rn = route_top(ospf->new_table); rn; rn = route_next(rn)) {
 		or = rn->info;
 
-		if (!or)
+		if (! or)
 			continue;
 
 		for (nh = listhead(or->paths); nh;
@@ -920,9 +915,8 @@ struct ospf_interface *ospf_vl_new(struct ospf *ospf,
 		zlog_debug("%s: (%s): Start", __func__, ospf_get_name(ospf));
 	if (vlink_count == OSPF_VL_MAX_COUNT) {
 		if (IS_DEBUG_OSPF_EVENT)
-			zlog_debug(
-				"%s: Alarm: cannot create more than OSPF_MAX_VL_COUNT virtual links",
-				__func__);
+			zlog_debug("%s: Alarm: cannot create more than OSPF_MAX_VL_COUNT virtual links",
+				   __func__);
 
 		return NULL;
 	}
@@ -952,9 +946,8 @@ struct ospf_interface *ospf_vl_new(struct ospf *ospf,
 	voi = ospf_if_new(ospf, vi, co->address);
 	if (voi == NULL) {
 		if (IS_DEBUG_OSPF_EVENT)
-			zlog_debug(
-				"%s: Alarm: OSPF int structure is not created",
-				__func__);
+			zlog_debug("%s: Alarm: OSPF int structure is not created",
+				   __func__);
 
 		return NULL;
 	}
@@ -1007,8 +1000,8 @@ int ospf_vl_count(struct ospf *ospf, struct ospf_area *area)
 	struct listnode *node;
 
 	for (ALL_LIST_ELEMENTS_RO(ospf->vlinks, node, vl_data)) {
-		if (area
-		    && !IPV4_ADDR_SAME(&vl_data->vl_area_id, &area->area_id))
+		if (area &&
+		    !IPV4_ADDR_SAME(&vl_data->vl_area_id, &area->area_id))
 			continue;
 		count++;
 	}
@@ -1027,18 +1020,16 @@ struct ospf_vl_data *ospf_vl_lookup(struct ospf *ospf, struct ospf_area *area,
 	if (IS_DEBUG_OSPF_EVENT) {
 		zlog_debug("%s: Looking for %pI4", __func__, &vl_peer);
 		if (area)
-			zlog_debug("%s: in area %pI4", __func__,
-				   &area->area_id);
+			zlog_debug("%s: in area %pI4", __func__, &area->area_id);
 	}
 
 	for (ALL_LIST_ELEMENTS_RO(ospf->vlinks, node, vl_data)) {
 		if (IS_DEBUG_OSPF_EVENT)
 			zlog_debug("%s: VL %s, peer %pI4", __func__,
-				   vl_data->vl_oi->ifp->name,
-				   &vl_data->vl_peer);
+				   vl_data->vl_oi->ifp->name, &vl_data->vl_peer);
 
-		if (area
-		    && !IPV4_ADDR_SAME(&vl_data->vl_area_id, &area->area_id))
+		if (area &&
+		    !IPV4_ADDR_SAME(&vl_data->vl_area_id, &area->area_id))
 			continue;
 
 		if (IPV4_ADDR_SAME(&vl_data->vl_peer, &vl_peer))
@@ -1108,8 +1099,8 @@ static int ospf_vl_set_params(struct ospf_area *area,
 		 * (calculating) node is the SPF root node
 		 */
 		if (!area->spf_dry_run) {
-			oi = ospf_if_lookup_by_lsa_pos(
-				area, vl_data->nexthop.lsa_pos);
+			oi = ospf_if_lookup_by_lsa_pos(area,
+						       vl_data->nexthop.lsa_pos);
 
 			if (!IPV4_ADDR_SAME(&voi->address->u.prefix4,
 					    &oi->address->u.prefix4))
@@ -1143,8 +1134,7 @@ static int ospf_vl_set_params(struct ospf_area *area,
 			switch (rl->link[i].type) {
 			case LSA_LINK_TYPE_VIRTUALLINK:
 				if (IS_DEBUG_OSPF_EVENT)
-					zlog_debug(
-						"found back link through VL");
+					zlog_debug("found back link through VL");
 			/* fallthru */
 			case LSA_LINK_TYPE_TRANSIT:
 			case LSA_LINK_TYPE_POINTOPOINT:
@@ -1189,8 +1179,8 @@ void ospf_vl_up_check(struct ospf_area *area, struct in_addr rid,
 				   &vl_data->vl_peer);
 		}
 
-		if (IPV4_ADDR_SAME(&vl_data->vl_peer, &rid)
-		    && IPV4_ADDR_SAME(&vl_data->vl_area_id, &area->area_id)) {
+		if (IPV4_ADDR_SAME(&vl_data->vl_peer, &rid) &&
+		    IPV4_ADDR_SAME(&vl_data->vl_area_id, &area->area_id)) {
 			oi = vl_data->vl_oi;
 			SET_FLAG(vl_data->flags, OSPF_VL_FLAG_APPROVED);
 
@@ -1199,25 +1189,22 @@ void ospf_vl_up_check(struct ospf_area *area, struct in_addr rid,
 
 			if (oi->state == ISM_Down) {
 				if (IS_DEBUG_OSPF_EVENT)
-					zlog_debug(
-						"%s: VL is down, waking it up",
-						__func__);
+					zlog_debug("%s: VL is down, waking it up",
+						   __func__);
 				SET_FLAG(oi->ifp->flags, IFF_UP);
 				OSPF_ISM_EVENT_EXECUTE(oi, ISM_InterfaceUp);
 			}
 
 			if (ospf_vl_set_params(area, vl_data, v)) {
 				if (IS_DEBUG_OSPF(ism, ISM_EVENTS))
-					zlog_debug(
-						"%s: VL cost change, scheduling router lsa refresh",
-						__func__);
+					zlog_debug("%s: VL cost change, scheduling router lsa refresh",
+						   __func__);
 				if (ospf->backbone)
 					ospf_router_lsa_update_area(
 						ospf->backbone);
 				else if (IS_DEBUG_OSPF(ism, ISM_EVENTS))
-					zlog_debug(
-						"%s: VL cost change, no backbone!",
-						__func__);
+					zlog_debug("%s: VL cost change, no backbone!",
+						   __func__);
 			}
 		}
 	}
@@ -1245,9 +1232,8 @@ void ospf_vl_shut_unapproved(struct ospf *ospf)
 int ospf_full_virtual_nbrs(struct ospf_area *area)
 {
 	if (IS_DEBUG_OSPF_EVENT) {
-		zlog_debug(
-			"counting fully adjacent virtual neighbors in area %pI4",
-			&area->area_id);
+		zlog_debug("counting fully adjacent virtual neighbors in area %pI4",
+			   &area->area_id);
 		zlog_debug("there are %d of them", area->full_vls);
 	}
 
@@ -1332,8 +1318,8 @@ uint32_t ospf_if_count_area_params(struct interface *ifp)
 		count++;
 
 	for (rn = route_top(IF_OIFS_PARAMS(ifp)); rn; rn = route_next(rn))
-		if ((params = rn->info)
-		    && OSPF_IF_PARAM_CONFIGURED(params, if_area))
+		if ((params = rn->info) &&
+		    OSPF_IF_PARAM_CONFIGURED(params, if_area))
 			count++;
 
 	return count;
@@ -1345,11 +1331,10 @@ static int ospf_ifp_create(struct interface *ifp)
 	struct ospf_if_info *oii;
 
 	if (IS_DEBUG_OSPF(zebra, ZEBRA_INTERFACE))
-		zlog_debug(
-			"Zebra: interface add %s vrf %s[%u] index %d flags %llx metric %d mtu %d speed %u status 0x%x",
-			ifp->name, ifp->vrf->name, ifp->vrf->vrf_id,
-			ifp->ifindex, (unsigned long long)ifp->flags,
-			ifp->metric, ifp->mtu, ifp->speed, ifp->status);
+		zlog_debug("Zebra: interface add %s vrf %s[%u] index %d flags %llx metric %d mtu %d speed %u status 0x%x",
+			   ifp->name, ifp->vrf->name, ifp->vrf->vrf_id,
+			   ifp->ifindex, (unsigned long long)ifp->flags,
+			   ifp->metric, ifp->mtu, ifp->speed, ifp->status);
 
 	assert(ifp->info);
 
@@ -1411,9 +1396,8 @@ static int ospf_ifp_up(struct interface *ifp)
 
 	if (oii && oii->curr_mtu != ifp->mtu) {
 		if (IS_DEBUG_OSPF(zebra, ZEBRA_INTERFACE))
-			zlog_debug(
-				"Zebra: Interface[%s] MTU change %u -> %u.",
-				ifp->name, oii->curr_mtu, ifp->mtu);
+			zlog_debug("Zebra: Interface[%s] MTU change %u -> %u.",
+				   ifp->name, oii->curr_mtu, ifp->mtu);
 
 		oii->curr_mtu = ifp->mtu;
 		/* Must reset the interface (simulate down/up) when MTU
@@ -1463,11 +1447,10 @@ static int ospf_ifp_destroy(struct interface *ifp)
 	struct route_node *rn;
 
 	if (IS_DEBUG_OSPF(zebra, ZEBRA_INTERFACE))
-		zlog_debug(
-			"Zebra: interface delete %s vrf %s[%u] index %d flags %llx metric %d mtu %d",
-			ifp->name, ifp->vrf->name, ifp->vrf->vrf_id,
-			ifp->ifindex, (unsigned long long)ifp->flags,
-			ifp->metric, ifp->mtu);
+		zlog_debug("Zebra: interface delete %s vrf %s[%u] index %d flags %llx metric %d mtu %d",
+			   ifp->name, ifp->vrf->name, ifp->vrf->vrf_id,
+			   ifp->ifindex, (unsigned long long)ifp->flags,
+			   ifp->metric, ifp->mtu);
 
 	hook_call(ospf_if_delete, ifp);
 
@@ -1539,8 +1522,8 @@ void ospf_reset_hello_timer(struct interface *ifp, struct in_addr addr,
 
 void ospf_if_init(void)
 {
-	if_zapi_callbacks(ospf_ifp_create, ospf_ifp_up,
-			  ospf_ifp_down, ospf_ifp_destroy);
+	if_zapi_callbacks(ospf_ifp_create, ospf_ifp_up, ospf_ifp_down,
+			  ospf_ifp_destroy);
 
 	/* Initialize Zebra interface data structure. */
 	hook_register_prio(if_add, 0, ospf_if_new_hook);

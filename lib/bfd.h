@@ -25,9 +25,9 @@ extern "C" {
 #define BFD_MIN_DETECT_MULT 2
 #define BFD_MAX_DETECT_MULT 255
 
-#define BFD_STATUS_UNKNOWN    (1 << 0) /* BFD session status never received */
-#define BFD_STATUS_DOWN       (1 << 1) /* BFD session status is down */
-#define BFD_STATUS_UP         (1 << 2) /* BFD session status is up */
+#define BFD_STATUS_UNKNOWN (1 << 0)    /* BFD session status never received */
+#define BFD_STATUS_DOWN (1 << 1)       /* BFD session status is down */
+#define BFD_STATUS_UP (1 << 2)	       /* BFD session status is up */
 #define BFD_STATUS_ADMIN_DOWN (1 << 3) /* BFD session is admin down */
 
 #define BFD_PROFILE_NAME_LEN 64

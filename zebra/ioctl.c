@@ -41,7 +41,7 @@ int if_ioctl(unsigned long request, caddr_t buffer)
 	int ret;
 	int err = 0;
 
-	frr_with_privs(&zserv_privs) {
+	frr_with_privs (&zserv_privs) {
 		sock = socket(AF_INET, SOCK_DGRAM, 0);
 		if (sock < 0) {
 			zlog_err("Cannot create UDP socket: %s",
@@ -68,7 +68,7 @@ int vrf_if_ioctl(unsigned long request, caddr_t buffer, vrf_id_t vrf_id)
 	int ret;
 	int err = 0;
 
-	frr_with_privs(&zserv_privs) {
+	frr_with_privs (&zserv_privs) {
 		sock = vrf_socket(AF_INET, SOCK_DGRAM, 0, vrf_id, NULL);
 		if (sock < 0) {
 			zlog_err("Cannot create UDP socket: %s",
@@ -95,7 +95,7 @@ static int if_ioctl_ipv6(unsigned long request, caddr_t buffer)
 	int ret;
 	int err = 0;
 
-	frr_with_privs(&zserv_privs) {
+	frr_with_privs (&zserv_privs) {
 		sock = socket(AF_INET6, SOCK_DGRAM, 0);
 		if (sock < 0) {
 			zlog_err("Cannot create IPv6 datagram socket: %s",
@@ -179,8 +179,7 @@ static int if_unset_prefix_ctx(const struct zebra_dplane_ctx *ctx);
 static int if_set_prefix6_ctx(const struct zebra_dplane_ctx *ctx);
 static int if_unset_prefix6_ctx(const struct zebra_dplane_ctx *ctx);
 
-enum zebra_dplane_result kernel_address_update_ctx(
-	struct zebra_dplane_ctx *ctx)
+enum zebra_dplane_result kernel_address_update_ctx(struct zebra_dplane_ctx *ctx)
 {
 	int ret = -1;
 	const struct prefix *p;
@@ -202,8 +201,8 @@ enum zebra_dplane_result kernel_address_update_ctx(
 			zlog_debug("Invalid op in interface-addr install");
 	}
 
-	return (ret == 0 ?
-		ZEBRA_DPLANE_REQUEST_SUCCESS : ZEBRA_DPLANE_REQUEST_FAILURE);
+	return (ret == 0 ? ZEBRA_DPLANE_REQUEST_SUCCESS
+			 : ZEBRA_DPLANE_REQUEST_FAILURE);
 }
 
 #ifdef HAVE_STRUCT_IFALIASREQ
@@ -256,7 +255,6 @@ static int if_set_prefix_ctx(const struct zebra_dplane_ctx *ctx)
 	if (ret < 0)
 		return ret;
 	return 0;
-
 }
 
 /*
@@ -346,8 +344,7 @@ int if_set_prefix_ctx(const struct zebra_dplane_ctx *ctx)
 			(addr.sin_addr.s_addr | ~mask.sin_addr.s_addr);
 		broad.sin_family = p->family;
 
-		memcpy(&ifreq.ifr_broadaddr, &broad,
-		       sizeof(struct sockaddr_in));
+		memcpy(&ifreq.ifr_broadaddr, &broad, sizeof(struct sockaddr_in));
 		ret = if_ioctl(SIOCSIFBRDADDR, (caddr_t)&ifreq);
 		if (ret < 0)
 			return ret;
@@ -398,8 +395,7 @@ void if_get_flags(struct interface *ifp)
 	ifreq_set_name(&ifreqflags, ifp);
 	ifreq_set_name(&ifreqdata, ifp);
 
-	ret = vrf_if_ioctl(SIOCGIFFLAGS, (caddr_t)&ifreqflags,
-			   ifp->vrf->vrf_id);
+	ret = vrf_if_ioctl(SIOCGIFFLAGS, (caddr_t)&ifreqflags, ifp->vrf->vrf_id);
 	if (ret < 0) {
 		flog_err_sys(EC_LIB_SYSTEM_CALL,
 			     "vrf_if_ioctl(SIOCGIFFLAGS %s) failed: %s",
@@ -410,18 +406,18 @@ void if_get_flags(struct interface *ifp)
 	if (!CHECK_FLAG(ifp->status, ZEBRA_INTERFACE_LINKDETECTION))
 		goto out;
 
-	/* Per-default, IFF_RUNNING is held high, unless link-detect
-	 * says otherwise - we abuse IFF_RUNNING inside zebra as a
-	 * link-state flag, following practice on Linux and Solaris
-	 * kernels
-	 */
+		/* Per-default, IFF_RUNNING is held high, unless link-detect
+		 * says otherwise - we abuse IFF_RUNNING inside zebra as a
+		 * link-state flag, following practice on Linux and Solaris
+		 * kernels
+		 */
 
 #ifdef SIOCGIFDATA
-	/*
-	 * BSD gets link state from ifi_link_link in struct if_data.
-	 * All BSD's have this in getifaddrs(3) ifa_data for AF_LINK
-	 * addresses. We can also access it via SIOCGIFDATA.
-	 */
+		/*
+		 * BSD gets link state from ifi_link_link in struct if_data.
+		 * All BSD's have this in getifaddrs(3) ifa_data for AF_LINK
+		 * addresses. We can also access it via SIOCGIFDATA.
+		 */
 
 #ifdef __NetBSD__
 	struct ifdatareq ifdr = {.ifdr_data.ifi_link_state = 0};
@@ -549,8 +545,8 @@ static int if_set_prefix6_ctx(const struct zebra_dplane_ctx *ctx)
 	p = (struct prefix_ipv6 *)dplane_ctx_get_intf_addr(ctx);
 
 	memset(&addreq, 0, sizeof(addreq));
-	strlcpy((char *)&addreq.ifra_name,
-		dplane_ctx_get_ifname(ctx), sizeof(addreq.ifra_name));
+	strlcpy((char *)&addreq.ifra_name, dplane_ctx_get_ifname(ctx),
+		sizeof(addreq.ifra_name));
 
 	memset(&addr, 0, sizeof(addr));
 	addr.sin6_addr = p->prefix;
@@ -596,8 +592,8 @@ static int if_unset_prefix6_ctx(const struct zebra_dplane_ctx *ctx)
 	p = (struct prefix_ipv6 *)dplane_ctx_get_intf_addr(ctx);
 
 	memset(&addreq, 0, sizeof(addreq));
-	strlcpy((char *)&addreq.ifra_name,
-		dplane_ctx_get_ifname(ctx), sizeof(addreq.ifra_name));
+	strlcpy((char *)&addreq.ifra_name, dplane_ctx_get_ifname(ctx),
+		sizeof(addreq.ifra_name));
 
 	memset(&addr, 0, sizeof(addr));
 	addr.sin6_addr = p->prefix;

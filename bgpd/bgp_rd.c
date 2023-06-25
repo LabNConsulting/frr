@@ -204,8 +204,7 @@ char *prefix_rd2str(const struct prefix_rd *prd, char *buf, size_t size,
 	return buf;
 }
 
-void form_auto_rd(struct in_addr router_id,
-		  uint16_t rd_id,
+void form_auto_rd(struct in_addr router_id, uint16_t rd_id,
 		  struct prefix_rd *prd)
 {
 	char buf[100];

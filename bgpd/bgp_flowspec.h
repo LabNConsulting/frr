@@ -6,11 +6,11 @@
 #ifndef _FRR_BGP_FLOWSPEC_H
 #define _FRR_BGP_FLOWSPEC_H
 
-#define NLRI_STRING_FORMAT_LARGE        0
-#define NLRI_STRING_FORMAT_DEBUG        1
-#define NLRI_STRING_FORMAT_MIN          2
-#define NLRI_STRING_FORMAT_JSON         3
-#define NLRI_STRING_FORMAT_JSON_SIMPLE  4
+#define NLRI_STRING_FORMAT_LARGE 0
+#define NLRI_STRING_FORMAT_DEBUG 1
+#define NLRI_STRING_FORMAT_MIN 2
+#define NLRI_STRING_FORMAT_JSON 3
+#define NLRI_STRING_FORMAT_JSON_SIMPLE 4
 
 #define BGP_FLOWSPEC_NLRI_STRING_MAX 512
 
@@ -28,14 +28,13 @@ extern int bgp_show_table_flowspec(struct vty *vty, struct bgp *bgp, afi_t afi,
 
 extern void bgp_fs_nlri_get_string(unsigned char *nlri_content, size_t len,
 				   char *return_string, int format,
-				   json_object *json_path,
-				   afi_t afi);
+				   json_object *json_path, afi_t afi);
 
 extern void route_vty_out_flowspec(struct vty *vty, const struct prefix *p,
 				   struct bgp_path_info *path, int display,
 				   json_object *json_paths);
-extern int bgp_fs_config_write_pbr(struct vty *vty, struct bgp *bgp,
-				   afi_t afi, safi_t safi);
+extern int bgp_fs_config_write_pbr(struct vty *vty, struct bgp *bgp, afi_t afi,
+				   safi_t safi);
 
 extern int bgp_flowspec_display_match_per_ip(afi_t afi, struct bgp_table *rib,
 					     struct prefix *match,

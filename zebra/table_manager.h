@@ -35,7 +35,7 @@ struct table_manager_chunk {
 	uint8_t proto;
 	uint16_t instance;
 	uint32_t start; /* First table RT ID of the chunk */
-	uint32_t end;   /* Last table RT ID of the chunk */
+	uint32_t end;	/* Last table RT ID of the chunk */
 };
 
 /*

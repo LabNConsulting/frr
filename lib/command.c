@@ -319,8 +319,7 @@ void _install_element(enum node_type ntype, const struct cmd_element *cmd)
 		struct graph *graph = graph_new();
 		struct cmd_token *token =
 			cmd_token_new(START_TKN, 0, NULL, NULL);
-		graph_new_node(graph, token,
-			       (void (*)(void *)) & cmd_token_del);
+		graph_new_node(graph, token, (void (*)(void *)) & cmd_token_del);
 
 		cmd_graph_parse(graph, cmd);
 		cmd_graph_names(graph);
@@ -397,8 +396,7 @@ void uninstall_element(enum node_type ntype, const struct cmd_element *cmd)
 		struct graph *graph = graph_new();
 		struct cmd_token *token =
 			cmd_token_new(START_TKN, 0, NULL, NULL);
-		graph_new_node(graph, token,
-			       (void (*)(void *)) & cmd_token_del);
+		graph_new_node(graph, token, (void (*)(void *)) & cmd_token_del);
 
 		cmd_graph_parse(graph, cmd);
 		cmd_graph_names(graph);
@@ -514,14 +512,12 @@ static int config_write_host(struct vty *vty)
 			vty_out(vty, "service password-encryption\n");
 
 		if (host.lines >= 0)
-			vty_out(vty, "service terminal-length %d\n",
-				host.lines);
+			vty_out(vty, "service terminal-length %d\n", host.lines);
 
 		if (host.motdfile)
 			vty_out(vty, "banner motd file %s\n", host.motdfile);
-		else if (host.motd
-			 && strncmp(host.motd, FRR_DEFAULT_MOTD,
-				    strlen(host.motd)))
+		else if (host.motd && strncmp(host.motd, FRR_DEFAULT_MOTD,
+					      strlen(host.motd)))
 			vty_out(vty, "banner motd line %s\n", host.motd);
 		else if (!host.motd)
 			vty_out(vty, "no banner motd\n");
@@ -544,8 +540,8 @@ static struct graph *cmd_node_graph(vector v, enum node_type ntype)
 
 static int cmd_try_do_shortcut(enum node_type node, char *first_word)
 {
-	if (first_word != NULL && node != AUTH_NODE && node != VIEW_NODE
-	    && node != AUTH_ENABLE_NODE && 0 == strcmp("do", first_word))
+	if (first_word != NULL && node != AUTH_NODE && node != VIEW_NODE &&
+	    node != AUTH_ENABLE_NODE && 0 == strcmp("do", first_word))
 		return 1;
 	return 0;
 }
@@ -556,8 +552,8 @@ static int cmd_try_do_shortcut(enum node_type node, char *first_word)
  */
 static int compare_completions(const void *fst, const void *snd)
 {
-	const struct cmd_token *first = *(const struct cmd_token * const *)fst,
-			       *secnd = *(const struct cmd_token * const *)snd;
+	const struct cmd_token *first = *(const struct cmd_token *const *)fst,
+			       *secnd = *(const struct cmd_token *const *)snd;
 	return strcmp(first->text, secnd->text);
 }
 
@@ -585,8 +581,8 @@ vector completions_to_vec(struct list *completions)
 		for (i = 0; i < vector_active(comps) && !exists; i++) {
 			struct cmd_token *curr = vector_slot(comps, i);
 #ifdef VTYSH_DEBUG
-			exists = !strcmp(curr->text, token->text)
-				 && !strcmp(curr->desc, token->desc);
+			exists = !strcmp(curr->text, token->text) &&
+				 !strcmp(curr->desc, token->desc);
 #else
 			exists = !strcmp(curr->text, token->text);
 #endif /* VTYSH_DEBUG */
@@ -700,8 +696,8 @@ void cmd_variable_complete(struct cmd_token *token, const char *arg,
 	for (ALL_LIST_ELEMENTS_RO(varhandlers, ln, cvh)) {
 		if (cvh->tokenname && strcmp(cvh->tokenname, token->text))
 			continue;
-		if (cvh->varname && (!token->varname
-				     || strcmp(cvh->varname, token->varname)))
+		if (cvh->varname &&
+		    (!token->varname || strcmp(cvh->varname, token->varname)))
 			continue;
 		cvh->completions(tmpcomps, token);
 		break;
@@ -766,13 +762,11 @@ void cmd_variable_handler_register(const struct cmd_variable_handler *cvh)
 		listnode_add(varhandlers, (void *)cvh);
 }
 
-DEFUN_HIDDEN (autocomplete,
-              autocomplete_cmd,
-              "autocomplete TYPE TEXT VARNAME",
-              "Autocompletion handler (internal, for vtysh)\n"
-              "cmd_token->type\n"
-              "cmd_token->text\n"
-              "cmd_token->varname\n")
+DEFUN_HIDDEN(autocomplete, autocomplete_cmd, "autocomplete TYPE TEXT VARNAME",
+	     "Autocompletion handler (internal, for vtysh)\n"
+	     "cmd_token->type\n"
+	     "cmd_token->text\n"
+	     "cmd_token->varname\n")
 {
 	struct cmd_token tok;
 	vector comps = vector_init(32);
@@ -835,15 +829,15 @@ char **cmd_complete_command(vector vline, struct vty *vty, int *status)
 		// filter out everything that is not suitable for a
 		// tab-completion
 		comps = vector_init(VECTOR_MIN_SIZE);
-		for (unsigned int i = 0; i < vector_active(initial_comps);
-		     i++) {
+		for (unsigned int i = 0; i < vector_active(initial_comps); i++) {
 			struct cmd_token *token = vector_slot(initial_comps, i);
 			if (token->type == WORD_TKN)
 				vector_set(comps, XSTRDUP(MTYPE_COMPLETION,
 							  token->text));
 			else if (IS_VARYING_TOKEN(token->type)) {
-				const char *ref = vector_lookup(
-					vline, vector_active(vline) - 1);
+				const char *ref =
+					vector_lookup(vline,
+						      vector_active(vline) - 1);
 				cmd_variable_complete(token, ref, comps);
 			}
 		}
@@ -956,8 +950,9 @@ static int cmd_execute_command_real(vector vline, enum cmd_filter_type filter,
 		cmd_exit(vty);
 
 	// build argv array from argv list
-	struct cmd_token **argv = XMALLOC(
-		MTYPE_TMP, argv_list->count * sizeof(struct cmd_token *));
+	struct cmd_token **argv =
+		XMALLOC(MTYPE_TMP,
+			argv_list->count * sizeof(struct cmd_token *));
 	struct listnode *ln;
 	struct cmd_token *token;
 
@@ -977,9 +972,9 @@ static int cmd_execute_command_real(vector vline, enum cmd_filter_type filter,
 			memset(&vty->cfg_changes, 0, sizeof(vty->cfg_changes));
 
 			/* Regenerate candidate configuration if necessary. */
-			if (frr_get_cli_mode() == FRR_CLI_CLASSIC
-			    && running_config->version
-				       > vty->candidate_config->version)
+			if (frr_get_cli_mode() == FRR_CLI_CLASSIC &&
+			    running_config->version >
+				    vty->candidate_config->version)
 				nb_config_replace(vty->candidate_config,
 						  running_config, true);
 
@@ -1056,9 +1051,9 @@ int cmd_execute_command(vector vline, struct vty *vty,
 	if (vtysh)
 		return saved_ret;
 
-	if (ret != CMD_SUCCESS && ret != CMD_WARNING
-	    && ret != CMD_ERR_AMBIGUOUS && ret != CMD_ERR_INCOMPLETE
-	    && ret != CMD_NOT_MY_INSTANCE && ret != CMD_WARNING_CONFIG_FAILED) {
+	if (ret != CMD_SUCCESS && ret != CMD_WARNING &&
+	    ret != CMD_ERR_AMBIGUOUS && ret != CMD_ERR_INCOMPLETE &&
+	    ret != CMD_NOT_MY_INSTANCE && ret != CMD_WARNING_CONFIG_FAILED) {
 		/* This assumes all nodes above CONFIG_NODE are childs of
 		 * CONFIG_NODE */
 		while (vty->node > CONFIG_NODE) {
@@ -1071,10 +1066,11 @@ int cmd_execute_command(vector vline, struct vty *vty,
 
 			ret = cmd_execute_command_real(vline, FILTER_RELAXED,
 						       vty, cmd, 0);
-			if (ret == CMD_SUCCESS || ret == CMD_WARNING
-			    || ret == CMD_ERR_AMBIGUOUS || ret == CMD_ERR_INCOMPLETE
-			    || ret == CMD_NOT_MY_INSTANCE
-			    || ret == CMD_WARNING_CONFIG_FAILED)
+			if (ret == CMD_SUCCESS || ret == CMD_WARNING ||
+			    ret == CMD_ERR_AMBIGUOUS ||
+			    ret == CMD_ERR_INCOMPLETE ||
+			    ret == CMD_NOT_MY_INSTANCE ||
+			    ret == CMD_WARNING_CONFIG_FAILED)
 				return ret;
 		}
 		/* no command succeeded, reset the vty to the original node */
@@ -1126,16 +1122,15 @@ int cmd_execute_command_strict(vector vline, struct vty *vty,
  * cmd_out
  *    The result of any processing.
  */
-DECLARE_HOOK(cmd_execute,
-	     (struct vty *vty, const char *cmd_in, char **cmd_out),
+DECLARE_HOOK(cmd_execute, (struct vty * vty, const char *cmd_in, char **cmd_out),
 	     (vty, cmd_in, cmd_out));
-DEFINE_HOOK(cmd_execute, (struct vty *vty, const char *cmd_in, char **cmd_out),
+DEFINE_HOOK(cmd_execute, (struct vty * vty, const char *cmd_in, char **cmd_out),
 	    (vty, cmd_in, cmd_out));
 
 /* Hook executed after a CLI command. */
-DECLARE_KOOH(cmd_execute_done, (struct vty *vty, const char *cmd_exec),
+DECLARE_KOOH(cmd_execute_done, (struct vty * vty, const char *cmd_exec),
 	     (vty, cmd_exec));
-DEFINE_KOOH(cmd_execute_done, (struct vty *vty, const char *cmd_exec),
+DEFINE_KOOH(cmd_execute_done, (struct vty * vty, const char *cmd_exec),
 	    (vty, cmd_exec));
 
 /*
@@ -1247,8 +1242,7 @@ free:
  * @return The status of the command that has been executed or an error code
  *         as to why no command could be executed.
  */
-int command_config_read_one_line(struct vty *vty,
-				 const struct cmd_element **cmd,
+int command_config_read_one_line(struct vty *vty, const struct cmd_element **cmd,
 				 uint32_t line_num, int use_daemon)
 {
 	vector vline;
@@ -1268,20 +1262,19 @@ int command_config_read_one_line(struct vty *vty,
 	 * since calling ->node_exit() correctly is a bit involved.  This is
 	 * also the only reason CMD_NO_LEVEL_UP exists.
 	 */
-	while (!(use_daemon && ret == CMD_SUCCESS_DAEMON)
-	       && !(!use_daemon && ret == CMD_ERR_NOTHING_TODO)
-	       && ret != CMD_SUCCESS && ret != CMD_WARNING
-	       && ret != CMD_ERR_AMBIGUOUS && ret != CMD_ERR_INCOMPLETE
-	       && ret != CMD_NOT_MY_INSTANCE && ret != CMD_WARNING_CONFIG_FAILED
-	       && ret != CMD_NO_LEVEL_UP)
+	while (!(use_daemon && ret == CMD_SUCCESS_DAEMON) &&
+	       !(!use_daemon && ret == CMD_ERR_NOTHING_TODO) &&
+	       ret != CMD_SUCCESS && ret != CMD_WARNING &&
+	       ret != CMD_ERR_AMBIGUOUS && ret != CMD_ERR_INCOMPLETE &&
+	       ret != CMD_NOT_MY_INSTANCE && ret != CMD_WARNING_CONFIG_FAILED &&
+	       ret != CMD_NO_LEVEL_UP)
 		ret = cmd_execute_command_real(vline, FILTER_STRICT, vty, cmd,
 					       ++up_level);
 
 	if (ret == CMD_NO_LEVEL_UP)
 		ret = CMD_ERR_NO_MATCH;
 
-	if (ret != CMD_SUCCESS &&
-	    ret != CMD_WARNING &&
+	if (ret != CMD_SUCCESS && ret != CMD_WARNING &&
 	    ret != CMD_SUCCESS_DAEMON) {
 		struct vty_error *ve = XCALLOC(MTYPE_TMP, sizeof(*ve));
 
@@ -1318,8 +1311,8 @@ int config_from_file(struct vty *vty, FILE *fp, unsigned int *line_num)
 
 		ret = command_config_read_one_line(vty, NULL, *line_num, 0);
 
-		if (ret != CMD_SUCCESS && ret != CMD_WARNING
-		    && ret != CMD_ERR_NOTHING_TODO)
+		if (ret != CMD_SUCCESS && ret != CMD_WARNING &&
+		    ret != CMD_ERR_NOTHING_TODO)
 			error_ret = ret;
 	}
 
@@ -1331,25 +1324,20 @@ int config_from_file(struct vty *vty, FILE *fp, unsigned int *line_num)
 }
 
 /* Configuration from terminal */
-DEFUN (config_terminal,
-       config_terminal_cmd,
-       "configure [terminal [file-lock]]",
-       "Configuration from vty interface\n"
-       "Configuration with locked datastores\n"
-       "Configuration terminal\n")
+DEFUN(config_terminal, config_terminal_cmd, "configure [terminal [file-lock]]",
+      "Configuration from vty interface\n"
+      "Configuration with locked datastores\n"
+      "Configuration terminal\n")
 {
 	return vty_config_enter(vty, false, false, argc == 3);
 }
 
 /* Enable command */
-DEFUN (enable,
-       config_enable_cmd,
-       "enable",
-       "Turn on privileged mode command\n")
+DEFUN(enable, config_enable_cmd, "enable", "Turn on privileged mode command\n")
 {
 	/* If enable password is NULL, change to ENABLE_NODE */
-	if ((host.enable == NULL && host.enable_encrypt == NULL)
-	    || vty->type == VTY_SHELL_SERV)
+	if ((host.enable == NULL && host.enable_encrypt == NULL) ||
+	    vty->type == VTY_SHELL_SERV)
 		vty->node = ENABLE_NODE;
 	else
 		vty->node = AUTH_ENABLE_NODE;
@@ -1358,10 +1346,8 @@ DEFUN (enable,
 }
 
 /* Disable command */
-DEFUN (disable,
-       config_disable_cmd,
-       "disable",
-       "Turn off privileged mode command\n")
+DEFUN(disable, config_disable_cmd, "disable",
+      "Turn off privileged mode command\n")
 {
 	if (vty->node == ENABLE_NODE)
 		vty->node = VIEW_NODE;
@@ -1369,10 +1355,8 @@ DEFUN (disable,
 }
 
 /* Down vty node level. */
-DEFUN (config_exit,
-       config_exit_cmd,
-       "exit",
-       "Exit current mode and down to previous mode\n")
+DEFUN(config_exit, config_exit_cmd, "exit",
+      "Exit current mode and down to previous mode\n")
 {
 	cmd_exit(vty);
 	return CMD_SUCCESS;
@@ -1402,20 +1386,16 @@ void cmd_exit(struct vty *vty)
 }
 
 /* ALIAS_FIXME */
-DEFUN (config_quit,
-       config_quit_cmd,
-       "quit",
-       "Exit current mode and down to previous mode\n")
+DEFUN(config_quit, config_quit_cmd, "quit",
+      "Exit current mode and down to previous mode\n")
 {
 	return config_exit(self, vty, argc, argv);
 }
 
 
 /* End of configuration. */
-DEFUN (config_end,
-       config_end_cmd,
-       "end",
-       "End current mode and change to enable mode.\n")
+DEFUN(config_end, config_end_cmd, "end",
+      "End current mode and change to enable mode.\n")
 {
 	if (vty->config) {
 		vty_config_exit(vty);
@@ -1425,11 +1405,8 @@ DEFUN (config_end,
 }
 
 /* Show version. */
-DEFUN (show_version,
-       show_version_cmd,
-       "show version",
-       SHOW_STR
-       "Displays zebra version\n")
+DEFUN(show_version, show_version_cmd, "show version",
+      SHOW_STR "Displays zebra version\n")
 {
 	vty_out(vty, "%s %s (%s) on %s(%s).\n", FRR_FULL_NAME, FRR_VERSION,
 		cmd_hostname_get() ? cmd_hostname_get() : "", cmd_system_get(),
@@ -1442,10 +1419,8 @@ DEFUN (show_version,
 }
 
 /* Help display function for all node. */
-DEFUN (config_help,
-       config_help_cmd,
-       "help",
-       "Description of the interactive help system\n")
+DEFUN(config_help, config_help_cmd, "help",
+      "Description of the interactive help system\n")
 {
 	vty_out(vty,
 		"Quagga VTY provides advanced help feature.  When you need help,\n\
@@ -1577,31 +1552,25 @@ int cmd_list_cmds(struct vty *vty, int do_permute)
 }
 
 /* Help display function for all node. */
-DEFUN (config_list,
-       config_list_cmd,
-       "list [permutations]",
-       "Print command list\n"
-       "Print all possible command permutations\n")
+DEFUN(config_list, config_list_cmd, "list [permutations]",
+      "Print command list\n"
+      "Print all possible command permutations\n")
 {
 	return cmd_list_cmds(vty, argc == 2);
 }
 
-DEFUN (show_commandtree,
-       show_commandtree_cmd,
-       "show commandtree [permutations]",
-       SHOW_STR
-       "Show command tree\n"
-       "Permutations that we are interested in\n")
+DEFUN(show_commandtree, show_commandtree_cmd, "show commandtree [permutations]",
+      SHOW_STR
+      "Show command tree\n"
+      "Permutations that we are interested in\n")
 {
 	return cmd_list_cmds(vty, argc == 3);
 }
 
-DEFUN_HIDDEN(show_cli_graph,
-             show_cli_graph_cmd,
-             "show cli graph",
-             SHOW_STR
-             "CLI reflection\n"
-             "Dump current command space as DOT graph\n")
+DEFUN_HIDDEN(show_cli_graph, show_cli_graph_cmd, "show cli graph",
+	     SHOW_STR
+	     "CLI reflection\n"
+	     "Dump current command space as DOT graph\n")
 {
 	struct cmd_node *cn = vector_slot(cmdvec, vty->node);
 	char *dot;
@@ -1663,8 +1632,7 @@ static int file_write_config(struct vty *vty)
 
 	/* Check and see if we are operating under vtysh configuration */
 	if (host.config == NULL) {
-		vty_out(vty,
-			"Can't save to configuration file, using vtysh.\n");
+		vty_out(vty, "Can't save to configuration file, using vtysh.\n");
 		return CMD_WARNING;
 	}
 
@@ -1684,7 +1652,8 @@ static int file_write_config(struct vty *vty)
 		dirfd = open(".", O_DIRECTORY | O_RDONLY);
 	/* if dirfd is invalid, directory sync fails, but we're still OK */
 
-	size_t config_file_sav_sz = strlen(config_file) + strlen(CONF_BACKUP_EXT) + 1;
+	size_t config_file_sav_sz =
+		strlen(config_file) + strlen(CONF_BACKUP_EXT) + 1;
 	config_file_sav = XMALLOC(MTYPE_TMP, config_file_sav_sz);
 	strlcpy(config_file_sav, config_file, config_file_sav_sz);
 	strlcat(config_file_sav, CONF_BACKUP_EXT, config_file_sav_sz);
@@ -1728,8 +1697,7 @@ static int file_write_config(struct vty *vty)
 				goto finished;
 			}
 		if (link(config_file, config_file_sav) != 0) {
-			vty_out(vty,
-				"Can't backup old configuration file %s.\n",
+			vty_out(vty, "Can't backup old configuration file %s.\n",
 				config_file_sav);
 			goto finished;
 		}
@@ -1737,8 +1705,7 @@ static int file_write_config(struct vty *vty)
 			fsync(dirfd);
 	}
 	if (rename(config_file_tmp, config_file) != 0) {
-		vty_out(vty, "Can't save configuration file %s.\n",
-			config_file);
+		vty_out(vty, "Can't save configuration file %s.\n", config_file);
 		goto finished;
 	}
 	if (dirfd >= 0)
@@ -1759,13 +1726,11 @@ finished:
 
 /* Write current configuration into file. */
 
-DEFUN (config_write,
-       config_write_cmd,
-       "write [<file|memory|terminal>]",
-       "Write running configuration to memory, network, or terminal\n"
-       "Write to configuration file\n"
-       "Write configuration currently in memory\n"
-       "Write configuration to terminal\n")
+DEFUN(config_write, config_write_cmd, "write [<file|memory|terminal>]",
+      "Write running configuration to memory, network, or terminal\n"
+      "Write to configuration file\n"
+      "Write configuration currently in memory\n"
+      "Write configuration to terminal\n")
 {
 	const int idx_type = 1;
 
@@ -1778,33 +1743,26 @@ DEFUN (config_write,
 }
 
 /* ALIAS_FIXME for 'write <terminal|memory>' */
-DEFUN (show_running_config,
-       show_running_config_cmd,
-       "show running-config",
-       SHOW_STR
-       "running configuration (same as write terminal)\n")
+DEFUN(show_running_config, show_running_config_cmd, "show running-config",
+      SHOW_STR "running configuration (same as write terminal)\n")
 {
 	return vty_write_config(vty);
 }
 
 /* ALIAS_FIXME for 'write file' */
-DEFUN (copy_runningconf_startupconf,
-       copy_runningconf_startupconf_cmd,
-       "copy running-config startup-config",
-       "Copy configuration\n"
-       "Copy running config to... \n"
-       "Copy running config to startup config (same as write file/memory)\n")
+DEFUN(copy_runningconf_startupconf, copy_runningconf_startupconf_cmd,
+      "copy running-config startup-config",
+      "Copy configuration\n"
+      "Copy running config to... \n"
+      "Copy running config to startup config (same as write file/memory)\n")
 {
 	return file_write_config(vty);
 }
 /** -- **/
 
 /* Write startup configuration into the terminal. */
-DEFUN (show_startup_config,
-       show_startup_config_cmd,
-       "show startup-config",
-       SHOW_STR
-       "Contents of startup configuration\n")
+DEFUN(show_startup_config, show_startup_config_cmd, "show startup-config",
+      SHOW_STR "Contents of startup configuration\n")
 {
 	char buf[BUFSIZ];
 	FILE *confp;
@@ -1844,9 +1802,7 @@ int cmd_domainname_set(const char *domainname)
 }
 
 /* Hostname configuration */
-DEFUN(config_domainname,
-      domainname_cmd,
-      "domainname WORD",
+DEFUN(config_domainname, domainname_cmd, "domainname WORD",
       "Set system's domain name\n"
       "This system's domain name\n")
 {
@@ -1860,9 +1816,7 @@ DEFUN(config_domainname,
 	return cmd_domainname_set(word->arg);
 }
 
-DEFUN(config_no_domainname,
-      no_domainname_cmd,
-      "no domainname [DOMAINNAME]",
+DEFUN(config_no_domainname, no_domainname_cmd, "no domainname [DOMAINNAME]",
       NO_STR
       "Reset system's domain name\n"
       "domain name of this router\n")
@@ -1878,17 +1832,15 @@ int cmd_hostname_set(const char *hostname)
 }
 
 /* Hostname configuration */
-DEFUN (config_hostname,
-       hostname_cmd,
-       "hostname WORD",
-       "Set system's network name\n"
-       "This system's network name\n")
+DEFUN(config_hostname, hostname_cmd, "hostname WORD",
+      "Set system's network name\n"
+      "This system's network name\n")
 {
 	struct cmd_token *word = argv[1];
 
 	if (!isalnum((unsigned char)word->arg[0])) {
 		vty_out(vty,
-		    "Please specify string starting with alphabet or number\n");
+			"Please specify string starting with alphabet or number\n");
 		return CMD_WARNING_CONFIG_FAILED;
 	}
 
@@ -1902,23 +1854,19 @@ DEFUN (config_hostname,
 	return cmd_hostname_set(word->arg);
 }
 
-DEFUN (config_no_hostname,
-       no_hostname_cmd,
-       "no hostname [HOSTNAME]",
-       NO_STR
-       "Reset system's network name\n"
-       "Host name of this router\n")
+DEFUN(config_no_hostname, no_hostname_cmd, "no hostname [HOSTNAME]",
+      NO_STR
+      "Reset system's network name\n"
+      "Host name of this router\n")
 {
 	return cmd_hostname_set(NULL);
 }
 
 /* VTY interface password set. */
-DEFUN (config_password,
-       password_cmd,
-       "password [(8-8)] WORD",
-       "Modify the terminal connection password\n"
-       "Specifies a HIDDEN password will follow\n"
-       "The password string\n")
+DEFUN(config_password, password_cmd, "password [(8-8)] WORD",
+      "Modify the terminal connection password\n"
+      "Specifies a HIDDEN password will follow\n"
+      "The password string\n")
 {
 	int idx_8 = 1;
 	int idx_word = 2;
@@ -1929,8 +1877,7 @@ DEFUN (config_password,
 		host.password = NULL;
 		if (host.password_encrypt)
 			XFREE(MTYPE_HOST, host.password_encrypt);
-		host.password_encrypt =
-			XSTRDUP(MTYPE_HOST, argv[idx_word]->arg);
+		host.password_encrypt = XSTRDUP(MTYPE_HOST, argv[idx_word]->arg);
 		return CMD_SUCCESS;
 	}
 
@@ -1956,11 +1903,8 @@ DEFUN (config_password,
 }
 
 /* VTY interface password delete. */
-DEFUN (no_config_password,
-       no_password_cmd,
-       "no password",
-       NO_STR
-       "Modify the terminal connection password\n")
+DEFUN(no_config_password, no_password_cmd, "no password",
+      NO_STR "Modify the terminal connection password\n")
 {
 	bool warned = false;
 
@@ -1984,13 +1928,12 @@ DEFUN (no_config_password,
 }
 
 /* VTY enable password set. */
-DEFUN (config_enable_password,
-       enable_password_cmd,
-       "enable password [(8-8)] WORD",
-       "Modify enable password parameters\n"
-       "Assign the privileged level password\n"
-       "Specifies a HIDDEN password will follow\n"
-       "The HIDDEN 'enable' password string\n")
+DEFUN(config_enable_password, enable_password_cmd,
+      "enable password [(8-8)] WORD",
+      "Modify enable password parameters\n"
+      "Assign the privileged level password\n"
+      "Specifies a HIDDEN password will follow\n"
+      "The HIDDEN 'enable' password string\n")
 {
 	int idx_8 = 2;
 	int idx_word = 3;
@@ -2037,12 +1980,10 @@ DEFUN (config_enable_password,
 }
 
 /* VTY enable password delete. */
-DEFUN (no_config_enable_password,
-       no_enable_password_cmd,
-       "no enable password",
-       NO_STR
-       "Modify enable password parameters\n"
-       "Assign the privileged level password\n")
+DEFUN(no_config_enable_password, no_enable_password_cmd, "no enable password",
+      NO_STR
+      "Modify enable password parameters\n"
+      "Assign the privileged level password\n")
 {
 	bool warned = false;
 
@@ -2065,11 +2006,10 @@ DEFUN (no_config_enable_password,
 	return CMD_SUCCESS;
 }
 
-DEFUN (service_password_encrypt,
-       service_password_encrypt_cmd,
-       "service password-encryption",
-       "Set up miscellaneous service\n"
-       "Enable encrypted passwords\n")
+DEFUN(service_password_encrypt, service_password_encrypt_cmd,
+      "service password-encryption",
+      "Set up miscellaneous service\n"
+      "Enable encrypted passwords\n")
 {
 	if (host.encrypt)
 		return CMD_SUCCESS;
@@ -2085,19 +2025,17 @@ DEFUN (service_password_encrypt,
 	if (host.enable) {
 		if (host.enable_encrypt)
 			XFREE(MTYPE_HOST, host.enable_encrypt);
-		host.enable_encrypt =
-			XSTRDUP(MTYPE_HOST, zencrypt(host.enable));
+		host.enable_encrypt = XSTRDUP(MTYPE_HOST, zencrypt(host.enable));
 	}
 
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_service_password_encrypt,
-       no_service_password_encrypt_cmd,
-       "no service password-encryption",
-       NO_STR
-       "Set up miscellaneous service\n"
-       "Enable encrypted passwords\n")
+DEFUN(no_service_password_encrypt, no_service_password_encrypt_cmd,
+      "no service password-encryption",
+      NO_STR
+      "Set up miscellaneous service\n"
+      "Enable encrypted passwords\n")
 {
 	if (!host.encrypt)
 		return CMD_SUCCESS;
@@ -2115,12 +2053,11 @@ DEFUN (no_service_password_encrypt,
 	return CMD_SUCCESS;
 }
 
-DEFUN (config_terminal_length,
-       config_terminal_length_cmd,
-       "terminal length (0-512)",
-       "Set terminal line parameters\n"
-       "Set number of lines on a screen\n"
-       "Number of lines on screen (0 for no pausing)\n")
+DEFUN(config_terminal_length, config_terminal_length_cmd,
+      "terminal length (0-512)",
+      "Set terminal line parameters\n"
+      "Set number of lines on a screen\n"
+      "Number of lines on screen (0 for no pausing)\n")
 {
 	int idx_number = 2;
 
@@ -2129,23 +2066,20 @@ DEFUN (config_terminal_length,
 	return CMD_SUCCESS;
 }
 
-DEFUN (config_terminal_no_length,
-       config_terminal_no_length_cmd,
-       "terminal no length",
-       "Set terminal line parameters\n"
-       NO_STR
-       "Set number of lines on a screen\n")
+DEFUN(config_terminal_no_length, config_terminal_no_length_cmd,
+      "terminal no length",
+      "Set terminal line parameters\n" NO_STR
+      "Set number of lines on a screen\n")
 {
 	vty->lines = -1;
 	return CMD_SUCCESS;
 }
 
-DEFUN (service_terminal_length,
-       service_terminal_length_cmd,
-       "service terminal-length (0-512)",
-       "Set up miscellaneous service\n"
-       "System wide terminal length configuration\n"
-       "Number of lines of VTY (0 means no line control)\n")
+DEFUN(service_terminal_length, service_terminal_length_cmd,
+      "service terminal-length (0-512)",
+      "Set up miscellaneous service\n"
+      "System wide terminal length configuration\n"
+      "Number of lines of VTY (0 means no line control)\n")
 {
 	int idx_number = 2;
 
@@ -2154,23 +2088,20 @@ DEFUN (service_terminal_length,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_service_terminal_length,
-       no_service_terminal_length_cmd,
-       "no service terminal-length [(0-512)]",
-       NO_STR
-       "Set up miscellaneous service\n"
-       "System wide terminal length configuration\n"
-       "Number of lines of VTY (0 means no line control)\n")
+DEFUN(no_service_terminal_length, no_service_terminal_length_cmd,
+      "no service terminal-length [(0-512)]",
+      NO_STR
+      "Set up miscellaneous service\n"
+      "System wide terminal length configuration\n"
+      "Number of lines of VTY (0 means no line control)\n")
 {
 	host.lines = -1;
 	return CMD_SUCCESS;
 }
 
-DEFUN_HIDDEN (do_echo,
-              echo_cmd,
-              "echo MESSAGE...",
-              "Echo a message back to the vty\n"
-              "The message to echo\n")
+DEFUN_HIDDEN(do_echo, echo_cmd, "echo MESSAGE...",
+	     "Echo a message back to the vty\n"
+	     "The message to echo\n")
 {
 	char *message;
 
@@ -2181,12 +2112,10 @@ DEFUN_HIDDEN (do_echo,
 	return CMD_SUCCESS;
 }
 
-DEFUN (config_logmsg,
-       config_logmsg_cmd,
-       "logmsg <emergencies|alerts|critical|errors|warnings|notifications|informational|debugging> MESSAGE...",
-       "Send a message to enabled logging destinations\n"
-       LOG_LEVEL_DESC
-       "The message to send\n")
+DEFUN(config_logmsg, config_logmsg_cmd,
+      "logmsg <emergencies|alerts|critical|errors|warnings|notifications|informational|debugging> MESSAGE...",
+      "Send a message to enabled logging destinations\n" LOG_LEVEL_DESC
+      "The message to send\n")
 {
 	int idx_log_level = 1;
 	int idx_message = 2;
@@ -2205,12 +2134,8 @@ DEFUN (config_logmsg,
 	return CMD_SUCCESS;
 }
 
-DEFUN (debug_memstats,
-       debug_memstats_cmd,
-       "[no] debug memstats-at-exit",
-       NO_STR
-       DEBUG_STR
-       "Print memory type statistics at exit\n")
+DEFUN(debug_memstats, debug_memstats_cmd, "[no] debug memstats-at-exit",
+      NO_STR DEBUG_STR "Print memory type statistics at exit\n")
 {
 	debug_memstats_at_exit = !!strcmp(argv[0]->text, "no");
 	return CMD_SUCCESS;
@@ -2242,13 +2167,11 @@ void cmd_banner_motd_line(const char *line)
 	host.motd = XSTRDUP(MTYPE_HOST, line);
 }
 
-DEFUN (banner_motd_file,
-       banner_motd_file_cmd,
-       "banner motd file FILE",
-       "Set banner\n"
-       "Banner for motd\n"
-       "Banner from a file\n"
-       "Filename\n")
+DEFUN(banner_motd_file, banner_motd_file_cmd, "banner motd file FILE",
+      "Set banner\n"
+      "Banner for motd\n"
+      "Banner from a file\n"
+      "Filename\n")
 {
 	int idx_file = 3;
 	const char *filename = argv[idx_file]->arg;
@@ -2262,13 +2185,11 @@ DEFUN (banner_motd_file,
 	return cmd;
 }
 
-DEFUN (banner_motd_line,
-       banner_motd_line_cmd,
-       "banner motd line LINE...",
-       "Set banner\n"
-       "Banner for motd\n"
-       "Banner from an input\n"
-       "Text\n")
+DEFUN(banner_motd_line, banner_motd_line_cmd, "banner motd line LINE...",
+      "Set banner\n"
+      "Banner for motd\n"
+      "Banner from an input\n"
+      "Text\n")
 {
 	int idx = 0;
 	char *motd;
@@ -2282,23 +2203,19 @@ DEFUN (banner_motd_line,
 	return CMD_SUCCESS;
 }
 
-DEFUN (banner_motd_default,
-       banner_motd_default_cmd,
-       "banner motd default",
-       "Set banner string\n"
-       "Strings for motd\n"
-       "Default string\n")
+DEFUN(banner_motd_default, banner_motd_default_cmd, "banner motd default",
+      "Set banner string\n"
+      "Strings for motd\n"
+      "Default string\n")
 {
 	cmd_banner_motd_line(FRR_DEFAULT_MOTD);
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_banner_motd,
-       no_banner_motd_cmd,
-       "no banner motd",
-       NO_STR
-       "Set banner string\n"
-       "Strings for motd\n")
+DEFUN(no_banner_motd, no_banner_motd_cmd, "no banner motd",
+      NO_STR
+      "Set banner string\n"
+      "Strings for motd\n")
 {
 	host.motd = NULL;
 	if (host.motdfile)
@@ -2401,9 +2318,7 @@ done:
 	return CMD_SUCCESS;
 }
 
-DEFUN(find,
-      find_cmd,
-      "find REGEX...",
+DEFUN(find, find_cmd, "find REGEX...",
       "Find CLI command matching a regular expression\n"
       "Search pattern (POSIX regex)\n")
 {

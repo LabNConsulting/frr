@@ -53,8 +53,7 @@ const char *seg6local_action2str(uint32_t action)
 	}
 }
 
-int snprintf_seg6_segs(char *str,
-		size_t size, const struct seg6_segs *segs)
+int snprintf_seg6_segs(char *str, size_t size, const struct seg6_segs *segs)
 {
 	str[0] = '\0';
 	for (size_t i = 0; i < segs->num_segs; i++) {
@@ -240,8 +239,7 @@ json_object *srv6_locator_json(const struct srv6_locator *loc)
 		json_object_string_add(jo_root, "behavior", "usid");
 
 	/* set status_up */
-	json_object_boolean_add(jo_root, "statusUp",
-				loc->status_up);
+	json_object_boolean_add(jo_root, "statusUp", loc->status_up);
 
 	/* set chunks */
 	jo_chunks = json_object_new_array();

@@ -44,8 +44,8 @@ static struct ospf_route *ospf_find_abr_route(struct route_table *rtrs,
 	route_unlock_node(rn);
 
 	for (ALL_LIST_ELEMENTS_RO((struct list *)rn->info, node, or))
-		if (IPV4_ADDR_SAME(& or->u.std.area_id, &area->area_id)
-		    && (or->u.std.flags & ROUTER_LSA_BORDER))
+		if (IPV4_ADDR_SAME(& or->u.std.area_id, &area->area_id) &&
+		    (or->u.std.flags & ROUTER_LSA_BORDER))
 			return or ;
 
 	return NULL;
@@ -70,9 +70,8 @@ static void ospf_ia_network_route(struct ospf *ospf, struct route_table *rt,
 
 		if ((or = rn1->info)) {
 			if (IS_DEBUG_OSPF_EVENT)
-				zlog_debug(
-					"%s: Found a route to the same network",
-					__func__);
+				zlog_debug("%s: Found a route to the same network",
+					   __func__);
 			/* Check the existing route. */
 			if ((res = ospf_route_cmp(ospf, new_or, or)) < 0) {
 				/* New route is better, so replace old one. */
@@ -93,8 +92,8 @@ static void ospf_ia_network_route(struct ospf *ospf, struct route_table *rt,
 				return;
 			}
 		} /* if (or)*/
-	}	 /*if (rn1)*/
-	else {    /* no route */
+	}	  /*if (rn1)*/
+	else {	  /* no route */
 		if (IS_DEBUG_OSPF_EVENT)
 			zlog_debug("%s: add new route to %pFX", __func__, p);
 		ospf_route_add(rt, p, new_or, abr_or);
@@ -131,9 +130,8 @@ static void ospf_ia_router_route(struct ospf *ospf, struct route_table *rtrs,
 
 	if (or) {
 		if (IS_DEBUG_OSPF_EVENT)
-			zlog_debug(
-				"%s: a route to the same ABR through the same area exists",
-				__func__);
+			zlog_debug("%s: a route to the same ABR through the same area exists",
+				   __func__);
 		/* New route is better */
 		if ((ret = ospf_route_cmp(ospf, new_or, or)) < 0) {
 			listnode_delete(rn->info, or);
@@ -208,18 +206,18 @@ static int process_summary_lsa(struct ospf_area *area, struct route_table *rt,
 
 	apply_mask_ipv4(&p);
 
-	if (sl->header.type == OSPF_SUMMARY_LSA
-	    && (range = ospf_area_range_match_any(ospf, &p))
-	    && ospf_area_range_active(range))
+	if (sl->header.type == OSPF_SUMMARY_LSA &&
+	    (range = ospf_area_range_match_any(ospf, &p)) &&
+	    ospf_area_range_active(range))
 		return 0;
 
 	/* XXX: This check seems dubious to me. If an ABR has already decided
 	 * to consider summaries received in this area, then why would one wish
 	 * to exclude default?
 	 */
-	if (IS_OSPF_ABR(ospf) && ospf->abr_type != OSPF_ABR_STAND
-	    && area->external_routing != OSPF_AREA_DEFAULT
-	    && p.prefix.s_addr == OSPF_DEFAULT_DESTINATION && p.prefixlen == 0)
+	if (IS_OSPF_ABR(ospf) && ospf->abr_type != OSPF_ABR_STAND &&
+	    area->external_routing != OSPF_AREA_DEFAULT &&
+	    p.prefix.s_addr == OSPF_DEFAULT_DESTINATION && p.prefixlen == 0)
 		return 0; /* Ignore summary default from a stub area */
 
 	abr.family = AF_INET;
@@ -268,9 +266,9 @@ static void ospf_examine_summaries(struct ospf_area *area,
 
 int ospf_area_is_transit(struct ospf_area *area)
 {
-	return (area->transit == OSPF_TRANSIT_TRUE)
-	       || ospf_full_virtual_nbrs(
-			  area); /* Cisco forgets to set the V-bit :( */
+	return (area->transit == OSPF_TRANSIT_TRUE) ||
+	       ospf_full_virtual_nbrs(
+		       area); /* Cisco forgets to set the V-bit :( */
 }
 
 static void ospf_update_network_route(struct ospf *ospf, struct route_table *rt,
@@ -339,14 +337,11 @@ static void ospf_update_network_route(struct ospf *ospf, struct route_table *rt,
 	}
 
 	if (ospf->abr_type == OSPF_ABR_SHORTCUT) {
-		if (
-			or->path_type == OSPF_PATH_INTRA_AREA
-				  && !OSPF_IS_AREA_ID_BACKBONE(
-					     or->u.std.area_id)) {
+		if (or->path_type == OSPF_PATH_INTRA_AREA &&
+			      !OSPF_IS_AREA_ID_BACKBONE(or->u.std.area_id)) {
 			if (IS_DEBUG_OSPF_EVENT)
-				zlog_debug(
-					"%s: Shortcut: this intra-area path is not backbone",
-					__func__);
+				zlog_debug("%s: Shortcut: this intra-area path is not backbone",
+					   __func__);
 			return;
 		}
 	} else /* Not Shortcut ABR */
@@ -367,22 +362,20 @@ static void ospf_update_network_route(struct ospf *ospf, struct route_table *rt,
 
 	if (or->cost == cost) {
 		if (IS_DEBUG_OSPF_EVENT)
-			zlog_debug(
-				"%s: new route is same distance, adding nexthops",
-				__func__);
+			zlog_debug("%s: new route is same distance, adding nexthops",
+				   __func__);
 		ospf_route_copy_nexthops(or, abr_or->paths);
 	}
 
 	if (or->cost > cost) {
 		if (IS_DEBUG_OSPF_EVENT)
-			zlog_debug(
-				"%s: new route is better, overriding nexthops",
-				__func__);
+			zlog_debug("%s: new route is better, overriding nexthops",
+				   __func__);
 		ospf_route_subst_nexthops(or, abr_or->paths);
 		or->cost = cost;
 
-		if ((ospf->abr_type == OSPF_ABR_SHORTCUT)
-		    && !OSPF_IS_AREA_ID_BACKBONE(or->u.std.area_id)) {
+		if ((ospf->abr_type == OSPF_ABR_SHORTCUT) &&
+		    !OSPF_IS_AREA_ID_BACKBONE(or->u.std.area_id)) {
 			or->path_type = OSPF_PATH_INTER_AREA;
 			or->u.std.area_id = area->area_id;
 			or->u.std.external_routing = area->external_routing;
@@ -395,8 +388,7 @@ static void ospf_update_network_route(struct ospf *ospf, struct route_table *rt,
 	}
 }
 
-static void ospf_update_router_route(struct ospf *ospf,
-				     struct route_table *rtrs,
+static void ospf_update_router_route(struct ospf *ospf, struct route_table *rtrs,
 				     struct summary_lsa *lsa,
 				     struct prefix_ipv4 *p,
 				     struct ospf_area *area)
@@ -428,9 +420,8 @@ static void ospf_update_router_route(struct ospf *ospf,
 		return; /* no BB area, not Shortcut ABR, exiting */
 
 	/* find the backbone route, if possible */
-	if ((ospf->backbone == NULL)
-	    || !(or = ospf_find_asbr_route_through_area(rtrs, p,
-							ospf->backbone))) {
+	if ((ospf->backbone == NULL) ||
+	    !(or = ospf_find_asbr_route_through_area(rtrs, p, ospf->backbone))) {
 		if (ospf->abr_type != OSPF_ABR_SHORTCUT)
 
 			/* route to ASBR through the BB not found
@@ -575,9 +566,8 @@ void ospf_ia_routing(struct ospf *ospf, struct route_table *rt,
 
 			if ((area = ospf->backbone)) {
 				if (IS_DEBUG_OSPF_EVENT) {
-					zlog_debug(
-						"%s:backbone area found, examining summaries",
-						__func__);
+					zlog_debug("%s:backbone area found, examining summaries",
+						   __func__);
 				}
 
 				OSPF_EXAMINE_SUMMARIES_ALL(area, rt, rtrs);
@@ -602,9 +592,8 @@ void ospf_ia_routing(struct ospf *ospf, struct route_table *rt,
 			/* If we have an active BB connection */
 			if (area && ospf_act_bb_connection(ospf)) {
 				if (IS_DEBUG_OSPF_EVENT) {
-					zlog_debug(
-						"%s: backbone area found, examining BB summaries",
-						__func__);
+					zlog_debug("%s: backbone area found, examining BB summaries",
+						   __func__);
 				}
 
 				OSPF_EXAMINE_SUMMARIES_ALL(area, rt, rtrs);
@@ -616,11 +605,10 @@ void ospf_ia_routing(struct ospf *ospf, struct route_table *rt,
 							OSPF_EXAMINE_TRANSIT_SUMMARIES_ALL(
 								area, rt, rtrs);
 			} else { /* No active BB connection--consider all areas
-				    */
+				  */
 				if (IS_DEBUG_OSPF_EVENT)
-					zlog_debug(
-						"%s: Active BB connection not found",
-						__func__);
+					zlog_debug("%s: Active BB connection not found",
+						   __func__);
 				for (ALL_LIST_ELEMENTS_RO(ospf->areas, node,
 							  area))
 					OSPF_EXAMINE_SUMMARIES_ALL(area, rt,
@@ -635,22 +623,21 @@ void ospf_ia_routing(struct ospf *ospf, struct route_table *rt,
 			/* If we have an active BB connection */
 			if (area && ospf_act_bb_connection(ospf)) {
 				if (IS_DEBUG_OSPF_EVENT) {
-					zlog_debug(
-						"%s: backbone area found, examining BB summaries",
-						__func__);
+					zlog_debug("%s: backbone area found, examining BB summaries",
+						   __func__);
 				}
 				OSPF_EXAMINE_SUMMARIES_ALL(area, rt, rtrs);
 			}
 
 			for (ALL_LIST_ELEMENTS_RO(ospf->areas, node, area))
 				if (area != ospf->backbone)
-					if (ospf_area_is_transit(area)
-					    || ((area->shortcut_configured
-						 != OSPF_SHORTCUT_DISABLE)
-						&& ((ospf->backbone == NULL)
-						    || ((area->shortcut_configured
-							 == OSPF_SHORTCUT_ENABLE)
-							&& area->shortcut_capability))))
+					if (ospf_area_is_transit(area) ||
+					    ((area->shortcut_configured !=
+					      OSPF_SHORTCUT_DISABLE) &&
+					     ((ospf->backbone == NULL) ||
+					      ((area->shortcut_configured ==
+						OSPF_SHORTCUT_ENABLE) &&
+					       area->shortcut_capability))))
 						OSPF_EXAMINE_TRANSIT_SUMMARIES_ALL(
 							area, rt, rtrs);
 			break;

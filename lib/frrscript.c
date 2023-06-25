@@ -111,32 +111,32 @@ int frrscript_names_hash_cmp(const struct frrscript_names_entry *snhe1,
 
 /* Codecs */
 
-struct frrscript_codec frrscript_codecs_lib[] = {
-	{.typename = "integer",
-	 .encoder = (encoder_func)lua_pushintegerp,
-	 .decoder = lua_tointegerp},
-	{.typename = "string",
-	 .encoder = (encoder_func)lua_pushstring_wrapper,
-	 .decoder = lua_tostringp},
-	{.typename = "prefix",
-	 .encoder = (encoder_func)lua_pushprefix,
-	 .decoder = lua_toprefix},
-	{.typename = "interface",
-	 .encoder = (encoder_func)lua_pushinterface,
-	 .decoder = lua_tointerface},
-	{.typename = "in_addr",
-	 .encoder = (encoder_func)lua_pushinaddr,
-	 .decoder = lua_toinaddr},
-	{.typename = "in6_addr",
-	 .encoder = (encoder_func)lua_pushin6addr,
-	 .decoder = lua_toin6addr},
-	{.typename = "sockunion",
-	 .encoder = (encoder_func)lua_pushsockunion,
-	 .decoder = lua_tosockunion},
-	{.typename = "time_t",
-	 .encoder = (encoder_func)lua_pushtimet,
-	 .decoder = lua_totimet},
-	{}};
+struct frrscript_codec frrscript_codecs_lib[] =
+	{{.typename = "integer",
+	  .encoder = (encoder_func)lua_pushintegerp,
+	  .decoder = lua_tointegerp},
+	 {.typename = "string",
+	  .encoder = (encoder_func)lua_pushstring_wrapper,
+	  .decoder = lua_tostringp},
+	 {.typename = "prefix",
+	  .encoder = (encoder_func)lua_pushprefix,
+	  .decoder = lua_toprefix},
+	 {.typename = "interface",
+	  .encoder = (encoder_func)lua_pushinterface,
+	  .decoder = lua_tointerface},
+	 {.typename = "in_addr",
+	  .encoder = (encoder_func)lua_pushinaddr,
+	  .decoder = lua_toinaddr},
+	 {.typename = "in6_addr",
+	  .encoder = (encoder_func)lua_pushin6addr,
+	  .decoder = lua_toin6addr},
+	 {.typename = "sockunion",
+	  .encoder = (encoder_func)lua_pushsockunion,
+	  .decoder = lua_tosockunion},
+	 {.typename = "time_t",
+	  .encoder = (encoder_func)lua_pushtimet,
+	  .decoder = lua_totimet},
+	 {}};
 
 /* Type codecs */
 
@@ -255,17 +255,15 @@ int _frrscript_call_lua(struct lua_function_state *lfs, int nargs)
 	}
 
 	if (lua_gettop(lfs->L) != 1) {
-		zlog_err(
-			"Lua hook call '%s': Lua function should return only 1 result",
-			lfs->name);
+		zlog_err("Lua hook call '%s': Lua function should return only 1 result",
+			 lfs->name);
 		ret = 1;
 		goto done;
 	}
 
 	if (lua_istable(lfs->L, 1) != 1) {
-		zlog_err(
-			"Lua hook call '%s': Lua function should return a Lua table",
-			lfs->name);
+		zlog_err("Lua hook call '%s': Lua function should return a Lua table",
+			 lfs->name);
 		ret = 1;
 	}
 
@@ -297,9 +295,8 @@ void *frrscript_get_result(struct frrscript *fs, const char *function_name,
 	lua_getfield(lfs->L, -1, name);
 	if (lua_isnil(lfs->L, -1)) {
 		lua_pop(lfs->L, 1);
-		zlog_warn(
-			"frrscript: '%s.lua': '%s': tried to decode '%s' as result but failed",
-			fs->name, function_name, name);
+		zlog_warn("frrscript: '%s.lua': '%s': tried to decode '%s' as result but failed",
+			  fs->name, function_name, name);
 		return NULL;
 	}
 	p = lua_to(lfs->L, 2);
@@ -354,8 +351,7 @@ int frrscript_load(struct frrscript *fs, const char *function_name,
 	char script_name[MAXPATHLEN];
 
 	if (snprintf(script_name, sizeof(script_name), "%s/%s.lua", scriptdir,
-		     fs->name)
-	    >= (int)sizeof(script_name)) {
+		     fs->name) >= (int)sizeof(script_name)) {
 		zlog_err("frrscript: path to script %s/%s.lua is too long",
 			 scriptdir, fs->name);
 		goto fail;
@@ -379,9 +375,8 @@ int frrscript_load(struct frrscript *fs, const char *function_name,
 	lua_pop(L, 1);
 
 	if (load_cb && (*load_cb)(fs) != 0) {
-		zlog_err(
-			"frrscript: '%s': %s: loaded but callback returned non-zero exit code",
-			script_name, function_name);
+		zlog_err("frrscript: '%s': %s: loaded but callback returned non-zero exit code",
+			 script_name, function_name);
 		goto fail;
 	}
 

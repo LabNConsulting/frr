@@ -144,11 +144,10 @@ static void bgp_process_mac_rescan_table(struct bgp *bgp, struct peer *peer,
 			mpls_label_t *label_pnt = NULL;
 			struct bgp_route_evpn *evpn;
 
-			if (pevpn->family == AF_EVPN
-			    && pevpn->prefix.route_type == BGP_EVPN_MAC_IP_ROUTE
-			    && memcmp(&p->u.prefix_evpn.macip_addr.mac, macaddr,
-				      ETH_ALEN)
-				       == 0)
+			if (pevpn->family == AF_EVPN &&
+			    pevpn->prefix.route_type == BGP_EVPN_MAC_IP_ROUTE &&
+			    memcmp(&p->u.prefix_evpn.macip_addr.mac, macaddr,
+				   ETH_ALEN) == 0)
 				dest_affected = true;
 			else
 				dest_affected = false;
@@ -165,8 +164,8 @@ static void bgp_process_mac_rescan_table(struct bgp *bgp, struct peer *peer,
 			 * If the mac address is not the same then
 			 * we don't care and since we are looking
 			 */
-			if ((memcmp(&pi->attr->rmac, macaddr, ETH_ALEN) != 0)
-			    && !dest_affected)
+			if ((memcmp(&pi->attr->rmac, macaddr, ETH_ALEN) != 0) &&
+			    !dest_affected)
 				continue;
 
 			if (pi->extra)
@@ -182,14 +181,17 @@ static void bgp_process_mac_rescan_table(struct bgp *bgp, struct peer *peer,
 				if (bgp_debug_update(peer, p, NULL, 1)) {
 					char pfx_buf[BGP_PRD_PATH_STRLEN];
 
-					bgp_debug_rdpfxpath2str(
-						AFI_L2VPN, SAFI_EVPN, &prd,
-						p, label_pnt, num_labels,
-						pi->addpath_rx_id ? 1 : 0,
-						pi->addpath_rx_id, NULL,
-						pfx_buf, sizeof(pfx_buf));
-					zlog_debug(
-						   "%s skip update of %s marked as removed",
+					bgp_debug_rdpfxpath2str(AFI_L2VPN,
+								SAFI_EVPN, &prd,
+								p, label_pnt,
+								num_labels,
+								pi->addpath_rx_id
+									? 1
+									: 0,
+								pi->addpath_rx_id,
+								NULL, pfx_buf,
+								sizeof(pfx_buf));
+					zlog_debug("%s skip update of %s marked as removed",
 						   peer->host, pfx_buf);
 				}
 				continue;
@@ -223,13 +225,12 @@ static void bgp_mac_rescan_evpn_table(struct bgp *bgp, struct ethaddr *macaddr)
 			continue;
 
 		if (bgp_debug_update(peer, NULL, NULL, 1))
-			zlog_debug(
-				"Processing EVPN MAC interface change on peer %s %s",
-				peer->host,
-				CHECK_FLAG(peer->af_flags[afi][safi],
-					   PEER_FLAG_SOFT_RECONFIG)
-					? "(inbound, soft-reconfig)"
-					: "");
+			zlog_debug("Processing EVPN MAC interface change on peer %s %s",
+				   peer->host,
+				   CHECK_FLAG(peer->af_flags[afi][safi],
+					      PEER_FLAG_SOFT_RECONFIG)
+					   ? "(inbound, soft-reconfig)"
+					   : "");
 
 		if (!bgp_soft_reconfig_in(peer, afi, safi)) {
 			struct bgp_table *table = bgp->rib[afi][safi];
@@ -362,7 +363,7 @@ bool bgp_mac_exist(const struct ethaddr *mac)
 {
 	struct bgp_self_mac lookup;
 	struct bgp_self_mac *bsm;
-	static uint8_t tmp [ETHER_ADDR_STRLEN] = {0};
+	static uint8_t tmp[ETHER_ADDR_STRLEN] = {0};
 
 	if (memcmp(mac, &tmp, ETH_ALEN) == 0)
 		return false;

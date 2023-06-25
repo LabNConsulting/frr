@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 		Py_ExitStatusException(status);
 
 	PyConfig_InitPythonConfig(config);
-#if PY_VERSION_HEX >= 0x030b0000	/* 3.11 */
+#if PY_VERSION_HEX >= 0x030b0000 /* 3.11 */
 	config->safe_path = 0;
 #endif
 
@@ -144,8 +144,8 @@ int main(int argc, char **argv)
 #include "log.h"
 
 PRINTFRR(3, 0)
-void vzlogx(const struct xref_logmsg *xref, int prio,
-	    const char *format, va_list args)
+void vzlogx(const struct xref_logmsg *xref, int prio, const char *format,
+	    va_list args)
 {
 	vfprintf(stderr, format, args);
 	fputs("\n", stderr);

@@ -166,14 +166,14 @@ void *lua_toattr(lua_State *L, int idx)
 	return attr;
 }
 
-struct frrscript_codec frrscript_codecs_bgpd[] = {
-	{.typename = "peer",
-	 .encoder = (encoder_func)lua_pushpeer,
-	 .decoder = NULL},
-	{.typename = "attr",
-	 .encoder = (encoder_func)lua_pushattr,
-	 .decoder = lua_toattr},
-	{}};
+struct frrscript_codec frrscript_codecs_bgpd[] =
+	{{.typename = "peer",
+	  .encoder = (encoder_func)lua_pushpeer,
+	  .decoder = NULL},
+	 {.typename = "attr",
+	  .encoder = (encoder_func)lua_pushattr,
+	  .decoder = lua_toattr},
+	 {}};
 
 void bgp_script_init(void)
 {

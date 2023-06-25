@@ -41,8 +41,8 @@ struct bgp_damp_info {
 
 	/* Last time message type. */
 	uint8_t lastrecord;
-#define BGP_RECORD_UPDATE	1U
-#define BGP_RECORD_WITHDRAW	2U
+#define BGP_RECORD_UPDATE 1U
+#define BGP_RECORD_WITHDRAW 2U
 
 	afi_t afi;
 	safi_t safi;
@@ -98,24 +98,24 @@ struct bgp_damp_config {
 	safi_t safi;
 };
 
-#define BGP_DAMP_NONE           0
-#define BGP_DAMP_USED		1
-#define BGP_DAMP_SUPPRESSED	2
+#define BGP_DAMP_NONE 0
+#define BGP_DAMP_USED 1
+#define BGP_DAMP_SUPPRESSED 2
 
 /* Time granularity for reuse lists */
-#define DELTA_REUSE	          10
+#define DELTA_REUSE 10
 
 /* Time granularity for decay arrays */
-#define DELTA_T 	           5
+#define DELTA_T 5
 
-#define DEFAULT_PENALTY         1000
+#define DEFAULT_PENALTY 1000
 
-#define DEFAULT_HALF_LIFE         15
-#define DEFAULT_REUSE 	       	 750
-#define DEFAULT_SUPPRESS 	2000
+#define DEFAULT_HALF_LIFE 15
+#define DEFAULT_REUSE 750
+#define DEFAULT_SUPPRESS 2000
 
-#define REUSE_LIST_SIZE          256
-#define REUSE_ARRAY_SIZE        1024
+#define REUSE_LIST_SIZE 256
+#define REUSE_ARRAY_SIZE 1024
 
 extern int bgp_damp_enable(struct bgp *bgp, afi_t afi, safi_t safi, time_t half,
 			   unsigned int reuse, unsigned int suppress,

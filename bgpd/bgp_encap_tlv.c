@@ -294,8 +294,7 @@ void bgp_encap_type_ip_in_ip_to_tlv(
 }
 
 void bgp_encap_type_transmit_tunnel_endpoint(
-	struct bgp_encap_type_transmit_tunnel_endpoint
-		*bet, /* input structure */
+	struct bgp_encap_type_transmit_tunnel_endpoint *bet, /* input structure */
 	struct attr *attr)
 {
 	struct bgp_attr_encap_subtlv *last;
@@ -321,8 +320,7 @@ void bgp_encap_type_ipsec_in_tunnel_mode_to_tlv(
 
 	attr->encap_tunneltype = BGP_ENCAP_TYPE_IPSEC_IN_TUNNEL_MODE;
 
-	ENC_SUBTLV(BGP_TEA_SUBTLV_IPSEC_TA, subtlv_encode_ipsec_ta,
-		   st_ipsec_ta);
+	ENC_SUBTLV(BGP_TEA_SUBTLV_IPSEC_TA, subtlv_encode_ipsec_ta, st_ipsec_ta);
 }
 
 void bgp_encap_type_ip_in_ip_tunnel_with_ipsec_transport_mode_to_tlv(
@@ -339,8 +337,7 @@ void bgp_encap_type_ip_in_ip_tunnel_with_ipsec_transport_mode_to_tlv(
 	attr->encap_tunneltype =
 		BGP_ENCAP_TYPE_IP_IN_IP_TUNNEL_WITH_IPSEC_TRANSPORT_MODE;
 
-	ENC_SUBTLV(BGP_TEA_SUBTLV_IPSEC_TA, subtlv_encode_ipsec_ta,
-		   st_ipsec_ta);
+	ENC_SUBTLV(BGP_TEA_SUBTLV_IPSEC_TA, subtlv_encode_ipsec_ta, st_ipsec_ta);
 }
 
 void bgp_encap_type_mpls_in_ip_tunnel_with_ipsec_transport_mode_to_tlv(
@@ -357,8 +354,7 @@ void bgp_encap_type_mpls_in_ip_tunnel_with_ipsec_transport_mode_to_tlv(
 	attr->encap_tunneltype =
 		BGP_ENCAP_TYPE_MPLS_IN_IP_TUNNEL_WITH_IPSEC_TRANSPORT_MODE;
 
-	ENC_SUBTLV(BGP_TEA_SUBTLV_IPSEC_TA, subtlv_encode_ipsec_ta,
-		   st_ipsec_ta);
+	ENC_SUBTLV(BGP_TEA_SUBTLV_IPSEC_TA, subtlv_encode_ipsec_ta, st_ipsec_ta);
 }
 
 void bgp_encap_type_pbb_to_tlv(
@@ -491,8 +487,8 @@ static int subtlv_decode_encap_pbb(struct bgp_attr_encap_subtlv *subtlv,
 	}
 	if (subtlv->value[0] & 0x80) {
 		st->flag_isid = 1;
-		st->isid = (subtlv->value[1] << 16) | (subtlv->value[2] << 8)
-			   | subtlv->value[3];
+		st->isid = (subtlv->value[1] << 16) | (subtlv->value[2] << 8) |
+			   subtlv->value[3];
 	}
 	if (subtlv->value[0] & 0x40) {
 		st->flag_vid = 1;
@@ -524,8 +520,8 @@ static int subtlv_decode_color(struct bgp_attr_encap_subtlv *subtlv,
 			   subtlv->length);
 		return -1;
 	}
-	if ((subtlv->value[0] != 0x03) || (subtlv->value[1] != 0x0b)
-	    || (subtlv->value[2] != 0) || (subtlv->value[3] != 0)) {
+	if ((subtlv->value[0] != 0x03) || (subtlv->value[1] != 0x0b) ||
+	    (subtlv->value[2] != 0) || (subtlv->value[3] != 0)) {
 		zlog_debug("%s, subtlv value 1st 4 bytes are not 0x030b0000",
 			   __func__);
 		return -1;
@@ -540,10 +536,9 @@ static int subtlv_decode_ipsec_ta(struct bgp_attr_encap_subtlv *subtlv,
 {
 	st->authenticator_length = subtlv->length - 2;
 	if (st->authenticator_length > sizeof(st->value)) {
-		zlog_debug(
-			"%s, authenticator length %d exceeds storage maximum %d",
-			__func__, st->authenticator_length,
-			(int)sizeof(st->value));
+		zlog_debug("%s, authenticator length %d exceeds storage maximum %d",
+			   __func__, st->authenticator_length,
+			   (int)sizeof(st->value));
 		return -1;
 	}
 	st->authenticator_type = (subtlv->value[0] << 8) | subtlv->value[1];
@@ -581,7 +576,7 @@ subtlv_decode_remote_endpoint(struct bgp_attr_encap_subtlv *subtlv,
  ***********************************************************************/
 
 int tlv_to_bgp_encap_type_l2tpv3overip(
-	struct bgp_attr_encap_subtlv *stlv,	/* subtlv chain */
+	struct bgp_attr_encap_subtlv *stlv,	   /* subtlv chain */
 	struct bgp_encap_type_l2tpv3_over_ip *bet) /* caller-allocated */
 {
 	struct bgp_attr_encap_subtlv *st;
@@ -590,8 +585,8 @@ int tlv_to_bgp_encap_type_l2tpv3overip(
 	for (st = stlv; st; st = st->next) {
 		switch (st->type) {
 		case BGP_ENCAP_SUBTLV_TYPE_ENCAPSULATION:
-			rc |= subtlv_decode_encap_l2tpv3_over_ip(
-				st, &bet->st_encap);
+			rc |= subtlv_decode_encap_l2tpv3_over_ip(st,
+								 &bet->st_encap);
 			SET_SUBTLV_FLAG(bet, BGP_TEA_SUBTLV_ENCAP);
 			break;
 
@@ -623,7 +618,7 @@ int tlv_to_bgp_encap_type_l2tpv3overip(
 
 int tlv_to_bgp_encap_type_gre(
 	struct bgp_attr_encap_subtlv *stlv, /* subtlv chain */
-	struct bgp_encap_type_gre *bet)     /* caller-allocated */
+	struct bgp_encap_type_gre *bet)	    /* caller-allocated */
 {
 	struct bgp_attr_encap_subtlv *st;
 	int rc = 0;
@@ -964,7 +959,7 @@ int tlv_to_bgp_encap_type_mpls_in_udp(struct bgp_attr_encap_subtlv *stlv,
 
 int tlv_to_bgp_encap_type_pbb(
 	struct bgp_attr_encap_subtlv *stlv, /* subtlv chain */
-	struct bgp_encap_type_pbb *bet)     /* caller-allocated */
+	struct bgp_encap_type_pbb *bet)	    /* caller-allocated */
 {
 	struct bgp_attr_encap_subtlv *st;
 	int rc = 0;

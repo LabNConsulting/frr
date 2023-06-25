@@ -53,7 +53,7 @@
 
 /* context to manage dumps in multiple tables or vrfs */
 struct route_show_ctx {
-	bool multi;       /* dump multiple tables or vrf */
+	bool multi;	  /* dump multiple tables or vrf */
 	bool header_done; /* common header already displayed */
 };
 
@@ -81,17 +81,16 @@ static void show_ip_route_dump_vty(struct vty *vty, struct route_table *table);
 static void show_ip_route_nht_dump(struct vty *vty, struct nexthop *nexthop,
 				   struct route_entry *re, unsigned int num);
 
-DEFUN (ip_multicast_mode,
-       ip_multicast_mode_cmd,
-       "ip multicast rpf-lookup-mode <urib-only|mrib-only|mrib-then-urib|lower-distance|longer-prefix>",
-       IP_STR
-       "Multicast options\n"
-       "RPF lookup behavior\n"
-       "Lookup in unicast RIB only\n"
-       "Lookup in multicast RIB only\n"
-       "Try multicast RIB first, fall back to unicast RIB\n"
-       "Lookup both, use entry with lower distance\n"
-       "Lookup both, use entry with longer prefix\n")
+DEFUN(ip_multicast_mode, ip_multicast_mode_cmd,
+      "ip multicast rpf-lookup-mode <urib-only|mrib-only|mrib-then-urib|lower-distance|longer-prefix>",
+      IP_STR
+      "Multicast options\n"
+      "RPF lookup behavior\n"
+      "Lookup in unicast RIB only\n"
+      "Lookup in multicast RIB only\n"
+      "Try multicast RIB first, fall back to unicast RIB\n"
+      "Lookup both, use entry with lower distance\n"
+      "Lookup both, use entry with longer prefix\n")
 {
 	char *mode = argv[3]->text;
 
@@ -113,32 +112,25 @@ DEFUN (ip_multicast_mode,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_ip_multicast_mode,
-       no_ip_multicast_mode_cmd,
-       "no ip multicast rpf-lookup-mode [<urib-only|mrib-only|mrib-then-urib|lower-distance|longer-prefix>]",
-       NO_STR
-       IP_STR
-       "Multicast options\n"
-       "RPF lookup behavior\n"
-       "Lookup in unicast RIB only\n"
-       "Lookup in multicast RIB only\n"
-       "Try multicast RIB first, fall back to unicast RIB\n"
-       "Lookup both, use entry with lower distance\n"
-       "Lookup both, use entry with longer prefix\n")
+DEFUN(no_ip_multicast_mode, no_ip_multicast_mode_cmd,
+      "no ip multicast rpf-lookup-mode [<urib-only|mrib-only|mrib-then-urib|lower-distance|longer-prefix>]",
+      NO_STR IP_STR
+      "Multicast options\n"
+      "RPF lookup behavior\n"
+      "Lookup in unicast RIB only\n"
+      "Lookup in multicast RIB only\n"
+      "Try multicast RIB first, fall back to unicast RIB\n"
+      "Lookup both, use entry with lower distance\n"
+      "Lookup both, use entry with longer prefix\n")
 {
 	multicast_mode_ipv4_set(MCAST_NO_CONFIG);
 	return CMD_SUCCESS;
 }
 
 
-DEFPY (show_ip_rpf,
-       show_ip_rpf_cmd,
-       "show [ip$ip|ipv6$ipv6] rpf [json]",
-       SHOW_STR
-       IP_STR
-       IPV6_STR
-       "Display RPF information for multicast source\n"
-       JSON_STR)
+DEFPY(show_ip_rpf, show_ip_rpf_cmd, "show [ip$ip|ipv6$ipv6] rpf [json]",
+      SHOW_STR IP_STR IPV6_STR
+      "Display RPF information for multicast source\n" JSON_STR)
 {
 	bool uj = use_json(argc, argv);
 	struct route_show_ctx ctx = {
@@ -150,13 +142,10 @@ DEFPY (show_ip_rpf,
 				0, false, &ctx);
 }
 
-DEFPY (show_ip_rpf_addr,
-       show_ip_rpf_addr_cmd,
-       "show ip rpf A.B.C.D$address",
-       SHOW_STR
-       IP_STR
-       "Display RPF information for multicast source\n"
-       "IP multicast source address (e.g. 10.0.0.0)\n")
+DEFPY(show_ip_rpf_addr, show_ip_rpf_addr_cmd, "show ip rpf A.B.C.D$address",
+      SHOW_STR IP_STR
+      "Display RPF information for multicast source\n"
+      "IP multicast source address (e.g. 10.0.0.0)\n")
 {
 	struct route_node *rn;
 	struct route_entry *re;
@@ -172,13 +161,11 @@ DEFPY (show_ip_rpf_addr,
 	return CMD_SUCCESS;
 }
 
-DEFPY (show_ipv6_rpf_addr,
-       show_ipv6_rpf_addr_cmd,
-       "show ipv6 rpf X:X::X:X$address",
-       SHOW_STR
-       IPV6_STR
-       "Display RPF information for multicast source\n"
-       "IPv6 multicast source address\n")
+DEFPY(show_ipv6_rpf_addr, show_ipv6_rpf_addr_cmd,
+      "show ipv6 rpf X:X::X:X$address",
+      SHOW_STR IPV6_STR
+      "Display RPF information for multicast source\n"
+      "IPv6 multicast source address\n")
 {
 	struct route_node *rn;
 	struct route_entry *re;
@@ -195,14 +182,12 @@ DEFPY (show_ipv6_rpf_addr,
 }
 
 static char re_status_output_char(const struct route_entry *re,
-				  const struct nexthop *nhop,
-				  bool is_fib)
+				  const struct nexthop *nhop, bool is_fib)
 {
 	if (CHECK_FLAG(re->status, ROUTE_ENTRY_INSTALLED)) {
 		bool star_p = false;
 
-		if (nhop &&
-		    !CHECK_FLAG(nhop->flags, NEXTHOP_FLAG_DUPLICATE) &&
+		if (nhop && !CHECK_FLAG(nhop->flags, NEXTHOP_FLAG_DUPLICATE) &&
 		    !CHECK_FLAG(nhop->flags, NEXTHOP_FLAG_RECURSIVE)) {
 			/* More-specific test for 'fib' output */
 			if (is_fib) {
@@ -216,12 +201,12 @@ static char re_status_output_char(const struct route_entry *re,
 		    CHECK_FLAG(re->status, ROUTE_ENTRY_QUEUED))
 			return 'q';
 
-		if (zrouter.asic_offloaded
-		    && CHECK_FLAG(re->flags, ZEBRA_FLAG_TRAPPED))
+		if (zrouter.asic_offloaded &&
+		    CHECK_FLAG(re->flags, ZEBRA_FLAG_TRAPPED))
 			return 't';
 
-		if (zrouter.asic_offloaded
-		    && CHECK_FLAG(re->flags, ZEBRA_FLAG_OFFLOAD_FAILED))
+		if (zrouter.asic_offloaded &&
+		    CHECK_FLAG(re->flags, ZEBRA_FLAG_OFFLOAD_FAILED))
 			return 'o';
 
 		if (CHECK_FLAG(re->flags, ZEBRA_FLAG_OUTOFSYNC))
@@ -249,8 +234,7 @@ static char re_status_output_char(const struct route_entry *re,
 /*
  * Show backup nexthop info, in the 'detailed' output path
  */
-static void show_nh_backup_helper(struct vty *vty,
-				  const struct route_entry *re,
+static void show_nh_backup_helper(struct vty *vty, const struct route_entry *re,
 				  const struct nexthop *nexthop)
 {
 	const struct nexthop *start, *backup, *temp;
@@ -292,7 +276,6 @@ static void show_nh_backup_helper(struct vty *vty,
 				break;
 		}
 	}
-
 }
 
 /*
@@ -309,40 +292,34 @@ static void show_nexthop_detail_helper(struct vty *vty,
 	int i;
 
 	if (is_backup)
-		vty_out(vty, "    b%s",
-			nexthop->rparent ? "  " : "");
+		vty_out(vty, "    b%s", nexthop->rparent ? "  " : "");
 	else
-		vty_out(vty, "  %c%s",
-			re_status_output_char(re, nexthop, false),
+		vty_out(vty, "  %c%s", re_status_output_char(re, nexthop, false),
 			nexthop->rparent ? "  " : "");
 
 	switch (nexthop->type) {
 	case NEXTHOP_TYPE_IPV4:
 	case NEXTHOP_TYPE_IPV4_IFINDEX:
-		vty_out(vty, " %pI4",
-			&nexthop->gate.ipv4);
+		vty_out(vty, " %pI4", &nexthop->gate.ipv4);
 		if (nexthop->ifindex)
 			vty_out(vty, ", via %s",
-				ifindex2ifname(
-					nexthop->ifindex,
-					nexthop->vrf_id));
+				ifindex2ifname(nexthop->ifindex,
+					       nexthop->vrf_id));
 		break;
 	case NEXTHOP_TYPE_IPV6:
 	case NEXTHOP_TYPE_IPV6_IFINDEX:
 		vty_out(vty, " %s",
-			inet_ntop(AF_INET6, &nexthop->gate.ipv6,
-				  buf, sizeof(buf)));
+			inet_ntop(AF_INET6, &nexthop->gate.ipv6, buf,
+				  sizeof(buf)));
 		if (nexthop->ifindex)
 			vty_out(vty, ", via %s",
-				ifindex2ifname(
-					nexthop->ifindex,
-					nexthop->vrf_id));
+				ifindex2ifname(nexthop->ifindex,
+					       nexthop->vrf_id));
 		break;
 
 	case NEXTHOP_TYPE_IFINDEX:
 		vty_out(vty, " directly connected, %s",
-			ifindex2ifname(nexthop->ifindex,
-				       nexthop->vrf_id));
+			ifindex2ifname(nexthop->ifindex, nexthop->vrf_id));
 		break;
 	case NEXTHOP_TYPE_BLACKHOLE:
 		vty_out(vty, " unreachable");
@@ -351,8 +328,7 @@ static void show_nexthop_detail_helper(struct vty *vty,
 			vty_out(vty, " (ICMP unreachable)");
 			break;
 		case BLACKHOLE_ADMINPROHIB:
-			vty_out(vty,
-				" (ICMP admin-prohibited)");
+			vty_out(vty, " (ICMP admin-prohibited)");
 			break;
 		case BLACKHOLE_NULL:
 			vty_out(vty, " (blackhole)");
@@ -389,21 +365,18 @@ static void show_nexthop_detail_helper(struct vty *vty,
 	case NEXTHOP_TYPE_IPV4:
 	case NEXTHOP_TYPE_IPV4_IFINDEX:
 		if (nexthop->src.ipv4.s_addr) {
-			if (inet_ntop(AF_INET, &nexthop->src.ipv4,
-				      addrstr, sizeof(addrstr)))
-				vty_out(vty, ", src %s",
-					addrstr);
+			if (inet_ntop(AF_INET, &nexthop->src.ipv4, addrstr,
+				      sizeof(addrstr)))
+				vty_out(vty, ", src %s", addrstr);
 		}
 		break;
 
 	case NEXTHOP_TYPE_IPV6:
 	case NEXTHOP_TYPE_IPV6_IFINDEX:
-		if (!IPV6_ADDR_SAME(&nexthop->src.ipv6,
-				    &in6addr_any)) {
-			if (inet_ntop(AF_INET6, &nexthop->src.ipv6,
-				      addrstr, sizeof(addrstr)))
-				vty_out(vty, ", src %s",
-					addrstr);
+		if (!IPV6_ADDR_SAME(&nexthop->src.ipv6, &in6addr_any)) {
+			if (inet_ntop(AF_INET6, &nexthop->src.ipv6, addrstr,
+				      sizeof(addrstr)))
+				vty_out(vty, ", src %s", addrstr);
 		}
 		break;
 
@@ -491,8 +464,7 @@ static void zebra_show_ip_route_opaque(struct vty *vty, struct route_entry *re,
 				json_object_string_add(json, "ospfAreaId",
 						       ozo.area_id);
 			if (ozo.tag[0] != '\0')
-				json_object_string_add(json, "ospfTag",
-						       ozo.tag);
+				json_object_string_add(json, "ospfTag", ozo.tag);
 		} else {
 			vty_out(vty, "    OSPF path type        : %s\n",
 				ozo.path_type);
@@ -579,8 +551,8 @@ static void vty_show_ip_route_detail(struct vty *vty, struct route_node *rn,
 
 		if (show_ng) {
 			vty_out(vty, "  Nexthop Group ID: %u\n", re->nhe_id);
-			if (re->nhe_installed_id != 0
-			    && re->nhe_id != re->nhe_installed_id)
+			if (re->nhe_installed_id != 0 &&
+			    re->nhe_id != re->nhe_installed_id)
 				vty_out(vty,
 					"  Installed Nexthop Group ID: %u\n",
 					re->nhe_installed_id);
@@ -650,11 +622,9 @@ static void vty_show_ip_route(struct vty *vty, struct route_node *rn,
 			json_object_boolean_true_add(json_route, "selected");
 
 		if (dest->selected_fib == re)
-			json_object_boolean_true_add(json_route,
-						     "destSelected");
+			json_object_boolean_true_add(json_route, "destSelected");
 
-		json_object_int_add(json_route, "distance",
-				    re->distance);
+		json_object_int_add(json_route, "distance", re->distance);
 		json_object_int_add(json_route, "metric", re->metric);
 
 		if (CHECK_FLAG(re->status, ROUTE_ENTRY_INSTALLED))
@@ -681,10 +651,8 @@ static void vty_show_ip_route(struct vty *vty, struct route_node *rn,
 		if (re->table)
 			json_object_int_add(json_route, "table", re->table);
 
-		json_object_int_add(json_route, "internalStatus",
-				    re->status);
-		json_object_int_add(json_route, "internalFlags",
-				    re->flags);
+		json_object_int_add(json_route, "internalStatus", re->status);
+		json_object_int_add(json_route, "internalFlags", re->flags);
 		json_object_int_add(json_route, "internalNextHopNum",
 				    nexthop_group_nexthop_num(&(re->nhe->nhg)));
 		json_object_int_add(json_route, "internalNextHopActiveNum",
@@ -701,11 +669,9 @@ static void vty_show_ip_route(struct vty *vty, struct route_node *rn,
 
 		for (ALL_NEXTHOPS_PTR(nhg, nexthop)) {
 			json_nexthop = json_object_new_object();
-			show_nexthop_json_helper(json_nexthop,
-						 nexthop, re);
+			show_nexthop_json_helper(json_nexthop, nexthop, re);
 
-			json_object_array_add(json_nexthops,
-					      json_nexthop);
+			json_object_array_add(json_nexthops, json_nexthop);
 		}
 
 		json_object_object_add(json_route, "nexthops", json_nexthops);
@@ -722,8 +688,8 @@ static void vty_show_ip_route(struct vty *vty, struct route_node *rn,
 			for (ALL_NEXTHOPS_PTR(nhg, nexthop)) {
 				json_nexthop = json_object_new_object();
 
-				show_nexthop_json_helper(json_nexthop,
-							 nexthop, re);
+				show_nexthop_json_helper(json_nexthop, nexthop,
+							 re);
 				json_object_array_add(json_nexthops,
 						      json_nexthop);
 			}
@@ -750,25 +716,23 @@ static void vty_show_ip_route(struct vty *vty, struct route_node *rn,
 	if (re->instance)
 		len += vty_out(vty, "[%d]", re->instance);
 	if (nhg_from_backup && nhg->nexthop) {
-		len += vty_out(
-			vty, "%cb%c %s",
-			CHECK_FLAG(re->flags, ZEBRA_FLAG_SELECTED) ? '>' : ' ',
-			re_status_output_char(re, nhg->nexthop, is_fib),
-			srcdest_rnode2str(rn, buf, sizeof(buf)));
+		len += vty_out(vty, "%cb%c %s",
+			       CHECK_FLAG(re->flags, ZEBRA_FLAG_SELECTED) ? '>'
+									  : ' ',
+			       re_status_output_char(re, nhg->nexthop, is_fib),
+			       srcdest_rnode2str(rn, buf, sizeof(buf)));
 	} else {
-		len += vty_out(
-			vty, "%c%c %s",
-			CHECK_FLAG(re->flags, ZEBRA_FLAG_SELECTED) ? '>' : ' ',
-			re_status_output_char(re, nhg->nexthop, is_fib),
-			srcdest_rnode2str(rn, buf, sizeof(buf)));
+		len += vty_out(vty, "%c%c %s",
+			       CHECK_FLAG(re->flags, ZEBRA_FLAG_SELECTED) ? '>'
+									  : ' ',
+			       re_status_output_char(re, nhg->nexthop, is_fib),
+			       srcdest_rnode2str(rn, buf, sizeof(buf)));
 	}
 
 	/* Distance and metric display. */
-	if (((re->type == ZEBRA_ROUTE_CONNECT) &&
-	     (re->distance || re->metric)) ||
+	if (((re->type == ZEBRA_ROUTE_CONNECT) && (re->distance || re->metric)) ||
 	    (re->type != ZEBRA_ROUTE_CONNECT))
-		len += vty_out(vty, " [%u/%u]", re->distance,
-			       re->metric);
+		len += vty_out(vty, " [%u/%u]", re->distance, re->metric);
 
 	if (show_ng)
 		len += vty_out(vty, " (%u)", re->nhe_id);
@@ -815,13 +779,11 @@ static void vty_show_ip_route(struct vty *vty, struct route_node *rn,
 		 * the entire list of backups, *and* include the
 		 * real installation state.
 		 */
-		vty_out(vty, "  b%c %*c",
-			(star_p ? '*' : ' '),
-			len - 3 + (2 * nexthop_level(nexthop)),	' ');
+		vty_out(vty, "  b%c %*c", (star_p ? '*' : ' '),
+			len - 3 + (2 * nexthop_level(nexthop)), ' ');
 		show_route_nexthop_helper(vty, re, nexthop);
 		vty_out(vty, "\n");
 	}
-
 }
 
 static void vty_show_ip_route_detail_json(struct vty *vty,
@@ -896,8 +858,8 @@ static void do_show_route_helper(struct vty *vty, struct zebra_vrf *zvrf,
 			if (tag && re->tag != tag)
 				continue;
 
-			if (longer_prefix_p
-			    && !prefix_match(longer_prefix_p, &rn->p))
+			if (longer_prefix_p &&
+			    !prefix_match(longer_prefix_p, &rn->p))
 				continue;
 
 			/* This can only be true when the afi is IPv4 */
@@ -917,9 +879,9 @@ static void do_show_route_helper(struct vty *vty, struct zebra_vrf *zvrf,
 			if (type && re->type != type)
 				continue;
 
-			if (ospf_instance_id
-			    && (re->type != ZEBRA_ROUTE_OSPF
-				|| re->instance != ospf_instance_id))
+			if (ospf_instance_id &&
+			    (re->type != ZEBRA_ROUTE_OSPF ||
+			     re->instance != ospf_instance_id))
 				continue;
 
 			if (use_json) {
@@ -936,8 +898,8 @@ static void do_show_route_helper(struct vty *vty, struct zebra_vrf *zvrf,
 				}
 				if (ctx->multi && ctx->header_done)
 					vty_out(vty, "\n");
-				if (ctx->multi || zvrf_id(zvrf) != VRF_DEFAULT
-				    || tableid) {
+				if (ctx->multi ||
+				    zvrf_id(zvrf) != VRF_DEFAULT || tableid) {
 					if (!tableid)
 						vty_out(vty, "VRF %s:\n",
 							zvrf_name(zvrf));
@@ -977,14 +939,12 @@ static void do_show_ip_route_all(struct vty *vty, struct zebra_vrf *zvrf,
 	struct zebra_router_table *zrt;
 	struct rib_table_info *info;
 
-	RB_FOREACH (zrt, zebra_router_table_head,
-		    &zrouter.tables) {
+	RB_FOREACH (zrt, zebra_router_table_head, &zrouter.tables) {
 		info = route_table_get_info(zrt->table);
 
 		if (zvrf != info->zvrf)
 			continue;
-		if (zrt->afi != afi ||
-		    zrt->safi != SAFI_UNICAST)
+		if (zrt->afi != afi || zrt->safi != SAFI_UNICAST)
 			continue;
 
 		do_show_ip_route(vty, zvrf_name(zvrf), afi, SAFI_UNICAST,
@@ -1022,7 +982,8 @@ static int do_show_ip_route(struct vty *vty, const char *vrf_name, afi_t afi,
 	}
 
 	if (tableid)
-		table = zebra_router_find_table(zvrf, tableid, afi, SAFI_UNICAST);
+		table = zebra_router_find_table(zvrf, tableid, afi,
+						SAFI_UNICAST);
 	else
 		table = zebra_vrf_table(afi, safi, zvrf_id(zvrf));
 	if (!table) {
@@ -1038,22 +999,16 @@ static int do_show_ip_route(struct vty *vty, const char *vrf_name, afi_t afi,
 	return CMD_SUCCESS;
 }
 
-DEFPY (show_ip_nht,
-       show_ip_nht_cmd,
-       "show <ip$ipv4|ipv6$ipv6> <nht|import-check>$type [<A.B.C.D|X:X::X:X>$addr|vrf NAME$vrf_name [<A.B.C.D|X:X::X:X>$addr]|vrf all$vrf_all] [mrib$mrib] [json]",
-       SHOW_STR
-       IP_STR
-       IP6_STR
-       "IP nexthop tracking table\n"
-       "IP import check tracking table\n"
-       "IPv4 Address\n"
-       "IPv6 Address\n"
-       VRF_CMD_HELP_STR
-       "IPv4 Address\n"
-       "IPv6 Address\n"
-       VRF_ALL_CMD_HELP_STR
-       "Show Multicast (MRIB) NHT state\n"
-       JSON_STR)
+DEFPY(show_ip_nht, show_ip_nht_cmd,
+      "show <ip$ipv4|ipv6$ipv6> <nht|import-check>$type [<A.B.C.D|X:X::X:X>$addr|vrf NAME$vrf_name [<A.B.C.D|X:X::X:X>$addr]|vrf all$vrf_all] [mrib$mrib] [json]",
+      SHOW_STR IP_STR IP6_STR
+      "IP nexthop tracking table\n"
+      "IP import check tracking table\n"
+      "IPv4 Address\n"
+      "IPv6 Address\n" VRF_CMD_HELP_STR
+      "IPv4 Address\n"
+      "IPv6 Address\n" VRF_ALL_CMD_HELP_STR
+      "Show Multicast (MRIB) NHT state\n" JSON_STR)
 {
 	afi_t afi = ipv4 ? AFI_IP : AFI_IP6;
 	vrf_id_t vrf_id = VRF_DEFAULT;
@@ -1132,12 +1087,11 @@ DEFPY (show_ip_nht,
 	return CMD_SUCCESS;
 }
 
-DEFUN (ip_nht_default_route,
-       ip_nht_default_route_cmd,
-       "ip nht resolve-via-default",
-       IP_STR
-       "Filter Next Hop tracking route resolution\n"
-       "Resolve via default route\n")
+DEFUN(ip_nht_default_route, ip_nht_default_route_cmd,
+      "ip nht resolve-via-default",
+      IP_STR
+      "Filter Next Hop tracking route resolution\n"
+      "Resolve via default route\n")
 {
 	ZEBRA_DECLVAR_CONTEXT_VRF(vrf, zvrf);
 
@@ -1180,14 +1134,12 @@ static void show_nexthop_group_out(struct vty *vty, struct nhg_hash_entry *nhe,
 				       zebra_route_string(nhe->type));
 		json_object_int_add(json, "refCount", nhe->refcnt);
 		if (event_is_scheduled(nhe->timer))
-			json_object_string_add(
-				json, "timeToDeletion",
-				event_timer_to_hhmmss(time_left,
-						      sizeof(time_left),
-						      nhe->timer));
+			json_object_string_add(json, "timeToDeletion",
+					       event_timer_to_hhmmss(time_left,
+								     sizeof(time_left),
+								     nhe->timer));
 		json_object_string_add(json, "uptime", up_str);
-		json_object_string_add(json, "vrf",
-				       vrf_id_to_name(nhe->vrf_id));
+		json_object_string_add(json, "vrf", vrf_id_to_name(nhe->vrf_id));
 
 	} else {
 		vty_out(vty, "ID: %u (%s)\n", nhe->id,
@@ -1233,12 +1185,12 @@ static void show_nexthop_group_out(struct vty *vty, struct nhg_hash_entry *nhe,
 			json_depends = json_object_new_array();
 		else
 			vty_out(vty, "     Depends:");
-		frr_each(nhg_connected_tree, &nhe->nhg_depends, rb_node_dep) {
+		frr_each (nhg_connected_tree, &nhe->nhg_depends, rb_node_dep) {
 			if (json_depends)
-				json_object_array_add(
-					json_depends,
-					json_object_new_int(
-						rb_node_dep->nhe->id));
+				json_object_array_add(json_depends,
+						      json_object_new_int(
+							      rb_node_dep->nhe
+								      ->id));
 			else
 				vty_out(vty, " (%u)", rb_node_dep->nhe->id);
 		}
@@ -1267,12 +1219,11 @@ static void show_nexthop_group_out(struct vty *vty, struct nhg_hash_entry *nhe,
 		}
 
 		if (nhe->backup_info == NULL || nhe->backup_info->nhe == NULL) {
-			if (CHECK_FLAG(nexthop->flags,
-				       NEXTHOP_FLAG_HAS_BACKUP)) {
+			if (CHECK_FLAG(nexthop->flags, NEXTHOP_FLAG_HAS_BACKUP)) {
 				if (json)
-					json_object_int_add(
-						json_nexthops, "backup",
-						nexthop->backup_idx[0]);
+					json_object_int_add(json_nexthops,
+							    "backup",
+							    nexthop->backup_idx[0]);
 				else
 					vty_out(vty, " [backup %d]",
 						nexthop->backup_idx[0]);
@@ -1289,8 +1240,7 @@ static void show_nexthop_group_out(struct vty *vty, struct nhg_hash_entry *nhe,
 
 		if (!json) {
 			/* TODO -- print more useful backup info */
-			if (CHECK_FLAG(nexthop->flags,
-				       NEXTHOP_FLAG_HAS_BACKUP)) {
+			if (CHECK_FLAG(nexthop->flags, NEXTHOP_FLAG_HAS_BACKUP)) {
 				int i;
 
 				vty_out(vty, "[backup");
@@ -1301,8 +1251,7 @@ static void show_nexthop_group_out(struct vty *vty, struct nhg_hash_entry *nhe,
 			}
 			vty_out(vty, "\n");
 		} else {
-			json_object_array_add(json_nexthop_array,
-					      json_nexthops);
+			json_object_array_add(json_nexthop_array, json_nexthops);
 		}
 	}
 
@@ -1349,13 +1298,13 @@ static void show_nexthop_group_out(struct vty *vty, struct nhg_hash_entry *nhe,
 			json_dependants = json_object_new_array();
 		else
 			vty_out(vty, "     Dependents:");
-		frr_each(nhg_connected_tree, &nhe->nhg_dependents,
+		frr_each (nhg_connected_tree, &nhe->nhg_dependents,
 			  rb_node_dep) {
 			if (json)
-				json_object_array_add(
-					json_dependants,
-					json_object_new_int(
-						rb_node_dep->nhe->id));
+				json_object_array_add(json_dependants,
+						      json_object_new_int(
+							      rb_node_dep->nhe
+								      ->id));
 			else
 				vty_out(vty, " (%u)", rb_node_dep->nhe->id);
 		}
@@ -1471,7 +1420,7 @@ static void if_nexthop_group_dump_vty(struct vty *vty, struct interface *ifp)
 	if (!if_nhg_dependents_is_empty(ifp)) {
 		vty_out(vty, "Interface %s:\n", ifp->name);
 
-		frr_each(nhg_connected_tree, &zebra_if->nhg_dependents,
+		frr_each (nhg_connected_tree, &zebra_if->nhg_dependents,
 			  rb_node_dep) {
 			vty_out(vty, "   ");
 			show_nexthop_group_out(vty, rb_node_dep->nhe, NULL);
@@ -1479,13 +1428,12 @@ static void if_nexthop_group_dump_vty(struct vty *vty, struct interface *ifp)
 	}
 }
 
-DEFPY (show_interface_nexthop_group,
-       show_interface_nexthop_group_cmd,
-       "show interface [IFNAME$if_name] nexthop-group",
-       SHOW_STR
-       "Interface status and configuration\n"
-       "Interface name\n"
-       "Show Nexthop Groups\n")
+DEFPY(show_interface_nexthop_group, show_interface_nexthop_group_cmd,
+      "show interface [IFNAME$if_name] nexthop-group",
+      SHOW_STR
+      "Interface status and configuration\n"
+      "Interface name\n"
+      "Show Nexthop Groups\n")
 {
 	struct vrf *vrf = NULL;
 	struct interface *ifp = NULL;
@@ -1513,22 +1461,18 @@ DEFPY (show_interface_nexthop_group,
 	return CMD_SUCCESS;
 }
 
-DEFPY(show_nexthop_group,
-      show_nexthop_group_cmd,
+DEFPY(show_nexthop_group, show_nexthop_group_cmd,
       "show nexthop-group rib <(0-4294967295)$id|[singleton <ip$v4|ipv6$v6>] [<kernel|zebra|bgp|sharp>$type_str] [vrf <NAME$vrf_name|all$vrf_all>]> [json]",
       SHOW_STR
       "Show Nexthop Groups\n"
       "RIB information\n"
       "Nexthop Group ID\n"
-      "Show Singleton Nexthop-Groups\n"
-      IP_STR
-      IP6_STR
+      "Show Singleton Nexthop-Groups\n" IP_STR IP6_STR
       "Kernel (not installed via the zebra RIB)\n"
       "Zebra (implicitly created by zebra)\n"
       "Border Gateway Protocol (BGP)\n"
-      "Super Happy Advanced Routing Protocol (SHARP)\n"
-      VRF_FULL_CMD_HELP_STR
-      JSON_STR)
+      "Super Happy Advanced Routing Protocol (SHARP)\n" VRF_FULL_CMD_HELP_STR
+	      JSON_STR)
 {
 
 	struct zebra_vrf *zvrf = NULL;
@@ -1615,11 +1559,9 @@ DEFPY(show_nexthop_group,
 	return CMD_SUCCESS;
 }
 
-DEFPY_HIDDEN(nexthop_group_use_enable,
-	     nexthop_group_use_enable_cmd,
+DEFPY_HIDDEN(nexthop_group_use_enable, nexthop_group_use_enable_cmd,
 	     "[no] zebra nexthop kernel enable",
-	     NO_STR
-	     ZEBRA_STR
+	     NO_STR ZEBRA_STR
 	     "Nexthop configuration \n"
 	     "Configure use of kernel nexthops\n"
 	     "Enable kernel nexthops\n")
@@ -1642,8 +1584,7 @@ DEFPY_HIDDEN(proto_nexthop_group_only, proto_nexthop_group_only_cmd,
 DEFPY_HIDDEN(backup_nexthop_recursive_use_enable,
 	     backup_nexthop_recursive_use_enable_cmd,
 	     "[no] zebra nexthop resolve-via-backup",
-	     NO_STR
-	     ZEBRA_STR
+	     NO_STR ZEBRA_STR
 	     "Nexthop configuration \n"
 	     "Configure use of backup nexthops in recursive resolution\n")
 {
@@ -1651,13 +1592,11 @@ DEFPY_HIDDEN(backup_nexthop_recursive_use_enable,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_ip_nht_default_route,
-       no_ip_nht_default_route_cmd,
-       "no ip nht resolve-via-default",
-       NO_STR
-       IP_STR
-       "Filter Next Hop tracking route resolution\n"
-       "Resolve via default route\n")
+DEFUN(no_ip_nht_default_route, no_ip_nht_default_route_cmd,
+      "no ip nht resolve-via-default",
+      NO_STR IP_STR
+      "Filter Next Hop tracking route resolution\n"
+      "Resolve via default route\n")
 {
 	ZEBRA_DECLVAR_CONTEXT_VRF(vrf, zvrf);
 
@@ -1672,12 +1611,11 @@ DEFUN (no_ip_nht_default_route,
 	return CMD_SUCCESS;
 }
 
-DEFUN (ipv6_nht_default_route,
-       ipv6_nht_default_route_cmd,
-       "ipv6 nht resolve-via-default",
-       IP6_STR
-       "Filter Next Hop tracking route resolution\n"
-       "Resolve via default route\n")
+DEFUN(ipv6_nht_default_route, ipv6_nht_default_route_cmd,
+      "ipv6 nht resolve-via-default",
+      IP6_STR
+      "Filter Next Hop tracking route resolution\n"
+      "Resolve via default route\n")
 {
 	ZEBRA_DECLVAR_CONTEXT_VRF(vrf, zvrf);
 
@@ -1692,13 +1630,11 @@ DEFUN (ipv6_nht_default_route,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_ipv6_nht_default_route,
-       no_ipv6_nht_default_route_cmd,
-       "no ipv6 nht resolve-via-default",
-       NO_STR
-       IP6_STR
-       "Filter Next Hop tracking route resolution\n"
-       "Resolve via default route\n")
+DEFUN(no_ipv6_nht_default_route, no_ipv6_nht_default_route_cmd,
+      "no ipv6 nht resolve-via-default",
+      NO_STR IP6_STR
+      "Filter Next Hop tracking route resolution\n"
+      "Resolve via default route\n")
 {
 	ZEBRA_DECLVAR_CONTEXT_VRF(vrf, zvrf);
 
@@ -1715,8 +1651,7 @@ DEFUN (no_ipv6_nht_default_route,
 
 DEFPY_HIDDEN(rnh_hide_backups, rnh_hide_backups_cmd,
 	     "[no] ip nht hide-backup-events",
-	     NO_STR
-	     IP_STR
+	     NO_STR IP_STR
 	     "Nexthop-tracking configuration\n"
 	     "Hide notification about backup nexthops\n")
 {
@@ -1724,9 +1659,8 @@ DEFPY_HIDDEN(rnh_hide_backups, rnh_hide_backups_cmd,
 	return CMD_SUCCESS;
 }
 
-DEFPY (show_route,
-       show_route_cmd,
-       "show\
+DEFPY(show_route, show_route_cmd,
+      "show\
          <\
 	  ip$ipv4 <fib$fib|route> [table <(1-4294967295)$table|all$table_all>]\
 	  [vrf <NAME$vrf_name|all$vrf_all>]\
@@ -1736,7 +1670,8 @@ DEFPY (show_route,
 	    |supernets-only$supernets_only\
 	   }]\
 	   [<\
-	    " FRR_IP_REDIST_STR_ZEBRA "$type_str\
+	    " FRR_IP_REDIST_STR_ZEBRA
+      "$type_str\
 	    |ospf$type_str (1-65535)$ospf_instance_id\
 	   >]\
           |ipv6$ipv6 <fib$fib|route> [table <(1-4294967295)$table|all$table_all>]\
@@ -1745,39 +1680,33 @@ DEFPY (show_route,
 	    tag (1-4294967295)\
 	    |X:X::X:X/M$prefix longer-prefixes\
 	   }]\
-	   [" FRR_IP6_REDIST_STR_ZEBRA "$type_str]\
+	   [" FRR_IP6_REDIST_STR_ZEBRA
+      "$type_str]\
 	 >\
         [<json$json|nexthop-group$ng>]",
-       SHOW_STR
-       IP_STR
-       "IP forwarding table\n"
-       "IP routing table\n"
-       "Table to display\n"
-       "The table number to display\n"
-       "All tables\n"
-       VRF_FULL_CMD_HELP_STR
-       "Show only routes with tag\n"
-       "Tag value\n"
-       "IP prefix <network>/<length>, e.g., 35.0.0.0/8\n"
-       "Show route matching the specified Network/Mask pair only\n"
-       "Show supernet entries only\n"
-       FRR_IP_REDIST_HELP_STR_ZEBRA
-       "Open Shortest Path First (OSPFv2)\n"
-       "Instance ID\n"
-       IPV6_STR
-       "IP forwarding table\n"
-       "IP routing table\n"
-       "Table to display\n"
-       "The table number to display\n"
-       "All tables\n"
-       VRF_FULL_CMD_HELP_STR
-       "Show only routes with tag\n"
-       "Tag value\n"
-       "IPv6 prefix\n"
-       "Show route matching the specified Network/Mask pair only\n"
-       FRR_IP6_REDIST_HELP_STR_ZEBRA
-       JSON_STR
-       "Nexthop Group Information\n")
+      SHOW_STR IP_STR
+      "IP forwarding table\n"
+      "IP routing table\n"
+      "Table to display\n"
+      "The table number to display\n"
+      "All tables\n" VRF_FULL_CMD_HELP_STR
+      "Show only routes with tag\n"
+      "Tag value\n"
+      "IP prefix <network>/<length>, e.g., 35.0.0.0/8\n"
+      "Show route matching the specified Network/Mask pair only\n"
+      "Show supernet entries only\n" FRR_IP_REDIST_HELP_STR_ZEBRA
+      "Open Shortest Path First (OSPFv2)\n"
+      "Instance ID\n" IPV6_STR
+      "IP forwarding table\n"
+      "IP routing table\n"
+      "Table to display\n"
+      "The table number to display\n"
+      "All tables\n" VRF_FULL_CMD_HELP_STR
+      "Show only routes with tag\n"
+      "Tag value\n"
+      "IPv6 prefix\n"
+      "Show route matching the specified Network/Mask pair only\n" FRR_IP6_REDIST_HELP_STR_ZEBRA
+	      JSON_STR "Nexthop Group Information\n")
 {
 	afi_t afi = ipv4 ? AFI_IP : AFI_IP6;
 	struct vrf *vrf;
@@ -1792,8 +1721,10 @@ DEFPY (show_route,
 			if (!!json)
 				vty_out(vty, "{}\n");
 			else {
-				vty_out(vty, "Linux vrf backend already points to table id\n");
-				vty_out(vty, "Either remove table parameter or vrf parameter\n");
+				vty_out(vty,
+					"Linux vrf backend already points to table id\n");
+				vty_out(vty,
+					"Either remove table parameter or vrf parameter\n");
 			}
 			return CMD_SUCCESS;
 		}
@@ -1808,23 +1739,24 @@ DEFPY (show_route,
 
 	if (vrf_all) {
 		RB_FOREACH (vrf, vrf_name_head, &vrfs_by_name) {
-			if ((zvrf = vrf->info) == NULL
-			    || (zvrf->table[afi][SAFI_UNICAST] == NULL))
+			if ((zvrf = vrf->info) == NULL ||
+			    (zvrf->table[afi][SAFI_UNICAST] == NULL))
 				continue;
 
 			if (table_all)
-				do_show_ip_route_all(
-					vty, zvrf, afi, !!fib, !!json, tag,
-					prefix_str ? prefix : NULL,
-					!!supernets_only, type,
-					ospf_instance_id, !!ng, &ctx);
+				do_show_ip_route_all(vty, zvrf, afi, !!fib,
+						     !!json, tag,
+						     prefix_str ? prefix : NULL,
+						     !!supernets_only, type,
+						     ospf_instance_id, !!ng,
+						     &ctx);
 			else
-				do_show_ip_route(
-					vty, zvrf_name(zvrf), afi, SAFI_UNICAST,
-					!!fib, !!json, tag,
-					prefix_str ? prefix : NULL,
-					!!supernets_only, type,
-					ospf_instance_id, table, !!ng, &ctx);
+				do_show_ip_route(vty, zvrf_name(zvrf), afi,
+						 SAFI_UNICAST, !!fib, !!json,
+						 tag, prefix_str ? prefix : NULL,
+						 !!supernets_only, type,
+						 ospf_instance_id, table, !!ng,
+						 &ctx);
 		}
 	} else {
 		vrf_id_t vrf_id = VRF_DEFAULT;
@@ -1855,18 +1787,12 @@ DEFPY (show_route,
 	return CMD_SUCCESS;
 }
 
-ALIAS_HIDDEN (show_route,
-              show_ro_cmd,
-              "show <ip$ipv4|ipv6$ipv6> ro",
-              SHOW_STR
-              IP_STR
-              IPV6_STR
-              "IP routing table\n");
+ALIAS_HIDDEN(show_route, show_ro_cmd, "show <ip$ipv4|ipv6$ipv6> ro",
+	     SHOW_STR IP_STR IPV6_STR "IP routing table\n");
 
 
-DEFPY (show_route_detail,
-       show_route_detail_cmd,
-       "show\
+DEFPY(show_route_detail, show_route_detail_cmd,
+      "show\
          <\
           ip$ipv4 <fib$fib|route> [vrf <NAME$vrf_name|all$vrf_all>]\
           <\
@@ -1880,21 +1806,15 @@ DEFPY (show_route_detail,
 	  >\
 	 >\
 	 [json$json] [nexthop-group$ng]",
-       SHOW_STR
-       IP_STR
-       "IP forwarding table\n"
-       "IP routing table\n"
-       VRF_FULL_CMD_HELP_STR
-       "Network in the IP routing table to display\n"
-       "IP prefix <network>/<length>, e.g., 35.0.0.0/8\n"
-       IP6_STR
-       "IPv6 forwarding table\n"
-       "IPv6 routing table\n"
-       VRF_FULL_CMD_HELP_STR
-       "IPv6 Address\n"
-       "IPv6 prefix\n"
-       JSON_STR
-       "Nexthop Group Information\n")
+      SHOW_STR IP_STR
+      "IP forwarding table\n"
+      "IP routing table\n" VRF_FULL_CMD_HELP_STR
+      "Network in the IP routing table to display\n"
+      "IP prefix <network>/<length>, e.g., 35.0.0.0/8\n" IP6_STR
+      "IPv6 forwarding table\n"
+      "IPv6 routing table\n" VRF_FULL_CMD_HELP_STR
+      "IPv6 Address\n"
+      "IPv6 prefix\n" JSON_STR "Nexthop Group Information\n")
 {
 	afi_t afi = ipv4 ? AFI_IP : AFI_IP6;
 	struct route_table *table;
@@ -1917,8 +1837,8 @@ DEFPY (show_route_detail,
 		struct zebra_vrf *zvrf;
 
 		RB_FOREACH (vrf, vrf_name_head, &vrfs_by_name) {
-			if ((zvrf = vrf->info) == NULL
-			    || (table = zvrf->table[afi][SAFI_UNICAST]) == NULL)
+			if ((zvrf = vrf->info) == NULL ||
+			    (table = zvrf->table[afi][SAFI_UNICAST]) == NULL)
 				continue;
 
 			rn = route_node_match(table, &p);
@@ -1950,11 +1870,9 @@ DEFPY (show_route_detail,
 				vty_out(vty, "{}\n");
 			else {
 				if (use_fib)
-					vty_out(vty,
-						"%% Network not in FIB\n");
+					vty_out(vty, "%% Network not in FIB\n");
 				else
-					vty_out(vty,
-						"%% Network not in RIB\n");
+					vty_out(vty, "%% Network not in RIB\n");
 			}
 			return CMD_WARNING;
 		}
@@ -1973,13 +1891,12 @@ DEFPY (show_route_detail,
 			dest = rib_dest_from_rnode(rn);
 
 		if (!rn || (!address_str && rn->p.prefixlen != p.prefixlen) ||
-			(use_fib && dest && !dest->selected_fib)) {
+		    (use_fib && dest && !dest->selected_fib)) {
 			if (json)
 				vty_out(vty, "{}\n");
 			else {
 				if (use_fib)
-					vty_out(vty,
-						"%% Network not in FIB\n");
+					vty_out(vty, "%% Network not in FIB\n");
 				else
 					vty_out(vty,
 						"%% Network not in table\n");
@@ -2000,20 +1917,14 @@ DEFPY (show_route_detail,
 	return CMD_SUCCESS;
 }
 
-DEFPY (show_route_summary,
-       show_route_summary_cmd,
-       "show <ip$ipv4|ipv6$ipv6> route [vrf <NAME$vrf_name|all$vrf_all>] \
+DEFPY(show_route_summary, show_route_summary_cmd,
+      "show <ip$ipv4|ipv6$ipv6> route [vrf <NAME$vrf_name|all$vrf_all>] \
             summary [table (1-4294967295)$table_id] [prefix$prefix] [json]",
-       SHOW_STR
-       IP_STR
-       IP6_STR
-       "IP routing table\n"
-       VRF_FULL_CMD_HELP_STR
-       "Summary of all routes\n"
-       "Table to display summary for\n"
-       "The table number\n"
-       "Prefix routes\n"
-       JSON_STR)
+      SHOW_STR IP_STR IP6_STR "IP routing table\n" VRF_FULL_CMD_HELP_STR
+			      "Summary of all routes\n"
+			      "Table to display summary for\n"
+			      "The table number\n"
+			      "Prefix routes\n" JSON_STR)
 {
 	afi_t afi = ipv4 ? AFI_IP : AFI_IP6;
 	struct route_table *table;
@@ -2039,8 +1950,7 @@ DEFPY (show_route_summary,
 				continue;
 
 			if (prefix)
-				vty_show_ip_route_summary_prefix(vty, table,
-								 uj);
+				vty_show_ip_route_summary_prefix(vty, table, uj);
 			else
 				vty_show_ip_route_summary(vty, table, uj);
 		}
@@ -2053,8 +1963,10 @@ DEFPY (show_route_summary,
 		if (table_id == 0)
 			table = zebra_vrf_table(afi, SAFI_UNICAST, vrf_id);
 		else
-			table = zebra_vrf_lookup_table_with_table_id(
-				afi, SAFI_UNICAST, vrf_id, table_id);
+			table = zebra_vrf_lookup_table_with_table_id(afi,
+								     SAFI_UNICAST,
+								     vrf_id,
+								     table_id);
 		if (!table)
 			return CMD_SUCCESS;
 
@@ -2067,16 +1979,12 @@ DEFPY (show_route_summary,
 	return CMD_SUCCESS;
 }
 
-DEFUN_HIDDEN (show_route_zebra_dump,
-              show_route_zebra_dump_cmd,
-              "show <ip|ipv6> zebra route dump [vrf VRFNAME]",
-              SHOW_STR
-              IP_STR
-              IP6_STR
-              "Zebra daemon\n"
-              "Routing table\n"
-              "All information\n"
-              VRF_CMD_HELP_STR)
+DEFUN_HIDDEN(show_route_zebra_dump, show_route_zebra_dump_cmd,
+	     "show <ip|ipv6> zebra route dump [vrf VRFNAME]",
+	     SHOW_STR IP_STR IP6_STR
+	     "Zebra daemon\n"
+	     "Routing table\n"
+	     "All information\n" VRF_CMD_HELP_STR)
 {
 	afi_t afi = AFI_IP;
 	struct route_table *table;
@@ -2094,8 +2002,8 @@ DEFUN_HIDDEN (show_route_zebra_dump,
 
 		RB_FOREACH (vrf, vrf_name_head, &vrfs_by_name) {
 			zvrf = vrf->info;
-			if ((zvrf == NULL)
-			    || (zvrf->table[afi][SAFI_UNICAST] == NULL))
+			if ((zvrf == NULL) ||
+			    (zvrf->table[afi][SAFI_UNICAST] == NULL))
 				continue;
 
 			table = zvrf->table[afi][SAFI_UNICAST];
@@ -2141,9 +2049,8 @@ static void show_ip_route_nht_dump(struct vty *vty, struct nexthop *nexthop,
 					       nexthop->vrf_id));
 		}
 
-		if (nexthop->src.ipv4.s_addr
-		    && (inet_ntop(AF_INET, &nexthop->src.ipv4, buf,
-				  sizeof(buf))))
+		if (nexthop->src.ipv4.s_addr &&
+		    (inet_ntop(AF_INET, &nexthop->src.ipv4, buf, sizeof(buf))))
 			vty_out(vty, "      source: %s\n", buf);
 		break;
 	case NEXTHOP_TYPE_IPV6:
@@ -2182,8 +2089,7 @@ static void show_ip_route_nht_dump(struct vty *vty, struct nexthop *nexthop,
 			vty_out(vty, "      Blackhole type: reject\n");
 			break;
 		case BLACKHOLE_ADMINPROHIB:
-			vty_out(vty,
-				"      Blackhole type: admin-prohibited\n");
+			vty_out(vty, "      Blackhole type: admin-prohibited\n");
 			break;
 		case BLACKHOLE_NULL:
 			vty_out(vty, "      Blackhole type: NULL0\n");
@@ -2271,7 +2177,7 @@ static void vty_show_ip_route_summary(struct vty *vty,
 {
 	struct route_node *rn;
 	struct route_entry *re;
-#define ZEBRA_ROUTE_IBGP  ZEBRA_ROUTE_MAX
+#define ZEBRA_ROUTE_IBGP ZEBRA_ROUTE_MAX
 #define ZEBRA_ROUTE_TOTAL (ZEBRA_ROUTE_IBGP + 1)
 	uint32_t rib_cnt[ZEBRA_ROUTE_TOTAL + 1];
 	uint32_t fib_cnt[ZEBRA_ROUTE_TOTAL + 1];
@@ -2296,8 +2202,8 @@ static void vty_show_ip_route_summary(struct vty *vty,
 
 	for (rn = route_top(table); rn; rn = srcdest_route_next(rn))
 		RNODE_FOREACH_RE (rn, re) {
-			is_ibgp = (re->type == ZEBRA_ROUTE_BGP
-				   && CHECK_FLAG(re->flags, ZEBRA_FLAG_IBGP));
+			is_ibgp = (re->type == ZEBRA_ROUTE_BGP &&
+				   CHECK_FLAG(re->flags, ZEBRA_FLAG_IBGP));
 
 			rib_cnt[ZEBRA_ROUTE_TOTAL]++;
 			if (is_ibgp)
@@ -2332,30 +2238,30 @@ static void vty_show_ip_route_summary(struct vty *vty,
 	if (!use_json)
 		vty_out(vty, "%-20s %-20s %s  (vrf %s)\n", "Route Source",
 			"Routes", "FIB",
-			zvrf_name(((struct rib_table_info *)
-					   route_table_get_info(table))
+			zvrf_name(((struct rib_table_info *)route_table_get_info(
+					   table))
 					  ->zvrf));
 
 	for (i = 0; i < ZEBRA_ROUTE_MAX; i++) {
-		if ((rib_cnt[i] > 0) || (i == ZEBRA_ROUTE_BGP
-					 && rib_cnt[ZEBRA_ROUTE_IBGP] > 0)) {
+		if ((rib_cnt[i] > 0) ||
+		    (i == ZEBRA_ROUTE_BGP && rib_cnt[ZEBRA_ROUTE_IBGP] > 0)) {
 			if (i == ZEBRA_ROUTE_BGP) {
 				if (use_json) {
 					json_object *json_route_ebgp =
 						json_object_new_object();
 
-					json_object_int_add(
-						json_route_ebgp, "fib",
-						fib_cnt[ZEBRA_ROUTE_BGP]);
-					json_object_int_add(
-						json_route_ebgp, "rib",
-						rib_cnt[ZEBRA_ROUTE_BGP]);
+					json_object_int_add(json_route_ebgp,
+							    "fib",
+							    fib_cnt[ZEBRA_ROUTE_BGP]);
+					json_object_int_add(json_route_ebgp,
+							    "rib",
+							    rib_cnt[ZEBRA_ROUTE_BGP]);
 					json_object_int_add(
 						json_route_ebgp, "fibOffLoaded",
 						offload_cnt[ZEBRA_ROUTE_BGP]);
-					json_object_int_add(
-						json_route_ebgp, "fibTrapped",
-						trap_cnt[ZEBRA_ROUTE_BGP]);
+					json_object_int_add(json_route_ebgp,
+							    "fibTrapped",
+							    trap_cnt[ZEBRA_ROUTE_BGP]);
 
 					json_object_string_add(json_route_ebgp,
 							       "type", "ebgp");
@@ -2365,26 +2271,25 @@ static void vty_show_ip_route_summary(struct vty *vty,
 					json_object *json_route_ibgp =
 						json_object_new_object();
 
-					json_object_int_add(
-						json_route_ibgp, "fib",
-						fib_cnt[ZEBRA_ROUTE_IBGP]);
-					json_object_int_add(
-						json_route_ibgp, "rib",
-						rib_cnt[ZEBRA_ROUTE_IBGP]);
+					json_object_int_add(json_route_ibgp,
+							    "fib",
+							    fib_cnt[ZEBRA_ROUTE_IBGP]);
+					json_object_int_add(json_route_ibgp,
+							    "rib",
+							    rib_cnt[ZEBRA_ROUTE_IBGP]);
 					json_object_int_add(
 						json_route_ibgp, "fibOffLoaded",
 						offload_cnt[ZEBRA_ROUTE_IBGP]);
-					json_object_int_add(
-						json_route_ibgp, "fibTrapped",
-						trap_cnt[ZEBRA_ROUTE_IBGP]);
+					json_object_int_add(json_route_ibgp,
+							    "fibTrapped",
+							    trap_cnt[ZEBRA_ROUTE_IBGP]);
 					json_object_string_add(json_route_ibgp,
 							       "type", "ibgp");
 					json_object_array_add(json_route_routes,
 							      json_route_ibgp);
 				} else {
 					vty_out(vty, "%-20s %-20d %-20d \n",
-						"ebgp",
-						rib_cnt[ZEBRA_ROUTE_BGP],
+						"ebgp", rib_cnt[ZEBRA_ROUTE_BGP],
 						fib_cnt[ZEBRA_ROUTE_BGP]);
 					vty_out(vty, "%-20s %-20d %-20d \n",
 						"ibgp",
@@ -2407,9 +2312,10 @@ static void vty_show_ip_route_summary(struct vty *vty,
 					json_object_int_add(json_route_type,
 							    "fibTrapped",
 							    trap_cnt[i]);
-					json_object_string_add(
-						json_route_type, "type",
-						zebra_route_string(i));
+					json_object_string_add(json_route_type,
+							       "type",
+							       zebra_route_string(
+								       i));
 					json_object_array_add(json_route_routes,
 							      json_route_type);
 				} else
@@ -2449,7 +2355,7 @@ static void vty_show_ip_route_summary_prefix(struct vty *vty,
 	struct route_node *rn;
 	struct route_entry *re;
 	struct nexthop *nexthop;
-#define ZEBRA_ROUTE_IBGP  ZEBRA_ROUTE_MAX
+#define ZEBRA_ROUTE_IBGP ZEBRA_ROUTE_MAX
 #define ZEBRA_ROUTE_TOTAL (ZEBRA_ROUTE_IBGP + 1)
 	uint32_t rib_cnt[ZEBRA_ROUTE_TOTAL + 1];
 	uint32_t fib_cnt[ZEBRA_ROUTE_TOTAL + 1];
@@ -2484,8 +2390,8 @@ static void vty_show_ip_route_summary_prefix(struct vty *vty,
 				cnt++;
 				rib_cnt[ZEBRA_ROUTE_TOTAL]++;
 				rib_cnt[re->type]++;
-				if (re->type == ZEBRA_ROUTE_BGP
-				    && CHECK_FLAG(re->flags, ZEBRA_FLAG_IBGP)) {
+				if (re->type == ZEBRA_ROUTE_BGP &&
+				    CHECK_FLAG(re->flags, ZEBRA_FLAG_IBGP)) {
 					rib_cnt[ZEBRA_ROUTE_IBGP]++;
 					if (CHECK_FLAG(re->status,
 						       ROUTE_ENTRY_INSTALLED))
@@ -2497,8 +2403,8 @@ static void vty_show_ip_route_summary_prefix(struct vty *vty,
 	if (!use_json)
 		vty_out(vty, "%-20s %-20s %s  (vrf %s)\n", "Route Source",
 			"Prefix Routes", "FIB",
-			zvrf_name(((struct rib_table_info *)
-					   route_table_get_info(table))
+			zvrf_name(((struct rib_table_info *)route_table_get_info(
+					   table))
 					  ->zvrf));
 
 	for (i = 0; i < ZEBRA_ROUTE_MAX; i++) {
@@ -2510,12 +2416,12 @@ static void vty_show_ip_route_summary_prefix(struct vty *vty,
 
 					json_object_int_add(
 						json_route_ebgp, "fib",
-						fib_cnt[ZEBRA_ROUTE_BGP]
-							- fib_cnt[ZEBRA_ROUTE_IBGP]);
+						fib_cnt[ZEBRA_ROUTE_BGP] -
+							fib_cnt[ZEBRA_ROUTE_IBGP]);
 					json_object_int_add(
 						json_route_ebgp, "rib",
-						rib_cnt[ZEBRA_ROUTE_BGP]
-							- rib_cnt[ZEBRA_ROUTE_IBGP]);
+						rib_cnt[ZEBRA_ROUTE_BGP] -
+							rib_cnt[ZEBRA_ROUTE_IBGP]);
 					json_object_string_add(json_route_ebgp,
 							       "type", "ebgp");
 					json_object_array_add(json_route_routes,
@@ -2524,12 +2430,12 @@ static void vty_show_ip_route_summary_prefix(struct vty *vty,
 					json_object *json_route_ibgp =
 						json_object_new_object();
 
-					json_object_int_add(
-						json_route_ibgp, "fib",
-						fib_cnt[ZEBRA_ROUTE_IBGP]);
-					json_object_int_add(
-						json_route_ibgp, "rib",
-						rib_cnt[ZEBRA_ROUTE_IBGP]);
+					json_object_int_add(json_route_ibgp,
+							    "fib",
+							    fib_cnt[ZEBRA_ROUTE_IBGP]);
+					json_object_int_add(json_route_ibgp,
+							    "rib",
+							    rib_cnt[ZEBRA_ROUTE_IBGP]);
 					json_object_string_add(json_route_ibgp,
 							       "type", "ibgp");
 					json_object_array_add(json_route_routes,
@@ -2537,10 +2443,10 @@ static void vty_show_ip_route_summary_prefix(struct vty *vty,
 				} else {
 					vty_out(vty, "%-20s %-20d %-20d \n",
 						"ebgp",
-						rib_cnt[ZEBRA_ROUTE_BGP]
-							- rib_cnt[ZEBRA_ROUTE_IBGP],
-						fib_cnt[ZEBRA_ROUTE_BGP]
-							- fib_cnt[ZEBRA_ROUTE_IBGP]);
+						rib_cnt[ZEBRA_ROUTE_BGP] -
+							rib_cnt[ZEBRA_ROUTE_IBGP],
+						fib_cnt[ZEBRA_ROUTE_BGP] -
+							fib_cnt[ZEBRA_ROUTE_IBGP]);
 					vty_out(vty, "%-20s %-20d %-20d \n",
 						"ibgp",
 						rib_cnt[ZEBRA_ROUTE_IBGP],
@@ -2555,9 +2461,10 @@ static void vty_show_ip_route_summary_prefix(struct vty *vty,
 							    "fib", fib_cnt[i]);
 					json_object_int_add(json_route_type,
 							    "rib", rib_cnt[i]);
-					json_object_string_add(
-						json_route_type, "type",
-						zebra_route_string(i));
+					json_object_string_add(json_route_type,
+							       "type",
+							       zebra_route_string(
+								       i));
 					json_object_array_add(json_route_routes,
 							      json_route_type);
 				} else
@@ -2583,21 +2490,18 @@ static void vty_show_ip_route_summary_prefix(struct vty *vty,
 	}
 }
 
-DEFUN (allow_external_route_update,
-       allow_external_route_update_cmd,
-       "allow-external-route-update",
-       "Allow FRR routes to be overwritten by external processes\n")
+DEFUN(allow_external_route_update, allow_external_route_update_cmd,
+      "allow-external-route-update",
+      "Allow FRR routes to be overwritten by external processes\n")
 {
 	zrouter.allow_delete = true;
 
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_allow_external_route_update,
-       no_allow_external_route_update_cmd,
-       "no allow-external-route-update",
-       NO_STR
-       "Allow FRR routes to be overwritten by external processes\n")
+DEFUN(no_allow_external_route_update, no_allow_external_route_update_cmd,
+      "no allow-external-route-update",
+      NO_STR "Allow FRR routes to be overwritten by external processes\n")
 {
 	zrouter.allow_delete = false;
 
@@ -2605,11 +2509,7 @@ DEFUN (no_allow_external_route_update,
 }
 
 /* show vrf */
-DEFUN (show_vrf,
-       show_vrf_cmd,
-       "show vrf",
-       SHOW_STR
-       "VRF\n")
+DEFUN(show_vrf, show_vrf_cmd, "show vrf", SHOW_STR "VRF\n")
 {
 	struct vrf *vrf;
 	struct zebra_vrf *zvrf;
@@ -2640,45 +2540,42 @@ DEFUN (show_vrf,
 	return CMD_SUCCESS;
 }
 
-DEFPY (evpn_mh_mac_holdtime,
-       evpn_mh_mac_holdtime_cmd,
-       "[no$no] evpn mh mac-holdtime (0-86400)$duration",
-       NO_STR
-       "EVPN\n"
-       "Multihoming\n"
-       "MAC hold time\n"
-       "Duration in seconds\n")
+DEFPY(evpn_mh_mac_holdtime, evpn_mh_mac_holdtime_cmd,
+      "[no$no] evpn mh mac-holdtime (0-86400)$duration",
+      NO_STR
+      "EVPN\n"
+      "Multihoming\n"
+      "MAC hold time\n"
+      "Duration in seconds\n")
 {
 	return zebra_evpn_mh_mac_holdtime_update(vty, duration,
-			no ? true : false);
+						 no ? true : false);
 }
 
-DEFPY (evpn_mh_neigh_holdtime,
-       evpn_mh_neigh_holdtime_cmd,
-       "[no$no] evpn mh neigh-holdtime (0-86400)$duration",
-       NO_STR
-       "EVPN\n"
-       "Multihoming\n"
-       "Neighbor entry hold time\n"
-       "Duration in seconds\n")
+DEFPY(evpn_mh_neigh_holdtime, evpn_mh_neigh_holdtime_cmd,
+      "[no$no] evpn mh neigh-holdtime (0-86400)$duration",
+      NO_STR
+      "EVPN\n"
+      "Multihoming\n"
+      "Neighbor entry hold time\n"
+      "Duration in seconds\n")
 {
 
 	return zebra_evpn_mh_neigh_holdtime_update(vty, duration,
 						   no ? true : false);
 }
 
-DEFPY (evpn_mh_startup_delay,
-       evpn_mh_startup_delay_cmd,
-       "[no] evpn mh startup-delay(0-3600)$duration",
-       NO_STR
-       "EVPN\n"
-       "Multihoming\n"
-       "Startup delay\n"
-       "duration in seconds\n")
+DEFPY(evpn_mh_startup_delay, evpn_mh_startup_delay_cmd,
+      "[no] evpn mh startup-delay(0-3600)$duration",
+      NO_STR
+      "EVPN\n"
+      "Multihoming\n"
+      "Startup delay\n"
+      "duration in seconds\n")
 {
 
 	return zebra_evpn_mh_startup_delay_update(vty, duration,
-			no ? true : false);
+						  no ? true : false);
 }
 
 DEFPY(evpn_mh_redirect_off, evpn_mh_redirect_off_cmd,
@@ -2695,12 +2592,11 @@ DEFPY(evpn_mh_redirect_off, evpn_mh_redirect_off_cmd,
 	return zebra_evpn_mh_redirect_off(vty, redirect_off);
 }
 
-DEFUN (default_vrf_vni_mapping,
-       default_vrf_vni_mapping_cmd,
-       "vni " CMD_VNI_RANGE "[prefix-routes-only]",
-       "VNI corresponding to the DEFAULT VRF\n"
-       "VNI-ID\n"
-       "Prefix routes only \n")
+DEFUN(default_vrf_vni_mapping, default_vrf_vni_mapping_cmd,
+      "vni " CMD_VNI_RANGE "[prefix-routes-only]",
+      "VNI corresponding to the DEFAULT VRF\n"
+      "VNI-ID\n"
+      "Prefix routes only \n")
 {
 	char xpath[XPATH_MAXLEN];
 	struct zebra_vrf *zvrf = NULL;
@@ -2732,13 +2628,12 @@ DEFUN (default_vrf_vni_mapping,
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFUN (no_default_vrf_vni_mapping,
-       no_default_vrf_vni_mapping_cmd,
-       "no vni " CMD_VNI_RANGE "[prefix-routes-only]",
-       NO_STR
-       "VNI corresponding to DEFAULT VRF\n"
-       "VNI-ID\n"
-       "Prefix routes only \n")
+DEFUN(no_default_vrf_vni_mapping, no_default_vrf_vni_mapping_cmd,
+      "no vni " CMD_VNI_RANGE "[prefix-routes-only]",
+      NO_STR
+      "VNI corresponding to DEFAULT VRF\n"
+      "VNI-ID\n"
+      "Prefix routes only \n")
 {
 	char xpath[XPATH_MAXLEN];
 	int filter = 0;
@@ -2777,12 +2672,11 @@ DEFUN (no_default_vrf_vni_mapping,
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFUN (vrf_vni_mapping,
-       vrf_vni_mapping_cmd,
-       "vni " CMD_VNI_RANGE "[prefix-routes-only]",
-       "VNI corresponding to tenant VRF\n"
-       "VNI-ID\n"
-       "prefix-routes-only\n")
+DEFUN(vrf_vni_mapping, vrf_vni_mapping_cmd,
+      "vni " CMD_VNI_RANGE "[prefix-routes-only]",
+      "VNI corresponding to tenant VRF\n"
+      "VNI-ID\n"
+      "prefix-routes-only\n")
 {
 	int filter = 0;
 
@@ -2805,13 +2699,12 @@ DEFUN (vrf_vni_mapping,
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFUN (no_vrf_vni_mapping,
-       no_vrf_vni_mapping_cmd,
-       "no vni " CMD_VNI_RANGE "[prefix-routes-only]",
-       NO_STR
-       "VNI corresponding to tenant VRF\n"
-       "VNI-ID\n"
-       "prefix-routes-only\n")
+DEFUN(no_vrf_vni_mapping, no_vrf_vni_mapping_cmd,
+      "no vni " CMD_VNI_RANGE "[prefix-routes-only]",
+      NO_STR
+      "VNI corresponding to tenant VRF\n"
+      "VNI-ID\n"
+      "prefix-routes-only\n")
 {
 	int filter = 0;
 
@@ -2843,13 +2736,9 @@ DEFUN (no_vrf_vni_mapping,
 }
 
 /* show vrf */
-DEFPY (show_vrf_vni,
-       show_vrf_vni_cmd,
-       "show vrf [<NAME$vrf_name|all$vrf_all>] vni [json]",
-       SHOW_STR
-       VRF_FULL_CMD_HELP_STR
-       "VNI\n"
-       JSON_STR)
+DEFPY(show_vrf_vni, show_vrf_vni_cmd,
+      "show vrf [<NAME$vrf_name|all$vrf_all>] vni [json]",
+      SHOW_STR VRF_FULL_CMD_HELP_STR "VNI\n" JSON_STR)
 {
 	struct vrf *vrf;
 	struct zebra_vrf *zvrf;
@@ -2931,12 +2820,8 @@ DEFPY (show_vrf_vni,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_evpn_global,
-       show_evpn_global_cmd,
-       "show evpn [json]",
-       SHOW_STR
-       "EVPN\n"
-       JSON_STR)
+DEFUN(show_evpn_global, show_evpn_global_cmd, "show evpn [json]",
+      SHOW_STR "EVPN\n" JSON_STR)
 {
 	bool uj = use_json(argc, argv);
 
@@ -2953,13 +2838,10 @@ DEFPY(show_evpn_neigh, show_neigh_cmd, "show ip neigh",
 	return CMD_SUCCESS;
 }
 
-DEFPY(show_evpn_l2_nh,
-      show_evpn_l2_nh_cmd,
-      "show evpn l2-nh [json$json]",
+DEFPY(show_evpn_l2_nh, show_evpn_l2_nh_cmd, "show evpn l2-nh [json$json]",
       SHOW_STR
       "EVPN\n"
-      "Layer2 nexthops\n"
-      JSON_STR)
+      "Layer2 nexthops\n" JSON_STR)
 {
 	bool uj = !!json;
 
@@ -2968,15 +2850,13 @@ DEFPY(show_evpn_l2_nh,
 	return CMD_SUCCESS;
 }
 
-DEFPY(show_evpn_es,
-      show_evpn_es_cmd,
+DEFPY(show_evpn_es, show_evpn_es_cmd,
       "show evpn es [NAME$esi_str|detail$detail] [json$json]",
       SHOW_STR
       "EVPN\n"
       "Ethernet Segment\n"
       "ES ID\n"
-      "Detailed information\n"
-      JSON_STR)
+      "Detailed information\n" JSON_STR)
 {
 	esi_t esi;
 	bool uj = !!json;
@@ -2997,16 +2877,14 @@ DEFPY(show_evpn_es,
 	return CMD_SUCCESS;
 }
 
-DEFPY(show_evpn_es_evi,
-      show_evpn_es_evi_cmd,
+DEFPY(show_evpn_es_evi, show_evpn_es_evi_cmd,
       "show evpn es-evi [vni (1-16777215)$vni] [detail$detail] [json$json]",
       SHOW_STR
       "EVPN\n"
       "Ethernet Segment per EVI\n"
       "VxLAN Network Identifier\n"
       "VNI\n"
-      "Detailed information\n"
-      JSON_STR)
+      "Detailed information\n" JSON_STR)
 {
 	bool uj = !!json;
 	bool ud = !!detail;
@@ -3060,13 +2938,10 @@ DEFPY(show_evpn_access_vlan, show_evpn_access_vlan_cmd,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_evpn_vni,
-       show_evpn_vni_cmd,
-       "show evpn vni [json]",
-       SHOW_STR
-       "EVPN\n"
-       "VxLAN Network Identifier\n"
-       JSON_STR)
+DEFUN(show_evpn_vni, show_evpn_vni_cmd, "show evpn vni [json]",
+      SHOW_STR
+      "EVPN\n"
+      "VxLAN Network Identifier\n" JSON_STR)
 {
 	struct zebra_vrf *zvrf;
 	bool uj = use_json(argc, argv);
@@ -3076,13 +2951,12 @@ DEFUN (show_evpn_vni,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_evpn_vni_detail, show_evpn_vni_detail_cmd,
-       "show evpn vni detail [json]",
-       SHOW_STR
-       "EVPN\n"
-       "VxLAN Network Identifier\n"
-       "Detailed Information On Each VNI\n"
-       JSON_STR)
+DEFUN(show_evpn_vni_detail, show_evpn_vni_detail_cmd,
+      "show evpn vni detail [json]",
+      SHOW_STR
+      "EVPN\n"
+      "VxLAN Network Identifier\n"
+      "Detailed Information On Each VNI\n" JSON_STR)
 {
 	struct zebra_vrf *zvrf;
 	bool uj = use_json(argc, argv);
@@ -3092,14 +2966,12 @@ DEFUN (show_evpn_vni_detail, show_evpn_vni_detail_cmd,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_evpn_vni_vni,
-       show_evpn_vni_vni_cmd,
-       "show evpn vni " CMD_VNI_RANGE "[json]",
-       SHOW_STR
-       "EVPN\n"
-       "VxLAN Network Identifier\n"
-       "VNI number\n"
-       JSON_STR)
+DEFUN(show_evpn_vni_vni, show_evpn_vni_vni_cmd,
+      "show evpn vni " CMD_VNI_RANGE "[json]",
+      SHOW_STR
+      "EVPN\n"
+      "VxLAN Network Identifier\n"
+      "VNI number\n" JSON_STR)
 {
 	struct zebra_vrf *zvrf;
 	vni_t vni;
@@ -3111,17 +2983,15 @@ DEFUN (show_evpn_vni_vni,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_evpn_rmac_vni_mac,
-       show_evpn_rmac_vni_mac_cmd,
-       "show evpn rmac vni " CMD_VNI_RANGE " mac WORD [json]",
-       SHOW_STR
-       "EVPN\n"
-       "RMAC\n"
-       "L3 VNI\n"
-       "VNI number\n"
-       "MAC\n"
-       "mac-address (e.g. 0a:0a:0a:0a:0a:0a)\n"
-       JSON_STR)
+DEFUN(show_evpn_rmac_vni_mac, show_evpn_rmac_vni_mac_cmd,
+      "show evpn rmac vni " CMD_VNI_RANGE " mac WORD [json]",
+      SHOW_STR
+      "EVPN\n"
+      "RMAC\n"
+      "L3 VNI\n"
+      "VNI number\n"
+      "MAC\n"
+      "mac-address (e.g. 0a:0a:0a:0a:0a:0a)\n" JSON_STR)
 {
 	vni_t l3vni = 0;
 	struct ethaddr mac;
@@ -3136,15 +3006,13 @@ DEFUN (show_evpn_rmac_vni_mac,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_evpn_rmac_vni,
-       show_evpn_rmac_vni_cmd,
-       "show evpn rmac vni " CMD_VNI_RANGE "[json]",
-       SHOW_STR
-       "EVPN\n"
-       "RMAC\n"
-       "L3 VNI\n"
-       "VNI number\n"
-       JSON_STR)
+DEFUN(show_evpn_rmac_vni, show_evpn_rmac_vni_cmd,
+      "show evpn rmac vni " CMD_VNI_RANGE "[json]",
+      SHOW_STR
+      "EVPN\n"
+      "RMAC\n"
+      "L3 VNI\n"
+      "VNI number\n" JSON_STR)
 {
 	vni_t l3vni = 0;
 	bool uj = use_json(argc, argv);
@@ -3155,15 +3023,13 @@ DEFUN (show_evpn_rmac_vni,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_evpn_rmac_vni_all,
-       show_evpn_rmac_vni_all_cmd,
-       "show evpn rmac vni all [json]",
-       SHOW_STR
-       "EVPN\n"
-       "RMAC addresses\n"
-       "L3 VNI\n"
-       "All VNIs\n"
-       JSON_STR)
+DEFUN(show_evpn_rmac_vni_all, show_evpn_rmac_vni_all_cmd,
+      "show evpn rmac vni all [json]",
+      SHOW_STR
+      "EVPN\n"
+      "RMAC addresses\n"
+      "L3 VNI\n"
+      "All VNIs\n" JSON_STR)
 {
 	bool uj = use_json(argc, argv);
 
@@ -3172,17 +3038,15 @@ DEFUN (show_evpn_rmac_vni_all,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_evpn_nh_vni_ip,
-       show_evpn_nh_vni_ip_cmd,
-       "show evpn next-hops vni " CMD_VNI_RANGE " ip WORD [json]",
-       SHOW_STR
-       "EVPN\n"
-       "Remote Vteps\n"
-       "L3 VNI\n"
-       "VNI number\n"
-       "Ip address\n"
-       "Host address (ipv4 or ipv6)\n"
-       JSON_STR)
+DEFUN(show_evpn_nh_vni_ip, show_evpn_nh_vni_ip_cmd,
+      "show evpn next-hops vni " CMD_VNI_RANGE " ip WORD [json]",
+      SHOW_STR
+      "EVPN\n"
+      "Remote Vteps\n"
+      "L3 VNI\n"
+      "VNI number\n"
+      "Ip address\n"
+      "Host address (ipv4 or ipv6)\n" JSON_STR)
 {
 	vni_t l3vni;
 	struct ipaddr ip;
@@ -3199,16 +3063,14 @@ DEFUN (show_evpn_nh_vni_ip,
 	return CMD_SUCCESS;
 }
 
-DEFUN_HIDDEN (show_evpn_nh_svd_ip,
-              show_evpn_nh_svd_ip_cmd,
-              "show evpn next-hops svd ip WORD [json]",
-              SHOW_STR
-              "EVPN\n"
-              "Remote Vteps\n"
-              "Single Vxlan Device\n"
-              "Ip address\n"
-              "Host address (ipv4 or ipv6)\n"
-              JSON_STR)
+DEFUN_HIDDEN(show_evpn_nh_svd_ip, show_evpn_nh_svd_ip_cmd,
+	     "show evpn next-hops svd ip WORD [json]",
+	     SHOW_STR
+	     "EVPN\n"
+	     "Remote Vteps\n"
+	     "Single Vxlan Device\n"
+	     "Ip address\n"
+	     "Host address (ipv4 or ipv6)\n" JSON_STR)
 {
 	struct ipaddr ip;
 	bool uj = use_json(argc, argv);
@@ -3223,15 +3085,13 @@ DEFUN_HIDDEN (show_evpn_nh_svd_ip,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_evpn_nh_vni,
-       show_evpn_nh_vni_cmd,
-       "show evpn next-hops vni " CMD_VNI_RANGE "[json]",
-       SHOW_STR
-       "EVPN\n"
-       "Remote Vteps\n"
-       "L3 VNI\n"
-       "VNI number\n"
-       JSON_STR)
+DEFUN(show_evpn_nh_vni, show_evpn_nh_vni_cmd,
+      "show evpn next-hops vni " CMD_VNI_RANGE "[json]",
+      SHOW_STR
+      "EVPN\n"
+      "Remote Vteps\n"
+      "L3 VNI\n"
+      "VNI number\n" JSON_STR)
 {
 	vni_t l3vni;
 	bool uj = use_json(argc, argv);
@@ -3242,14 +3102,12 @@ DEFUN (show_evpn_nh_vni,
 	return CMD_SUCCESS;
 }
 
-DEFUN_HIDDEN (show_evpn_nh_svd,
-              show_evpn_nh_svd_cmd,
-              "show evpn next-hops svd [json]",
-              SHOW_STR
-              "EVPN\n"
-              "Remote VTEPs\n"
-              "Single Vxlan Device\n"
-              JSON_STR)
+DEFUN_HIDDEN(show_evpn_nh_svd, show_evpn_nh_svd_cmd,
+	     "show evpn next-hops svd [json]",
+	     SHOW_STR
+	     "EVPN\n"
+	     "Remote VTEPs\n"
+	     "Single Vxlan Device\n" JSON_STR)
 {
 	bool uj = use_json(argc, argv);
 
@@ -3258,15 +3116,13 @@ DEFUN_HIDDEN (show_evpn_nh_svd,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_evpn_nh_vni_all,
-       show_evpn_nh_vni_all_cmd,
-       "show evpn next-hops vni all [json]",
-       SHOW_STR
-       "EVPN\n"
-       "Remote VTEPs\n"
-       "L3 VNI\n"
-       "All VNIs\n"
-       JSON_STR)
+DEFUN(show_evpn_nh_vni_all, show_evpn_nh_vni_all_cmd,
+      "show evpn next-hops vni all [json]",
+      SHOW_STR
+      "EVPN\n"
+      "Remote VTEPs\n"
+      "L3 VNI\n"
+      "All VNIs\n" JSON_STR)
 {
 	bool uj = use_json(argc, argv);
 
@@ -3275,15 +3131,13 @@ DEFUN (show_evpn_nh_vni_all,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_evpn_mac_vni,
-       show_evpn_mac_vni_cmd,
-       "show evpn mac vni " CMD_VNI_RANGE "[json]",
-       SHOW_STR
-       "EVPN\n"
-       "MAC addresses\n"
-       "VxLAN Network Identifier\n"
-       "VNI number\n"
-       JSON_STR)
+DEFUN(show_evpn_mac_vni, show_evpn_mac_vni_cmd,
+      "show evpn mac vni " CMD_VNI_RANGE "[json]",
+      SHOW_STR
+      "EVPN\n"
+      "MAC addresses\n"
+      "VxLAN Network Identifier\n"
+      "VNI number\n" JSON_STR)
 {
 	struct zebra_vrf *zvrf;
 	vni_t vni;
@@ -3295,16 +3149,14 @@ DEFUN (show_evpn_mac_vni,
 	return CMD_SUCCESS;
 }
 
-DEFPY (show_evpn_mac_vni_detail,
-       show_evpn_mac_vni_detail_cmd,
-       "show evpn mac vni " CMD_VNI_RANGE " detail [json]",
-       SHOW_STR
-       "EVPN\n"
-       "MAC addresses\n"
-       "VXLAN Network Identifier\n"
-       "VNI number\n"
-       "Detailed Information On Each VNI MAC\n"
-       JSON_STR)
+DEFPY(show_evpn_mac_vni_detail, show_evpn_mac_vni_detail_cmd,
+      "show evpn mac vni " CMD_VNI_RANGE " detail [json]",
+      SHOW_STR
+      "EVPN\n"
+      "MAC addresses\n"
+      "VXLAN Network Identifier\n"
+      "VNI number\n"
+      "Detailed Information On Each VNI MAC\n" JSON_STR)
 {
 	struct zebra_vrf *zvrf;
 	bool uj = use_json(argc, argv);
@@ -3314,15 +3166,13 @@ DEFPY (show_evpn_mac_vni_detail,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_evpn_mac_vni_all,
-       show_evpn_mac_vni_all_cmd,
-       "show evpn mac vni all [json]",
-       SHOW_STR
-       "EVPN\n"
-       "MAC addresses\n"
-       "VxLAN Network Identifier\n"
-       "All VNIs\n"
-       JSON_STR)
+DEFUN(show_evpn_mac_vni_all, show_evpn_mac_vni_all_cmd,
+      "show evpn mac vni all [json]",
+      SHOW_STR
+      "EVPN\n"
+      "MAC addresses\n"
+      "VxLAN Network Identifier\n"
+      "All VNIs\n" JSON_STR)
 {
 	struct zebra_vrf *zvrf;
 	bool uj = use_json(argc, argv);
@@ -3332,15 +3182,14 @@ DEFUN (show_evpn_mac_vni_all,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_evpn_mac_vni_all_detail, show_evpn_mac_vni_all_detail_cmd,
-       "show evpn mac vni all detail [json]",
-       SHOW_STR
-       "EVPN\n"
-       "MAC addresses\n"
-       "VxLAN Network Identifier\n"
-       "All VNIs\n"
-       "Detailed Information On Each VNI MAC\n"
-       JSON_STR)
+DEFUN(show_evpn_mac_vni_all_detail, show_evpn_mac_vni_all_detail_cmd,
+      "show evpn mac vni all detail [json]",
+      SHOW_STR
+      "EVPN\n"
+      "MAC addresses\n"
+      "VxLAN Network Identifier\n"
+      "All VNIs\n"
+      "Detailed Information On Each VNI MAC\n" JSON_STR)
 {
 	struct zebra_vrf *zvrf;
 	bool uj = use_json(argc, argv);
@@ -3350,17 +3199,15 @@ DEFUN (show_evpn_mac_vni_all_detail, show_evpn_mac_vni_all_detail_cmd,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_evpn_mac_vni_all_vtep,
-       show_evpn_mac_vni_all_vtep_cmd,
-       "show evpn mac vni all vtep A.B.C.D [json]",
-       SHOW_STR
-       "EVPN\n"
-       "MAC addresses\n"
-       "VxLAN Network Identifier\n"
-       "All VNIs\n"
-       "Remote VTEP\n"
-       "Remote VTEP IP address\n"
-       JSON_STR)
+DEFUN(show_evpn_mac_vni_all_vtep, show_evpn_mac_vni_all_vtep_cmd,
+      "show evpn mac vni all vtep A.B.C.D [json]",
+      SHOW_STR
+      "EVPN\n"
+      "MAC addresses\n"
+      "VxLAN Network Identifier\n"
+      "All VNIs\n"
+      "Remote VTEP\n"
+      "Remote VTEP IP address\n" JSON_STR)
 {
 	struct zebra_vrf *zvrf;
 	struct in_addr vtep_ip;
@@ -3378,17 +3225,15 @@ DEFUN (show_evpn_mac_vni_all_vtep,
 }
 
 
-DEFUN (show_evpn_mac_vni_mac,
-       show_evpn_mac_vni_mac_cmd,
-       "show evpn mac vni " CMD_VNI_RANGE " mac WORD [json]",
-       SHOW_STR
-       "EVPN\n"
-       "MAC addresses\n"
-       "VxLAN Network Identifier\n"
-       "VNI number\n"
-       "MAC\n"
-       "MAC address (e.g., 00:e0:ec:20:12:62)\n"
-       JSON_STR)
+DEFUN(show_evpn_mac_vni_mac, show_evpn_mac_vni_mac_cmd,
+      "show evpn mac vni " CMD_VNI_RANGE " mac WORD [json]",
+      SHOW_STR
+      "EVPN\n"
+      "MAC addresses\n"
+      "VxLAN Network Identifier\n"
+      "VNI number\n"
+      "MAC\n"
+      "MAC address (e.g., 00:e0:ec:20:12:62)\n" JSON_STR)
 
 {
 	struct zebra_vrf *zvrf;
@@ -3406,17 +3251,17 @@ DEFUN (show_evpn_mac_vni_mac,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_evpn_mac_vni_vtep,
-       show_evpn_mac_vni_vtep_cmd,
-       "show evpn mac vni " CMD_VNI_RANGE " vtep A.B.C.D" "[json]",
-       SHOW_STR
-       "EVPN\n"
-       "MAC addresses\n"
-       "VxLAN Network Identifier\n"
-       "VNI number\n"
-       "Remote VTEP\n"
-       "Remote VTEP IP address\n"
-       JSON_STR)
+DEFUN(show_evpn_mac_vni_vtep, show_evpn_mac_vni_vtep_cmd,
+      "show evpn mac vni " CMD_VNI_RANGE
+      " vtep A.B.C.D"
+      "[json]",
+      SHOW_STR
+      "EVPN\n"
+      "MAC addresses\n"
+      "VxLAN Network Identifier\n"
+      "VNI number\n"
+      "Remote VTEP\n"
+      "Remote VTEP IP address\n" JSON_STR)
 {
 	struct zebra_vrf *zvrf;
 	vni_t vni;
@@ -3435,16 +3280,14 @@ DEFUN (show_evpn_mac_vni_vtep,
 	return CMD_SUCCESS;
 }
 
-DEFPY (show_evpn_mac_vni_all_dad,
-       show_evpn_mac_vni_all_dad_cmd,
-       "show evpn mac vni all duplicate [json]",
-       SHOW_STR
-       "EVPN\n"
-       "MAC addresses\n"
-       "VxLAN Network Identifier\n"
-       "All VNIs\n"
-       "Duplicate address list\n"
-       JSON_STR)
+DEFPY(show_evpn_mac_vni_all_dad, show_evpn_mac_vni_all_dad_cmd,
+      "show evpn mac vni all duplicate [json]",
+      SHOW_STR
+      "EVPN\n"
+      "MAC addresses\n"
+      "VxLAN Network Identifier\n"
+      "All VNIs\n"
+      "Duplicate address list\n" JSON_STR)
 {
 	struct zebra_vrf *zvrf;
 	bool uj = use_json(argc, argv);
@@ -3455,16 +3298,14 @@ DEFPY (show_evpn_mac_vni_all_dad,
 }
 
 
-DEFPY (show_evpn_mac_vni_dad,
-       show_evpn_mac_vni_dad_cmd,
-       "show evpn mac vni " CMD_VNI_RANGE " duplicate [json]",
-       SHOW_STR
-       "EVPN\n"
-       "MAC addresses\n"
-       "VxLAN Network Identifier\n"
-       "VNI number\n"
-       "Duplicate address list\n"
-       JSON_STR)
+DEFPY(show_evpn_mac_vni_dad, show_evpn_mac_vni_dad_cmd,
+      "show evpn mac vni " CMD_VNI_RANGE " duplicate [json]",
+      SHOW_STR
+      "EVPN\n"
+      "MAC addresses\n"
+      "VxLAN Network Identifier\n"
+      "VNI number\n"
+      "Duplicate address list\n" JSON_STR)
 {
 	struct zebra_vrf *zvrf;
 	bool uj = use_json(argc, argv);
@@ -3476,16 +3317,14 @@ DEFPY (show_evpn_mac_vni_dad,
 	return CMD_SUCCESS;
 }
 
-DEFPY (show_evpn_neigh_vni_dad,
-       show_evpn_neigh_vni_dad_cmd,
-       "show evpn arp-cache vni " CMD_VNI_RANGE "duplicate [json]",
-       SHOW_STR
-       "EVPN\n"
-       "ARP and ND cache\n"
-       "VxLAN Network Identifier\n"
-       "VNI number\n"
-       "Duplicate address list\n"
-       JSON_STR)
+DEFPY(show_evpn_neigh_vni_dad, show_evpn_neigh_vni_dad_cmd,
+      "show evpn arp-cache vni " CMD_VNI_RANGE "duplicate [json]",
+      SHOW_STR
+      "EVPN\n"
+      "ARP and ND cache\n"
+      "VxLAN Network Identifier\n"
+      "VNI number\n"
+      "Duplicate address list\n" JSON_STR)
 {
 	struct zebra_vrf *zvrf;
 	bool uj = use_json(argc, argv);
@@ -3495,16 +3334,14 @@ DEFPY (show_evpn_neigh_vni_dad,
 	return CMD_SUCCESS;
 }
 
-DEFPY (show_evpn_neigh_vni_all_dad,
-       show_evpn_neigh_vni_all_dad_cmd,
-       "show evpn arp-cache vni all duplicate [json]",
-       SHOW_STR
-       "EVPN\n"
-       "ARP and ND cache\n"
-       "VxLAN Network Identifier\n"
-       "All VNIs\n"
-       "Duplicate address list\n"
-       JSON_STR)
+DEFPY(show_evpn_neigh_vni_all_dad, show_evpn_neigh_vni_all_dad_cmd,
+      "show evpn arp-cache vni all duplicate [json]",
+      SHOW_STR
+      "EVPN\n"
+      "ARP and ND cache\n"
+      "VxLAN Network Identifier\n"
+      "All VNIs\n"
+      "Duplicate address list\n" JSON_STR)
 {
 	struct zebra_vrf *zvrf;
 	bool uj = use_json(argc, argv);
@@ -3515,15 +3352,13 @@ DEFPY (show_evpn_neigh_vni_all_dad,
 }
 
 
-DEFUN (show_evpn_neigh_vni,
-       show_evpn_neigh_vni_cmd,
-       "show evpn arp-cache vni " CMD_VNI_RANGE "[json]",
-       SHOW_STR
-       "EVPN\n"
-       "ARP and ND cache\n"
-       "VxLAN Network Identifier\n"
-       "VNI number\n"
-       JSON_STR)
+DEFUN(show_evpn_neigh_vni, show_evpn_neigh_vni_cmd,
+      "show evpn arp-cache vni " CMD_VNI_RANGE "[json]",
+      SHOW_STR
+      "EVPN\n"
+      "ARP and ND cache\n"
+      "VxLAN Network Identifier\n"
+      "VNI number\n" JSON_STR)
 {
 	struct zebra_vrf *zvrf;
 	vni_t vni;
@@ -3535,15 +3370,13 @@ DEFUN (show_evpn_neigh_vni,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_evpn_neigh_vni_all,
-       show_evpn_neigh_vni_all_cmd,
-       "show evpn arp-cache vni all [json]",
-       SHOW_STR
-       "EVPN\n"
-       "ARP and ND cache\n"
-       "VxLAN Network Identifier\n"
-       "All VNIs\n"
-       JSON_STR)
+DEFUN(show_evpn_neigh_vni_all, show_evpn_neigh_vni_all_cmd,
+      "show evpn arp-cache vni all [json]",
+      SHOW_STR
+      "EVPN\n"
+      "ARP and ND cache\n"
+      "VxLAN Network Identifier\n"
+      "All VNIs\n" JSON_STR)
 {
 	struct zebra_vrf *zvrf;
 	bool uj = use_json(argc, argv);
@@ -3553,14 +3386,14 @@ DEFUN (show_evpn_neigh_vni_all,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_evpn_neigh_vni_all_detail, show_evpn_neigh_vni_all_detail_cmd,
-       "show evpn arp-cache vni all detail [json]",
-       SHOW_STR
-       "EVPN\n"
-       "ARP and ND cache\n"
-       "VxLAN Network Identifier\n"
-       "All VNIs\n"
-       "Neighbor details for all vnis in detail\n" JSON_STR)
+DEFUN(show_evpn_neigh_vni_all_detail, show_evpn_neigh_vni_all_detail_cmd,
+      "show evpn arp-cache vni all detail [json]",
+      SHOW_STR
+      "EVPN\n"
+      "ARP and ND cache\n"
+      "VxLAN Network Identifier\n"
+      "All VNIs\n"
+      "Neighbor details for all vnis in detail\n" JSON_STR)
 {
 	struct zebra_vrf *zvrf;
 	bool uj = use_json(argc, argv);
@@ -3570,17 +3403,15 @@ DEFUN (show_evpn_neigh_vni_all_detail, show_evpn_neigh_vni_all_detail_cmd,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_evpn_neigh_vni_neigh,
-       show_evpn_neigh_vni_neigh_cmd,
-       "show evpn arp-cache vni " CMD_VNI_RANGE " ip WORD [json]",
-       SHOW_STR
-       "EVPN\n"
-       "ARP and ND cache\n"
-       "VxLAN Network Identifier\n"
-       "VNI number\n"
-       "Neighbor\n"
-       "Neighbor address (IPv4 or IPv6 address)\n"
-       JSON_STR)
+DEFUN(show_evpn_neigh_vni_neigh, show_evpn_neigh_vni_neigh_cmd,
+      "show evpn arp-cache vni " CMD_VNI_RANGE " ip WORD [json]",
+      SHOW_STR
+      "EVPN\n"
+      "ARP and ND cache\n"
+      "VxLAN Network Identifier\n"
+      "VNI number\n"
+      "Neighbor\n"
+      "Neighbor address (IPv4 or IPv6 address)\n" JSON_STR)
 {
 	struct zebra_vrf *zvrf;
 	vni_t vni;
@@ -3598,17 +3429,15 @@ DEFUN (show_evpn_neigh_vni_neigh,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_evpn_neigh_vni_vtep,
-       show_evpn_neigh_vni_vtep_cmd,
-       "show evpn arp-cache vni " CMD_VNI_RANGE " vtep A.B.C.D [json]",
-       SHOW_STR
-       "EVPN\n"
-       "ARP and ND cache\n"
-       "VxLAN Network Identifier\n"
-       "VNI number\n"
-       "Remote VTEP\n"
-       "Remote VTEP IP address\n"
-       JSON_STR)
+DEFUN(show_evpn_neigh_vni_vtep, show_evpn_neigh_vni_vtep_cmd,
+      "show evpn arp-cache vni " CMD_VNI_RANGE " vtep A.B.C.D [json]",
+      SHOW_STR
+      "EVPN\n"
+      "ARP and ND cache\n"
+      "VxLAN Network Identifier\n"
+      "VNI number\n"
+      "Remote VTEP\n"
+      "Remote VTEP IP address\n" JSON_STR)
 {
 	struct zebra_vrf *zvrf;
 	vni_t vni;
@@ -3628,13 +3457,11 @@ DEFUN (show_evpn_neigh_vni_vtep,
 }
 
 /* policy routing contexts */
-DEFUN (show_pbr_ipset,
-       show_pbr_ipset_cmd,
-       "show pbr ipset [WORD]",
-       SHOW_STR
-       "Policy-Based Routing\n"
-       "IPset Context information\n"
-       "IPset Name information\n")
+DEFUN(show_pbr_ipset, show_pbr_ipset_cmd, "show pbr ipset [WORD]",
+      SHOW_STR
+      "Policy-Based Routing\n"
+      "IPset Context information\n"
+      "IPset Name information\n")
 {
 	int idx = 0;
 	int found = 0;
@@ -3647,13 +3474,11 @@ DEFUN (show_pbr_ipset,
 }
 
 /* policy routing contexts */
-DEFUN (show_pbr_iptable,
-       show_pbr_iptable_cmd,
-       "show pbr iptable [WORD]",
-       SHOW_STR
-       "Policy-Based Routing\n"
-       "IPtable Context information\n"
-       "IPtable Name information\n")
+DEFUN(show_pbr_iptable, show_pbr_iptable_cmd, "show pbr iptable [WORD]",
+      SHOW_STR
+      "Policy-Based Routing\n"
+      "IPtable Context information\n"
+      "IPtable Name information\n")
 {
 	int idx = 0;
 	int found = 0;
@@ -3667,44 +3492,41 @@ DEFUN (show_pbr_iptable,
 }
 
 /* policy routing contexts */
-DEFPY (show_pbr_rule,
-       show_pbr_rule_cmd,
-       "show pbr rule",
-       SHOW_STR
-       "Policy-Based Routing\n"
-       "Rule\n")
+DEFPY(show_pbr_rule, show_pbr_rule_cmd, "show pbr rule",
+      SHOW_STR
+      "Policy-Based Routing\n"
+      "Rule\n")
 {
 	zebra_pbr_show_rule(vty);
 	return CMD_SUCCESS;
 }
 
-DEFPY (pbr_nexthop_resolve,
-       pbr_nexthop_resolve_cmd,
-       "[no$no] pbr nexthop-resolve",
-       NO_STR
-       "Policy Based Routing\n"
-       "Resolve nexthop for dataplane programming\n")
+DEFPY(pbr_nexthop_resolve, pbr_nexthop_resolve_cmd,
+      "[no$no] pbr nexthop-resolve",
+      NO_STR
+      "Policy Based Routing\n"
+      "Resolve nexthop for dataplane programming\n")
 {
 	zebra_pbr_expand_action_update(!no);
 	return CMD_SUCCESS;
 }
 
-DEFPY (clear_evpn_dup_addr,
-       clear_evpn_dup_addr_cmd,
-       "clear evpn dup-addr vni <all$vni_all |" CMD_VNI_RANGE"$vni [mac X:X:X:X:X:X | ip <A.B.C.D|X:X::X:X>]>",
-       CLEAR_STR
-       "EVPN\n"
-       "Duplicate address \n"
-       "VxLAN Network Identifier\n"
-       "VNI number\n"
-       "All VNIs\n"
-       "MAC\n"
-       "MAC address (e.g., 00:e0:ec:20:12:62)\n"
-       "IP\n"
-       "IPv4 address\n"
-       "IPv6 address\n")
+DEFPY(clear_evpn_dup_addr, clear_evpn_dup_addr_cmd,
+      "clear evpn dup-addr vni <all$vni_all |" CMD_VNI_RANGE
+      "$vni [mac X:X:X:X:X:X | ip <A.B.C.D|X:X::X:X>]>",
+      CLEAR_STR
+      "EVPN\n"
+      "Duplicate address \n"
+      "VxLAN Network Identifier\n"
+      "VNI number\n"
+      "All VNIs\n"
+      "MAC\n"
+      "MAC address (e.g., 00:e0:ec:20:12:62)\n"
+      "IP\n"
+      "IPv4 address\n"
+      "IPv6 address\n")
 {
-	struct ipaddr host_ip = {.ipa_type = IPADDR_NONE };
+	struct ipaddr host_ip = {.ipa_type = IPADDR_NONE};
 	int ret = CMD_SUCCESS;
 	struct list *input;
 	struct yang_data *yang_dup = NULL, *yang_dup_ip = NULL,
@@ -3713,9 +3535,9 @@ DEFPY (clear_evpn_dup_addr,
 	input = list_new();
 
 	if (!vni_str) {
-		yang_dup = yang_data_new(
-			"/frr-zebra:clear-evpn-dup-addr/input/clear-dup-choice",
-			"all-case");
+		yang_dup =
+			yang_data_new("/frr-zebra:clear-evpn-dup-addr/input/clear-dup-choice",
+				      "all-case");
 	} else {
 		yang_dup = yang_data_new_uint32(
 			"/frr-zebra:clear-evpn-dup-addr/input/clear-dup-choice/single-case/vni-id",
@@ -3756,22 +3578,19 @@ DEFPY (clear_evpn_dup_addr,
 	return ret;
 }
 
-DEFPY_HIDDEN (evpn_accept_bgp_seq,
-              evpn_accept_bgp_seq_cmd,
-              "evpn accept-bgp-seq",
-              "EVPN\n"
-	      "Accept all sequence numbers from BGP\n")
+DEFPY_HIDDEN(evpn_accept_bgp_seq, evpn_accept_bgp_seq_cmd, "evpn accept-bgp-seq",
+	     "EVPN\n"
+	     "Accept all sequence numbers from BGP\n")
 {
 	zebra_vxlan_set_accept_bgp_seq(true);
 	return CMD_SUCCESS;
 }
 
-DEFPY_HIDDEN (no_evpn_accept_bgp_seq,
-              no_evpn_accept_bgp_seq_cmd,
-              "no evpn accept-bgp-seq",
-              NO_STR
-              "EVPN\n"
-	      "Accept all sequence numbers from BGP\n")
+DEFPY_HIDDEN(no_evpn_accept_bgp_seq, no_evpn_accept_bgp_seq_cmd,
+	     "no evpn accept-bgp-seq",
+	     NO_STR
+	     "EVPN\n"
+	     "Accept all sequence numbers from BGP\n")
 {
 	zebra_vxlan_set_accept_bgp_seq(false);
 	return CMD_SUCCESS;
@@ -3787,25 +3606,23 @@ static int zebra_ip_config(struct vty *vty)
 	return write;
 }
 
-DEFUN (ip_zebra_import_table_distance,
-       ip_zebra_import_table_distance_cmd,
-       "ip import-table (1-252) [distance (1-255)] [route-map RMAP_NAME]",
-       IP_STR
-       "import routes from non-main kernel table\n"
-       "kernel routing table id\n"
-       "Distance for imported routes\n"
-       "Default distance value\n"
-       "route-map for filtering\n"
-       "route-map name\n")
+DEFUN(ip_zebra_import_table_distance, ip_zebra_import_table_distance_cmd,
+      "ip import-table (1-252) [distance (1-255)] [route-map RMAP_NAME]",
+      IP_STR
+      "import routes from non-main kernel table\n"
+      "kernel routing table id\n"
+      "Distance for imported routes\n"
+      "Default distance value\n"
+      "route-map for filtering\n"
+      "route-map name\n")
 {
 	uint32_t table_id = 0;
 
 	table_id = strtoul(argv[2]->arg, NULL, 10);
 	int distance = ZEBRA_TABLE_DISTANCE_DEFAULT;
-	char *rmap =
-		strmatch(argv[argc - 2]->text, "route-map")
-			? XSTRDUP(MTYPE_ROUTE_MAP_NAME, argv[argc - 1]->arg)
-			: NULL;
+	char *rmap = strmatch(argv[argc - 2]->text, "route-map")
+			     ? XSTRDUP(MTYPE_ROUTE_MAP_NAME, argv[argc - 1]->arg)
+			     : NULL;
 	int ret;
 
 	if (argc == 7 || (argc == 5 && !rmap))
@@ -3829,20 +3646,19 @@ DEFUN (ip_zebra_import_table_distance,
 		return CMD_WARNING;
 	}
 
-	ret = zebra_import_table(AFI_IP, VRF_DEFAULT, table_id,
-				 distance, rmap, 1);
+	ret = zebra_import_table(AFI_IP, VRF_DEFAULT, table_id, distance, rmap,
+				 1);
 	if (rmap)
 		XFREE(MTYPE_ROUTE_MAP_NAME, rmap);
 
 	return ret;
 }
 
-DEFUN_HIDDEN (zebra_packet_process,
-	      zebra_packet_process_cmd,
-	      "zebra zapi-packets (1-10000)",
-	      ZEBRA_STR
-	      "Zapi Protocol\n"
-	      "Number of packets to process before relinquishing thread\n")
+DEFUN_HIDDEN(zebra_packet_process, zebra_packet_process_cmd,
+	     "zebra zapi-packets (1-10000)",
+	     ZEBRA_STR
+	     "Zapi Protocol\n"
+	     "Number of packets to process before relinquishing thread\n")
 {
 	uint32_t packets = strtoul(argv[2]->arg, NULL, 10);
 
@@ -3852,13 +3668,11 @@ DEFUN_HIDDEN (zebra_packet_process,
 	return CMD_SUCCESS;
 }
 
-DEFUN_HIDDEN (no_zebra_packet_process,
-	      no_zebra_packet_process_cmd,
-	      "no zebra zapi-packets [(1-10000)]",
-	      NO_STR
-	      ZEBRA_STR
-	      "Zapi Protocol\n"
-	      "Number of packets to process before relinquishing thread\n")
+DEFUN_HIDDEN(no_zebra_packet_process, no_zebra_packet_process_cmd,
+	     "no zebra zapi-packets [(1-10000)]",
+	     NO_STR ZEBRA_STR
+	     "Zapi Protocol\n"
+	     "Number of packets to process before relinquishing thread\n")
 {
 	atomic_store_explicit(&zrouter.packets_to_process,
 			      ZEBRA_ZAPI_PACKETS_TO_PROCESS,
@@ -3867,12 +3681,11 @@ DEFUN_HIDDEN (no_zebra_packet_process,
 	return CMD_SUCCESS;
 }
 
-DEFUN_HIDDEN (zebra_workqueue_timer,
-	      zebra_workqueue_timer_cmd,
-	      "zebra work-queue (0-10000)",
-	      ZEBRA_STR
-	      "Work Queue\n"
-	      "Time in milliseconds\n")
+DEFUN_HIDDEN(zebra_workqueue_timer, zebra_workqueue_timer_cmd,
+	     "zebra work-queue (0-10000)",
+	     ZEBRA_STR
+	     "Work Queue\n"
+	     "Time in milliseconds\n")
 {
 	uint32_t timer = strtoul(argv[2]->arg, NULL, 10);
 	zrouter.ribq->spec.hold = timer;
@@ -3880,30 +3693,26 @@ DEFUN_HIDDEN (zebra_workqueue_timer,
 	return CMD_SUCCESS;
 }
 
-DEFUN_HIDDEN (no_zebra_workqueue_timer,
-	      no_zebra_workqueue_timer_cmd,
-	      "no zebra work-queue [(0-10000)]",
-	      NO_STR
-	      ZEBRA_STR
-	      "Work Queue\n"
-	      "Time in milliseconds\n")
+DEFUN_HIDDEN(no_zebra_workqueue_timer, no_zebra_workqueue_timer_cmd,
+	     "no zebra work-queue [(0-10000)]",
+	     NO_STR ZEBRA_STR
+	     "Work Queue\n"
+	     "Time in milliseconds\n")
 {
 	zrouter.ribq->spec.hold = ZEBRA_RIB_PROCESS_HOLD_TIME;
 
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_ip_zebra_import_table,
-       no_ip_zebra_import_table_cmd,
-       "no ip import-table (1-252) [distance (1-255)] [route-map NAME]",
-       NO_STR
-       IP_STR
-       "import routes from non-main kernel table\n"
-       "kernel routing table id\n"
-       "Distance for imported routes\n"
-       "Default distance value\n"
-       "route-map for filtering\n"
-       "route-map name\n")
+DEFUN(no_ip_zebra_import_table, no_ip_zebra_import_table_cmd,
+      "no ip import-table (1-252) [distance (1-255)] [route-map NAME]",
+      NO_STR IP_STR
+      "import routes from non-main kernel table\n"
+      "kernel routing table id\n"
+      "Distance for imported routes\n"
+      "Default distance value\n"
+      "route-map for filtering\n"
+      "route-map name\n")
 {
 	uint32_t table_id = 0;
 	table_id = strtoul(argv[3]->arg, NULL, 10);
@@ -3927,14 +3736,12 @@ DEFUN (no_ip_zebra_import_table,
 	return (zebra_import_table(AFI_IP, VRF_DEFAULT, table_id, 0, NULL, 0));
 }
 
-DEFPY (zebra_nexthop_group_keep,
-       zebra_nexthop_group_keep_cmd,
-       "[no] zebra nexthop-group keep (1-3600)",
-       NO_STR
-       ZEBRA_STR
-       "Nexthop-Group\n"
-       "How long to keep\n"
-       "Time in seconds from 1-3600\n")
+DEFPY(zebra_nexthop_group_keep, zebra_nexthop_group_keep_cmd,
+      "[no] zebra nexthop-group keep (1-3600)",
+      NO_STR ZEBRA_STR
+      "Nexthop-Group\n"
+      "How long to keep\n"
+      "Time in seconds from 1-3600\n")
 {
 	if (no)
 		zrouter.nhg_keep = ZEBRA_DEFAULT_NHG_KEEP_TIMER;
@@ -3963,17 +3770,13 @@ static int config_write_protocol(struct vty *vty)
 
 	if (ipv4_multicast_mode != MCAST_NO_CONFIG)
 		vty_out(vty, "ip multicast rpf-lookup-mode %s\n",
-			ipv4_multicast_mode == MCAST_URIB_ONLY
-				? "urib-only"
-				: ipv4_multicast_mode == MCAST_MRIB_ONLY
-					  ? "mrib-only"
-					  : ipv4_multicast_mode
-							    == MCAST_MIX_MRIB_FIRST
-						    ? "mrib-then-urib"
-						    : ipv4_multicast_mode
-								      == MCAST_MIX_DISTANCE
-							      ? "lower-distance"
-							      : "longer-prefix");
+			ipv4_multicast_mode == MCAST_URIB_ONLY	 ? "urib-only"
+			: ipv4_multicast_mode == MCAST_MRIB_ONLY ? "mrib-only"
+			: ipv4_multicast_mode == MCAST_MIX_MRIB_FIRST
+				? "mrib-then-urib"
+			: ipv4_multicast_mode == MCAST_MIX_DISTANCE
+				? "lower-distance"
+				: "longer-prefix");
 
 	/* Include dataplane info */
 	dplane_config_write_helper(vty);
@@ -4006,11 +3809,7 @@ static int config_write_protocol(struct vty *vty)
 	return 1;
 }
 
-DEFUN (show_zebra,
-       show_zebra_cmd,
-       "show zebra",
-       SHOW_STR
-       ZEBRA_STR)
+DEFUN(show_zebra, show_zebra_cmd, "show zebra", SHOW_STR ZEBRA_STR)
 {
 	struct vrf *vrf;
 	struct ttable *table = ttable_new(&ttable_styles[TTSTYLE_BLANK]);
@@ -4091,7 +3890,9 @@ DEFUN (show_zebra,
 	RB_FOREACH (vrf, vrf_name_head, &vrfs_by_name) {
 		struct zebra_vrf *zvrf = vrf->info;
 
-		vty_out(vty, "%-25s %10" PRIu64 " %10" PRIu64 " %10" PRIu64" %10" PRIu64 " %10" PRIu64 "\n",
+		vty_out(vty,
+			"%-25s %10" PRIu64 " %10" PRIu64 " %10" PRIu64
+			" %10" PRIu64 " %10" PRIu64 "\n",
 			vrf->name, zvrf->installs, zvrf->removals,
 			zvrf->neigh_updates, zvrf->lsp_installs,
 			zvrf->lsp_removals);
@@ -4100,11 +3901,8 @@ DEFUN (show_zebra,
 	return CMD_SUCCESS;
 }
 
-DEFUN (ip_forwarding,
-       ip_forwarding_cmd,
-       "ip forwarding",
-       IP_STR
-       "Turn on IP forwarding\n")
+DEFUN(ip_forwarding, ip_forwarding_cmd, "ip forwarding",
+      IP_STR "Turn on IP forwarding\n")
 {
 	int ret;
 
@@ -4120,12 +3918,8 @@ DEFUN (ip_forwarding,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_ip_forwarding,
-       no_ip_forwarding_cmd,
-       "no ip forwarding",
-       NO_STR
-       IP_STR
-       "Turn off IP forwarding\n")
+DEFUN(no_ip_forwarding, no_ip_forwarding_cmd, "no ip forwarding",
+      NO_STR IP_STR "Turn off IP forwarding\n")
 {
 	int ret;
 
@@ -4142,12 +3936,8 @@ DEFUN (no_ip_forwarding,
 }
 
 /* Only display ip forwarding is enabled or not. */
-DEFUN (show_ip_forwarding,
-       show_ip_forwarding_cmd,
-       "show ip forwarding",
-       SHOW_STR
-       IP_STR
-       "IP forwarding status\n")
+DEFUN(show_ip_forwarding, show_ip_forwarding_cmd, "show ip forwarding",
+      SHOW_STR IP_STR "IP forwarding status\n")
 {
 	int ret;
 
@@ -4161,12 +3951,10 @@ DEFUN (show_ip_forwarding,
 }
 
 /* Only display ipv6 forwarding is enabled or not. */
-DEFUN (show_ipv6_forwarding,
-       show_ipv6_forwarding_cmd,
-       "show ipv6 forwarding",
-       SHOW_STR
-       "IPv6 information\n"
-       "Forwarding status\n")
+DEFUN(show_ipv6_forwarding, show_ipv6_forwarding_cmd, "show ipv6 forwarding",
+      SHOW_STR
+      "IPv6 information\n"
+      "Forwarding status\n")
 {
 	int ret;
 
@@ -4189,11 +3977,8 @@ DEFUN (show_ipv6_forwarding,
 	return CMD_SUCCESS;
 }
 
-DEFUN (ipv6_forwarding,
-       ipv6_forwarding_cmd,
-       "ipv6 forwarding",
-       IPV6_STR
-       "Turn on IPv6 forwarding\n")
+DEFUN(ipv6_forwarding, ipv6_forwarding_cmd, "ipv6 forwarding",
+      IPV6_STR "Turn on IPv6 forwarding\n")
 {
 	int ret;
 
@@ -4209,12 +3994,8 @@ DEFUN (ipv6_forwarding,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_ipv6_forwarding,
-       no_ipv6_forwarding_cmd,
-       "no ipv6 forwarding",
-       NO_STR
-       IPV6_STR
-       "Turn off IPv6 forwarding\n")
+DEFUN(no_ipv6_forwarding, no_ipv6_forwarding_cmd, "no ipv6 forwarding",
+      NO_STR IPV6_STR "Turn off IPv6 forwarding\n")
 {
 	int ret;
 
@@ -4231,13 +4012,10 @@ DEFUN (no_ipv6_forwarding,
 }
 
 /* Display dataplane info */
-DEFUN (show_dataplane,
-       show_dataplane_cmd,
-       "show zebra dplane [detailed]",
-       SHOW_STR
-       ZEBRA_STR
-       "Zebra dataplane information\n"
-       "Detailed output\n")
+DEFUN(show_dataplane, show_dataplane_cmd, "show zebra dplane [detailed]",
+      SHOW_STR ZEBRA_STR
+      "Zebra dataplane information\n"
+      "Detailed output\n")
 {
 	int idx = 0;
 	bool detailed = false;
@@ -4249,14 +4027,12 @@ DEFUN (show_dataplane,
 }
 
 /* Display dataplane providers info */
-DEFUN (show_dataplane_providers,
-       show_dataplane_providers_cmd,
-       "show zebra dplane providers [detailed]",
-       SHOW_STR
-       ZEBRA_STR
-       "Zebra dataplane information\n"
-       "Zebra dataplane provider information\n"
-       "Detailed output\n")
+DEFUN(show_dataplane_providers, show_dataplane_providers_cmd,
+      "show zebra dplane providers [detailed]",
+      SHOW_STR ZEBRA_STR
+      "Zebra dataplane information\n"
+      "Zebra dataplane provider information\n"
+      "Detailed output\n")
 {
 	int idx = 0;
 	bool detailed = false;
@@ -4268,13 +4044,12 @@ DEFUN (show_dataplane_providers,
 }
 
 /* Configure dataplane incoming queue limit */
-DEFUN (zebra_dplane_queue_limit,
-       zebra_dplane_queue_limit_cmd,
-       "zebra dplane limit (0-10000)",
-       ZEBRA_STR
-       "Zebra dataplane\n"
-       "Limit incoming queued updates\n"
-       "Number of queued updates\n")
+DEFUN(zebra_dplane_queue_limit, zebra_dplane_queue_limit_cmd,
+      "zebra dplane limit (0-10000)",
+      ZEBRA_STR
+      "Zebra dataplane\n"
+      "Limit incoming queued updates\n"
+      "Number of queued updates\n")
 {
 	uint32_t limit = 0;
 
@@ -4286,28 +4061,24 @@ DEFUN (zebra_dplane_queue_limit,
 }
 
 /* Reset dataplane queue limit to default value */
-DEFUN (no_zebra_dplane_queue_limit,
-       no_zebra_dplane_queue_limit_cmd,
-       "no zebra dplane limit [(0-10000)]",
-       NO_STR
-       ZEBRA_STR
-       "Zebra dataplane\n"
-       "Limit incoming queued updates\n"
-       "Number of queued updates\n")
+DEFUN(no_zebra_dplane_queue_limit, no_zebra_dplane_queue_limit_cmd,
+      "no zebra dplane limit [(0-10000)]",
+      NO_STR ZEBRA_STR
+      "Zebra dataplane\n"
+      "Limit incoming queued updates\n"
+      "Number of queued updates\n")
 {
 	dplane_set_in_queue_limit(0, false);
 
 	return CMD_SUCCESS;
 }
 
-DEFUN (zebra_show_routing_tables_summary,
-       zebra_show_routing_tables_summary_cmd,
-       "show zebra router table summary",
-       SHOW_STR
-       ZEBRA_STR
-       "The Zebra Router Information\n"
-       "Table Information about this Zebra Router\n"
-       "Summary Information\n")
+DEFUN(zebra_show_routing_tables_summary, zebra_show_routing_tables_summary_cmd,
+      "show zebra router table summary",
+      SHOW_STR ZEBRA_STR
+      "The Zebra Router Information\n"
+      "Table Information about this Zebra Router\n"
+      "Summary Information\n")
 {
 	zebra_router_show_table_summary(vty);
 
@@ -4331,65 +4102,114 @@ static int config_write_forwarding(struct vty *vty)
 	return 0;
 }
 
-DEFUN_HIDDEN (show_frr,
-	      show_frr_cmd,
-	      "show frr",
-	      SHOW_STR
-	      "FRR\n")
+DEFUN_HIDDEN(show_frr, show_frr_cmd, "show frr", SHOW_STR "FRR\n")
 {
-	vty_out(vty, "........ .. .  .. . ..... ...77:................................................\n");
-	vty_out(vty, ".............................7777:..............................................\n");
-	vty_out(vty, ".............................777777,............................................\n");
-	vty_out(vty, "... .........................77777777,..........................................\n");
-	vty_out(vty, "............................=7777777777:........................................\n");
-	vty_out(vty, "........................:7777777777777777,......................................\n");
-	vty_out(vty, ".................... ~7777777777777?~,..........................................\n");
-	vty_out(vty, "...................I7777777777+.................................................\n");
-	vty_out(vty, "................,777777777?............  .......................................\n");
-	vty_out(vty, "..............:77777777?..........~?77777.......................................\n");
-	vty_out(vty, ".............77777777~........=7777777777.......................................\n");
-	vty_out(vty, ".......... +7777777,.......?7777777777777.......................................\n");
-	vty_out(vty, "..........7777777~......:7777777777777777......77?,.............................\n");
-	vty_out(vty, "........:777777?......+777777777777777777......777777I,.........................\n");
-	vty_out(vty, ".......?777777,.....+77777777777777777777......777777777?.......................\n");
-	vty_out(vty, "......?777777......7777777777777777777777......,?777777777?.....................\n");
-	vty_out(vty, ".....?77777?.....=7777777777777777777I~............,I7777777~...................\n");
-	vty_out(vty, "....+77777+.....I77777777777777777:...................+777777I..................\n");
-	vty_out(vty, "...~77777+.....7777777777777777=........................?777777......    .......\n");
-	vty_out(vty, "...77777I.....I77777777777777~.........:?................,777777.....I777.......\n");
-	vty_out(vty, "..777777.....I7777777777777I .......?7777..................777777.....777?......\n");
-	vty_out(vty, ".~77777,....=7777777777777:......,7777777..................,77777+....+777......\n");
-	vty_out(vty, ".77777I.....7777777777777,......777777777.......ONNNN.......=77777.....777~.....\n");
-	vty_out(vty, ",77777.....I777777777777,.....:7777777777......DNNNNNN.......77777+ ...7777.....\n");
-	vty_out(vty, "I7777I.....777777777777=.....~77777777777......NNNNNNN~......=7777I....=777.....\n");
-	vty_out(vty, "77777:....=777777777777.....,777777777777......$NNNNND ......:77777....:777.....\n");
-	vty_out(vty, "77777. ...777777777777~.....7777777777777........7DZ,........:77777.....777.....\n");
-	vty_out(vty, "????? . ..777777777777.....,7777777777777....................:77777I....777.....\n");
-	vty_out(vty, "....... ..777777777777.....+7777777777777....................=7777777+...?7.....\n");
-	vty_out(vty, "..........77777777777I.....I7777777777777....................7777777777:........\n");
-	vty_out(vty, "..........77777777777I.....?7777777777777...................~777777777777.......\n");
-	vty_out(vty, "..........777777777777.....~7777777777777..................,77777777777777+.....\n");
-	vty_out(vty, "..........777777777777......7777777777777..................77777777777777777,...\n");
-	vty_out(vty, "..... ....?77777777777I.....~777777777777................,777777.....,:+77777I..\n");
-	vty_out(vty, "........ .:777777777777,.....?77777777777...............?777777..............,:=\n");
-	vty_out(vty, ".......... 7777777777777..... ?7777777777.............=7777777.....~777I........\n");
-	vty_out(vty, "...........:777777777777I......~777777777...........I7777777~.....+777I.........\n");
-	vty_out(vty, "..... ......7777777777777I.......I7777777.......+777777777I......7777I..........\n");
-	vty_out(vty, ".............77777777777777........?77777......777777777?......=7777=...........\n");
-	vty_out(vty, ".............,77777777777777+.........~77......777777I,......:77777.............\n");
-	vty_out(vty, "..............~777777777777777~................777777......:77777=..............\n");
-	vty_out(vty, "...............:7777777777777777?..............:777777,.....=77=................\n");
-	vty_out(vty, "................,777777777777777777?,...........,777777:.....,..................\n");
-	vty_out(vty, "........... ......I777777777777777777777I.........777777~.......................\n");
-	vty_out(vty, "...................,777777777777777777777..........777777+......................\n");
-	vty_out(vty, ".....................+7777777777777777777...........777777?.....................\n");
-	vty_out(vty, ".......................=77777777777777777............777777I....................\n");
-	vty_out(vty, ".........................:777777777777777.............I77777I...................\n");
-	vty_out(vty, "............................~777777777777..............+777777..................\n");
-	vty_out(vty, "................................~77777777...............=777777.................\n");
-	vty_out(vty, ".....................................:=?I................~777777................\n");
-	vty_out(vty, "..........................................................:777777,..............\n");
-	vty_out(vty, ".... ... ... .  . .... ....... ....... ....................:777777..............\n");
+	vty_out(vty,
+		"........ .. .  .. . ..... ...77:................................................\n");
+	vty_out(vty,
+		".............................7777:..............................................\n");
+	vty_out(vty,
+		".............................777777,............................................\n");
+	vty_out(vty,
+		"... .........................77777777,..........................................\n");
+	vty_out(vty,
+		"............................=7777777777:........................................\n");
+	vty_out(vty,
+		"........................:7777777777777777,......................................\n");
+	vty_out(vty,
+		".................... ~7777777777777?~,..........................................\n");
+	vty_out(vty,
+		"...................I7777777777+.................................................\n");
+	vty_out(vty,
+		"................,777777777?............  .......................................\n");
+	vty_out(vty,
+		"..............:77777777?..........~?77777.......................................\n");
+	vty_out(vty,
+		".............77777777~........=7777777777.......................................\n");
+	vty_out(vty,
+		".......... +7777777,.......?7777777777777.......................................\n");
+	vty_out(vty,
+		"..........7777777~......:7777777777777777......77?,.............................\n");
+	vty_out(vty,
+		"........:777777?......+777777777777777777......777777I,.........................\n");
+	vty_out(vty,
+		".......?777777,.....+77777777777777777777......777777777?.......................\n");
+	vty_out(vty,
+		"......?777777......7777777777777777777777......,?777777777?.....................\n");
+	vty_out(vty,
+		".....?77777?.....=7777777777777777777I~............,I7777777~...................\n");
+	vty_out(vty,
+		"....+77777+.....I77777777777777777:...................+777777I..................\n");
+	vty_out(vty,
+		"...~77777+.....7777777777777777=........................?777777......    .......\n");
+	vty_out(vty,
+		"...77777I.....I77777777777777~.........:?................,777777.....I777.......\n");
+	vty_out(vty,
+		"..777777.....I7777777777777I .......?7777..................777777.....777?......\n");
+	vty_out(vty,
+		".~77777,....=7777777777777:......,7777777..................,77777+....+777......\n");
+	vty_out(vty,
+		".77777I.....7777777777777,......777777777.......ONNNN.......=77777.....777~.....\n");
+	vty_out(vty,
+		",77777.....I777777777777,.....:7777777777......DNNNNNN.......77777+ ...7777.....\n");
+	vty_out(vty,
+		"I7777I.....777777777777=.....~77777777777......NNNNNNN~......=7777I....=777.....\n");
+	vty_out(vty,
+		"77777:....=777777777777.....,777777777777......$NNNNND ......:77777....:777.....\n");
+	vty_out(vty,
+		"77777. ...777777777777~.....7777777777777........7DZ,........:77777.....777.....\n");
+	vty_out(vty,
+		"????? . ..777777777777.....,7777777777777....................:77777I....777.....\n");
+	vty_out(vty,
+		"....... ..777777777777.....+7777777777777....................=7777777+...?7.....\n");
+	vty_out(vty,
+		"..........77777777777I.....I7777777777777....................7777777777:........\n");
+	vty_out(vty,
+		"..........77777777777I.....?7777777777777...................~777777777777.......\n");
+	vty_out(vty,
+		"..........777777777777.....~7777777777777..................,77777777777777+.....\n");
+	vty_out(vty,
+		"..........777777777777......7777777777777..................77777777777777777,...\n");
+	vty_out(vty,
+		"..... ....?77777777777I.....~777777777777................,777777.....,:+77777I..\n");
+	vty_out(vty,
+		"........ .:777777777777,.....?77777777777...............?777777..............,:=\n");
+	vty_out(vty,
+		".......... 7777777777777..... ?7777777777.............=7777777.....~777I........\n");
+	vty_out(vty,
+		"...........:777777777777I......~777777777...........I7777777~.....+777I.........\n");
+	vty_out(vty,
+		"..... ......7777777777777I.......I7777777.......+777777777I......7777I..........\n");
+	vty_out(vty,
+		".............77777777777777........?77777......777777777?......=7777=...........\n");
+	vty_out(vty,
+		".............,77777777777777+.........~77......777777I,......:77777.............\n");
+	vty_out(vty,
+		"..............~777777777777777~................777777......:77777=..............\n");
+	vty_out(vty,
+		"...............:7777777777777777?..............:777777,.....=77=................\n");
+	vty_out(vty,
+		"................,777777777777777777?,...........,777777:.....,..................\n");
+	vty_out(vty,
+		"........... ......I777777777777777777777I.........777777~.......................\n");
+	vty_out(vty,
+		"...................,777777777777777777777..........777777+......................\n");
+	vty_out(vty,
+		".....................+7777777777777777777...........777777?.....................\n");
+	vty_out(vty,
+		".......................=77777777777777777............777777I....................\n");
+	vty_out(vty,
+		".........................:777777777777777.............I77777I...................\n");
+	vty_out(vty,
+		"............................~777777777777..............+777777..................\n");
+	vty_out(vty,
+		"................................~77777777...............=777777.................\n");
+	vty_out(vty,
+		".....................................:=?I................~777777................\n");
+	vty_out(vty,
+		"..........................................................:777777,..............\n");
+	vty_out(vty,
+		".... ... ... .  . .... ....... ....... ....................:777777..............\n");
 
 	return CMD_SUCCESS;
 }
@@ -4430,26 +4250,23 @@ DEFUN_HIDDEN(no_zebra_kernel_netlink_batch_tx_buf,
 	return CMD_SUCCESS;
 }
 
-DEFPY (zebra_protodown_bit,
-       zebra_protodown_bit_cmd,
-       "zebra protodown reason-bit (0-31)$bit",
-       ZEBRA_STR
-       "Protodown Configuration\n"
-       "Reason Bit used in the kernel for application\n"
-       "Reason Bit range\n")
+DEFPY(zebra_protodown_bit, zebra_protodown_bit_cmd,
+      "zebra protodown reason-bit (0-31)$bit",
+      ZEBRA_STR
+      "Protodown Configuration\n"
+      "Reason Bit used in the kernel for application\n"
+      "Reason Bit range\n")
 {
 	if_netlink_set_frr_protodown_r_bit(bit);
 	return CMD_SUCCESS;
 }
 
-DEFPY (no_zebra_protodown_bit,
-       no_zebra_protodown_bit_cmd,
-       "no zebra protodown reason-bit [(0-31)$bit]",
-       NO_STR
-       ZEBRA_STR
-       "Protodown Configuration\n"
-       "Reason Bit used in the kernel for setting protodown\n"
-       "Reason Bit Range\n")
+DEFPY(no_zebra_protodown_bit, no_zebra_protodown_bit_cmd,
+      "no zebra protodown reason-bit [(0-31)$bit]",
+      NO_STR ZEBRA_STR
+      "Protodown Configuration\n"
+      "Reason Bit used in the kernel for setting protodown\n"
+      "Reason Bit Range\n")
 {
 	if_netlink_unset_frr_protodown_r_bit();
 	return CMD_SUCCESS;
@@ -4493,8 +4310,7 @@ DEFUN(zebra_on_rib_process_script, zebra_on_rib_process_script_cmd,
 {
 
 	if (frrscript_names_set_script_name(ZEBRA_ON_RIB_PROCESS_HOOK_CALL,
-					    argv[3]->arg)
-	    == 0) {
+					    argv[3]->arg) == 0) {
 		vty_out(vty, "Successfully added script %s for hook call %s\n",
 			argv[3]->arg, ZEBRA_ON_RIB_PROCESS_HOOK_CALL);
 	} else {

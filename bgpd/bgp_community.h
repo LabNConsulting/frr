@@ -33,29 +33,29 @@ struct community {
 #if CONFDATE > 20230801
 CPP_NOTICE("Deprecate COMMUNITY_INTERNET BGP community")
 #endif
-#define COMMUNITY_INTERNET                      0x0
-#define COMMUNITY_GSHUT                         0xFFFF0000
-#define COMMUNITY_ACCEPT_OWN                    0xFFFF0001
-#define COMMUNITY_ROUTE_FILTER_TRANSLATED_v4    0xFFFF0002
-#define COMMUNITY_ROUTE_FILTER_v4               0xFFFF0003
-#define COMMUNITY_ROUTE_FILTER_TRANSLATED_v6    0xFFFF0004
-#define COMMUNITY_ROUTE_FILTER_v6               0xFFFF0005
-#define COMMUNITY_LLGR_STALE                    0xFFFF0006
-#define COMMUNITY_NO_LLGR                       0xFFFF0007
-#define COMMUNITY_ACCEPT_OWN_NEXTHOP            0xFFFF0008
-#define COMMUNITY_BLACKHOLE                     0xFFFF029A
-#define COMMUNITY_NO_EXPORT                     0xFFFFFF01
-#define COMMUNITY_NO_ADVERTISE                  0xFFFFFF02
-#define COMMUNITY_NO_EXPORT_SUBCONFED           0xFFFFFF03
-#define COMMUNITY_LOCAL_AS                      0xFFFFFF03
-#define COMMUNITY_NO_PEER                       0xFFFFFF04
+#define COMMUNITY_INTERNET 0x0
+#define COMMUNITY_GSHUT 0xFFFF0000
+#define COMMUNITY_ACCEPT_OWN 0xFFFF0001
+#define COMMUNITY_ROUTE_FILTER_TRANSLATED_v4 0xFFFF0002
+#define COMMUNITY_ROUTE_FILTER_v4 0xFFFF0003
+#define COMMUNITY_ROUTE_FILTER_TRANSLATED_v6 0xFFFF0004
+#define COMMUNITY_ROUTE_FILTER_v6 0xFFFF0005
+#define COMMUNITY_LLGR_STALE 0xFFFF0006
+#define COMMUNITY_NO_LLGR 0xFFFF0007
+#define COMMUNITY_ACCEPT_OWN_NEXTHOP 0xFFFF0008
+#define COMMUNITY_BLACKHOLE 0xFFFF029A
+#define COMMUNITY_NO_EXPORT 0xFFFFFF01
+#define COMMUNITY_NO_ADVERTISE 0xFFFFFF02
+#define COMMUNITY_NO_EXPORT_SUBCONFED 0xFFFFFF03
+#define COMMUNITY_LOCAL_AS 0xFFFFFF03
+#define COMMUNITY_NO_PEER 0xFFFFFF04
 
 #define COMMUNITY_SIZE 4
 
 /* Macros of community attribute.  */
-#define com_length(X)    ((X)->size * COMMUNITY_SIZE)
-#define com_lastval(X)   ((X)->val + (X)->size - 1)
-#define com_nthval(X,n)  ((X)->val + (n))
+#define com_length(X) ((X)->size * COMMUNITY_SIZE)
+#define com_lastval(X) ((X)->val + (X)->size - 1)
+#define com_nthval(X, n) ((X)->val + (n))
 
 /* Prototypes of communities attribute functions.  */
 extern void community_init(void);
@@ -87,11 +87,9 @@ extern uint32_t community_val_get(struct community *com, int i);
 extern void bgp_compute_aggregate_community(struct bgp_aggregate *aggregate,
 					    struct community *community);
 
-extern void bgp_compute_aggregate_community_val(
-					       struct bgp_aggregate *aggregate);
-extern void bgp_compute_aggregate_community_hash(
-						struct bgp_aggregate *aggregate,
-						struct community *community);
+extern void bgp_compute_aggregate_community_val(struct bgp_aggregate *aggregate);
+extern void bgp_compute_aggregate_community_hash(struct bgp_aggregate *aggregate,
+						 struct community *community);
 extern void bgp_remove_community_from_aggregate(struct bgp_aggregate *aggregate,
 						struct community *community);
 extern void bgp_remove_comm_from_aggregate_hash(struct bgp_aggregate *aggregate,

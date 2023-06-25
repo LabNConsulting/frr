@@ -20,55 +20,55 @@
 #include "ospf_memory.h"
 #include "ospf_dump_api.h"
 
-#define OSPF_VERSION            2
+#define OSPF_VERSION 2
 
 /* VTY port number. */
-#define OSPF_VTY_PORT          2604
+#define OSPF_VTY_PORT 2604
 
 /* IP TTL for OSPF protocol. */
-#define OSPF_IP_TTL             1
-#define OSPF_VL_IP_TTL          100
+#define OSPF_IP_TTL 1
+#define OSPF_VL_IP_TTL 100
 
 /* Default configuration file name for ospfd. */
-#define OSPF_DEFAULT_CONFIG   "ospfd.conf"
+#define OSPF_DEFAULT_CONFIG "ospfd.conf"
 
-#define OSPF_NSSA_TRANS_STABLE_DEFAULT		40
+#define OSPF_NSSA_TRANS_STABLE_DEFAULT 40
 
-#define OSPF_ALLSPFROUTERS              0xe0000005      /* 224.0.0.5 */
-#define OSPF_ALLDROUTERS                0xe0000006      /* 224.0.0.6 */
+#define OSPF_ALLSPFROUTERS 0xe0000005 /* 224.0.0.5 */
+#define OSPF_ALLDROUTERS 0xe0000006   /* 224.0.0.6 */
 
 /* OSPF Authentication Type. */
-#define OSPF_AUTH_NULL                      0
-#define OSPF_AUTH_SIMPLE                    1
-#define OSPF_AUTH_CRYPTOGRAPHIC             2
+#define OSPF_AUTH_NULL 0
+#define OSPF_AUTH_SIMPLE 1
+#define OSPF_AUTH_CRYPTOGRAPHIC 2
 /* For Interface authentication setting default */
-#define OSPF_AUTH_NOTSET                   -1
+#define OSPF_AUTH_NOTSET -1
 /* For the consumption and sanity of the command handler */
 /* DO NIOT REMOVE!!! Need to detect whether a value has
    been given or not in VLink command handlers */
-#define OSPF_AUTH_CMD_NOTSEEN              -2
+#define OSPF_AUTH_CMD_NOTSEEN -2
 
 /* OSPF options. */
-#define OSPF_OPTION_MT                   0x01  /* M/T */
-#define OSPF_OPTION_E                    0x02
-#define OSPF_OPTION_MC                   0x04
-#define OSPF_OPTION_NP                   0x08
-#define OSPF_OPTION_EA                   0x10
-#define OSPF_OPTION_DC                   0x20
-#define OSPF_OPTION_O                    0x40
-#define OSPF_OPTION_DN                   0x80
+#define OSPF_OPTION_MT 0x01 /* M/T */
+#define OSPF_OPTION_E 0x02
+#define OSPF_OPTION_MC 0x04
+#define OSPF_OPTION_NP 0x08
+#define OSPF_OPTION_EA 0x10
+#define OSPF_OPTION_DC 0x20
+#define OSPF_OPTION_O 0x40
+#define OSPF_OPTION_DN 0x80
 
 /* OSPF Database Description flags. */
-#define OSPF_DD_FLAG_MS                  0x01
-#define OSPF_DD_FLAG_M                   0x02
-#define OSPF_DD_FLAG_I                   0x04
-#define OSPF_DD_FLAG_ALL                 0x07
+#define OSPF_DD_FLAG_MS 0x01
+#define OSPF_DD_FLAG_M 0x02
+#define OSPF_DD_FLAG_I 0x04
+#define OSPF_DD_FLAG_ALL 0x07
 
-#define OSPF_LS_REFRESH_SHIFT       (60 * 15)
-#define OSPF_LS_REFRESH_JITTER      60
+#define OSPF_LS_REFRESH_SHIFT (60 * 15)
+#define OSPF_LS_REFRESH_JITTER 60
 
 /* Default socket buffer size */
-#define OSPF_DEFAULT_SOCK_BUFSIZE   (8 * 1024 * 1024)
+#define OSPF_DEFAULT_SOCK_BUFSIZE (8 * 1024 * 1024)
 
 struct ospf_external {
 	unsigned short instance;
@@ -103,13 +103,13 @@ struct ospf_redist {
 		char *name;
 		struct route_map *map;
 	} route_map; /* +1 is for default-information */
-#define ROUTEMAP_NAME(R)   (R->route_map.name)
+#define ROUTEMAP_NAME(R) (R->route_map.name)
 #define ROUTEMAP(R) (R->route_map.map)
 };
 
 /* OSPF area flood reduction info */
 struct ospf_area_fr_info {
-	bool enabled;       /* Area support for Flood Reduction */
+	bool enabled;	    /* Area support for Flood Reduction */
 	bool configured;    /* Flood Reduction configured per area knob */
 	bool state_changed; /* flood reduction state change info */
 	int router_lsas_recv_dc_bit; /* Number of unique router lsas
@@ -117,7 +117,7 @@ struct ospf_area_fr_info {
 				      * (excluding self)
 				      */
 	bool area_ind_lsa_recvd;     /* Indication lsa received in this area */
-	bool area_dc_clear;	  /* Area has atleast one lsa with dc bit 0(
+	bool area_dc_clear;	     /* Area has atleast one lsa with dc bit 0(
 				      * excluding indication lsa)
 				      */
 	struct ospf_lsa *indication_lsa_self; /* Indication LSA generated
@@ -127,11 +127,11 @@ struct ospf_area_fr_info {
 
 /* ospf->config */
 enum {
-	OSPF_RFC1583_COMPATIBLE =	(1 << 0),
-	OSPF_OPAQUE_CAPABLE =		(1 << 2),
-	OSPF_LOG_ADJACENCY_CHANGES =	(1 << 3),
-	OSPF_LOG_ADJACENCY_DETAIL =	(1 << 4),
-	OSPF_SEND_EXTRA_DATA_TO_ZEBRA =	(1 << 5),
+	OSPF_RFC1583_COMPATIBLE = (1 << 0),
+	OSPF_OPAQUE_CAPABLE = (1 << 2),
+	OSPF_LOG_ADJACENCY_CHANGES = (1 << 3),
+	OSPF_LOG_ADJACENCY_DETAIL = (1 << 4),
+	OSPF_SEND_EXTRA_DATA_TO_ZEBRA = (1 << 5),
 };
 
 /* TI-LFA */
@@ -163,26 +163,26 @@ struct ospf {
 	unsigned short instance;
 
 	/* OSPF Router ID. */
-	struct in_addr router_id;	/* Configured automatically. */
+	struct in_addr router_id;	 /* Configured automatically. */
 	struct in_addr router_id_static; /* Configured manually. */
 	struct in_addr router_id_zebra;
 
 	vrf_id_t vrf_id; /* VRF Id */
-	char *name;      /* VRF name */
+	char *name;	 /* VRF name */
 
 	/* ABR/ASBR internal flags. */
 	uint8_t flags;
-#define OSPF_FLAG_ABR           0x0001
-#define OSPF_FLAG_ASBR          0x0002
+#define OSPF_FLAG_ABR 0x0001
+#define OSPF_FLAG_ASBR 0x0002
 
 	/* ABR type. */
 	uint8_t abr_type;
-#define OSPF_ABR_UNKNOWN	0
-#define OSPF_ABR_STAND          1
-#define OSPF_ABR_IBM            2
-#define OSPF_ABR_CISCO          3
-#define OSPF_ABR_SHORTCUT       4
-#define OSPF_ABR_DEFAULT	OSPF_ABR_CISCO
+#define OSPF_ABR_UNKNOWN 0
+#define OSPF_ABR_STAND 1
+#define OSPF_ABR_IBM 2
+#define OSPF_ABR_CISCO 3
+#define OSPF_ABR_SHORTCUT 4
+#define OSPF_ABR_DEFAULT OSPF_ABR_CISCO
 
 	/* NSSA ABR */
 	uint8_t anyNSSA; /* Bump for every NSSA attached. */
@@ -192,17 +192,17 @@ struct ospf {
 
 	/* Opaque-LSA administrative flags. */
 	uint8_t opaque;
-#define OPAQUE_OPERATION_READY_BIT	(1 << 0)
+#define OPAQUE_OPERATION_READY_BIT (1 << 0)
 
 	/* RFC3137 stub router. Configured time to stay stub / max-metric */
-	unsigned int stub_router_startup_time;  /* seconds */
+	unsigned int stub_router_startup_time;	/* seconds */
 	unsigned int stub_router_shutdown_time; /* seconds */
-#define OSPF_STUB_ROUTER_UNCONFIGURED	  0
+#define OSPF_STUB_ROUTER_UNCONFIGURED 0
 	uint8_t stub_router_admin_set;
-#define OSPF_STUB_ROUTER_ADMINISTRATIVE_SET     1
-#define OSPF_STUB_ROUTER_ADMINISTRATIVE_UNSET   0
+#define OSPF_STUB_ROUTER_ADMINISTRATIVE_SET 1
+#define OSPF_STUB_ROUTER_ADMINISTRATIVE_UNSET 0
 
-#define OSPF_STUB_MAX_METRIC_SUMMARY_COST	0x00ff0000
+#define OSPF_STUB_MAX_METRIC_SUMMARY_COST 0x00ff0000
 
 	/* LSA timers */
 	unsigned int min_ls_interval; /* minimum delay between LSAs (in msec) */
@@ -210,31 +210,30 @@ struct ospf {
 					 (in msec) */
 
 	/* SPF parameters */
-	unsigned int spf_delay;	/* SPF delay time. */
-	unsigned int spf_holdtime;     /* SPF hold time. */
-	unsigned int spf_max_holdtime; /* SPF maximum-holdtime */
-	unsigned int
-		spf_hold_multiplier; /* Adaptive multiplier for hold time */
+	unsigned int spf_delay;		  /* SPF delay time. */
+	unsigned int spf_holdtime;	  /* SPF hold time. */
+	unsigned int spf_max_holdtime;	  /* SPF maximum-holdtime */
+	unsigned int spf_hold_multiplier; /* Adaptive multiplier for hold time */
 
-	int default_originate;	/* Default information originate. */
-#define DEFAULT_ORIGINATE_NONE		0
-#define DEFAULT_ORIGINATE_ZEBRA		1
-#define DEFAULT_ORIGINATE_ALWAYS	2
-	uint32_t ref_bandwidth;       /* Reference Bandwidth (Kbps). */
+	int default_originate; /* Default information originate. */
+#define DEFAULT_ORIGINATE_NONE 0
+#define DEFAULT_ORIGINATE_ZEBRA 1
+#define DEFAULT_ORIGINATE_ALWAYS 2
+	uint32_t ref_bandwidth;	      /* Reference Bandwidth (Kbps). */
 	struct route_table *networks; /* OSPF config networks. */
-	struct list *vlinks;	  /* Configured Virtual-Links. */
-	struct list *areas;	   /* OSPF areas. */
+	struct list *vlinks;	      /* Configured Virtual-Links. */
+	struct list *areas;	      /* OSPF areas. */
 	struct route_table *nbr_nbma;
 	struct ospf_area *backbone; /* Pointer to the Backbone Area. */
 
-	struct list *oiflist;		  /* ospf interfaces */
+	struct list *oiflist;		   /* ospf interfaces */
 	uint8_t passive_interface_default; /* passive-interface default */
 
 	/* LSDB of AS-external-LSAs. */
 	struct ospf_lsdb *lsdb;
 
 	/* Flags. */
-	int ase_calc;	/* ASE calculation flag. */
+	int ase_calc; /* ASE calculation flag. */
 
 	struct list *opaque_lsa_self; /* Type-11 Opaque-LSAs */
 
@@ -273,15 +272,15 @@ struct ospf {
 	struct event *t_opaque_lsa_self; /* Type-11 Opaque-LSAs origin event. */
 	struct event *t_sr_update;	 /* Segment Routing update timer */
 
-	unsigned int maxage_delay;      /* Delay on Maxage remover timer, sec */
-	struct event *t_maxage;		/* MaxAge LSA remover timer. */
-	struct event *t_maxage_walker;	/* MaxAge LSA checking timer. */
+	unsigned int maxage_delay;     /* Delay on Maxage remover timer, sec */
+	struct event *t_maxage;	       /* MaxAge LSA remover timer. */
+	struct event *t_maxage_walker; /* MaxAge LSA checking timer. */
 
 	struct event
 		*t_deferred_shutdown; /* deferred/stub-router shutdown timer*/
 
 	struct event *t_write;
-#define OSPF_WRITE_INTERFACE_COUNT_DEFAULT    20
+#define OSPF_WRITE_INTERFACE_COUNT_DEFAULT 20
 	struct event *t_default_routemap_timer;
 
 	int write_oi_count; /* Num of packets sent per thread invocation */
@@ -295,15 +294,14 @@ struct ospf {
 		char *name;
 		struct access_list *list;
 	} dlist[ZEBRA_ROUTE_MAX];
-#define DISTRIBUTE_NAME(O,T)    (O)->dlist[T].name
-#define DISTRIBUTE_LIST(O,T)    (O)->dlist[T].list
+#define DISTRIBUTE_NAME(O, T) (O)->dlist[T].name
+#define DISTRIBUTE_LIST(O, T) (O)->dlist[T].list
 
 	/* OSPF redistribute configuration */
 	struct list *redist[ZEBRA_ROUTE_MAX + 1];
 
 	/* Redistribute tag info. */
-	route_tag_t
-		dtag[ZEBRA_ROUTE_MAX + 1]; // Pending: cant configure as of now
+	route_tag_t dtag[ZEBRA_ROUTE_MAX + 1]; // Pending: cant configure as of now
 
 	int default_metric; /* Default metric for redistribute. */
 
@@ -321,9 +319,9 @@ struct ospf {
 
 #define OSPF_LSA_REFRESHER_GRANULARITY 10
 #define OSPF_LSA_REFRESHER_SLOTS                                               \
-	((OSPF_LS_REFRESH_TIME + OSPF_LS_REFRESH_SHIFT)                        \
-		 / OSPF_LSA_REFRESHER_GRANULARITY                              \
-	 + 1)
+	((OSPF_LS_REFRESH_TIME + OSPF_LS_REFRESH_SHIFT) /                      \
+		 OSPF_LSA_REFRESHER_GRANULARITY +                              \
+	 1)
 	struct {
 		uint16_t index;
 		struct list *qs[OSPF_LSA_REFRESHER_SLOTS];
@@ -510,44 +508,44 @@ struct ospf_area {
 
 	/* Area ID format. */
 	int area_id_fmt;
-#define OSPF_AREA_ID_FMT_DOTTEDQUAD     1
-#define OSPF_AREA_ID_FMT_DECIMAL        2
+#define OSPF_AREA_ID_FMT_DOTTEDQUAD 1
+#define OSPF_AREA_ID_FMT_DECIMAL 2
 
 	/* Address range. */
 	struct list *address_range;
 
 	/* Configured variables. */
-	int external_routing;    /* ExternalRoutingCapability. */
+	int external_routing;	 /* ExternalRoutingCapability. */
 	int no_summary;		 /* Don't inject summaries into stub.*/
 	int shortcut_configured; /* Area configured as shortcut. */
-#define OSPF_SHORTCUT_DEFAULT	0
-#define OSPF_SHORTCUT_ENABLE	1
-#define OSPF_SHORTCUT_DISABLE	2
+#define OSPF_SHORTCUT_DEFAULT 0
+#define OSPF_SHORTCUT_ENABLE 1
+#define OSPF_SHORTCUT_DISABLE 2
 	int shortcut_capability; /* Other ABRs agree on S-bit */
-	uint32_t default_cost;   /* StubDefaultCost. */
+	uint32_t default_cost;	 /* StubDefaultCost. */
 	int auth_type;		 /* Authentication type. */
 	int suppress_fa;	 /* Suppress forwarding address in NSSA ABR */
 
 	uint8_t NSSATranslatorRole; /* NSSA configured role */
-#define OSPF_NSSA_ROLE_NEVER     0
+#define OSPF_NSSA_ROLE_NEVER 0
 #define OSPF_NSSA_ROLE_CANDIDATE 1
-#define OSPF_NSSA_ROLE_ALWAYS    2
+#define OSPF_NSSA_ROLE_ALWAYS 2
 	uint8_t NSSATranslatorState; /* NSSA operational role */
 #define OSPF_NSSA_TRANSLATE_DISABLED 0
-#define OSPF_NSSA_TRANSLATE_ENABLED  1
+#define OSPF_NSSA_TRANSLATE_ENABLED 1
 	int NSSATranslatorStabilityInterval;
 
 	uint8_t transit; /* TransitCapability. */
-#define OSPF_TRANSIT_FALSE      0
-#define OSPF_TRANSIT_TRUE       1
-	struct route_table *ranges; /* Configured Area Ranges. */
+#define OSPF_TRANSIT_FALSE 0
+#define OSPF_TRANSIT_TRUE 1
+	struct route_table *ranges;	 /* Configured Area Ranges. */
 	struct route_table *nssa_ranges; /* Configured NSSA Area Ranges. */
 
 	/* RFC3137 stub router state flags for area */
 	uint8_t stub_router_state;
-#define OSPF_AREA_ADMIN_STUB_ROUTED	(1 << 0) /* admin stub-router set */
-#define OSPF_AREA_IS_STUB_ROUTED	(1 << 1) /* stub-router active */
-#define OSPF_AREA_WAS_START_STUB_ROUTED	(1 << 2) /* startup SR was done */
+#define OSPF_AREA_ADMIN_STUB_ROUTED (1 << 0)	 /* admin stub-router set */
+#define OSPF_AREA_IS_STUB_ROUTED (1 << 1)	 /* stub-router active */
+#define OSPF_AREA_WAS_START_STUB_ROUTED (1 << 2) /* startup SR was done */
 	/* Area related LSDBs[Type1-4]. */
 	struct ospf_lsdb *lsdb;
 
@@ -560,31 +558,31 @@ struct ospf_area {
 		char *name;
 		struct access_list *list;
 	} _export;
-#define EXPORT_NAME(A)  (A)->_export.name
-#define EXPORT_LIST(A)  (A)->_export.list
+#define EXPORT_NAME(A) (A)->_export.name
+#define EXPORT_LIST(A) (A)->_export.list
 
 	/* Area acceptance list. */
 	struct {
 		char *name;
 		struct access_list *list;
 	} import;
-#define IMPORT_NAME(A)  (A)->import.name
-#define IMPORT_LIST(A)  (A)->import.list
+#define IMPORT_NAME(A) (A)->import.name
+#define IMPORT_LIST(A) (A)->import.list
 
 	/* Type 3 LSA Area prefix-list. */
 	struct {
 		char *name;
 		struct prefix_list *list;
 	} plist_in;
-#define PREFIX_LIST_IN(A)   (A)->plist_in.list
-#define PREFIX_NAME_IN(A)   (A)->plist_in.name
+#define PREFIX_LIST_IN(A) (A)->plist_in.list
+#define PREFIX_NAME_IN(A) (A)->plist_in.name
 
 	struct {
 		char *name;
 		struct prefix_list *list;
 	} plist_out;
-#define PREFIX_LIST_OUT(A)  (A)->plist_out.list
-#define PREFIX_NAME_OUT(A)  (A)->plist_out.name
+#define PREFIX_LIST_OUT(A) (A)->plist_out.list
+#define PREFIX_NAME_OUT(A) (A)->plist_out.name
 
 	/* NSSA default-information-originate */
 	struct {
@@ -668,16 +666,16 @@ struct ospf_nbr_nbma {
 #define OSPF_AREA_SAME(X, Y)                                                   \
 	(memcmp((X->area_id), (Y->area_id), IPV4_MAX_BYTELEN) == 0)
 
-#define IS_OSPF_ABR(O)		((O)->flags & OSPF_FLAG_ABR)
-#define IS_OSPF_ASBR(O)		((O)->flags & OSPF_FLAG_ASBR)
+#define IS_OSPF_ABR(O) ((O)->flags & OSPF_FLAG_ABR)
+#define IS_OSPF_ASBR(O) ((O)->flags & OSPF_FLAG_ASBR)
 
 #define OSPF_IS_AREA_ID_BACKBONE(I) ((I).s_addr == OSPF_AREA_BACKBONE)
-#define OSPF_IS_AREA_BACKBONE(A) OSPF_IS_AREA_ID_BACKBONE ((A)->area_id)
+#define OSPF_IS_AREA_BACKBONE(A) OSPF_IS_AREA_ID_BACKBONE((A)->area_id)
 
 #ifdef roundup
-#  define ROUNDUP(val, gran)	roundup(val, gran)
-#else  /* roundup */
-#  define ROUNDUP(val, gran)	(((val) - 1 | (gran) - 1) + 1)
+#define ROUNDUP(val, gran) roundup(val, gran)
+#else /* roundup */
+#define ROUNDUP(val, gran) (((val)-1 | (gran)-1) + 1)
 #endif /* roundup */
 
 #define LSA_OPTIONS_GET(area)                                                  \
@@ -726,8 +724,7 @@ extern int ospf_area_display_format_set(struct ospf *ospf,
 extern int ospf_area_stub_set(struct ospf *ospf, struct in_addr area_id);
 extern int ospf_area_stub_unset(struct ospf *ospf, struct in_addr area_id);
 extern int ospf_area_no_summary_set(struct ospf *ospf, struct in_addr area_id);
-extern int ospf_area_no_summary_unset(struct ospf *ospf,
-				      struct in_addr area_id);
+extern int ospf_area_no_summary_unset(struct ospf *ospf, struct in_addr area_id);
 extern int ospf_area_nssa_set(struct ospf *ospf, struct in_addr area_id);
 extern int ospf_area_nssa_unset(struct ospf *ospf, struct in_addr area_id);
 extern int ospf_area_nssa_suppress_fa_set(struct ospf *ospf,
@@ -761,8 +758,7 @@ void ospf_area_lsdb_discard_delete(struct ospf_area *area);
 extern int ospf_nbr_nbma_set(struct ospf *ospf, struct in_addr nbr_addr);
 extern int ospf_nbr_nbma_unset(struct ospf *ospf, struct in_addr nbr_addr);
 extern int ospf_nbr_nbma_priority_set(struct ospf *ospf,
-				      struct in_addr nbr_addr,
-				      uint8_t priority);
+				      struct in_addr nbr_addr, uint8_t priority);
 extern int ospf_nbr_nbma_priority_unset(struct ospf *ospf,
 					struct in_addr nbr_addr);
 extern int ospf_nbr_nbma_poll_interval_set(struct ospf *ospf,

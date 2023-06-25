@@ -10,8 +10,8 @@
 
 /* Macro to update bgp_original based on bpg_path_info */
 #define BGP_ORIGINAL_UPDATE(_bgp_orig, _mpinfo, _bgp)                          \
-	((_mpinfo->extra && _mpinfo->extra->bgp_orig                           \
-	  && _mpinfo->sub_type == BGP_ROUTE_IMPORTED)                          \
+	((_mpinfo->extra && _mpinfo->extra->bgp_orig &&                        \
+	  _mpinfo->sub_type == BGP_ROUTE_IMPORTED)                             \
 		 ? (_bgp_orig = _mpinfo->extra->bgp_orig)                      \
 		 : (_bgp_orig = _bgp))
 
@@ -24,8 +24,8 @@ extern void bgp_zebra_init_tm_connect(struct bgp *bgp);
 extern uint32_t bgp_zebra_tm_get_id(void);
 extern bool bgp_zebra_tm_chunk_obtained(void);
 extern void bgp_zebra_destroy(void);
-extern int bgp_zebra_get_table_range(uint32_t chunk_size,
-				     uint32_t *start, uint32_t *end);
+extern int bgp_zebra_get_table_range(uint32_t chunk_size, uint32_t *start,
+				     uint32_t *end);
 extern int bgp_if_update_all(void);
 extern void bgp_zebra_announce(struct bgp_dest *dest, const struct prefix *p,
 			       struct bgp_path_info *path, struct bgp *bgp,
@@ -77,8 +77,7 @@ extern struct interface *if_lookup_by_ipv6(struct in6_addr *addr,
 extern struct interface *if_lookup_by_ipv6_exact(struct in6_addr *addr,
 						 ifindex_t ifindex,
 						 vrf_id_t vrf_id);
-extern int bgp_zebra_advertise_subnet(struct bgp *bgp, int advertise,
-				      vni_t vni);
+extern int bgp_zebra_advertise_subnet(struct bgp *bgp, int advertise, vni_t vni);
 extern int bgp_zebra_advertise_gw_macip(struct bgp *bgp, int advertise,
 					vni_t vni);
 extern int bgp_zebra_advertise_svi_macip(struct bgp *bgp, int advertise,
@@ -100,18 +99,16 @@ struct bgp_pbr_rule;
 struct bgp_pbr_match_entry;
 
 extern void bgp_send_pbr_rule_action(struct bgp_pbr_action *pbra,
-				     struct bgp_pbr_rule *pbr,
-				     bool install);
-extern void bgp_send_pbr_ipset_match(struct bgp_pbr_match *pbrim,
-				     bool install);
+				     struct bgp_pbr_rule *pbr, bool install);
+extern void bgp_send_pbr_ipset_match(struct bgp_pbr_match *pbrim, bool install);
 extern void bgp_send_pbr_ipset_entry_match(struct bgp_pbr_match_entry *pbrime,
-				    bool install);
+					   bool install);
 extern void bgp_send_pbr_iptable(struct bgp_pbr_action *pba,
-			  struct bgp_pbr_match *pbm,
-			  bool install);
+				 struct bgp_pbr_match *pbm, bool install);
 
 extern void bgp_zebra_announce_default(struct bgp *bgp, struct nexthop *nh,
-				afi_t afi, uint32_t table_id, bool announce);
+				       afi_t afi, uint32_t table_id,
+				       bool announce);
 extern int bgp_zebra_send_capabilities(struct bgp *bgp, bool disable);
 extern int bgp_zebra_update(struct bgp *bgp, afi_t afi, safi_t safi,
 			    enum zserv_client_capabilities);

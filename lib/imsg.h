@@ -14,9 +14,9 @@
 extern "C" {
 #endif
 
-#define IBUF_READ_SIZE		65535
-#define IMSG_HEADER_SIZE	sizeof(struct imsg_hdr)
-#define MAX_IMSGSIZE		16384
+#define IBUF_READ_SIZE 65535
+#define IMSG_HEADER_SIZE sizeof(struct imsg_hdr)
+#define MAX_IMSGSIZE 16384
 
 struct ibuf {
 	TAILQ_ENTRY(ibuf) entry;
@@ -53,7 +53,7 @@ struct imsgbuf {
 	pid_t pid;
 };
 
-#define IMSGF_HASFD	1
+#define IMSGF_HASFD 1
 
 struct imsg_hdr {
 	uint32_t type;

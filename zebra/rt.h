@@ -32,19 +32,16 @@ extern "C" {
  * Update or delete a route, nexthop, LSP, pseudowire, or vxlan MAC from the
  * kernel, using info from a dataplane context.
  */
-extern enum zebra_dplane_result kernel_route_update(
-	struct zebra_dplane_ctx *ctx);
+extern enum zebra_dplane_result kernel_route_update(struct zebra_dplane_ctx *ctx);
 
 extern enum zebra_dplane_result
 kernel_nexthop_update(struct zebra_dplane_ctx *ctx);
 
-extern enum zebra_dplane_result kernel_lsp_update(
-	struct zebra_dplane_ctx *ctx);
+extern enum zebra_dplane_result kernel_lsp_update(struct zebra_dplane_ctx *ctx);
 
 enum zebra_dplane_result kernel_pw_update(struct zebra_dplane_ctx *ctx);
 
-enum zebra_dplane_result kernel_address_update_ctx(
-	struct zebra_dplane_ctx *ctx);
+enum zebra_dplane_result kernel_address_update_ctx(struct zebra_dplane_ctx *ctx);
 
 enum zebra_dplane_result kernel_mac_update_ctx(struct zebra_dplane_ctx *ctx);
 
@@ -53,8 +50,7 @@ enum zebra_dplane_result kernel_neigh_update_ctx(struct zebra_dplane_ctx *ctx);
 extern enum zebra_dplane_result
 kernel_pbr_rule_update(struct zebra_dplane_ctx *ctx);
 
-extern enum zebra_dplane_result
-kernel_intf_update(struct zebra_dplane_ctx *ctx);
+extern enum zebra_dplane_result kernel_intf_update(struct zebra_dplane_ctx *ctx);
 
 extern enum zebra_dplane_result
 kernel_intf_netconf_update(struct zebra_dplane_ctx *ctx);
@@ -102,7 +98,7 @@ extern void route_read(struct zebra_ns *zns);
 extern int kernel_upd_mac_nh(uint32_t nh_id, struct in_addr vtep_ip);
 extern int kernel_del_mac_nh(uint32_t nh_id);
 extern int kernel_upd_mac_nhg(uint32_t nhg_id, uint32_t nh_cnt,
-		struct nh_grp *nh_ids);
+			      struct nh_grp *nh_ids);
 extern int kernel_del_mac_nhg(uint32_t nhg_id);
 
 /*

@@ -21,7 +21,7 @@ DEFINE_MTYPE_STATIC(LIB, STREAM_FIFO, "Stream FIFO");
 
 /* Tests whether a position is valid */
 #define GETP_VALID(S, G) ((G) <= (S)->endp)
-#define PUT_AT_VALID(S,G) GETP_VALID(S,G)
+#define PUT_AT_VALID(S, G) GETP_VALID(S, G)
 #define ENDP_VALID(S, E) ((E) <= (S)->size)
 
 /* asserting sanity checks. Following must be true before
@@ -39,13 +39,13 @@ DEFINE_MTYPE_STATIC(LIB, STREAM_FIFO, "Stream FIFO");
  * It is valid to put to anywhere within the size of the stream, but only
  * using stream_put..._at() functions.
  */
-#define STREAM_WARN_OFFSETS(S)                                                 \
-	do {                                                                   \
-		flog_warn(EC_LIB_STREAM,				       \
+#define STREAM_WARN_OFFSETS(S)                                                     \
+	do {                                                                       \
+		flog_warn(EC_LIB_STREAM,                                           \
 			  "&(struct stream): %p, size: %lu, getp: %lu, endp: %lu", \
-			  (void *)(S), (unsigned long)(S)->size,	       \
-			  (unsigned long)(S)->getp, (unsigned long)(S)->endp); \
-		zlog_backtrace(LOG_WARNING);				       \
+			  (void *)(S), (unsigned long)(S)->size,                   \
+			  (unsigned long)(S)->getp, (unsigned long)(S)->endp);     \
+		zlog_backtrace(LOG_WARNING);                                       \
 	} while (0)
 
 #define STREAM_VERIFY_SANE(S)                                                  \
@@ -76,10 +76,9 @@ DEFINE_MTYPE_STATIC(LIB, STREAM_FIFO, "Stream FIFO");
 #define CHECK_SIZE(S, Z)                                                       \
 	do {                                                                   \
 		if (((S)->endp + (Z)) > (S)->size) {                           \
-			flog_warn(                                             \
-				EC_LIB_STREAM,                                 \
-				"CHECK_SIZE: truncating requested size %lu",   \
-				(unsigned long)(Z));                           \
+			flog_warn(EC_LIB_STREAM,                               \
+				  "CHECK_SIZE: truncating requested size %lu", \
+				  (unsigned long)(Z));                         \
 			STREAM_WARN_OFFSETS(S);                                \
 			(Z) = (S)->size - (S)->endp;                           \
 		}                                                              \
@@ -640,9 +639,8 @@ bool stream_get_ipaddr(struct stream *s, struct ipaddr *ip)
 		ipa_len = IPV6_MAX_BYTELEN;
 		break;
 	case IPADDR_NONE:
-		flog_err(EC_LIB_DEVELOPMENT,
-			 "%s: unknown ip address-family: %u", __func__,
-			 ip->ipa_type);
+		flog_err(EC_LIB_DEVELOPMENT, "%s: unknown ip address-family: %u",
+			 __func__, ip->ipa_type);
 		return false;
 	}
 	if (STREAM_READABLE(s) < ipa_len) {
@@ -933,9 +931,8 @@ bool stream_put_ipaddr(struct stream *s, struct ipaddr *ip)
 		stream_write(s, (uint8_t *)&ip->ipaddr_v6, 16);
 		break;
 	case IPADDR_NONE:
-		flog_err(EC_LIB_DEVELOPMENT,
-			 "%s: unknown ip address-family: %u", __func__,
-			 ip->ipa_type);
+		flog_err(EC_LIB_DEVELOPMENT, "%s: unknown ip address-family: %u",
+			 __func__, ip->ipa_type);
 		return false;
 	}
 
@@ -1283,8 +1280,7 @@ struct stream *stream_fifo_pop(struct stream_fifo *fifo)
 		if (fifo->head == NULL)
 			fifo->tail = NULL;
 
-		atomic_fetch_sub_explicit(&fifo->count, 1,
-					  memory_order_release);
+		atomic_fetch_sub_explicit(&fifo->count, 1, memory_order_release);
 
 		/* ensure stream is scrubbed of references to this fifo */
 		s->next = NULL;

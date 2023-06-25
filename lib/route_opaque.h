@@ -40,8 +40,8 @@ struct ospf_zebra_opaque {
 };
 
 static_assert(sizeof(struct bgp_zebra_opaque) <= ZAPI_MESSAGE_OPAQUE_LENGTH,
-              "BGP opaque data shouldn't be larger than zebra's buffer");
+	      "BGP opaque data shouldn't be larger than zebra's buffer");
 static_assert(sizeof(struct ospf_zebra_opaque) <= ZAPI_MESSAGE_OPAQUE_LENGTH,
-              "OSPF opaque data shouldn't be larger than zebra's buffer");
+	      "OSPF opaque data shouldn't be larger than zebra's buffer");
 
 #endif /* FRR_ROUTE_OPAQUE_H */

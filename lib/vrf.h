@@ -27,15 +27,15 @@ enum { IFLA_VRF_UNSPEC, IFLA_VRF_TABLE, __IFLA_VRF_MAX };
 #define IFLA_VRF_MAX (__IFLA_VRF_MAX - 1)
 #endif
 
-#define VRF_NAMSIZ      36
+#define VRF_NAMSIZ 36
 #define NS_NAMSIZ 36
 
 /*
  * The command strings
  */
-#define VRF_CMD_HELP_STR    "Specify the VRF\nThe VRF name\n"
-#define VRF_ALL_CMD_HELP_STR    "Specify the VRF\nAll VRFs\n"
-#define VRF_FULL_CMD_HELP_STR   "Specify the VRF\nThe VRF name\nAll VRFs\n"
+#define VRF_CMD_HELP_STR "Specify the VRF\nThe VRF name\n"
+#define VRF_ALL_CMD_HELP_STR "Specify the VRF\nAll VRFs\n"
+#define VRF_FULL_CMD_HELP_STR "Specify the VRF\nThe VRF name\nAll VRFs\n"
 
 #define FRR_VRF_XPATH "/frr-vrf:lib/vrf"
 #define FRR_VRF_KEY_XPATH "/frr-vrf:lib/vrf[name='%s']"
@@ -64,7 +64,7 @@ struct vrf {
 
 	/* Zebra internal VRF status */
 	uint8_t status;
-#define VRF_ACTIVE     (1 << 0) /* VRF is up in kernel */
+#define VRF_ACTIVE (1 << 0)	/* VRF is up in kernel */
 #define VRF_CONFIGURED (1 << 1) /* VRF has some FRR configuration */
 
 	/* Interfaces belonging to this VRF */
@@ -169,7 +169,7 @@ extern void *vrf_info_lookup(vrf_id_t);
  */
 
 typedef void *vrf_bitmap_t;
-#define VRF_BITMAP_NULL     NULL
+#define VRF_BITMAP_NULL NULL
 
 extern vrf_bitmap_t vrf_bitmap_init(void);
 extern void vrf_bitmap_free(vrf_bitmap_t);
@@ -257,7 +257,7 @@ extern int vrf_ioctl(vrf_id_t vrf_id, int d, unsigned long request, char *args);
 extern void vrf_set_default_name(const char *default_name);
 
 extern const char *vrf_get_default_name(void);
-#define VRF_DEFAULT_NAME    vrf_get_default_name()
+#define VRF_DEFAULT_NAME vrf_get_default_name()
 
 /* VRF switch from NETNS */
 extern int vrf_switch_to_netns(vrf_id_t vrf_id);

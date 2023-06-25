@@ -27,16 +27,16 @@ extern "C" {
 struct pbr_filter {
 	uint32_t filter_bm; /* not encoded by zapi
 			     */
-#define PBR_FILTER_SRC_IP		(1 << 0)
-#define PBR_FILTER_DST_IP		(1 << 1)
-#define PBR_FILTER_SRC_PORT		(1 << 2)
-#define PBR_FILTER_DST_PORT		(1 << 3)
-#define PBR_FILTER_FWMARK		(1 << 4)
-#define PBR_FILTER_PROTO		(1 << 5)
-#define PBR_FILTER_SRC_PORT_RANGE	(1 << 6)
-#define PBR_FILTER_DST_PORT_RANGE	(1 << 7)
-#define PBR_FILTER_DSFIELD		(1 << 8)
-#define PBR_FILTER_IP_PROTOCOL	(1 << 9)
+#define PBR_FILTER_SRC_IP (1 << 0)
+#define PBR_FILTER_DST_IP (1 << 1)
+#define PBR_FILTER_SRC_PORT (1 << 2)
+#define PBR_FILTER_DST_PORT (1 << 3)
+#define PBR_FILTER_FWMARK (1 << 4)
+#define PBR_FILTER_PROTO (1 << 5)
+#define PBR_FILTER_SRC_PORT_RANGE (1 << 6)
+#define PBR_FILTER_DST_PORT_RANGE (1 << 7)
+#define PBR_FILTER_DSFIELD (1 << 8)
+#define PBR_FILTER_IP_PROTOCOL (1 << 9)
 
 #define PBR_DSFIELD_DSCP (0xfc) /* Upper 6 bits of DS field: DSCP */
 #define PBR_DSFIELD_ECN (0x03)	/* Lower 2 bits of DS field: BCN */
@@ -108,27 +108,27 @@ struct pbr_rule {
 #define TCP_HEADER_PSH (0x08)
 #define TCP_HEADER_ACK (0x10)
 #define TCP_HEADER_URG (0x20)
-#define TCP_HEADER_ALL_FLAGS (TCP_HEADER_FIN | TCP_HEADER_SYN \
-			      | TCP_HEADER_RST | TCP_HEADER_PSH \
-			      | TCP_HEADER_ACK | TCP_HEADER_URG)
+#define TCP_HEADER_ALL_FLAGS                                                   \
+	(TCP_HEADER_FIN | TCP_HEADER_SYN | TCP_HEADER_RST | TCP_HEADER_PSH |   \
+	 TCP_HEADER_ACK | TCP_HEADER_URG)
 
 /* Pbr IPTable defines
  * those are common flags shared between BGP and Zebra
  */
-#define MATCH_IP_SRC_SET		(1 << 0)
-#define MATCH_IP_DST_SET		(1 << 1)
-#define MATCH_PORT_SRC_SET		(1 << 2)
-#define MATCH_PORT_DST_SET		(1 << 3)
-#define MATCH_PORT_SRC_RANGE_SET	(1 << 4)
-#define MATCH_PORT_DST_RANGE_SET	(1 << 5)
-#define MATCH_DSCP_SET			(1 << 6)
-#define MATCH_DSCP_INVERSE_SET		(1 << 7)
-#define MATCH_PKT_LEN_INVERSE_SET	(1 << 8)
-#define MATCH_FRAGMENT_INVERSE_SET	(1 << 9)
-#define MATCH_ICMP_SET			(1 << 10)
-#define MATCH_PROTOCOL_SET		(1 << 11)
-#define MATCH_FLOW_LABEL_SET		(1 << 12)
-#define MATCH_FLOW_LABEL_INVERSE_SET	(1 << 13)
+#define MATCH_IP_SRC_SET (1 << 0)
+#define MATCH_IP_DST_SET (1 << 1)
+#define MATCH_PORT_SRC_SET (1 << 2)
+#define MATCH_PORT_DST_SET (1 << 3)
+#define MATCH_PORT_SRC_RANGE_SET (1 << 4)
+#define MATCH_PORT_DST_RANGE_SET (1 << 5)
+#define MATCH_DSCP_SET (1 << 6)
+#define MATCH_DSCP_INVERSE_SET (1 << 7)
+#define MATCH_PKT_LEN_INVERSE_SET (1 << 8)
+#define MATCH_FRAGMENT_INVERSE_SET (1 << 9)
+#define MATCH_ICMP_SET (1 << 10)
+#define MATCH_PROTOCOL_SET (1 << 11)
+#define MATCH_FLOW_LABEL_SET (1 << 12)
+#define MATCH_FLOW_LABEL_INVERSE_SET (1 << 13)
 
 extern int zapi_pbr_rule_encode(uint8_t cmd, struct stream *s,
 				struct pbr_rule *zrule);

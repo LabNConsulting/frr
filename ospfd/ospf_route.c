@@ -52,7 +52,7 @@ struct ospf_route *ospf_route_new(void)
 	return new;
 }
 
-void ospf_route_free(struct ospf_route *or)
+void ospf_route_free(struct ospf_route * or)
 {
 	if (or->paths)
 		list_delete(& or->paths);
@@ -79,11 +79,10 @@ static struct ospf_path *ospf_path_dup(struct ospf_path *path)
 
 	/* optional TI-LFA backup paths */
 	if (path->srni.backup_label_stack) {
-		memsize = sizeof(struct mpls_label_stack)
-			  + (sizeof(mpls_label_t)
-			     * path->srni.backup_label_stack->num_labels);
-		new->srni.backup_label_stack =
-			XCALLOC(MTYPE_OSPF_PATH, memsize);
+		memsize = sizeof(struct mpls_label_stack) +
+			  (sizeof(mpls_label_t) *
+			   path->srni.backup_label_stack->num_labels);
+		new->srni.backup_label_stack = XCALLOC(MTYPE_OSPF_PATH, memsize);
 		memcpy(new->srni.backup_label_stack,
 		       path->srni.backup_label_stack, memsize);
 	}
@@ -108,11 +107,13 @@ void ospf_route_delete(struct ospf *ospf, struct route_table *rt)
 	for (rn = route_top(rt); rn; rn = route_next(rn))
 		if ((or = rn->info) != NULL) {
 			if (or->type == OSPF_DESTINATION_NETWORK)
-				ospf_zebra_delete(
-					ospf, (struct prefix_ipv4 *)&rn->p, or);
+				ospf_zebra_delete(ospf,
+						  (struct prefix_ipv4 *)&rn->p,
+						  or);
 			else if (or->type == OSPF_DESTINATION_DISCARD)
-				ospf_zebra_delete_discard(
-					ospf, (struct prefix_ipv4 *)&rn->p);
+				ospf_zebra_delete_discard(ospf,
+							  (struct prefix_ipv4
+								   *)&rn->p);
 		}
 }
 
@@ -261,8 +262,7 @@ static void ospf_route_delete_same_ext(struct ospf *ospf,
 			if ((ext_rn = route_node_lookup(external_routes,
 							(struct prefix *)p))) {
 				if (ext_rn->info) {
-					ospf_zebra_delete(ospf, p,
-							  ext_rn->info);
+					ospf_zebra_delete(ospf, p, ext_rn->info);
 					ospf_route_free(ext_rn->info);
 					ext_rn->info = NULL;
 				}
@@ -286,22 +286,20 @@ static void ospf_route_delete_uniq(struct ospf *ospf, struct route_table *rt,
 				if (or->type == OSPF_DESTINATION_NETWORK) {
 					if (!ospf_route_exist_new_table(
 						    cmprt,
-						    (struct prefix_ipv4 *)&rn
-							    ->p))
-						ospf_zebra_delete(
-							ospf,
-							(struct prefix_ipv4
-								 *)&rn->p,
-							or);
+						    (struct prefix_ipv4 *)&rn->p))
+						ospf_zebra_delete(ospf,
+								  (struct prefix_ipv4
+									   *)&rn
+									  ->p,
+								  or);
 				} else if (or->type == OSPF_DESTINATION_DISCARD)
 					if (!ospf_route_exist_new_table(
 						    cmprt,
-						    (struct prefix_ipv4 *)&rn
-							    ->p))
+						    (struct prefix_ipv4 *)&rn->p))
 						ospf_zebra_delete_discard(
 							ospf,
-							(struct prefix_ipv4
-								 *)&rn->p);
+							(struct prefix_ipv4 *)&rn
+								->p);
 			}
 }
 
@@ -329,20 +327,22 @@ void ospf_route_install(struct ospf *ospf, struct route_table *rt)
 	for (rn = route_top(rt); rn; rn = route_next(rn))
 		if ((or = rn->info) != NULL) {
 			if (or->type == OSPF_DESTINATION_NETWORK) {
-				if (!ospf_route_match_same(
-					    ospf->old_table,
-					    (struct prefix_ipv4 *)&rn->p, or))
-					ospf_zebra_add(
-						ospf,
-						(struct prefix_ipv4 *)&rn->p,
-						or);
+				if (!ospf_route_match_same(ospf->old_table,
+							   (struct prefix_ipv4
+								    *)&rn->p,
+							   or))
+					ospf_zebra_add(ospf,
+						       (struct prefix_ipv4 *)&rn
+							       ->p,
+						       or);
 			} else if (or->type == OSPF_DESTINATION_DISCARD)
-				if (!ospf_route_match_same(
-					    ospf->old_table,
-					    (struct prefix_ipv4 *)&rn->p, or))
-					ospf_zebra_add_discard(
-						ospf,
-						(struct prefix_ipv4 *)&rn->p);
+				if (!ospf_route_match_same(ospf->old_table,
+							   (struct prefix_ipv4
+								    *)&rn->p,
+							   or))
+					ospf_zebra_add_discard(ospf,
+							       (struct prefix_ipv4
+									*)&rn->p);
 		}
 }
 
@@ -376,12 +376,10 @@ void ospf_intra_add_router(struct route_table *rt, struct vertex *v,
 		/* If the newly added vertex is an area border router or AS
 		   boundary router, a routing table entry is added whose
 		   destination type is "router". */
-		if (!IS_ROUTER_LSA_BORDER(lsa) &&
-		    !IS_ROUTER_LSA_EXTERNAL(lsa)) {
+		if (!IS_ROUTER_LSA_BORDER(lsa) && !IS_ROUTER_LSA_EXTERNAL(lsa)) {
 			if (IS_DEBUG_OSPF_EVENT)
-				zlog_debug(
-					"%s: this router is neither ASBR nor ABR, skipping it",
-					__func__);
+				zlog_debug("%s: this router is neither ASBR nor ABR, skipping it",
+					   __func__);
 			return;
 		}
 
@@ -483,9 +481,9 @@ void ospf_intra_add_transit(struct route_table *rt, struct vertex *v,
 		route_unlock_node(rn);
 		cur_or = rn->info;
 
-		if (v->distance > cur_or->cost
-		    || IPV4_ADDR_CMP(&cur_or->u.std.origin->id, &lsa->header.id)
-			       > 0)
+		if (v->distance > cur_or->cost ||
+		    IPV4_ADDR_CMP(&cur_or->u.std.origin->id, &lsa->header.id) >
+			    0)
 			return;
 
 		ospf_route_free(rn->info);
@@ -546,8 +544,8 @@ void ospf_intra_add_stub(struct route_table *rt, struct router_lsa_link *link,
 	 * connected hosts, see RFC 2328, 12.4.1.1, Option 1.
 	 * Such routes can just be ignored for the sake of tidyness.
 	 */
-	if (parent_is_root && link->link_data.s_addr == 0xffffffff
-	    && ospf_if_lookup_by_local_addr(area->ospf, NULL, link->link_id)) {
+	if (parent_is_root && link->link_data.s_addr == 0xffffffff &&
+	    ospf_if_lookup_by_local_addr(area->ospf, NULL, link->link_id)) {
 		if (IS_DEBUG_OSPF_EVENT)
 			zlog_debug("%s: ignoring host route %pI4/32 to self.",
 				   __func__, &link->link_id);
@@ -565,9 +563,8 @@ void ospf_intra_add_stub(struct route_table *rt, struct router_lsa_link *link,
 		cur_or = rn->info;
 
 		if (IS_DEBUG_OSPF_EVENT)
-			zlog_debug(
-				"%s: another route to the same prefix found with cost %u",
-				__func__, cur_or->cost);
+			zlog_debug("%s: another route to the same prefix found with cost %u",
+				   __func__, cur_or->cost);
 
 		/* Compare this distance to the current best cost to the stub
 		   network.  This is done by looking up the stub network's
@@ -602,8 +599,7 @@ void ospf_intra_add_stub(struct route_table *rt, struct router_lsa_link *link,
 			ospf_route_copy_nexthops_from_vertex(area, cur_or, v);
 
 			if (IPV4_ADDR_CMP(&cur_or->u.std.origin->id,
-					  &lsa->header.id)
-			    < 0)
+					  &lsa->header.id) < 0)
 				cur_or->u.std.origin = (struct lsa_header *)lsa;
 			return;
 		}
@@ -693,10 +689,9 @@ void ospf_intra_add_stub(struct route_table *rt, struct router_lsa_link *link,
 		zlog_debug("%s: Stop", __func__);
 }
 
-static const char *const ospf_path_type_str[] = {
-	"unknown-type", "intra-area", "inter-area", "type1-external",
-	"type2-external"
-};
+static const char *const ospf_path_type_str[] = {"unknown-type", "intra-area",
+						 "inter-area", "type1-external",
+						 "type2-external"};
 
 void ospf_route_table_dump(struct route_table *rt)
 {
@@ -710,17 +705,15 @@ void ospf_route_table_dump(struct route_table *rt)
 		if ((or = rn->info) != NULL) {
 			if (or->type == OSPF_DESTINATION_NETWORK) {
 				zlog_debug("N %-18pFX %-15pI4 %s %d", &rn->p,
-					   &or->u.std.area_id,
+					   & or->u.std.area_id,
 					   ospf_path_type_str[or->path_type],
 					   or->cost);
 				for (ALL_LIST_ELEMENTS_RO(or->paths, pnode,
 							  path))
-					zlog_debug("  -> %pI4",
-						   &path->nexthop);
+					zlog_debug("  -> %pI4", &path->nexthop);
 			} else
 				zlog_debug("R %-18pI4 %-15pI4 %s %d",
-					   &rn->p.u.prefix4,
-					   &or->u.std.area_id,
+					   &rn->p.u.prefix4, & or->u.std.area_id,
 					   ospf_path_type_str[or->path_type],
 					   or->cost);
 		}
@@ -730,7 +723,7 @@ void ospf_route_table_dump(struct route_table *rt)
 void ospf_router_route_table_dump(struct route_table *rt)
 {
 	struct route_node *rn;
-	struct ospf_route *or;
+	struct ospf_route * or ;
 	struct listnode *node;
 
 	zlog_debug("========== OSPF routing table ==========");
@@ -738,7 +731,7 @@ void ospf_router_route_table_dump(struct route_table *rt)
 		for (ALL_LIST_ELEMENTS_RO((struct list *)rn->info, node, or)) {
 			assert(or->type == OSPF_DESTINATION_ROUTER);
 			zlog_debug("R %-18pI4 %-15pI4 %s %d", &rn->p.u.prefix4,
-				   &or->u.std.area_id,
+				   & or->u.std.area_id,
 				   ospf_path_type_str[or->path_type], or->cost);
 		}
 	}
@@ -818,8 +811,8 @@ static int ospf_path_exist(struct list *plist, struct in_addr nexthop,
 	struct ospf_path *path;
 
 	for (ALL_LIST_ELEMENTS(plist, node, nnode, path))
-		if (IPV4_ADDR_SAME(&path->nexthop, &nexthop)
-		    && path->ifindex == oi->ifp->ifindex)
+		if (IPV4_ADDR_SAME(&path->nexthop, &nexthop) &&
+		    path->ifindex == oi->ifp->ifindex)
 			return 1;
 
 	return 0;
@@ -847,8 +840,8 @@ void ospf_route_copy_nexthops_from_vertex(struct ospf_area *area,
 		if (!area->spf_dry_run)
 			oi = ospf_if_lookup_by_lsa_pos(area, nexthop->lsa_pos);
 
-		if ((oi && !ospf_path_exist(to->paths, nexthop->router, oi))
-		    || area->spf_dry_run) {
+		if ((oi && !ospf_path_exist(to->paths, nexthop->router, oi)) ||
+		    area->spf_dry_run) {
 			path = ospf_path_new();
 			path->nexthop = nexthop->router;
 			path->adv_router = v->id;
@@ -977,9 +970,8 @@ void ospf_prune_unreachable_routers(struct route_table *rtrs)
 				if (IS_DEBUG_OSPF_EVENT) {
 					zlog_debug("Pruning route to rtr %pI4",
 						   &rn->p.u.prefix4);
-					zlog_debug(
-						"               via area %pI4",
-						&or->u.std.area_id);
+					zlog_debug("               via area %pI4",
+						   & or->u.std.area_id);
 				}
 
 				/* Unset the DNA flag on lsa, if the router
@@ -1039,9 +1031,8 @@ int ospf_add_discard_route(struct ospf *ospf, struct route_table *rt,
 
 		if (or->type == OSPF_DESTINATION_DISCARD) {
 			if (IS_DEBUG_OSPF_EVENT)
-				zlog_debug(
-					"%s: discard entry already installed",
-					__func__);
+				zlog_debug("%s: discard entry already installed",
+					   __func__);
 			return 0;
 		}
 

@@ -19,7 +19,7 @@ DEFINE_MTYPE_STATIC(LIB, TYPEDHASH_BUCKET, "Typed-hash bucket");
 DEFINE_MTYPE_STATIC(LIB, SKIPLIST_OFLOW, "Skiplist overflow");
 DEFINE_MTYPE_STATIC(LIB, HEAP_ARRAY, "Typed-heap array");
 
-struct slist_item typesafe_slist_sentinel = { NULL };
+struct slist_item typesafe_slist_sentinel = {NULL};
 
 bool typesafe_list_member(const struct slist_head *head,
 			  const struct slist_item *item)
@@ -111,10 +111,9 @@ void typesafe_hash_grow(struct thash_head *head)
 	newsize = _HASH_SIZE(newshift);
 
 	head->entries = XREALLOC(MTYPE_TYPEDHASH_BUCKET, head->entries,
-			sizeof(head->entries[0]) * newsize);
+				 sizeof(head->entries[0]) * newsize);
 	memset(head->entries + HASH_SIZE(*head), 0,
-			sizeof(head->entries[0]) *
-				(newsize - HASH_SIZE(*head)));
+	       sizeof(head->entries[0]) * (newsize - HASH_SIZE(*head)));
 
 	delta = newshift - head->tabshift;
 
@@ -189,7 +188,7 @@ void typesafe_hash_shrink(struct thash_head *head)
 		}
 	}
 	head->entries = XREALLOC(MTYPE_TYPEDHASH_BUCKET, head->entries,
-			sizeof(head->entries[0]) * newsize);
+				 sizeof(head->entries[0]) * newsize);
 	head->tabshift = newshift;
 
 	hash_consistency_check(head);
@@ -198,7 +197,7 @@ void typesafe_hash_shrink(struct thash_head *head)
 /* skiplist */
 
 static inline struct sskip_item *sl_level_get(const struct sskip_item *item,
-			size_t level)
+					      size_t level)
 {
 	if (level < SKIPLIST_OVERFLOW)
 		return item->next[level];
@@ -212,11 +211,12 @@ static inline struct sskip_item *sl_level_get(const struct sskip_item *item,
 }
 
 static inline void sl_level_set(struct sskip_item *item, size_t level,
-		struct sskip_item *value)
+				struct sskip_item *value)
 {
 	if (level < SKIPLIST_OVERFLOW)
 		item->next[level] = value;
-	else if (level == SKIPLIST_OVERFLOW && !((uintptr_t)item->next[level] & 1))
+	else if (level == SKIPLIST_OVERFLOW &&
+		 !((uintptr_t)item->next[level] & 1))
 		item->next[level] = value;
 	else {
 		uintptr_t ptrval = (uintptr_t)item->next[SKIPLIST_OVERFLOW];
@@ -226,10 +226,9 @@ static inline void sl_level_set(struct sskip_item *item, size_t level,
 	}
 }
 
-struct sskip_item *typesafe_skiplist_add(struct sskip_head *head,
-		struct sskip_item *item,
-		int (*cmpfn)(const struct sskip_item *a,
-				const struct sskip_item *b))
+struct sskip_item *typesafe_skiplist_add(
+	struct sskip_head *head, struct sskip_item *item,
+	int (*cmpfn)(const struct sskip_item *a, const struct sskip_item *b))
 {
 	size_t level = SKIPLIST_MAXDEPTH, newlevel, auxlevel;
 	struct sskip_item *prev = &head->hitem, *next, *auxprev, *auxnext;
@@ -277,10 +276,10 @@ struct sskip_item *typesafe_skiplist_add(struct sskip_head *head,
 	memset(item, 0, sizeof(*item));
 	if (newlevel > SKIPLIST_EMBED) {
 		struct sskip_overflow *oflow;
-		oflow = XMALLOC(MTYPE_SKIPLIST_OFLOW, sizeof(void *)
-				* (newlevel - SKIPLIST_OVERFLOW));
-		item->next[SKIPLIST_OVERFLOW] = (struct sskip_item *)
-				((uintptr_t)oflow | 1);
+		oflow = XMALLOC(MTYPE_SKIPLIST_OFLOW,
+				sizeof(void *) * (newlevel - SKIPLIST_OVERFLOW));
+		item->next[SKIPLIST_OVERFLOW] =
+			(struct sskip_item *)((uintptr_t)oflow | 1);
 	}
 
 	sl_level_set(item, level, next);
@@ -303,10 +302,8 @@ struct sskip_item *typesafe_skiplist_add(struct sskip_head *head,
 /* NOTE: level counting below is 1-based since that makes the code simpler! */
 
 const struct sskip_item *typesafe_skiplist_find(
-		const struct sskip_head *head,
-		const struct sskip_item *item, int (*cmpfn)(
-				const struct sskip_item *a,
-				const struct sskip_item *b))
+	const struct sskip_head *head, const struct sskip_item *item,
+	int (*cmpfn)(const struct sskip_item *a, const struct sskip_item *b))
 {
 	size_t level = SKIPLIST_MAXDEPTH;
 	const struct sskip_item *prev = &head->hitem, *next;
@@ -331,10 +328,8 @@ const struct sskip_item *typesafe_skiplist_find(
 }
 
 const struct sskip_item *typesafe_skiplist_find_gteq(
-		const struct sskip_head *head,
-		const struct sskip_item *item, int (*cmpfn)(
-				const struct sskip_item *a,
-				const struct sskip_item *b))
+	const struct sskip_head *head, const struct sskip_item *item,
+	int (*cmpfn)(const struct sskip_item *a, const struct sskip_item *b))
 {
 	size_t level = SKIPLIST_MAXDEPTH;
 	const struct sskip_item *prev = &head->hitem, *next;
@@ -359,10 +354,8 @@ const struct sskip_item *typesafe_skiplist_find_gteq(
 }
 
 const struct sskip_item *typesafe_skiplist_find_lt(
-		const struct sskip_head *head,
-		const struct sskip_item *item, int (*cmpfn)(
-				const struct sskip_item *a,
-				const struct sskip_item *b))
+	const struct sskip_head *head, const struct sskip_item *item,
+	int (*cmpfn)(const struct sskip_item *a, const struct sskip_item *b))
 {
 	size_t level = SKIPLIST_MAXDEPTH;
 	const struct sskip_item *prev = &head->hitem, *next, *best = NULL;
@@ -401,7 +394,7 @@ struct sskip_item *typesafe_skiplist_del(
 		}
 		if (next == item) {
 			sl_level_set(prev, level - 1,
-				sl_level_get(item, level - 1));
+				     sl_level_get(item, level - 1));
 			level--;
 			found = true;
 			continue;
@@ -523,9 +516,9 @@ void typesafe_heap_resize(struct heap_head *head, bool grow)
 }
 
 void typesafe_heap_pushdown(struct heap_head *head, uint32_t pos,
-		struct heap_item *item,
-		int (*cmpfn)(const struct heap_item *a,
-			     const struct heap_item *b))
+			    struct heap_item *item,
+			    int (*cmpfn)(const struct heap_item *a,
+					 const struct heap_item *b))
 {
 	uint32_t rghtpos, downpos, moveto;
 
@@ -550,18 +543,18 @@ void typesafe_heap_pushdown(struct heap_head *head, uint32_t pos,
 		moveto = pos;
 
 #define nary_last(x) (((x) & (HEAP_NARY - 1)) == HEAP_NARY - 1)
-		if (downpos >= head->count
-		    || cmpfn(head->array[downpos], item) >= 0) {
+		if (downpos >= head->count ||
+		    cmpfn(head->array[downpos], item) >= 0) {
 			/* not moving down; either at end or down is >= item */
-			if (nary_last(pos) || rghtpos >= head->count
-			    || cmpfn(head->array[rghtpos], item) >= 0)
+			if (nary_last(pos) || rghtpos >= head->count ||
+			    cmpfn(head->array[rghtpos], item) >= 0)
 				/* not moving right either - got our spot */
 				break;
 
 			moveto = rghtpos;
 
-		/* else: downpos is valid and < item.  choose between down
-		 * or right (if the latter is an option) */
+			/* else: downpos is valid and < item.  choose between
+			 * down or right (if the latter is an option) */
 		} else if (nary_last(pos) || cmpfn(head->array[rghtpos],
 						   head->array[downpos]) >= 0)
 			moveto = downpos;
@@ -581,9 +574,9 @@ void typesafe_heap_pushdown(struct heap_head *head, uint32_t pos,
 }
 
 void typesafe_heap_pullup(struct heap_head *head, uint32_t pos,
-		struct heap_item *item,
-		int (*cmpfn)(const struct heap_item *a,
-			     const struct heap_item *b))
+			  struct heap_item *item,
+			  int (*cmpfn)(const struct heap_item *a,
+				       const struct heap_item *b))
 {
 	uint32_t moveto;
 

@@ -16,31 +16,31 @@
 #define DEFAULT_METRIC_TYPE EXTERNAL_METRIC_TYPE_2
 
 /* OSPF LSA Range definition. */
-#define OSPF_MIN_LSA		1  /* begin range here */
-#define OSPF_MAX_LSA           12
+#define OSPF_MIN_LSA 1 /* begin range here */
+#define OSPF_MAX_LSA 12
 
 /* OSPF LSA Type definition. */
-#define OSPF_UNKNOWN_LSA	      0
-#define OSPF_ROUTER_LSA               1
-#define OSPF_NETWORK_LSA              2
-#define OSPF_SUMMARY_LSA              3
-#define OSPF_ASBR_SUMMARY_LSA         4
-#define OSPF_AS_EXTERNAL_LSA          5
-#define OSPF_GROUP_MEMBER_LSA	      6  /* Not supported. */
-#define OSPF_AS_NSSA_LSA	              7
-#define OSPF_EXTERNAL_ATTRIBUTES_LSA  8  /* Not supported. */
-#define OSPF_OPAQUE_LINK_LSA	      9
-#define OSPF_OPAQUE_AREA_LSA	     10
-#define OSPF_OPAQUE_AS_LSA	     11
+#define OSPF_UNKNOWN_LSA 0
+#define OSPF_ROUTER_LSA 1
+#define OSPF_NETWORK_LSA 2
+#define OSPF_SUMMARY_LSA 3
+#define OSPF_ASBR_SUMMARY_LSA 4
+#define OSPF_AS_EXTERNAL_LSA 5
+#define OSPF_GROUP_MEMBER_LSA 6 /* Not supported. */
+#define OSPF_AS_NSSA_LSA 7
+#define OSPF_EXTERNAL_ATTRIBUTES_LSA 8 /* Not supported. */
+#define OSPF_OPAQUE_LINK_LSA 9
+#define OSPF_OPAQUE_AREA_LSA 10
+#define OSPF_OPAQUE_AS_LSA 11
 
-#define OSPF_LSA_HEADER_SIZE	     20U
-#define OSPF_ROUTER_LSA_LINK_SIZE    12U
-#define OSPF_ROUTER_LSA_TOS_SIZE      4U
-#define OSPF_MAX_LSA_SIZE	   1500U
+#define OSPF_LSA_HEADER_SIZE 20U
+#define OSPF_ROUTER_LSA_LINK_SIZE 12U
+#define OSPF_ROUTER_LSA_TOS_SIZE 4U
+#define OSPF_MAX_LSA_SIZE 1500U
 
 /* AS-external-LSA refresh method. */
-#define LSA_REFRESH_IF_CHANGED	0
-#define LSA_REFRESH_FORCE	1
+#define LSA_REFRESH_IF_CHANGED 0
+#define LSA_REFRESH_FORCE 1
 
 /* OSPF LSA header. */
 struct lsa_header {
@@ -61,14 +61,14 @@ struct vertex;
 struct ospf_lsa {
 	/* LSA origination flag. */
 	uint8_t flags;
-#define OSPF_LSA_SELF		  0x01
-#define OSPF_LSA_SELF_CHECKED	  0x02
-#define OSPF_LSA_RECEIVED	  0x04
-#define OSPF_LSA_APPROVED	  0x08
-#define OSPF_LSA_DISCARD	  0x10
-#define OSPF_LSA_LOCAL_XLT	  0x20
-#define OSPF_LSA_PREMATURE_AGE	  0x40
-#define OSPF_LSA_IN_MAXAGE	  0x80
+#define OSPF_LSA_SELF 0x01
+#define OSPF_LSA_SELF_CHECKED 0x02
+#define OSPF_LSA_RECEIVED 0x04
+#define OSPF_LSA_APPROVED 0x08
+#define OSPF_LSA_DISCARD 0x10
+#define OSPF_LSA_LOCAL_XLT 0x20
+#define OSPF_LSA_PREMATURE_AGE 0x40
+#define OSPF_LSA_IN_MAXAGE 0x80
 
 	/* LSA data. and size */
 	struct lsa_header *data;
@@ -115,23 +115,23 @@ struct ospf_lsa {
 };
 
 /* OSPF LSA Link Type. */
-#define LSA_LINK_TYPE_POINTOPOINT      1
-#define LSA_LINK_TYPE_TRANSIT          2
-#define LSA_LINK_TYPE_STUB             3
-#define LSA_LINK_TYPE_VIRTUALLINK      4
+#define LSA_LINK_TYPE_POINTOPOINT 1
+#define LSA_LINK_TYPE_TRANSIT 2
+#define LSA_LINK_TYPE_STUB 3
+#define LSA_LINK_TYPE_VIRTUALLINK 4
 
 /* OSPF Router LSA Flag. */
-#define ROUTER_LSA_BORDER	       0x01 /* The router is an ABR */
-#define ROUTER_LSA_EXTERNAL	       0x02 /* The router is an ASBR */
-#define ROUTER_LSA_VIRTUAL	       0x04 /* The router has a VL in this area */
-#define ROUTER_LSA_NT		       0x10 /* The routers always translates Type-7 */
-#define ROUTER_LSA_SHORTCUT	       0x20 /* Shortcut-ABR specific flag */
+#define ROUTER_LSA_BORDER 0x01	 /* The router is an ABR */
+#define ROUTER_LSA_EXTERNAL 0x02 /* The router is an ASBR */
+#define ROUTER_LSA_VIRTUAL 0x04	 /* The router has a VL in this area */
+#define ROUTER_LSA_NT 0x10	 /* The routers always translates Type-7 */
+#define ROUTER_LSA_SHORTCUT 0x20 /* Shortcut-ABR specific flag */
 
-#define IS_ROUTER_LSA_VIRTUAL(x)       ((x)->flags & ROUTER_LSA_VIRTUAL)
-#define IS_ROUTER_LSA_EXTERNAL(x)      ((x)->flags & ROUTER_LSA_EXTERNAL)
-#define IS_ROUTER_LSA_BORDER(x)	       ((x)->flags & ROUTER_LSA_BORDER)
-#define IS_ROUTER_LSA_SHORTCUT(x)      ((x)->flags & ROUTER_LSA_SHORTCUT)
-#define IS_ROUTER_LSA_NT(x)            ((x)->flags & ROUTER_LSA_NT)
+#define IS_ROUTER_LSA_VIRTUAL(x) ((x)->flags & ROUTER_LSA_VIRTUAL)
+#define IS_ROUTER_LSA_EXTERNAL(x) ((x)->flags & ROUTER_LSA_EXTERNAL)
+#define IS_ROUTER_LSA_BORDER(x) ((x)->flags & ROUTER_LSA_BORDER)
+#define IS_ROUTER_LSA_SHORTCUT(x) ((x)->flags & ROUTER_LSA_SHORTCUT)
+#define IS_ROUTER_LSA_NT(x) ((x)->flags & ROUTER_LSA_NT)
 
 /* OSPF Router-LSA Link information. */
 struct router_lsa_link {
@@ -145,7 +145,7 @@ struct router_lsa_link {
 };
 
 /* OSPF Router-LSAs structure. */
-#define OSPF_ROUTER_LSA_MIN_SIZE                   4U /* w/0 link descriptors */
+#define OSPF_ROUTER_LSA_MIN_SIZE 4U /* w/0 link descriptors */
 /* There is an edge case, when number of links in a Router-LSA may be 0 without
    breaking the specification. A router, which has no other links to backbone
    area besides one virtual link, will not put any VL descriptor blocks into
@@ -168,7 +168,7 @@ struct router_lsa {
 };
 
 /* OSPF Network-LSAs structure. */
-#define OSPF_NETWORK_LSA_MIN_SIZE                  8U /* w/1 router-ID */
+#define OSPF_NETWORK_LSA_MIN_SIZE 8U /* w/1 router-ID */
 struct network_lsa {
 	struct lsa_header header;
 	struct in_addr mask;
@@ -176,7 +176,7 @@ struct network_lsa {
 };
 
 /* OSPF Summary-LSAs structure. */
-#define OSPF_SUMMARY_LSA_MIN_SIZE                  8U /* w/1 TOS metric block */
+#define OSPF_SUMMARY_LSA_MIN_SIZE 8U /* w/1 TOS metric block */
 struct summary_lsa {
 	struct lsa_header header;
 	struct in_addr mask;
@@ -185,7 +185,7 @@ struct summary_lsa {
 };
 
 /* OSPF AS-external-LSAs structure. */
-#define OSPF_AS_EXTERNAL_LSA_MIN_SIZE             16U /* w/1 TOS forwarding block */
+#define OSPF_AS_EXTERNAL_LSA_MIN_SIZE 16U /* w/1 TOS forwarding block */
 struct as_external_lsa {
 	struct lsa_header header;
 	struct in_addr mask;
@@ -203,21 +203,21 @@ enum lsid_status { LSID_AVAILABLE = 0, LSID_CHANGE, LSID_NOT_AVAILABLE };
 
 /* Macros. */
 #define GET_METRIC(x) get_metric(x)
-#define IS_EXTERNAL_METRIC(x)   ((x) & 0x80)
+#define IS_EXTERNAL_METRIC(x) ((x)&0x80)
 
-#define GET_AGE(x)     (ntohs ((x)->data->ls_age) + time (NULL) - (x)->tv_recv)
+#define GET_AGE(x) (ntohs((x)->data->ls_age) + time(NULL) - (x)->tv_recv)
 #define LS_AGE(x) (OSPF_LSA_MAXAGE < get_age(x) ? OSPF_LSA_MAXAGE : get_age(x))
-#define IS_LSA_SELF(L)          (CHECK_FLAG ((L)->flags, OSPF_LSA_SELF))
-#define IS_LSA_MAXAGE(L)        (LS_AGE ((L)) == OSPF_LSA_MAXAGE)
+#define IS_LSA_SELF(L) (CHECK_FLAG((L)->flags, OSPF_LSA_SELF))
+#define IS_LSA_MAXAGE(L) (LS_AGE((L)) == OSPF_LSA_MAXAGE)
 #define IS_LSA_MAX_SEQ(L)                                                      \
 	((L)->data->ls_seqnum == htonl(OSPF_MAX_SEQUENCE_NUMBER))
 
-#define OSPF_LSA_UPDATE_DELAY		2
+#define OSPF_LSA_UPDATE_DELAY 2
 
 #define CHECK_LSA_TYPE_1_TO_5_OR_7(type)                                       \
-	((type == OSPF_ROUTER_LSA) || (type == OSPF_NETWORK_LSA)               \
-	 || (type == OSPF_SUMMARY_LSA) || (type == OSPF_ASBR_SUMMARY_LSA)      \
-	 || (type == OSPF_AS_EXTERNAL_LSA) || (type == OSPF_AS_NSSA_LSA))
+	((type == OSPF_ROUTER_LSA) || (type == OSPF_NETWORK_LSA) ||            \
+	 (type == OSPF_SUMMARY_LSA) || (type == OSPF_ASBR_SUMMARY_LSA) ||      \
+	 (type == OSPF_AS_EXTERNAL_LSA) || (type == OSPF_AS_NSSA_LSA))
 
 #define OSPF_FR_CONFIG(o, a)                                                   \
 	(o->fr_configured || ((a != NULL) ? a->fr_info.configured : 0))
@@ -260,8 +260,8 @@ extern int ospf_router_lsa_update_area(struct ospf_area *);
 
 extern void ospf_network_lsa_update(struct ospf_interface *);
 
-extern struct ospf_lsa *
-ospf_summary_lsa_originate(struct prefix_ipv4 *, uint32_t, struct ospf_area *);
+extern struct ospf_lsa *ospf_summary_lsa_originate(struct prefix_ipv4 *,
+						   uint32_t, struct ospf_area *);
 extern struct ospf_lsa *ospf_summary_asbr_lsa_originate(struct prefix_ipv4 *,
 							uint32_t,
 							struct ospf_area *);
@@ -270,8 +270,7 @@ extern struct ospf_lsa *ospf_lsa_install(struct ospf *, struct ospf_interface *,
 					 struct ospf_lsa *);
 
 extern void ospf_nssa_lsa_flush(struct ospf *ospf, struct prefix_ipv4 *p);
-extern void ospf_external_lsa_flush(struct ospf *, uint8_t,
-				    struct prefix_ipv4 *,
+extern void ospf_external_lsa_flush(struct ospf *, uint8_t, struct prefix_ipv4 *,
 				    ifindex_t /* , struct in_addr nexthop */);
 
 extern struct in_addr ospf_get_ip_from_ifp(struct ospf_interface *);
@@ -317,8 +316,8 @@ extern struct ospf_lsa *ospf_external_lsa_refresh(struct ospf *,
 						  struct external_info *, int,
 						  bool aggr);
 extern enum lsid_status ospf_lsa_unique_id(struct ospf *ospf,
-					   struct ospf_lsdb *lsdb,
-					   uint8_t type, struct prefix_ipv4 *p,
+					   struct ospf_lsdb *lsdb, uint8_t type,
+					   struct prefix_ipv4 *p,
 					   struct in_addr *addr);
 extern void ospf_schedule_lsa_flood_area(struct ospf_area *, struct ospf_lsa *);
 extern void ospf_schedule_lsa_flush_area(struct ospf_area *, struct ospf_lsa *);

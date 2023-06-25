@@ -30,9 +30,9 @@ struct if_rmap_ctx {
 
 	/* Hook functions. */
 	void (*if_rmap_add_hook)(struct if_rmap_ctx *ctx,
-				    struct if_rmap *ifrmap);
+				 struct if_rmap *ifrmap);
 	void (*if_rmap_delete_hook)(struct if_rmap_ctx *ctx,
-				       struct if_rmap *ifrmap);
+				    struct if_rmap *ifrmap);
 
 	/* naming information */
 	char *name;
@@ -43,8 +43,7 @@ extern void if_rmap_ctx_delete(struct if_rmap_ctx *ctx);
 extern void if_rmap_init(int node);
 extern void if_rmap_terminate(void);
 void if_rmap_hook_add(struct if_rmap_ctx *ctx,
-		      void (*func)(struct if_rmap_ctx *ctx,
-				   struct if_rmap *));
+		      void (*func)(struct if_rmap_ctx *ctx, struct if_rmap *));
 void if_rmap_hook_delete(struct if_rmap_ctx *ctx,
 			 void (*func)(struct if_rmap_ctx *ctx,
 				      struct if_rmap *));

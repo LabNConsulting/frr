@@ -168,9 +168,8 @@ static void zebra_mlag_connect(struct event *thread)
 
 	if (connect(mlag_socket, (struct sockaddr *)&svr, sizeof(svr)) == -1) {
 		if (IS_ZEBRA_DEBUG_MLAG)
-			zlog_debug(
-				"Unable to connect to %s try again in 10 secs",
-				svr.sun_path);
+			zlog_debug("Unable to connect to %s try again in 10 secs",
+				   svr.sun_path);
 		close(mlag_socket);
 		zrouter.mlag_info.timer_running = true;
 		event_add_timer(zmlag_master, zebra_mlag_connect, NULL, 10,
@@ -181,8 +180,7 @@ static void zebra_mlag_connect(struct event *thread)
 	set_nonblocking(mlag_socket);
 
 	if (IS_ZEBRA_DEBUG_MLAG)
-		zlog_debug("%s: Connection with MLAG is established ",
-			   __func__);
+		zlog_debug("%s: Connection with MLAG is established ", __func__);
 
 	event_add_read(zmlag_master, zebra_mlag_read, NULL, mlag_socket,
 		       &zrouter.mlag_info.t_read);
@@ -215,9 +213,8 @@ static int zebra_mlag_private_open_channel(void)
 
 	if (zrouter.mlag_info.timer_running == true) {
 		if (IS_ZEBRA_DEBUG_MLAG)
-			zlog_debug(
-				"%s: Connection retry is in progress for MLAGD",
-				__func__);
+			zlog_debug("%s: Connection retry is in progress for MLAGD",
+				   __func__);
 		return 0;
 	}
 
@@ -277,9 +274,6 @@ static int zebra_mlag_module_init(void)
 	return 0;
 }
 
-FRR_MODULE_SETUP(
-	.name = "zebra_cumulus_mlag",
-	.version = FRR_VERSION,
-	.description = "zebra Cumulus MLAG interface",
-	.init = zebra_mlag_module_init,
-);
+FRR_MODULE_SETUP(.name = "zebra_cumulus_mlag", .version = FRR_VERSION,
+		 .description = "zebra Cumulus MLAG interface",
+		 .init = zebra_mlag_module_init, );

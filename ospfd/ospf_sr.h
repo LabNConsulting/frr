@@ -16,10 +16,10 @@
 #define _FRR_OSPF_SR_H
 
 /* macros and constants for segment routing */
-#define SET_RANGE_SIZE_MASK             0xffffff00
-#define GET_RANGE_SIZE_MASK             0x00ffffff
-#define SET_LABEL_MASK                  0xffffff00
-#define GET_LABEL_MASK                  0x00ffffff
+#define SET_RANGE_SIZE_MASK 0xffffff00
+#define GET_RANGE_SIZE_MASK 0x00ffffff
+#define SET_LABEL_MASK 0xffffff00
+#define GET_LABEL_MASK 0x00ffffff
 #define SET_RANGE_SIZE(range_size) ((range_size << 8) & SET_RANGE_SIZE_MASK)
 #define GET_RANGE_SIZE(range_size) ((range_size >> 8) & GET_RANGE_SIZE_MASK)
 #define SET_LABEL(label) ((label << 8) & SET_LABEL_MASK)
@@ -32,9 +32,9 @@
 /* Segment Routing TLVs as per RFC 8665 */
 
 /* Segment ID could be a Label (3 bytes) or an Index (4 bytes) */
-#define SID_LABEL	3
+#define SID_LABEL 3
 #define SID_LABEL_SIZE(U) (U - 1)
-#define SID_INDEX	4
+#define SID_INDEX 4
 #define SID_INDEX_SIZE(U) (U)
 
 /* Macro to log debug message */
@@ -45,12 +45,13 @@
 	} while (0)
 
 /* Macro to check if SR Prefix has no valid route */
-#define IS_NO_ROUTE(srp) ((srp->route == NULL) || (srp->route->paths == NULL)  \
-			   || list_isempty(srp->route->paths))
+#define IS_NO_ROUTE(srp)                                                       \
+	((srp->route == NULL) || (srp->route->paths == NULL) ||                \
+	 list_isempty(srp->route->paths))
 
 /* SID/Label Sub TLV - section 2.1 */
-#define SUBTLV_SID_LABEL		1
-#define SUBTLV_SID_LABEL_SIZE		4
+#define SUBTLV_SID_LABEL 1
+#define SUBTLV_SID_LABEL_SIZE 4
 struct subtlv_sid_label {
 	/* Length is 3 (20 rightmost bits MPLS label) or 4 (32 bits SID) */
 	struct tlv_header header;
@@ -63,33 +64,33 @@ struct subtlv_sid_label {
  */
 
 /* RI SR-Algorithm TLV - section 3.1 */
-#define RI_SR_TLV_SR_ALGORITHM          8
+#define RI_SR_TLV_SR_ALGORITHM 8
 struct ri_sr_tlv_sr_algorithm {
 	struct tlv_header header;
-#define SR_ALGORITHM_SPF         0
-#define SR_ALGORITHM_STRICT_SPF  1
-#define SR_ALGORITHM_UNSET       255
-#define ALGORITHM_COUNT          4
+#define SR_ALGORITHM_SPF 0
+#define SR_ALGORITHM_STRICT_SPF 1
+#define SR_ALGORITHM_UNSET 255
+#define ALGORITHM_COUNT 4
 	/* Only 4 algorithms supported in this code */
 	uint8_t value[ALGORITHM_COUNT];
 };
 
 /* RI SID/Label Range TLV used for SRGB & SRLB - section 3.2 & 3.3 */
-#define RI_SR_TLV_SRGB_LABEL_RANGE	9
-#define RI_SR_TLV_SRLB_LABEL_RANGE	14
-#define RI_SR_TLV_LABEL_RANGE_SIZE	12
+#define RI_SR_TLV_SRGB_LABEL_RANGE 9
+#define RI_SR_TLV_SRLB_LABEL_RANGE 14
+#define RI_SR_TLV_LABEL_RANGE_SIZE 12
 struct ri_sr_tlv_sid_label_range {
 	struct tlv_header header;
 /* Only 24 upper most bits are significant */
-#define SID_RANGE_LABEL_LENGTH	3
+#define SID_RANGE_LABEL_LENGTH 3
 	uint32_t size;
 	/* A SID/Label sub-TLV will follow. */
 	struct subtlv_sid_label lower;
 };
 
 /* RI Node/MSD TLV as per RFC 8476 */
-#define RI_SR_TLV_NODE_MSD		12
-#define RI_SR_TLV_NODE_MSD_SIZE		4
+#define RI_SR_TLV_NODE_MSD 12
+#define RI_SR_TLV_NODE_MSD_SIZE 4
 struct ri_sr_tlv_node_msd {
 	struct tlv_header header;
 	uint8_t subtype; /* always = 1 */
@@ -103,24 +104,24 @@ struct ri_sr_tlv_node_msd {
  */
 
 /* Adj-SID and LAN-Ajd-SID subtlvs' flags */
-#define EXT_SUBTLV_LINK_ADJ_SID_BFLG	0x80
-#define EXT_SUBTLV_LINK_ADJ_SID_VFLG	0x40
-#define EXT_SUBTLV_LINK_ADJ_SID_LFLG	0x20
-#define EXT_SUBTLV_LINK_ADJ_SID_SFLG	0x10
+#define EXT_SUBTLV_LINK_ADJ_SID_BFLG 0x80
+#define EXT_SUBTLV_LINK_ADJ_SID_VFLG 0x40
+#define EXT_SUBTLV_LINK_ADJ_SID_LFLG 0x20
+#define EXT_SUBTLV_LINK_ADJ_SID_SFLG 0x10
 
 /* Prefix SID subtlv Flags */
-#define EXT_SUBTLV_PREFIX_SID_NPFLG	0x40
-#define EXT_SUBTLV_PREFIX_SID_MFLG	0x20
-#define EXT_SUBTLV_PREFIX_SID_EFLG	0x10
-#define EXT_SUBTLV_PREFIX_SID_VFLG	0x08
-#define EXT_SUBTLV_PREFIX_SID_LFLG	0x04
+#define EXT_SUBTLV_PREFIX_SID_NPFLG 0x40
+#define EXT_SUBTLV_PREFIX_SID_MFLG 0x20
+#define EXT_SUBTLV_PREFIX_SID_EFLG 0x10
+#define EXT_SUBTLV_PREFIX_SID_VFLG 0x08
+#define EXT_SUBTLV_PREFIX_SID_LFLG 0x04
 
 /* SID/Label Binding subtlv Flags */
-#define EXT_SUBTLV_SID_BINDING_MFLG	0x80
+#define EXT_SUBTLV_SID_BINDING_MFLG 0x80
 
 /* Extended Prefix Range TLV - section 4 */
-#define EXT_TLV_PREF_RANGE		2
-#define EXT_SUBTLV_PREFIX_RANGE_SIZE	12
+#define EXT_TLV_PREF_RANGE 2
+#define EXT_SUBTLV_PREFIX_RANGE_SIZE 12
 struct ext_tlv_prefix_range {
 	struct tlv_header header;
 	uint8_t pref_length;
@@ -132,8 +133,8 @@ struct ext_tlv_prefix_range {
 };
 
 /* Prefix SID Sub-TLV - section 5 */
-#define EXT_SUBTLV_PREFIX_SID		2
-#define EXT_SUBTLV_PREFIX_SID_SIZE	8
+#define EXT_SUBTLV_PREFIX_SID 2
+#define EXT_SUBTLV_PREFIX_SID_SIZE 8
 struct ext_subtlv_prefix_sid {
 	struct tlv_header header;
 	uint8_t flags;
@@ -144,8 +145,8 @@ struct ext_subtlv_prefix_sid {
 };
 
 /* Adj-SID Sub-TLV - section 6.1 */
-#define EXT_SUBTLV_ADJ_SID		2
-#define EXT_SUBTLV_ADJ_SID_SIZE		8
+#define EXT_SUBTLV_ADJ_SID 2
+#define EXT_SUBTLV_ADJ_SID_SIZE 8
 struct ext_subtlv_adj_sid {
 	struct tlv_header header;
 	uint8_t flags;
@@ -156,8 +157,8 @@ struct ext_subtlv_adj_sid {
 };
 
 /* LAN Adj-SID Sub-TLV - section 6.2 */
-#define EXT_SUBTLV_LAN_ADJ_SID		3
-#define EXT_SUBTLV_LAN_ADJ_SID_SIZE	12
+#define EXT_SUBTLV_LAN_ADJ_SID 3
+#define EXT_SUBTLV_LAN_ADJ_SID_SIZE 12
 struct ext_subtlv_lan_adj_sid {
 	struct tlv_header header;
 	uint8_t flags;
@@ -173,13 +174,13 @@ struct ext_subtlv_lan_adj_sid {
  * information and TLVs / SubTLVs
  */
 /* Default min and size of SR Global Block label range */
-#define DEFAULT_SRGB_LABEL        16000
-#define DEFAULT_SRGB_SIZE         8000
+#define DEFAULT_SRGB_LABEL 16000
+#define DEFAULT_SRGB_SIZE 8000
 #define DEFAULT_SRGB_END (DEFAULT_SRGB_LABEL + DEFAULT_SRGB_SIZE - 1)
 
 /* Default min and size of SR Local Block label range */
-#define DEFAULT_SRLB_LABEL        15000
-#define DEFAULT_SRLB_SIZE         1000
+#define DEFAULT_SRLB_LABEL 15000
+#define DEFAULT_SRLB_SIZE 1000
 #define DEFAULT_SRLB_END (DEFAULT_SRLB_LABEL + DEFAULT_SRLB_SIZE - 1)
 
 /* Structure aggregating SR Range Block info retrieved from an lsa */
@@ -253,13 +254,13 @@ struct sr_node {
 	uint32_t instance;
 
 	uint8_t algo[ALGORITHM_COUNT]; /* Algorithms supported by the node */
-	struct sr_block srgb;          /* Segment Routing Global Block */
-	struct sr_block srlb;          /* Segment Routing Local Block */
-	uint8_t msd;                   /* Maximum SID Depth */
+	struct sr_block srgb;	       /* Segment Routing Global Block */
+	struct sr_block srlb;	       /* Segment Routing Local Block */
+	uint8_t msd;		       /* Maximum SID Depth */
 
 	/* List of Prefix & Link advertise by this node */
 	struct list *ext_prefix; /* For Node SID */
-	struct list *ext_link;   /* For Adjacency SID */
+	struct list *ext_link;	 /* For Adjacency SID */
 
 	/* Pointer to FRR SR-Node or NULL if it is not a neighbor */
 	struct sr_node *neighbor;
@@ -350,8 +351,7 @@ extern void ospf_sr_ext_itf_add(struct ext_itf *exti);
 extern void ospf_sr_ext_itf_delete(struct ext_itf *exti);
 /* Segment Routing configuration functions */
 extern void ospf_sr_config_write_router(struct vty *vty);
-extern void ospf_sr_update_local_prefix(struct interface *ifp,
-					struct prefix *p);
+extern void ospf_sr_update_local_prefix(struct interface *ifp, struct prefix *p);
 /* Segment Routing re-routing function */
 extern void ospf_sr_update_task(struct ospf *ospf);
 

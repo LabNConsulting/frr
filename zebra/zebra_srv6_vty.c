@@ -54,21 +54,17 @@ static struct cmd_node srv6_locs_node = {
 	.prompt = "%s(config-srv6-locators)# ",
 };
 
-static struct cmd_node srv6_loc_node = {
-	.name = "srv6-locator",
-	.node = SRV6_LOC_NODE,
-	.parent_node = SRV6_LOCS_NODE,
-	.prompt = "%s(config-srv6-locator)# "
-};
+static struct cmd_node srv6_loc_node = {.name = "srv6-locator",
+					.node = SRV6_LOC_NODE,
+					.parent_node = SRV6_LOCS_NODE,
+					.prompt = "%s(config-srv6-locator)# "};
 
-DEFUN (show_srv6_locator,
-       show_srv6_locator_cmd,
-       "show segment-routing srv6 locator [json]",
-       SHOW_STR
-       "Segment Routing\n"
-       "Segment Routing SRv6\n"
-       "Locator Information\n"
-       JSON_STR)
+DEFUN(show_srv6_locator, show_srv6_locator_cmd,
+      "show segment-routing srv6 locator [json]",
+      SHOW_STR
+      "Segment Routing\n"
+      "Segment Routing SRv6\n"
+      "Locator Information\n" JSON_STR)
 {
 	const bool uj = use_json(argc, argv);
 	struct zebra_srv6 *srv6 = zebra_srv6_get_default();
@@ -90,21 +86,21 @@ DEFUN (show_srv6_locator,
 			if (!json_locator)
 				continue;
 			json_object_array_add(json_locators, json_locator);
-
 		}
 
 		vty_json(vty, json);
 	} else {
 		vty_out(vty, "Locator:\n");
-		vty_out(vty, "Name                 ID      Prefix                   Status\n");
-		vty_out(vty, "-------------------- ------- ------------------------ -------\n");
+		vty_out(vty,
+			"Name                 ID      Prefix                   Status\n");
+		vty_out(vty,
+			"-------------------- ------- ------------------------ -------\n");
 
 		id = 1;
 		for (ALL_LIST_ELEMENTS_RO(srv6->locators, node, locator)) {
 			prefix2str(&locator->prefix, str, sizeof(str));
-			vty_out(vty, "%-20s %7d %-24s %s\n",
-				locator->name, id, str,
-				locator->status_up ? "Up" : "Down");
+			vty_out(vty, "%-20s %7d %-24s %s\n", locator->name, id,
+				str, locator->status_up ? "Up" : "Down");
 			++id;
 		}
 		vty_out(vty, "\n");
@@ -113,16 +109,14 @@ DEFUN (show_srv6_locator,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_srv6_locator_detail,
-       show_srv6_locator_detail_cmd,
-       "show segment-routing srv6 locator NAME detail [json]",
-       SHOW_STR
-       "Segment Routing\n"
-       "Segment Routing SRv6\n"
-       "Locator Information\n"
-       "Locator Name\n"
-       "Detailed information\n"
-       JSON_STR)
+DEFUN(show_srv6_locator_detail, show_srv6_locator_detail_cmd,
+      "show segment-routing srv6 locator NAME detail [json]",
+      SHOW_STR
+      "Segment Routing\n"
+      "Segment Routing SRv6\n"
+      "Locator Information\n"
+      "Locator Name\n"
+      "Detailed information\n" JSON_STR)
 {
 	const bool uj = use_json(argc, argv);
 	struct zebra_srv6 *srv6 = zebra_srv6_get_default();
@@ -175,29 +169,20 @@ DEFUN (show_srv6_locator_detail,
 	return CMD_SUCCESS;
 }
 
-DEFUN_NOSH (segment_routing,
-            segment_routing_cmd,
-            "segment-routing",
-            "Segment Routing\n")
+DEFUN_NOSH(segment_routing, segment_routing_cmd, "segment-routing",
+	   "Segment Routing\n")
 {
 	vty->node = SEGMENT_ROUTING_NODE;
 	return CMD_SUCCESS;
 }
 
-DEFUN_NOSH (srv6,
-            srv6_cmd,
-            "srv6",
-            "Segment Routing SRv6\n")
+DEFUN_NOSH(srv6, srv6_cmd, "srv6", "Segment Routing SRv6\n")
 {
 	vty->node = SRV6_NODE;
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_srv6,
-       no_srv6_cmd,
-       "no srv6",
-       NO_STR
-       "Segment Routing SRv6\n")
+DEFUN(no_srv6, no_srv6_cmd, "no srv6", NO_STR "Segment Routing SRv6\n")
 {
 	struct zebra_srv6 *srv6 = zebra_srv6_get_default();
 	struct srv6_locator *locator;
@@ -208,20 +193,16 @@ DEFUN (no_srv6,
 	return CMD_SUCCESS;
 }
 
-DEFUN_NOSH (srv6_locators,
-            srv6_locators_cmd,
-            "locators",
-            "Segment Routing SRv6 locators\n")
+DEFUN_NOSH(srv6_locators, srv6_locators_cmd, "locators",
+	   "Segment Routing SRv6 locators\n")
 {
 	vty->node = SRV6_LOCS_NODE;
 	return CMD_SUCCESS;
 }
 
-DEFUN_NOSH (srv6_locator,
-            srv6_locator_cmd,
-            "locator WORD",
-            "Segment Routing SRv6 locator\n"
-            "Specify locator-name\n")
+DEFUN_NOSH(srv6_locator, srv6_locator_cmd, "locator WORD",
+	   "Segment Routing SRv6 locator\n"
+	   "Specify locator-name\n")
 {
 	struct srv6_locator *locator = NULL;
 
@@ -244,12 +225,10 @@ DEFUN_NOSH (srv6_locator,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_srv6_locator,
-       no_srv6_locator_cmd,
-       "no locator WORD",
-       NO_STR
-       "Segment Routing SRv6 locator\n"
-       "Specify locator-name\n")
+DEFUN(no_srv6_locator, no_srv6_locator_cmd, "no locator WORD",
+      NO_STR
+      "Segment Routing SRv6 locator\n"
+      "Specify locator-name\n")
 {
 	struct srv6_locator *locator = zebra_srv6_locator_lookup(argv[2]->arg);
 	if (!locator) {
@@ -261,18 +240,17 @@ DEFUN (no_srv6_locator,
 	return CMD_SUCCESS;
 }
 
-DEFPY (locator_prefix,
-       locator_prefix_cmd,
-       "prefix X:X::X:X/M$prefix [block-len (16-64)$block_bit_len]  \
+DEFPY(locator_prefix, locator_prefix_cmd,
+      "prefix X:X::X:X/M$prefix [block-len (16-64)$block_bit_len]  \
 	        [node-len (16-64)$node_bit_len] [func-bits (0-64)$func_bit_len]",
-       "Configure SRv6 locator prefix\n"
-       "Specify SRv6 locator prefix\n"
-       "Configure SRv6 locator block length in bits\n"
-       "Specify SRv6 locator block length in bits\n"
-       "Configure SRv6 locator node length in bits\n"
-       "Specify SRv6 locator node length in bits\n"
-       "Configure SRv6 locator function length in bits\n"
-       "Specify SRv6 locator function length in bits\n")
+      "Configure SRv6 locator prefix\n"
+      "Specify SRv6 locator prefix\n"
+      "Configure SRv6 locator block length in bits\n"
+      "Specify SRv6 locator block length in bits\n"
+      "Configure SRv6 locator node length in bits\n"
+      "Specify SRv6 locator node length in bits\n"
+      "Configure SRv6 locator function length in bits\n"
+      "Specify SRv6 locator function length in bits\n")
 {
 	VTY_DECLVAR_CONTEXT(srv6_locator, locator);
 	struct srv6_locator_chunk *chunk = NULL;
@@ -339,17 +317,15 @@ DEFPY (locator_prefix,
 
 				chunk->prefix = *prefix;
 				for (ALL_LIST_ELEMENTS_RO(zrouter.client_list,
-							  client_node,
-							  client)) {
+							  client_node, client)) {
 					struct srv6_locator *tmp;
 
 					if (client->proto != chunk->proto)
 						continue;
 
 					srv6_manager_get_locator_chunk_call(
-							&tmp, client,
-							locator->name,
-							VRF_DEFAULT);
+						&tmp, client, locator->name,
+						VRF_DEFAULT);
 				}
 			}
 		}
@@ -359,12 +335,10 @@ DEFPY (locator_prefix,
 	return CMD_SUCCESS;
 }
 
-DEFPY (locator_behavior,
-       locator_behavior_cmd,
-       "[no] behavior usid",
-       NO_STR
-       "Configure SRv6 behavior\n"
-       "Specify SRv6 behavior uSID\n")
+DEFPY(locator_behavior, locator_behavior_cmd, "[no] behavior usid",
+      NO_STR
+      "Configure SRv6 behavior\n"
+      "Specify SRv6 behavior uSID\n")
 {
 	VTY_DECLVAR_CONTEXT(srv6_locator, locator);
 
@@ -404,8 +378,8 @@ static int zebra_sr_config(struct vty *vty)
 		vty_out(vty, " srv6\n");
 		vty_out(vty, "  locators\n");
 		for (ALL_LIST_ELEMENTS_RO(srv6->locators, node, locator)) {
-			inet_ntop(AF_INET6, &locator->prefix.prefix,
-				  str, sizeof(str));
+			inet_ntop(AF_INET6, &locator->prefix.prefix, str,
+				  sizeof(str));
 			vty_out(vty, "   locator %s\n", locator->name);
 			vty_out(vty, "    prefix %s/%u", str,
 				locator->prefix.prefixlen);

@@ -47,4 +47,4 @@ void zebra_opaque_finish(void);
 uint32_t zebra_opaque_enqueue_batch(struct stream_fifo *batch);
 
 
-#endif	/* _ZEBRA_OPAQUE_H */
+#endif /* _ZEBRA_OPAQUE_H */

@@ -98,8 +98,7 @@ extern void mgmt_be_adapter_lock(struct mgmt_be_client_adapter *adapter);
 extern void mgmt_be_adapter_unlock(struct mgmt_be_client_adapter **adapter);
 
 /* Create backend adapter. */
-extern struct msg_conn *mgmt_be_create_adapter(int conn_fd,
-					       union sockunion *su);
+extern struct msg_conn *mgmt_be_create_adapter(int conn_fd, union sockunion *su);
 
 /* Fetch backend adapter given an adapter name. */
 extern struct mgmt_be_client_adapter *
@@ -187,7 +186,6 @@ extern void mgmt_be_get_subscr_info_for_xpath(
 /*
  * Dump backend client information for a given xpath to vty.
  */
-extern void mgmt_be_xpath_subscr_info_write(struct vty *vty,
-					       const char *xpath);
+extern void mgmt_be_xpath_subscr_info_write(struct vty *vty, const char *xpath);
 
 #endif /* _FRR_MGMTD_BE_ADAPTER_H_ */

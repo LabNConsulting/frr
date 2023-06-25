@@ -86,8 +86,7 @@ size_t ringbuf_get(struct ringbuf *buf, void *data, size_t size);
  *			offset exceeds the amount of data left in the ring
  *			buffer
  */
-size_t ringbuf_peek(struct ringbuf *buf, size_t offset, void *data,
-		    size_t size);
+size_t ringbuf_peek(struct ringbuf *buf, size_t offset, void *data, size_t size);
 
 /*
  * Copy data from one ringbuf to another.

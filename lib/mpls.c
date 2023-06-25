@@ -77,8 +77,7 @@ char *mpls_label2str(uint8_t num_labels, const mpls_label_t *labels, char *buf,
 		if (i != 0)
 			strlcat(buf, "/", len);
 		if (pretty)
-			label2str(labels[i], type, label_buf,
-				  sizeof(label_buf));
+			label2str(labels[i], type, label_buf, sizeof(label_buf));
 		else
 			snprintf(label_buf, sizeof(label_buf), "%u",
 				 ((type == ZEBRA_LSP_EVPN)

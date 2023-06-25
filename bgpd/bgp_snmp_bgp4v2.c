@@ -315,12 +315,14 @@ static uint8_t *bgpv2PeerErrorsTable(struct variable *v, oid name[],
 			const char *msg_str = NULL;
 
 			if (notify.code == BGP_NOTIFY_CEASE &&
-			    (notify.subcode ==
-				     BGP_NOTIFY_CEASE_ADMIN_SHUTDOWN ||
+			    (notify.subcode == BGP_NOTIFY_CEASE_ADMIN_SHUTDOWN ||
 			     notify.subcode == BGP_NOTIFY_CEASE_ADMIN_RESET)) {
-				msg_str = bgp_notify_admin_message(
-					msg_buf, sizeof(msg_buf),
-					(uint8_t *)notify.data, notify.length);
+				msg_str =
+					bgp_notify_admin_message(msg_buf,
+								 sizeof(msg_buf),
+								 (uint8_t *)notify
+									 .data,
+								 notify.length);
 				return SNMP_STRING(msg_str);
 			}
 		}
@@ -354,12 +356,14 @@ static uint8_t *bgpv2PeerErrorsTable(struct variable *v, oid name[],
 			const char *msg_str = NULL;
 
 			if (notify.code == BGP_NOTIFY_CEASE &&
-			    (notify.subcode ==
-				     BGP_NOTIFY_CEASE_ADMIN_SHUTDOWN ||
+			    (notify.subcode == BGP_NOTIFY_CEASE_ADMIN_SHUTDOWN ||
 			     notify.subcode == BGP_NOTIFY_CEASE_ADMIN_RESET)) {
-				msg_str = bgp_notify_admin_message(
-					msg_buf, sizeof(msg_buf),
-					(uint8_t *)notify.data, notify.length);
+				msg_str =
+					bgp_notify_admin_message(msg_buf,
+								 sizeof(msg_buf),
+								 (uint8_t *)notify
+									 .data,
+								 notify.length);
 				return SNMP_STRING(msg_str);
 			}
 		}
@@ -539,20 +543,18 @@ bgp4v2PathAttrLookup(struct variable *v, oid name[], size_t *length,
 					  &path->peer->su.sin.sin_addr) < 0) {
 				if (!min ||
 				    (min &&
-				     IPV4_ADDR_CMP(
-					     &path->peer->su.sin.sin_addr,
-					     &min->peer->su.sin.sin_addr) < 0))
+				     IPV4_ADDR_CMP(&path->peer->su.sin.sin_addr,
+						   &min->peer->su.sin.sin_addr) <
+					     0))
 					min = path;
 			} else if (path_family == AF_INET6 &&
-				   IPV6_ADDR_CMP(
-					   &paddr.ip._v6_addr,
-					   &path->peer->su.sin6.sin6_addr) <
+				   IPV6_ADDR_CMP(&paddr.ip._v6_addr,
+						 &path->peer->su.sin6.sin6_addr) <
 					   0) {
 				if (!min ||
 				    (min &&
-				     IPV6_ADDR_CMP(
-					     &path->peer->su.sin6.sin6_addr,
-					     &min->peer->su.sin6.sin6_addr) <
+				     IPV6_ADDR_CMP(&path->peer->su.sin6.sin6_addr,
+						   &min->peer->su.sin6.sin6_addr) <
 					     0))
 					min = path;
 			}
@@ -581,8 +583,8 @@ bgp4v2PathAttrLookup(struct variable *v, oid name[], size_t *length,
 						 &min->peer->su.sin.sin_addr);
 				addr->u.prefix4 = rn_p->u.prefix4;
 			} else {
-				oid_copy_in6_addr(
-					offset, &min->peer->su.sin6.sin6_addr);
+				oid_copy_in6_addr(offset,
+						  &min->peer->su.sin6.sin6_addr);
 				addr->u.prefix6 = rn_p->u.prefix6;
 			}
 

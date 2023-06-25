@@ -122,8 +122,7 @@ static void cpu_record_hash_free(void *a)
 static void vty_out_cpu_event_history(struct vty *vty,
 				      struct cpu_event_history *a)
 {
-	vty_out(vty,
-		"%5zu %10zu.%03zu %9zu %8zu %9zu %8zu %9zu %9zu %9zu %10zu",
+	vty_out(vty, "%5zu %10zu.%03zu %9zu %8zu %9zu %8zu %9zu %9zu %9zu %10zu",
 		a->total_active, a->cpu.total / 1000, a->cpu.total % 1000,
 		a->total_calls, (a->cpu.total / a->total_calls), a->cpu.max,
 		(a->real.total / a->total_calls), a->real.max,
@@ -160,8 +159,7 @@ static void cpu_record_hash_print(struct hash_bucket *bucket, void *args[])
 	copy.cpu.max = atomic_load_explicit(&a->cpu.max, memory_order_seq_cst);
 	copy.real.total =
 		atomic_load_explicit(&a->real.total, memory_order_seq_cst);
-	copy.real.max =
-		atomic_load_explicit(&a->real.max, memory_order_seq_cst);
+	copy.real.max = atomic_load_explicit(&a->real.max, memory_order_seq_cst);
 	copy.types = atomic_load_explicit(&a->types, memory_order_seq_cst);
 	copy.funcname = a->funcname;
 
@@ -223,11 +221,11 @@ static void cpu_record_print(struct vty *vty, uint8_t filter)
 				"  CPU_Warn Wall_Warn Starv_Warn Type   Thread\n");
 
 			if (m->cpu_record->count)
-				hash_iterate(
-					m->cpu_record,
-					(void (*)(struct hash_bucket *,
-						  void *))cpu_record_hash_print,
-					args);
+				hash_iterate(m->cpu_record,
+					     (void (*)(struct hash_bucket *,
+						       void *))
+						     cpu_record_hash_print,
+					     args);
 			else
 				vty_out(vty, "No data to display yet.\n");
 
@@ -272,11 +270,11 @@ static void cpu_record_clear(uint8_t filter)
 			frr_with_mutex (&m->mtx) {
 				void *args[2] = {tmp, m->cpu_record};
 
-				hash_iterate(
-					m->cpu_record,
-					(void (*)(struct hash_bucket *,
-						  void *))cpu_record_hash_clear,
-					args);
+				hash_iterate(m->cpu_record,
+					     (void (*)(struct hash_bucket *,
+						       void *))
+						     cpu_record_hash_clear,
+					     args);
 			}
 		}
 	}
@@ -317,13 +315,11 @@ static uint8_t parse_filter(const char *filterstr)
 	return filter;
 }
 
-DEFUN_NOSH (show_thread_cpu,
-	    show_thread_cpu_cmd,
-	    "show thread cpu [FILTER]",
-	    SHOW_STR
-	    "Thread information\n"
-	    "Thread CPU usage\n"
-	    "Display filter (rwtex)\n")
+DEFUN_NOSH(show_thread_cpu, show_thread_cpu_cmd, "show thread cpu [FILTER]",
+	   SHOW_STR
+	   "Thread information\n"
+	   "Thread CPU usage\n"
+	   "Display filter (rwtex)\n")
 {
 	uint8_t filter = (uint8_t)-1U;
 	int idx = 0;
@@ -342,24 +338,22 @@ DEFUN_NOSH (show_thread_cpu,
 	return CMD_SUCCESS;
 }
 
-DEFPY (service_cputime_stats,
-       service_cputime_stats_cmd,
-       "[no] service cputime-stats",
-       NO_STR
-       "Set up miscellaneous service\n"
-       "Collect CPU usage statistics\n")
+DEFPY(service_cputime_stats, service_cputime_stats_cmd,
+      "[no] service cputime-stats",
+      NO_STR
+      "Set up miscellaneous service\n"
+      "Collect CPU usage statistics\n")
 {
 	cputime_enabled = !no;
 	return CMD_SUCCESS;
 }
 
-DEFPY (service_cputime_warning,
-       service_cputime_warning_cmd,
-       "[no] service cputime-warning (1-4294967295)",
-       NO_STR
-       "Set up miscellaneous service\n"
-       "Warn for tasks exceeding CPU usage threshold\n"
-       "Warning threshold in milliseconds\n")
+DEFPY(service_cputime_warning, service_cputime_warning_cmd,
+      "[no] service cputime-warning (1-4294967295)",
+      NO_STR
+      "Set up miscellaneous service\n"
+      "Warn for tasks exceeding CPU usage threshold\n"
+      "Warning threshold in milliseconds\n")
 {
 	if (no)
 		cputime_threshold = 0;
@@ -368,20 +362,18 @@ DEFPY (service_cputime_warning,
 	return CMD_SUCCESS;
 }
 
-ALIAS (service_cputime_warning,
-       no_service_cputime_warning_cmd,
-       "no service cputime-warning",
-       NO_STR
-       "Set up miscellaneous service\n"
-       "Warn for tasks exceeding CPU usage threshold\n")
+ALIAS(service_cputime_warning, no_service_cputime_warning_cmd,
+      "no service cputime-warning",
+      NO_STR
+      "Set up miscellaneous service\n"
+      "Warn for tasks exceeding CPU usage threshold\n")
 
-DEFPY (service_walltime_warning,
-       service_walltime_warning_cmd,
-       "[no] service walltime-warning (1-4294967295)",
-       NO_STR
-       "Set up miscellaneous service\n"
-       "Warn for tasks exceeding total wallclock threshold\n"
-       "Warning threshold in milliseconds\n")
+DEFPY(service_walltime_warning, service_walltime_warning_cmd,
+      "[no] service walltime-warning (1-4294967295)",
+      NO_STR
+      "Set up miscellaneous service\n"
+      "Warn for tasks exceeding total wallclock threshold\n"
+      "Warning threshold in milliseconds\n")
 {
 	if (no)
 		walltime_threshold = 0;
@@ -390,12 +382,11 @@ DEFPY (service_walltime_warning,
 	return CMD_SUCCESS;
 }
 
-ALIAS (service_walltime_warning,
-       no_service_walltime_warning_cmd,
-       "no service walltime-warning",
-       NO_STR
-       "Set up miscellaneous service\n"
-       "Warn for tasks exceeding total wallclock threshold\n")
+ALIAS(service_walltime_warning, no_service_walltime_warning_cmd,
+      "no service walltime-warning",
+      NO_STR
+      "Set up miscellaneous service\n"
+      "Warn for tasks exceeding total wallclock threshold\n")
 
 static void show_thread_poll_helper(struct vty *vty, struct event_loop *m)
 {
@@ -438,12 +429,10 @@ static void show_thread_poll_helper(struct vty *vty, struct event_loop *m)
 	}
 }
 
-DEFUN_NOSH (show_thread_poll,
-	    show_thread_poll_cmd,
-	    "show thread poll",
-	    SHOW_STR
-	    "Thread information\n"
-	    "Show poll FD's and information\n")
+DEFUN_NOSH(show_thread_poll, show_thread_poll_cmd, "show thread poll",
+	   SHOW_STR
+	   "Thread information\n"
+	   "Show poll FD's and information\n")
 {
 	struct listnode *node;
 	struct event_loop *m;
@@ -457,13 +446,11 @@ DEFUN_NOSH (show_thread_poll,
 }
 
 
-DEFUN (clear_thread_cpu,
-       clear_thread_cpu_cmd,
-       "clear thread cpu [FILTER]",
-       "Clear stored data in all pthreads\n"
-       "Thread information\n"
-       "Thread CPU usage\n"
-       "Display filter (rwtexb)\n")
+DEFUN(clear_thread_cpu, clear_thread_cpu_cmd, "clear thread cpu [FILTER]",
+      "Clear stored data in all pthreads\n"
+      "Thread information\n"
+      "Thread CPU usage\n"
+      "Display filter (rwtexb)\n")
 {
 	uint8_t filter = (uint8_t)-1U;
 	int idx = 0;
@@ -499,12 +486,10 @@ static void show_thread_timers_helper(struct vty *vty, struct event_loop *m)
 	}
 }
 
-DEFPY_NOSH (show_thread_timers,
-	    show_thread_timers_cmd,
-	    "show thread timers",
-	    SHOW_STR
-	    "Thread information\n"
-	    "Show all timers and how long they have in the system\n")
+DEFPY_NOSH(show_thread_timers, show_thread_timers_cmd, "show thread timers",
+	   SHOW_STR
+	   "Thread information\n"
+	   "Show all timers and how long they have in the system\n")
 {
 	struct listnode *node;
 	struct event_loop *m;
@@ -581,10 +566,13 @@ struct event_loop *event_master_create(const char *name)
 
 	snprintf(tmhashname, sizeof(tmhashname), "%s - threadmaster event hash",
 		 name);
-	rv->cpu_record = hash_create_size(
-		8, (unsigned int (*)(const void *))cpu_record_hash_key,
-		(bool (*)(const void *, const void *))cpu_record_hash_cmp,
-		tmhashname);
+	rv->cpu_record =
+		hash_create_size(8,
+				 (unsigned int (*)(
+					 const void *))cpu_record_hash_key,
+				 (bool (*)(const void *,
+					   const void *))cpu_record_hash_cmp,
+				 tmhashname);
 
 	event_list_init(&rv->event);
 	event_list_init(&rv->ready);
@@ -824,8 +812,8 @@ static struct event *thread_get(struct event_loop *m, uint8_t type,
 	 * This hopefully saves us some serious
 	 * hash_get lookups.
 	 */
-	if ((thread->xref && thread->xref->funcname != xref->funcname)
-	    || thread->func != func) {
+	if ((thread->xref && thread->xref->funcname != xref->funcname) ||
+	    thread->func != func) {
 		tmp.func = func;
 		tmp.funcname = xref->funcname;
 		thread->hist =
@@ -874,8 +862,8 @@ static int fd_poll(struct event_loop *m, const struct timeval *timer_wait,
 
 	if (timer_wait != NULL && m->selectpoll_timeout == 0) {
 		/* use the default value */
-		timeout = (timer_wait->tv_sec * 1000)
-			  + (timer_wait->tv_usec / 1000);
+		timeout = (timer_wait->tv_sec * 1000) +
+			  (timer_wait->tv_usec / 1000);
 	} else if (m->selectpoll_timeout > 0) {
 		/* use the user's timeout */
 		timeout = m->selectpoll_timeout;
@@ -959,13 +947,11 @@ void _event_add_read_write(const struct xref_eventsched *xref,
 	struct event **thread_array;
 
 	if (dir == EVENT_READ)
-		frrtrace(9, frr_libfrr, schedule_read, m,
-			 xref->funcname, xref->xref.file, xref->xref.line,
-			 t_ptr, fd, 0, arg, 0);
+		frrtrace(9, frr_libfrr, schedule_read, m, xref->funcname,
+			 xref->xref.file, xref->xref.line, t_ptr, fd, 0, arg, 0);
 	else
-		frrtrace(9, frr_libfrr, schedule_write, m,
-			 xref->funcname, xref->xref.file, xref->xref.line,
-			 t_ptr, fd, 0, arg, 0);
+		frrtrace(9, frr_libfrr, schedule_write, m, xref->funcname,
+			 xref->xref.file, xref->xref.line, t_ptr, fd, 0, arg, 0);
 
 	assert(fd >= 0);
 	if (fd >= m->fd_limit)
@@ -1044,9 +1030,9 @@ static void _event_add_timer_timeval(const struct xref_eventsched *xref,
 
 	assert(time_relative);
 
-	frrtrace(9, frr_libfrr, schedule_timer, m,
-		 xref->funcname, xref->xref.file, xref->xref.line,
-		 t_ptr, 0, 0, arg, (long)time_relative->tv_sec);
+	frrtrace(9, frr_libfrr, schedule_timer, m, xref->funcname,
+		 xref->xref.file, xref->xref.line, t_ptr, 0, 0, arg,
+		 (long)time_relative->tv_sec);
 
 	/* Compute expiration/deadline time. */
 	monotime(&t);
@@ -1077,10 +1063,9 @@ static void _event_add_timer_timeval(const struct xref_eventsched *xref,
 	}
 #define ONEYEAR2SEC (60 * 60 * 24 * 365)
 	if (time_relative->tv_sec > ONEYEAR2SEC)
-		flog_err(
-			EC_LIB_TIMER_TOO_LONG,
-			"Timer: %pTHD is created with an expiration that is greater than 1 year",
-			thread);
+		flog_err(EC_LIB_TIMER_TOO_LONG,
+			 "Timer: %pTHD is created with an expiration that is greater than 1 year",
+			 thread);
 }
 
 
@@ -1129,9 +1114,8 @@ void _event_add_event(const struct xref_eventsched *xref, struct event_loop *m,
 {
 	struct event *thread = NULL;
 
-	frrtrace(9, frr_libfrr, schedule_event, m,
-		 xref->funcname, xref->xref.file, xref->xref.line,
-		 t_ptr, 0, val, arg, 0);
+	frrtrace(9, frr_libfrr, schedule_event, m, xref->funcname,
+		 xref->xref.file, xref->xref.line, t_ptr, 0, val, arg, 0);
 
 	assert(m != NULL);
 
@@ -1209,8 +1193,8 @@ static void event_cancel_rw(struct event_loop *master, int fd, short state,
 	/* If all events are canceled, delete / resize the pollfd array. */
 	if (master->handler.pfds[i].events == 0) {
 		memmove(master->handler.pfds + i, master->handler.pfds + i + 1,
-			(master->handler.pfdcount - i - 1)
-				* sizeof(struct pollfd));
+			(master->handler.pfdcount - i - 1) *
+				sizeof(struct pollfd));
 		master->handler.pfdcount--;
 		master->handler.pfds[master->handler.pfdcount].fd = 0;
 		master->handler.pfds[master->handler.pfdcount].events = 0;
@@ -1227,8 +1211,8 @@ static void event_cancel_rw(struct event_loop *master, int fd, short state,
 
 	if (master->handler.copy[i].events == 0) {
 		memmove(master->handler.copy + i, master->handler.copy + i + 1,
-			(master->handler.copycount - i - 1)
-				* sizeof(struct pollfd));
+			(master->handler.copycount - i - 1) *
+				sizeof(struct pollfd));
 		master->handler.copycount--;
 		master->handler.copy[master->handler.copycount].fd = 0;
 		master->handler.copy[master->handler.copycount].events = 0;
@@ -1601,7 +1585,7 @@ static int thread_process_io_helper(struct event_loop *m, struct event *thread,
 	m->handler.pfds[pos].events &= ~(state);
 
 	if (!thread) {
-		if ((actual_state & (POLLHUP|POLLIN)) != POLLHUP)
+		if ((actual_state & (POLLHUP | POLLIN)) != POLLHUP)
 			flog_err(EC_LIB_NO_THREAD,
 				 "Attempting to process an I/O event but for fd: %d(%d) no thread to handle this!",
 				 m->handler.pfds[pos].fd, actual_state);
@@ -1669,15 +1653,15 @@ static void thread_process_io(struct event_loop *m, unsigned int num)
 		 */
 		if (pfds[i].revents & POLLNVAL) {
 			memmove(m->handler.pfds + i, m->handler.pfds + i + 1,
-				(m->handler.pfdcount - i - 1)
-					* sizeof(struct pollfd));
+				(m->handler.pfdcount - i - 1) *
+					sizeof(struct pollfd));
 			m->handler.pfdcount--;
 			m->handler.pfds[m->handler.pfdcount].fd = 0;
 			m->handler.pfds[m->handler.pfdcount].events = 0;
 
 			memmove(pfds + i, pfds + i + 1,
-				(m->handler.copycount - i - 1)
-					* sizeof(struct pollfd));
+				(m->handler.copycount - i - 1) *
+					sizeof(struct pollfd));
 			m->handler.copycount--;
 			m->handler.copy[m->handler.copycount].fd = 0;
 			m->handler.copy[m->handler.copycount].events = 0;
@@ -1708,14 +1692,12 @@ static unsigned int thread_process_timers(struct event_loop *m,
 		 * Let's log it and do the right thing with it.
 		 */
 		if (timercmp(timenow, &prev, >)) {
-			atomic_fetch_add_explicit(
-				&thread->hist->total_starv_warn, 1,
-				memory_order_seq_cst);
+			atomic_fetch_add_explicit(&thread->hist->total_starv_warn,
+						  1, memory_order_seq_cst);
 			if (!displayed && !thread->ignore_timer_late) {
-				flog_warn(
-					EC_LIB_STARVE_THREAD,
-					"Thread Starvation: %pTHD was scheduled to pop greater than 4s ago",
-					thread);
+				flog_warn(EC_LIB_STARVE_THREAD,
+					  "Thread Starvation: %pTHD was scheduled to pop greater than 4s ago",
+					  thread);
 				displayed = true;
 			}
 		}
@@ -1866,8 +1848,8 @@ struct event *event_fetch(struct event_loop *m, struct event *fetch)
 
 static unsigned long timeval_elapsed(struct timeval a, struct timeval b)
 {
-	return (((a.tv_sec - b.tv_sec) * TIMER_SECOND_MICRO)
-		+ (a.tv_usec - b.tv_usec));
+	return (((a.tv_sec - b.tv_sec) * TIMER_SECOND_MICRO) +
+		(a.tv_usec - b.tv_usec));
 }
 
 unsigned long event_consumed_time(RUSAGE_T *now, RUSAGE_T *start,
@@ -1895,12 +1877,12 @@ unsigned long event_consumed_time(RUSAGE_T *now, RUSAGE_T *start,
 		now->cpu.tv_nsec = start->cpu.tv_nsec + 1;
 	}
 #endif
-	*cputime = (now->cpu.tv_sec - start->cpu.tv_sec) * TIMER_SECOND_MICRO
-		   + (now->cpu.tv_nsec - start->cpu.tv_nsec) / 1000;
+	*cputime = (now->cpu.tv_sec - start->cpu.tv_sec) * TIMER_SECOND_MICRO +
+		   (now->cpu.tv_nsec - start->cpu.tv_nsec) / 1000;
 #else
 	/* This is 'user + sys' time.  */
-	*cputime = timeval_elapsed(now->cpu.ru_utime, start->cpu.ru_utime)
-		   + timeval_elapsed(now->cpu.ru_stime, start->cpu.ru_stime);
+	*cputime = timeval_elapsed(now->cpu.ru_utime, start->cpu.ru_utime) +
+		   timeval_elapsed(now->cpu.ru_stime, start->cpu.ru_stime);
 #endif
 	return timeval_elapsed(now->real, start->real);
 }
@@ -1922,8 +1904,8 @@ int event_should_yield(struct event *thread)
 	int result;
 
 	frr_with_mutex (&thread->mtx) {
-		result = monotime_since(&thread->real, NULL)
-			 > (int64_t)thread->yield;
+		result = monotime_since(&thread->real, NULL) >
+			 (int64_t)thread->yield;
 	}
 	return result;
 }
@@ -2008,10 +1990,11 @@ void event_call(struct event *thread)
 				  memory_order_seq_cst);
 	exp = atomic_load_explicit(&thread->hist->real.max,
 				   memory_order_seq_cst);
-	while (exp < walltime
-	       && !atomic_compare_exchange_weak_explicit(
-		       &thread->hist->real.max, &exp, walltime,
-		       memory_order_seq_cst, memory_order_seq_cst))
+	while (exp < walltime &&
+	       !atomic_compare_exchange_weak_explicit(&thread->hist->real.max,
+						      &exp, walltime,
+						      memory_order_seq_cst,
+						      memory_order_seq_cst))
 		;
 
 	if (cputime_enabled_here && cputime_enabled) {
@@ -2020,10 +2003,12 @@ void event_call(struct event *thread)
 					  memory_order_seq_cst);
 		exp = atomic_load_explicit(&thread->hist->cpu.max,
 					   memory_order_seq_cst);
-		while (exp < cputime
-		       && !atomic_compare_exchange_weak_explicit(
-			       &thread->hist->cpu.max, &exp, cputime,
-			       memory_order_seq_cst, memory_order_seq_cst))
+		while (exp < cputime &&
+		       !atomic_compare_exchange_weak_explicit(&thread->hist->cpu
+								       .max,
+							      &exp, cputime,
+							      memory_order_seq_cst,
+							      memory_order_seq_cst))
 			;
 	}
 
@@ -2032,21 +2017,20 @@ void event_call(struct event *thread)
 	atomic_fetch_or_explicit(&thread->hist->types, 1 << thread->add_type,
 				 memory_order_seq_cst);
 
-	if (cputime_enabled_here && cputime_enabled && cputime_threshold
-	    && cputime > cputime_threshold) {
+	if (cputime_enabled_here && cputime_enabled && cputime_threshold &&
+	    cputime > cputime_threshold) {
 		/*
 		 * We have a CPU Hog on our hands.  The time FRR has spent
 		 * doing actual work (not sleeping) is greater than 5 seconds.
 		 * Whinge about it now, so we're aware this is yet another task
 		 * to fix.
 		 */
-		atomic_fetch_add_explicit(&thread->hist->total_cpu_warn,
-					  1, memory_order_seq_cst);
-		flog_warn(
-			EC_LIB_SLOW_THREAD_CPU,
-			"CPU HOG: task %s (%lx) ran for %lums (cpu time %lums)",
-			thread->xref->funcname, (unsigned long)thread->func,
-			walltime / 1000, cputime / 1000);
+		atomic_fetch_add_explicit(&thread->hist->total_cpu_warn, 1,
+					  memory_order_seq_cst);
+		flog_warn(EC_LIB_SLOW_THREAD_CPU,
+			  "CPU HOG: task %s (%lx) ran for %lums (cpu time %lums)",
+			  thread->xref->funcname, (unsigned long)thread->func,
+			  walltime / 1000, cputime / 1000);
 
 	} else if (walltime_threshold && walltime > walltime_threshold) {
 		/*
@@ -2054,13 +2038,12 @@ void event_call(struct event *thread)
 		 * cpu time is under 5 seconds.  Let's whine about this because
 		 * this could imply some sort of scheduling issue.
 		 */
-		atomic_fetch_add_explicit(&thread->hist->total_wall_warn,
-					  1, memory_order_seq_cst);
-		flog_warn(
-			EC_LIB_SLOW_THREAD_WALL,
-			"STARVATION: task %s (%lx) ran for %lums (cpu time %lums)",
-			thread->xref->funcname, (unsigned long)thread->func,
-			walltime / 1000, cputime / 1000);
+		atomic_fetch_add_explicit(&thread->hist->total_wall_warn, 1,
+					  memory_order_seq_cst);
+		flog_warn(EC_LIB_SLOW_THREAD_WALL,
+			  "STARVATION: task %s (%lx) ran for %lums (cpu time %lums)",
+			  thread->xref->funcname, (unsigned long)thread->func,
+			  walltime / 1000, cputime / 1000);
 	}
 }
 
@@ -2102,9 +2085,9 @@ void debug_signals(const sigset_t *sigs)
 	 * need to pick a reasonable value.
 	 */
 #if defined SIGRTMIN
-#  define LAST_SIGNAL SIGRTMIN
+#define LAST_SIGNAL SIGRTMIN
 #else
-#  define LAST_SIGNAL 32
+#define LAST_SIGNAL 32
 #endif
 
 

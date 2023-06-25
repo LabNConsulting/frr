@@ -62,8 +62,7 @@ void ls_prefix_set(struct prefix_ls *lp, struct ospf_lsa *lsa)
 	}
 }
 
-static void ospf_lsdb_delete_entry(struct ospf_lsdb *lsdb,
-				   struct route_node *rn)
+static void ospf_lsdb_delete_entry(struct ospf_lsdb *lsdb, struct route_node *rn)
 {
 	struct ospf_lsa *lsa = rn->info;
 
@@ -240,8 +239,8 @@ struct ospf_lsa *ospf_lsdb_lookup_by_id_next(struct ospf_lsdb *lsdb,
 	if (first)
 		rn = route_top(table);
 	else {
-		if ((rn = route_node_lookup(table, (struct prefix *)&lp))
-		    == NULL)
+		if ((rn = route_node_lookup(table, (struct prefix *)&lp)) ==
+		    NULL)
 			return NULL;
 		rn = route_next(rn);
 	}

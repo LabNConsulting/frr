@@ -45,12 +45,11 @@ static void bfd_session_status_update(struct bfd_session_params *bsp,
 			   bfd_get_status_str(bss->state));
 
 	if (bss->state == BSS_DOWN && bss->previous_state == BSS_UP) {
-		if (CHECK_FLAG(peer->sflags, PEER_STATUS_NSF_MODE)
-		    && bfd_sess_cbit(bsp) && !bss->remote_cbit) {
+		if (CHECK_FLAG(peer->sflags, PEER_STATUS_NSF_MODE) &&
+		    bfd_sess_cbit(bsp) && !bss->remote_cbit) {
 			if (BGP_DEBUG(bfd, BFD_LIB))
-				zlog_debug(
-					"%s BFD DOWN message ignored in the process of graceful restart when C bit is cleared",
-					peer->host);
+				zlog_debug("%s BFD DOWN message ignored in the process of graceful restart when C bit is cleared",
+					   peer->host);
 			return;
 		}
 		peer->last_reset = PEER_DOWN_BFD_DOWN;
@@ -63,8 +62,8 @@ static void bfd_session_status_update(struct bfd_session_params *bsp,
 		BGP_EVENT_ADD(peer, BGP_Stop);
 	}
 
-	if (bss->state == BSS_UP && bss->previous_state != BSS_UP
-	    && !peer_established(peer)) {
+	if (bss->state == BSS_UP && bss->previous_state != BSS_UP &&
+	    !peer_established(peer)) {
 		if (!BGP_PEER_START_SUPPRESSED(peer)) {
 			bgp_fsm_nht_update(peer, true);
 			BGP_EVENT_ADD(peer, BGP_Start);
@@ -123,9 +122,9 @@ void bgp_peer_config_apply(struct peer *p, struct peer_group *pg)
 				     p->bfd_config->profile);
 
 	/* If no specific timers were configured, then use the group timers. */
-	if (p->bfd_config->detection_multiplier == BFD_DEF_DETECT_MULT
-	    || p->bfd_config->min_rx == BFD_DEF_MIN_RX
-	    || p->bfd_config->min_tx == BFD_DEF_MIN_TX)
+	if (p->bfd_config->detection_multiplier == BFD_DEF_DETECT_MULT ||
+	    p->bfd_config->min_rx == BFD_DEF_MIN_RX ||
+	    p->bfd_config->min_tx == BFD_DEF_MIN_TX)
 		bfd_sess_set_timers(p->bfd_config->session,
 				    gconfig->bfd_config->detection_multiplier,
 				    gconfig->bfd_config->min_rx,
@@ -163,31 +162,30 @@ void bgp_peer_bfd_update_source(struct peer *p)
 	/* Update peer's source/destination addresses. */
 	bfd_sess_addresses(session, &family, &src.v6, &dst.v6);
 	if (family == AF_INET) {
-		if ((source && source->sin.sin_addr.s_addr != src.v4.s_addr)
-		    || p->su.sin.sin_addr.s_addr != dst.v4.s_addr) {
+		if ((source && source->sin.sin_addr.s_addr != src.v4.s_addr) ||
+		    p->su.sin.sin_addr.s_addr != dst.v4.s_addr) {
 			if (BGP_DEBUG(bfd, BFD_LIB))
-				zlog_debug(
-					"%s: address [%pI4->%pI4] to [%pI4->%pI4]",
-					__func__, &src.v4, &dst.v4,
-					source ? &source->sin.sin_addr
-					       : &src.v4,
-					&p->su.sin.sin_addr);
+				zlog_debug("%s: address [%pI4->%pI4] to [%pI4->%pI4]",
+					   __func__, &src.v4, &dst.v4,
+					   source ? &source->sin.sin_addr
+						  : &src.v4,
+					   &p->su.sin.sin_addr);
 
-			bfd_sess_set_ipv4_addrs(
-				session, source ? &source->sin.sin_addr : NULL,
-				&p->su.sin.sin_addr);
+			bfd_sess_set_ipv4_addrs(session,
+						source ? &source->sin.sin_addr
+						       : NULL,
+						&p->su.sin.sin_addr);
 			changed = true;
 		}
 	} else {
-		if ((source && memcmp(&source->sin6, &src.v6, sizeof(src.v6)))
-		    || memcmp(&p->su.sin6, &dst.v6, sizeof(dst.v6))) {
+		if ((source && memcmp(&source->sin6, &src.v6, sizeof(src.v6))) ||
+		    memcmp(&p->su.sin6, &dst.v6, sizeof(dst.v6))) {
 			if (BGP_DEBUG(bfd, BFD_LIB))
-				zlog_debug(
-					"%s: address [%pI6->%pI6] to [%pI6->%pI6]",
-					__func__, &src.v6, &dst.v6,
-					source ? &source->sin6.sin6_addr
-					       : &src.v6,
-					&p->su.sin6.sin6_addr);
+				zlog_debug("%s: address [%pI6->%pI6] to [%pI6->%pI6]",
+					   __func__, &src.v6, &dst.v6,
+					   source ? &source->sin6.sin6_addr
+						  : &src.v6,
+					   &p->su.sin6.sin6_addr);
 
 			bfd_sess_set_ipv6_addrs(session,
 						source ? &source->sin6.sin6_addr
@@ -235,10 +233,11 @@ void bgp_peer_bfd_update_source(struct peer *p)
 	/* Update VRF. */
 	if (bfd_sess_vrf_id(session) != p->bgp->vrf_id) {
 		if (BGP_DEBUG(bfd, BFD_LIB))
-			zlog_debug(
-				"%s: VRF %s(%d) to %s(%d)", __func__,
-				bfd_sess_vrf(session), bfd_sess_vrf_id(session),
-				vrf_id_to_name(p->bgp->vrf_id), p->bgp->vrf_id);
+			zlog_debug("%s: VRF %s(%d) to %s(%d)", __func__,
+				   bfd_sess_vrf(session),
+				   bfd_sess_vrf_id(session),
+				   vrf_id_to_name(p->bgp->vrf_id),
+				   p->bgp->vrf_id);
 
 		bfd_sess_set_vrf(session, p->bgp->vrf_id);
 		changed = true;
@@ -290,10 +289,11 @@ void bgp_peer_configure_bfd(struct peer *p, bool manual)
 						    : NULL,
 					&p->su.sin.sin_addr);
 	else
-		bfd_sess_set_ipv6_addrs(
-			p->bfd_config->session,
-			p->su_local ? &p->su_local->sin6.sin6_addr : NULL,
-			&p->su.sin6.sin6_addr);
+		bfd_sess_set_ipv6_addrs(p->bfd_config->session,
+					p->su_local
+						? &p->su_local->sin6.sin6_addr
+						: NULL,
+					&p->su.sin6.sin6_addr);
 
 	bfd_sess_set_vrf(p->bfd_config->session, p->bgp->vrf_id);
 	bfd_sess_set_hop_count(p->bfd_config->session,
@@ -391,9 +391,9 @@ void bgp_bfd_peer_config_write(struct vty *vty, const struct peer *peer,
 	 * Always show group BFD configuration, but peer only when explicitly
 	 * configured.
 	 */
-	if ((!CHECK_FLAG(peer->sflags, PEER_STATUS_GROUP)
-	     && peer->bfd_config->manual)
-	    || CHECK_FLAG(peer->sflags, PEER_STATUS_GROUP)) {
+	if ((!CHECK_FLAG(peer->sflags, PEER_STATUS_GROUP) &&
+	     peer->bfd_config->manual) ||
+	    CHECK_FLAG(peer->sflags, PEER_STATUS_GROUP)) {
 #if HAVE_BFDD > 0
 		vty_out(vty, " neighbor %s bfd\n", addr);
 #else
@@ -421,12 +421,8 @@ void bgp_bfd_show_info(struct vty *vty, const struct peer *peer,
 	bfd_sess_show(vty, json_neigh, peer->bfd_config->session);
 }
 
-DEFUN (neighbor_bfd,
-       neighbor_bfd_cmd,
-       "neighbor <A.B.C.D|X:X::X:X|WORD> bfd",
-       NEIGHBOR_STR
-       NEIGHBOR_ADDR_STR2
-       "Enables BFD support\n")
+DEFUN(neighbor_bfd, neighbor_bfd_cmd, "neighbor <A.B.C.D|X:X::X:X|WORD> bfd",
+      NEIGHBOR_STR NEIGHBOR_ADDR_STR2 "Enables BFD support\n")
 {
 	int idx_peer = 1;
 	struct peer *peer;
@@ -450,15 +446,13 @@ DEFUN_HIDDEN(
 #else
 DEFUN(
 #endif /* HAVE_BFDD */
-       neighbor_bfd_param,
-       neighbor_bfd_param_cmd,
-       "neighbor <A.B.C.D|X:X::X:X|WORD> bfd (2-255) (50-60000) (50-60000)",
-       NEIGHBOR_STR
-       NEIGHBOR_ADDR_STR2
-       "Enables BFD support\n"
-       "Detect Multiplier\n"
-       "Required min receive interval\n"
-       "Desired min transmit interval\n")
+	neighbor_bfd_param, neighbor_bfd_param_cmd,
+	"neighbor <A.B.C.D|X:X::X:X|WORD> bfd (2-255) (50-60000) (50-60000)",
+	NEIGHBOR_STR NEIGHBOR_ADDR_STR2
+	"Enables BFD support\n"
+	"Detect Multiplier\n"
+	"Required min receive interval\n"
+	"Desired min transmit interval\n")
 {
 	int idx_peer = 1;
 	int idx_number_1 = 3;
@@ -488,14 +482,12 @@ DEFUN(
 	return CMD_SUCCESS;
 }
 
-DEFUN (neighbor_bfd_check_controlplane_failure,
-       neighbor_bfd_check_controlplane_failure_cmd,
-       "[no] neighbor <A.B.C.D|X:X::X:X|WORD> bfd check-control-plane-failure",
-       NO_STR
-       NEIGHBOR_STR
-       NEIGHBOR_ADDR_STR2
-       "BFD support\n"
-       "Link dataplane status with BGP controlplane\n")
+DEFUN(neighbor_bfd_check_controlplane_failure,
+      neighbor_bfd_check_controlplane_failure_cmd,
+      "[no] neighbor <A.B.C.D|X:X::X:X|WORD> bfd check-control-plane-failure",
+      NO_STR NEIGHBOR_STR NEIGHBOR_ADDR_STR2
+      "BFD support\n"
+      "Link dataplane status with BGP controlplane\n")
 {
 	const char *no = strmatch(argv[0]->text, "no") ? "no" : NULL;
 	int idx_peer = 0;
@@ -518,23 +510,20 @@ DEFUN (neighbor_bfd_check_controlplane_failure,
 	bgp_peer_config_apply(peer, peer->group);
 
 	return CMD_SUCCESS;
- }
+}
 
-DEFUN (no_neighbor_bfd,
-       no_neighbor_bfd_cmd,
+DEFUN(no_neighbor_bfd, no_neighbor_bfd_cmd,
 #if HAVE_BFDD > 0
-       "no neighbor <A.B.C.D|X:X::X:X|WORD> bfd",
+      "no neighbor <A.B.C.D|X:X::X:X|WORD> bfd",
 #else
-       "no neighbor <A.B.C.D|X:X::X:X|WORD> bfd [(2-255) (50-60000) (50-60000)]",
+      "no neighbor <A.B.C.D|X:X::X:X|WORD> bfd [(2-255) (50-60000) (50-60000)]",
 #endif /* HAVE_BFDD */
-       NO_STR
-       NEIGHBOR_STR
-       NEIGHBOR_ADDR_STR2
-       "Disables BFD support\n"
+      NO_STR NEIGHBOR_STR NEIGHBOR_ADDR_STR2
+      "Disables BFD support\n"
 #if HAVE_BFDD == 0
-       "Detect Multiplier\n"
-       "Required min receive interval\n"
-       "Desired min transmit interval\n"
+      "Detect Multiplier\n"
+      "Required min receive interval\n"
+      "Desired min transmit interval\n"
 #endif /* !HAVE_BFDD */
 )
 {
@@ -556,11 +545,8 @@ DEFUN (no_neighbor_bfd,
 #if HAVE_BFDD > 0
 DEFUN(neighbor_bfd_profile, neighbor_bfd_profile_cmd,
       "neighbor <A.B.C.D|X:X::X:X|WORD> bfd profile BFDPROF",
-      NEIGHBOR_STR
-      NEIGHBOR_ADDR_STR2
-      "BFD integration\n"
-      BFD_PROFILE_STR
-      BFD_PROFILE_NAME_STR)
+      NEIGHBOR_STR NEIGHBOR_ADDR_STR2
+      "BFD integration\n" BFD_PROFILE_STR BFD_PROFILE_NAME_STR)
 {
 	int idx_peer = 1, idx_prof = 4;
 	struct peer *peer;
@@ -583,12 +569,8 @@ DEFUN(neighbor_bfd_profile, neighbor_bfd_profile_cmd,
 
 DEFUN(no_neighbor_bfd_profile, no_neighbor_bfd_profile_cmd,
       "no neighbor <A.B.C.D|X:X::X:X|WORD> bfd profile [BFDPROF]",
-      NO_STR
-      NEIGHBOR_STR
-      NEIGHBOR_ADDR_STR2
-      "BFD integration\n"
-      BFD_PROFILE_STR
-      BFD_PROFILE_NAME_STR)
+      NO_STR NEIGHBOR_STR NEIGHBOR_ADDR_STR2
+      "BFD integration\n" BFD_PROFILE_STR BFD_PROFILE_NAME_STR)
 {
 	int idx_peer = 2;
 	struct peer *peer;

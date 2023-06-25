@@ -309,8 +309,8 @@ static int _ptm_lib_read_ptm_socket(int fd, char *buf, int len)
 		rc = recv(fd, (void *)(buf + bytes_read), (len - bytes_read),
 			  MSG_DONTWAIT);
 		if (rc <= 0) {
-			if (errno && (errno != EAGAIN)
-			    && (errno != EWOULDBLOCK)) {
+			if (errno && (errno != EAGAIN) &&
+			    (errno != EWOULDBLOCK)) {
 				ERRLOG("fatal recv error(%s), closing connection, rc %d\n",
 				       strerror(errno), rc);
 				return (rc);
@@ -364,9 +364,10 @@ int ptm_lib_process_msg(ptm_lib_handle_t *hdl, int fd, char *inbuf, int inlen,
 		 * it
 		 */
 		if (len == PTMLIB_MSG_HDR_LEN) {
-			len += _ptm_lib_read_ptm_socket(
-				fd, (inbuf + PTMLIB_MSG_HDR_LEN),
-				inlen - PTMLIB_MSG_HDR_LEN);
+			len += _ptm_lib_read_ptm_socket(fd,
+							(inbuf +
+							 PTMLIB_MSG_HDR_LEN),
+							inlen - PTMLIB_MSG_HDR_LEN);
 			if (len <= 0)
 				return (len);
 		}

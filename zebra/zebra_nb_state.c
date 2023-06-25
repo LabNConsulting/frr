@@ -217,7 +217,8 @@ lib_vrf_zebra_ribs_rib_afi_safi_name_get_elem(struct nb_cb_get_elem_args *args)
 	const struct zebra_router_table *zrt = args->list_entry;
 
 	return yang_data_new_string(args->xpath,
-		yang_afi_safi_value2identity(zrt->afi, zrt->safi));
+				    yang_afi_safi_value2identity(zrt->afi,
+								 zrt->safi));
 }
 
 /*
@@ -249,8 +250,8 @@ lib_vrf_zebra_ribs_rib_route_get_next(struct nb_cb_get_next_args *args)
 		rn = route_next(rn);
 
 	/* Skip link-local routes. */
-	if (rn && rn->p.family == AF_INET6
-	    && IN6_IS_ADDR_LINKLOCAL(&rn->p.u.prefix6))
+	if (rn && rn->p.family == AF_INET6 &&
+	    IN6_IS_ADDR_LINKLOCAL(&rn->p.u.prefix6))
 		return NULL;
 
 	return rn;
@@ -769,9 +770,9 @@ lib_vrf_zebra_ribs_rib_route_route_entry_nexthop_group_nexthop_interface_get_ele
 	struct nexthop *nexthop = (struct nexthop *)args->list_entry;
 
 	if (nexthop->ifindex)
-		return yang_data_new_string(
-			args->xpath,
-			ifindex2ifname(nexthop->ifindex, nexthop->vrf_id));
+		return yang_data_new_string(args->xpath,
+					    ifindex2ifname(nexthop->ifindex,
+							   nexthop->vrf_id));
 
 	return NULL;
 }

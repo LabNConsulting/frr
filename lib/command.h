@@ -30,7 +30,7 @@ DECLARE_MTYPE(COMPLETION);
  * Host software MUST handle host names of up to 63 characters and
  * SHOULD handle host names of up to 255 characters.
  */
-#define HOSTNAME_LEN   255
+#define HOSTNAME_LEN 255
 
 /* Host configuration variable */
 struct host {
@@ -219,26 +219,26 @@ struct cmd_node {
 };
 
 /* Return value of the commands. */
-#define CMD_SUCCESS              0
-#define CMD_WARNING              1
-#define CMD_ERR_NO_MATCH         2
-#define CMD_ERR_AMBIGUOUS        3
-#define CMD_ERR_INCOMPLETE       4
-#define CMD_ERR_EXEED_ARGC_MAX   5
-#define CMD_ERR_NOTHING_TODO     6
-#define CMD_COMPLETE_FULL_MATCH  7
-#define CMD_COMPLETE_MATCH       8
-#define CMD_COMPLETE_LIST_MATCH  9
-#define CMD_SUCCESS_DAEMON      10
-#define CMD_ERR_NO_FILE         11
-#define CMD_SUSPEND             12
+#define CMD_SUCCESS 0
+#define CMD_WARNING 1
+#define CMD_ERR_NO_MATCH 2
+#define CMD_ERR_AMBIGUOUS 3
+#define CMD_ERR_INCOMPLETE 4
+#define CMD_ERR_EXEED_ARGC_MAX 5
+#define CMD_ERR_NOTHING_TODO 6
+#define CMD_COMPLETE_FULL_MATCH 7
+#define CMD_COMPLETE_MATCH 8
+#define CMD_COMPLETE_LIST_MATCH 9
+#define CMD_SUCCESS_DAEMON 10
+#define CMD_ERR_NO_FILE 11
+#define CMD_SUSPEND 12
 #define CMD_WARNING_CONFIG_FAILED 13
-#define CMD_NOT_MY_INSTANCE	14
+#define CMD_NOT_MY_INSTANCE 14
 #define CMD_NO_LEVEL_UP 15
 #define CMD_ERR_NO_DAEMON 16
 
 /* Argc max counts. */
-#define CMD_ARGC_MAX   256
+#define CMD_ARGC_MAX 256
 
 /* helper defines for end-user DEFUN* macros */
 #define DEFUN_CMD_ELEMENT(funcname, cmdname, cmdstr, helpstr, attrs, dnum)     \
@@ -364,9 +364,9 @@ struct cmd_node {
  * allow the parser to match against them.
  * These macros allow that.
  */
-#define CMD_CREATE_STR(s)  CMD_CREATE_STR_HELPER(s)
+#define CMD_CREATE_STR(s) CMD_CREATE_STR_HELPER(s)
 #define CMD_CREATE_STR_HELPER(s) #s
-#define CMD_RANGE_STR(a,s) "(" CMD_CREATE_STR(a) "-" CMD_CREATE_STR(s) ")"
+#define CMD_RANGE_STR(a, s) "(" CMD_CREATE_STR(a) "-" CMD_CREATE_STR(s) ")"
 
 /* Common descriptions. */
 #define SHOW_STR "Show running system information\n"
@@ -384,7 +384,8 @@ struct cmd_node {
 #define EIGRP_STR "EIGRP information\n"
 #define BGP_STR "BGP information\n"
 #define BGP_SOFT_STR "Soft reconfig inbound and outbound updates\n"
-#define BGP_SOFT_IN_STR "Send route-refresh unless using 'soft-reconfiguration inbound'\n"
+#define BGP_SOFT_IN_STR                                                        \
+	"Send route-refresh unless using 'soft-reconfiguration inbound'\n"
 #define BGP_SOFT_OUT_STR "Resend all outbound updates\n"
 #define BGP_SOFT_RSCLIENT_RIB_STR "Soft reconfig for rsclient RIB\n"
 #define OSPF_STR "OSPF information\n"
@@ -399,7 +400,7 @@ struct cmd_node {
 #define MATCH_STR "Match values from routing table\n"
 #define SET_STR "Set values in destination routing protocol\n"
 #define OUT_STR "Filter outgoing routing updates\n"
-#define IN_STR  "Filter incoming routing updates\n"
+#define IN_STR "Filter incoming routing updates\n"
 #define V4NOTATION_STR "specify by IPv4 address notation(e.g. 0.0.0.0)\n"
 #define OSPF6_NUMBER_STR "Specify by number\n"
 #define INTERFACE_STR "Interface information\n"
@@ -450,8 +451,9 @@ struct cmd_node {
 
 /* IPv4 only machine should not accept IPv6 address for peer's IP
    address.  So we replace VTY command string like below. */
-#define NEIGHBOR_ADDR_STR  "Neighbor address\nIPv6 address\n"
-#define NEIGHBOR_ADDR_STR2 "Neighbor address\nNeighbor IPv6 address\nInterface name or neighbor tag\n"
+#define NEIGHBOR_ADDR_STR "Neighbor address\nIPv6 address\n"
+#define NEIGHBOR_ADDR_STR2                                                     \
+	"Neighbor address\nNeighbor IPv6 address\nInterface name or neighbor tag\n"
 #define NEIGHBOR_ADDR_STR3 "Neighbor address\nIPv6 address\nInterface name\n"
 
 /* Graceful Restart cli help strings */
@@ -461,13 +463,18 @@ struct cmd_node {
 #define GR_DISABLE "Global Graceful Restart - Disable Mode\n"
 #define NO_GR_DISABLE "Undo Global Graceful Restart - Disable Mode\n"
 #define GR_DEBUG "Graceful Restart - Enable Debug Logs\n"
-#define GR_SHOW "Graceful Restart - Show command for Global and all neighbor mode\n"
+#define GR_SHOW                                                                \
+	"Graceful Restart - Show command for Global and all neighbor mode\n"
 #define GR_NEIGHBOR_CMD "Graceful Restart command for a neighbor\n"
 #define NO_GR_NEIGHBOR_CMD "Undo Graceful Restart command for a neighbor\n"
-#define GR_NEIGHBOR_DISABLE_CMD "Graceful Restart Disable command for a neighbor\n"
-#define NO_GR_NEIGHBOR_DISABLE_CMD "Undo Graceful Restart Disable command for a neighbor\n"
-#define GR_NEIGHBOR_HELPER_CMD "Graceful Restart Helper command for a neighbor\n"
-#define NO_GR_NEIGHBOR_HELPER_CMD "Undo Graceful Restart Helper command for a neighbor\n"
+#define GR_NEIGHBOR_DISABLE_CMD                                                \
+	"Graceful Restart Disable command for a neighbor\n"
+#define NO_GR_NEIGHBOR_DISABLE_CMD                                             \
+	"Undo Graceful Restart Disable command for a neighbor\n"
+#define GR_NEIGHBOR_HELPER_CMD                                                 \
+	"Graceful Restart Helper command for a neighbor\n"
+#define NO_GR_NEIGHBOR_HELPER_CMD                                              \
+	"Undo Graceful Restart Helper command for a neighbor\n"
 
 /* EVPN help Strings */
 #define EVPN_RT_HELP_STR "EVPN route information\n"
@@ -481,11 +488,10 @@ struct cmd_node {
 #define EVPN_TYPE_5_HELP_STR "Prefix (Type-5) route\n"
 #define EVPN_TYPE_ALL_LIST "<ead|1|macip|2|multicast|3|es|4|prefix|5>"
 #define EVPN_TYPE_ALL_LIST_HELP_STR                                            \
-	EVPN_TYPE_1_HELP_STR EVPN_TYPE_1_HELP_STR                              \
-	EVPN_TYPE_2_HELP_STR EVPN_TYPE_2_HELP_STR                              \
-	EVPN_TYPE_3_HELP_STR EVPN_TYPE_3_HELP_STR                              \
-	EVPN_TYPE_4_HELP_STR EVPN_TYPE_4_HELP_STR                              \
-	EVPN_TYPE_5_HELP_STR EVPN_TYPE_5_HELP_STR
+	EVPN_TYPE_1_HELP_STR EVPN_TYPE_1_HELP_STR EVPN_TYPE_2_HELP_STR         \
+		EVPN_TYPE_2_HELP_STR EVPN_TYPE_3_HELP_STR EVPN_TYPE_3_HELP_STR \
+			EVPN_TYPE_4_HELP_STR EVPN_TYPE_4_HELP_STR              \
+				EVPN_TYPE_5_HELP_STR EVPN_TYPE_5_HELP_STR
 
 /* Describing roles */
 #define ROLE_STR                                                               \
@@ -509,13 +515,14 @@ struct xref_install_element {
 	enum node_type node_type;
 };
 
-#define install_element(node_type_, cmd_element_) do {                         \
+#define install_element(node_type_, cmd_element_)                              \
+	do {                                                                   \
 		static const struct xref_install_element _xref                 \
-				__attribute__((used)) = {                      \
-			.xref = XREF_INIT(XREFT_INSTALL_ELEMENT, NULL,         \
-					  __func__),                           \
-			.cmd_element = cmd_element_,                           \
-			.node_type = node_type_,                               \
+			__attribute__((used)) = {                              \
+				.xref = XREF_INIT(XREFT_INSTALL_ELEMENT, NULL, \
+						  __func__),                   \
+				.cmd_element = cmd_element_,                   \
+				.node_type = node_type_,                       \
 		};                                                             \
 		XREF_LINK(_xref.xref);                                         \
 		_install_element(node_type_, cmd_element_);                    \
@@ -622,8 +629,7 @@ struct cmd_variable_handler {
 
 extern void cmd_variable_complete(struct cmd_token *token, const char *arg,
 				  vector comps);
-extern void
-cmd_variable_handler_register(const struct cmd_variable_handler *cvh);
+extern void cmd_variable_handler_register(const struct cmd_variable_handler *cvh);
 extern char *cmd_variable_comp2str(vector comps, unsigned short cols);
 
 extern void command_setup_early_logging(const char *dest, const char *level);

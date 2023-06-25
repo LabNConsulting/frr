@@ -63,9 +63,8 @@ static void ospf_inactivity_timer(struct event *thread)
 		OSPF_NSM_EVENT_SCHEDULE(nbr, NSM_InactivityTimer);
 	else {
 		if (IS_DEBUG_OSPF_GR)
-			zlog_debug(
-				"%s, Acting as HELPER for this neighbour, So restart the dead timer",
-				__func__);
+			zlog_debug("%s, Acting as HELPER for this neighbour, So restart the dead timer",
+				   __func__);
 		OSPF_NSM_TIMER_ON(nbr->t_inactivity, ospf_inactivity_timer,
 				  nbr->v_inactivity);
 	}
@@ -143,15 +142,15 @@ int nsm_should_adj(struct ospf_neighbor *nbr)
 	struct ospf_interface *oi = nbr->oi;
 
 	/* These network types must always form adjacencies. */
-	if (oi->type == OSPF_IFTYPE_POINTOPOINT
-	    || oi->type == OSPF_IFTYPE_POINTOMULTIPOINT
-	    || oi->type == OSPF_IFTYPE_VIRTUALLINK
+	if (oi->type == OSPF_IFTYPE_POINTOPOINT ||
+	    oi->type == OSPF_IFTYPE_POINTOMULTIPOINT ||
+	    oi->type == OSPF_IFTYPE_VIRTUALLINK
 	    /* Router itself is the DRouter or the BDRouter. */
-	    || IPV4_ADDR_SAME(&oi->address->u.prefix4, &DR(oi))
-	    || IPV4_ADDR_SAME(&oi->address->u.prefix4, &BDR(oi))
+	    || IPV4_ADDR_SAME(&oi->address->u.prefix4, &DR(oi)) ||
+	    IPV4_ADDR_SAME(&oi->address->u.prefix4, &BDR(oi))
 	    /* Neighboring Router is the DRouter or the BDRouter. */
-	    || IPV4_ADDR_SAME(&nbr->address.u.prefix4, &DR(oi))
-	    || IPV4_ADDR_SAME(&nbr->address.u.prefix4, &BDR(oi)))
+	    || IPV4_ADDR_SAME(&nbr->address.u.prefix4, &DR(oi)) ||
+	    IPV4_ADDR_SAME(&nbr->address.u.prefix4, &BDR(oi)))
 		return 1;
 
 	return 0;
@@ -298,17 +297,17 @@ static int nsm_negotiation_done(struct ospf_neighbor *nbr)
 	}
 
 	/* For Stub/NSSA area, we should not send Type-4 and Type-5 LSAs */
-	if (nbr->oi->type != OSPF_IFTYPE_VIRTUALLINK
-	    && area->external_routing == OSPF_AREA_DEFAULT) {
+	if (nbr->oi->type != OSPF_IFTYPE_VIRTUALLINK &&
+	    area->external_routing == OSPF_AREA_DEFAULT) {
 		LSDB_LOOP (ASBR_SUMMARY_LSDB(area), rn, lsa)
 			ospf_db_summary_add(nbr, lsa);
 		LSDB_LOOP (EXTERNAL_LSDB(nbr->oi->ospf), rn, lsa)
 			ospf_db_summary_add(nbr, lsa);
 	}
 
-	if (CHECK_FLAG(nbr->options, OSPF_OPTION_O)
-	    && (nbr->oi->type != OSPF_IFTYPE_VIRTUALLINK
-		&& area->external_routing == OSPF_AREA_DEFAULT))
+	if (CHECK_FLAG(nbr->options, OSPF_OPTION_O) &&
+	    (nbr->oi->type != OSPF_IFTYPE_VIRTUALLINK &&
+	     area->external_routing == OSPF_AREA_DEFAULT))
 		LSDB_LOOP (OPAQUE_AS_LSDB(nbr->oi->ospf), rn, lsa)
 			ospf_db_summary_add(nbr, lsa);
 
@@ -389,11 +388,9 @@ static int nsm_kill_nbr(struct ospf_neighbor *nbr)
 				   nbr_nbma->v_poll);
 
 		if (IS_DEBUG_OSPF(nsm, NSM_EVENTS))
-			zlog_debug(
-				"NSM[%s:%pI4:%s]: Down (PollIntervalTimer scheduled)",
-				IF_NAME(nbr->oi),
-				&nbr->address.u.prefix4,
-				ospf_get_name(nbr->oi->ospf));
+			zlog_debug("NSM[%s:%pI4:%s]: Down (PollIntervalTimer scheduled)",
+				   IF_NAME(nbr->oi), &nbr->address.u.prefix4,
+				   ospf_get_name(nbr->oi->ospf));
 	}
 
 	/*
@@ -469,42 +466,42 @@ const struct {
 	},
 	{
 		/* Down: */
-		{NULL, NSM_DependUpon},		 /* NoEvent           */
-		{nsm_hello_received, NSM_Init},  /* HelloReceived     */
-		{nsm_start, NSM_Attempt},	 /* Start             */
-		{NULL, NSM_Down},		 /* 2-WayReceived     */
-		{NULL, NSM_Down},		 /* NegotiationDone   */
-		{NULL, NSM_Down},		 /* ExchangeDone      */
-		{NULL, NSM_Down},		 /* BadLSReq          */
-		{NULL, NSM_Down},		 /* LoadingDone       */
-		{NULL, NSM_Down},		 /* AdjOK?            */
-		{NULL, NSM_Down},		 /* SeqNumberMismatch */
-		{NULL, NSM_Down},		 /* 1-WayReceived     */
-		{nsm_kill_nbr, NSM_Deleted},     /* KillNbr           */
-		{nsm_kill_nbr, NSM_Deleted},     /* InactivityTimer   */
-		{nsm_kill_nbr, NSM_Deleted},     /* LLDown            */
+		{NULL, NSM_DependUpon},		/* NoEvent           */
+		{nsm_hello_received, NSM_Init}, /* HelloReceived     */
+		{nsm_start, NSM_Attempt},	/* Start             */
+		{NULL, NSM_Down},		/* 2-WayReceived     */
+		{NULL, NSM_Down},		/* NegotiationDone   */
+		{NULL, NSM_Down},		/* ExchangeDone      */
+		{NULL, NSM_Down},		/* BadLSReq          */
+		{NULL, NSM_Down},		/* LoadingDone       */
+		{NULL, NSM_Down},		/* AdjOK?            */
+		{NULL, NSM_Down},		/* SeqNumberMismatch */
+		{NULL, NSM_Down},		/* 1-WayReceived     */
+		{nsm_kill_nbr, NSM_Deleted},	/* KillNbr           */
+		{nsm_kill_nbr, NSM_Deleted},	/* InactivityTimer   */
+		{nsm_kill_nbr, NSM_Deleted},	/* LLDown            */
 	},
 	{
 		/* Attempt: */
-		{NULL, NSM_DependUpon},		 /* NoEvent           */
-		{nsm_hello_received, NSM_Init},  /* HelloReceived     */
-		{NULL, NSM_Attempt},		 /* Start             */
-		{NULL, NSM_Attempt},		 /* 2-WayReceived     */
-		{NULL, NSM_Attempt},		 /* NegotiationDone   */
-		{NULL, NSM_Attempt},		 /* ExchangeDone      */
-		{NULL, NSM_Attempt},		 /* BadLSReq          */
-		{NULL, NSM_Attempt},		 /* LoadingDone       */
-		{NULL, NSM_Attempt},		 /* AdjOK?            */
-		{NULL, NSM_Attempt},		 /* SeqNumberMismatch */
-		{NULL, NSM_Attempt},		 /* 1-WayReceived     */
-		{nsm_kill_nbr, NSM_Deleted},     /* KillNbr           */
-		{nsm_kill_nbr, NSM_Deleted},     /* InactivityTimer   */
-		{nsm_kill_nbr, NSM_Deleted},     /* LLDown            */
+		{NULL, NSM_DependUpon},		/* NoEvent           */
+		{nsm_hello_received, NSM_Init}, /* HelloReceived     */
+		{NULL, NSM_Attempt},		/* Start             */
+		{NULL, NSM_Attempt},		/* 2-WayReceived     */
+		{NULL, NSM_Attempt},		/* NegotiationDone   */
+		{NULL, NSM_Attempt},		/* ExchangeDone      */
+		{NULL, NSM_Attempt},		/* BadLSReq          */
+		{NULL, NSM_Attempt},		/* LoadingDone       */
+		{NULL, NSM_Attempt},		/* AdjOK?            */
+		{NULL, NSM_Attempt},		/* SeqNumberMismatch */
+		{NULL, NSM_Attempt},		/* 1-WayReceived     */
+		{nsm_kill_nbr, NSM_Deleted},	/* KillNbr           */
+		{nsm_kill_nbr, NSM_Deleted},	/* InactivityTimer   */
+		{nsm_kill_nbr, NSM_Deleted},	/* LLDown            */
 	},
 	{
 		/* Init: */
 		{NULL, NSM_DependUpon},		       /* NoEvent           */
-		{nsm_hello_received, NSM_Init},        /* HelloReceived     */
+		{nsm_hello_received, NSM_Init},	       /* HelloReceived     */
 		{NULL, NSM_Init},		       /* Start             */
 		{nsm_twoway_received, NSM_DependUpon}, /* 2-WayReceived     */
 		{NULL, NSM_Init},		       /* NegotiationDone   */
@@ -514,26 +511,26 @@ const struct {
 		{NULL, NSM_Init},		       /* AdjOK?            */
 		{NULL, NSM_Init},		       /* SeqNumberMismatch */
 		{NULL, NSM_Init},		       /* 1-WayReceived     */
-		{nsm_kill_nbr, NSM_Deleted},	   /* KillNbr           */
-		{nsm_kill_nbr, NSM_Deleted},	   /* InactivityTimer   */
-		{nsm_kill_nbr, NSM_Deleted},	   /* LLDown            */
+		{nsm_kill_nbr, NSM_Deleted},	       /* KillNbr           */
+		{nsm_kill_nbr, NSM_Deleted},	       /* InactivityTimer   */
+		{nsm_kill_nbr, NSM_Deleted},	       /* LLDown            */
 	},
 	{
 		/* 2-Way: */
-		{NULL, NSM_DependUpon},		   /* NoEvent           */
-		{nsm_hello_received, NSM_TwoWay},  /* HelloReceived     */
-		{NULL, NSM_TwoWay},		   /* Start             */
-		{NULL, NSM_TwoWay},		   /* 2-WayReceived     */
-		{NULL, NSM_TwoWay},		   /* NegotiationDone   */
-		{NULL, NSM_TwoWay},		   /* ExchangeDone      */
-		{NULL, NSM_TwoWay},		   /* BadLSReq          */
-		{NULL, NSM_TwoWay},		   /* LoadingDone       */
-		{nsm_adj_ok, NSM_DependUpon},      /* AdjOK?            */
-		{NULL, NSM_TwoWay},		   /* SeqNumberMismatch */
-		{NULL, NSM_Init},		   /* 1-WayReceived     */
-		{nsm_kill_nbr, NSM_Deleted},       /* KillNbr           */
-		{nsm_kill_nbr, NSM_Deleted},       /* InactivityTimer   */
-		{nsm_kill_nbr, NSM_Deleted},       /* LLDown            */
+		{NULL, NSM_DependUpon},		  /* NoEvent           */
+		{nsm_hello_received, NSM_TwoWay}, /* HelloReceived     */
+		{NULL, NSM_TwoWay},		  /* Start             */
+		{NULL, NSM_TwoWay},		  /* 2-WayReceived     */
+		{NULL, NSM_TwoWay},		  /* NegotiationDone   */
+		{NULL, NSM_TwoWay},		  /* ExchangeDone      */
+		{NULL, NSM_TwoWay},		  /* BadLSReq          */
+		{NULL, NSM_TwoWay},		  /* LoadingDone       */
+		{nsm_adj_ok, NSM_DependUpon},	  /* AdjOK?            */
+		{NULL, NSM_TwoWay},		  /* SeqNumberMismatch */
+		{NULL, NSM_Init},		  /* 1-WayReceived     */
+		{nsm_kill_nbr, NSM_Deleted},	  /* KillNbr           */
+		{nsm_kill_nbr, NSM_Deleted},	  /* InactivityTimer   */
+		{nsm_kill_nbr, NSM_Deleted},	  /* LLDown            */
 	},
 	{
 		/* ExStart: */
@@ -545,12 +542,12 @@ const struct {
 		{NULL, NSM_ExStart},		      /* ExchangeDone      */
 		{NULL, NSM_ExStart},		      /* BadLSReq          */
 		{NULL, NSM_ExStart},		      /* LoadingDone       */
-		{nsm_adj_ok, NSM_DependUpon},	 /* AdjOK?            */
+		{nsm_adj_ok, NSM_DependUpon},	      /* AdjOK?            */
 		{NULL, NSM_ExStart},		      /* SeqNumberMismatch */
 		{NULL, NSM_Init},		      /* 1-WayReceived     */
-		{nsm_kill_nbr, NSM_Deleted},	  /* KillNbr           */
-		{nsm_kill_nbr, NSM_Deleted},	  /* InactivityTimer   */
-		{nsm_kill_nbr, NSM_Deleted},	  /* LLDown            */
+		{nsm_kill_nbr, NSM_Deleted},	      /* KillNbr           */
+		{nsm_kill_nbr, NSM_Deleted},	      /* InactivityTimer   */
+		{nsm_kill_nbr, NSM_Deleted},	      /* LLDown            */
 	},
 	{
 		/* Exchange: */
@@ -562,54 +559,54 @@ const struct {
 		{nsm_exchange_done, NSM_DependUpon}, /* ExchangeDone      */
 		{NULL, NSM_ExStart},		     /* BadLSReq          */
 		{NULL, NSM_Exchange},		     /* LoadingDone       */
-		{nsm_adj_ok, NSM_DependUpon},	/* AdjOK?            */
+		{nsm_adj_ok, NSM_DependUpon},	     /* AdjOK?            */
 		{NULL, NSM_ExStart},		     /* SeqNumberMismatch */
 		{NULL, NSM_Init},		     /* 1-WayReceived     */
-		{nsm_kill_nbr, NSM_Deleted},	 /* KillNbr           */
-		{nsm_kill_nbr, NSM_Deleted},	 /* InactivityTimer   */
-		{nsm_kill_nbr, NSM_Deleted},	 /* LLDown            */
+		{nsm_kill_nbr, NSM_Deleted},	     /* KillNbr           */
+		{nsm_kill_nbr, NSM_Deleted},	     /* InactivityTimer   */
+		{nsm_kill_nbr, NSM_Deleted},	     /* LLDown            */
 	},
 	{
 		/* Loading: */
-		{NULL, NSM_DependUpon},		    /* NoEvent           */
-		{nsm_hello_received, NSM_Loading},  /* HelloReceived     */
-		{NULL, NSM_Loading},		    /* Start             */
-		{NULL, NSM_Loading},		    /* 2-WayReceived     */
-		{NULL, NSM_Loading},		    /* NegotiationDone   */
-		{NULL, NSM_Loading},		    /* ExchangeDone      */
-		{NULL, NSM_ExStart},		    /* BadLSReq          */
-		{NULL, NSM_Full},		    /* LoadingDone       */
-		{nsm_adj_ok, NSM_DependUpon},       /* AdjOK?            */
-		{NULL, NSM_ExStart},		    /* SeqNumberMismatch */
-		{NULL, NSM_Init},		    /* 1-WayReceived     */
+		{NULL, NSM_DependUpon},		   /* NoEvent           */
+		{nsm_hello_received, NSM_Loading}, /* HelloReceived     */
+		{NULL, NSM_Loading},		   /* Start             */
+		{NULL, NSM_Loading},		   /* 2-WayReceived     */
+		{NULL, NSM_Loading},		   /* NegotiationDone   */
+		{NULL, NSM_Loading},		   /* ExchangeDone      */
+		{NULL, NSM_ExStart},		   /* BadLSReq          */
+		{NULL, NSM_Full},		   /* LoadingDone       */
+		{nsm_adj_ok, NSM_DependUpon},	   /* AdjOK?            */
+		{NULL, NSM_ExStart},		   /* SeqNumberMismatch */
+		{NULL, NSM_Init},		   /* 1-WayReceived     */
+		{nsm_kill_nbr, NSM_Deleted},	   /* KillNbr           */
+		{nsm_kill_nbr, NSM_Deleted},	   /* InactivityTimer   */
+		{nsm_kill_nbr, NSM_Deleted},	   /* LLDown            */
+	},
+	{
+		/* Full: */
+		{NULL, NSM_DependUpon},		/* NoEvent           */
+		{nsm_hello_received, NSM_Full}, /* HelloReceived     */
+		{NULL, NSM_Full},		/* Start             */
+		{NULL, NSM_Full},		/* 2-WayReceived     */
+		{NULL, NSM_Full},		/* NegotiationDone   */
+		{NULL, NSM_Full},		/* ExchangeDone      */
+		{NULL, NSM_ExStart},		/* BadLSReq          */
+		{NULL, NSM_Full},		/* LoadingDone       */
+		{nsm_adj_ok, NSM_DependUpon},	/* AdjOK?            */
+		{NULL, NSM_ExStart},		/* SeqNumberMismatch */
+		{NULL, NSM_Init},		/* 1-WayReceived     */
 		{nsm_kill_nbr, NSM_Deleted},	/* KillNbr           */
 		{nsm_kill_nbr, NSM_Deleted},	/* InactivityTimer   */
 		{nsm_kill_nbr, NSM_Deleted},	/* LLDown            */
 	},
-	{
-		/* Full: */
-		{NULL, NSM_DependUpon},		 /* NoEvent           */
-		{nsm_hello_received, NSM_Full},  /* HelloReceived     */
-		{NULL, NSM_Full},		 /* Start             */
-		{NULL, NSM_Full},		 /* 2-WayReceived     */
-		{NULL, NSM_Full},		 /* NegotiationDone   */
-		{NULL, NSM_Full},		 /* ExchangeDone      */
-		{NULL, NSM_ExStart},		 /* BadLSReq          */
-		{NULL, NSM_Full},		 /* LoadingDone       */
-		{nsm_adj_ok, NSM_DependUpon},    /* AdjOK?            */
-		{NULL, NSM_ExStart},		 /* SeqNumberMismatch */
-		{NULL, NSM_Init},		 /* 1-WayReceived     */
-		{nsm_kill_nbr, NSM_Deleted},     /* KillNbr           */
-		{nsm_kill_nbr, NSM_Deleted},     /* InactivityTimer   */
-		{nsm_kill_nbr, NSM_Deleted},     /* LLDown            */
-	},
 };
 
 static const char *const ospf_nsm_event_str[] = {
-	"NoEvent",	   "HelloReceived",  "Start",
+	"NoEvent",	     "HelloReceived",	"Start",
 	"2-WayReceived",     "NegotiationDone", "ExchangeDone",
-	"BadLSReq",	  "LoadingDone",     "AdjOK?",
-	"SeqNumberMismatch", "1-WayReceived",   "KillNbr",
+	"BadLSReq",	     "LoadingDone",	"AdjOK?",
+	"SeqNumberMismatch", "1-WayReceived",	"KillNbr",
 	"InactivityTimer",   "LLDown",
 };
 
@@ -626,16 +623,15 @@ static void nsm_notice_state_change(struct ospf_neighbor *nbr, int next_state,
 			   ospf_nsm_event_str[event]);
 
 	/* Optionally notify about adjacency changes */
-	if (CHECK_FLAG(nbr->oi->ospf->config, OSPF_LOG_ADJACENCY_CHANGES)
-	    && (CHECK_FLAG(nbr->oi->ospf->config, OSPF_LOG_ADJACENCY_DETAIL)
-		|| (next_state == NSM_Full) || (next_state < nbr->state)))
-		zlog_notice(
-			"AdjChg: Nbr %pI4, NbrIP %pI4 (%s) on %s: %s -> %s (%s)",
-			&nbr->router_id, &nbr->src,
-			ospf_get_name(nbr->oi->ospf), IF_NAME(nbr->oi),
-			lookup_msg(ospf_nsm_state_msg, nbr->state, NULL),
-			lookup_msg(ospf_nsm_state_msg, next_state, NULL),
-			ospf_nsm_event_str[event]);
+	if (CHECK_FLAG(nbr->oi->ospf->config, OSPF_LOG_ADJACENCY_CHANGES) &&
+	    (CHECK_FLAG(nbr->oi->ospf->config, OSPF_LOG_ADJACENCY_DETAIL) ||
+	     (next_state == NSM_Full) || (next_state < nbr->state)))
+		zlog_notice("AdjChg: Nbr %pI4, NbrIP %pI4 (%s) on %s: %s -> %s (%s)",
+			    &nbr->router_id, &nbr->src,
+			    ospf_get_name(nbr->oi->ospf), IF_NAME(nbr->oi),
+			    lookup_msg(ospf_nsm_state_msg, nbr->state, NULL),
+			    lookup_msg(ospf_nsm_state_msg, next_state, NULL),
+			    ospf_nsm_event_str[event]);
 
 	/* Advance in NSM */
 	if (next_state > nbr->state)
@@ -676,8 +672,8 @@ static void nsm_change_state(struct ospf_neighbor *nbr, int state)
 	case ISM_DROther:
 	case ISM_Backup:
 	case ISM_DR:
-		if ((old_state < NSM_TwoWay && state >= NSM_TwoWay)
-		    || (old_state >= NSM_TwoWay && state < NSM_TwoWay))
+		if ((old_state < NSM_TwoWay && state >= NSM_TwoWay) ||
+		    (old_state >= NSM_TwoWay && state < NSM_TwoWay))
 			OSPF_ISM_EVENT_EXECUTE(oi, ISM_NeighborChange);
 		break;
 	default:
@@ -687,8 +683,8 @@ static void nsm_change_state(struct ospf_neighbor *nbr, int state)
 	}
 
 	/* One of the neighboring routers changes to/from the FULL state. */
-	if ((old_state != NSM_Full && state == NSM_Full)
-	    || (old_state == NSM_Full && state != NSM_Full)) {
+	if ((old_state != NSM_Full && state == NSM_Full) ||
+	    (old_state == NSM_Full && state != NSM_Full)) {
 		if (state == NSM_Full) {
 			oi->full_nbrs++;
 			oi->area->full_nbrs++;
@@ -707,17 +703,16 @@ static void nsm_change_state(struct ospf_neighbor *nbr, int state)
 			if (oi->type == OSPF_IFTYPE_VIRTUALLINK && vl_area)
 				if (vl_area->full_vls > 0)
 					if (--vl_area->full_vls == 0)
-						ospf_schedule_abr_task(
-							oi->ospf);
+						ospf_schedule_abr_task(oi->ospf);
 		}
 
 		if (CHECK_FLAG(oi->ospf->config, OSPF_LOG_ADJACENCY_DETAIL))
-			zlog_info(
-				"%s:[%pI4:%s], %s -> %s): scheduling new router-LSA origination",
-				__func__, &nbr->router_id,
-				ospf_get_name(oi->ospf),
-				lookup_msg(ospf_nsm_state_msg, old_state, NULL),
-				lookup_msg(ospf_nsm_state_msg, state, NULL));
+			zlog_info("%s:[%pI4:%s], %s -> %s): scheduling new router-LSA origination",
+				  __func__, &nbr->router_id,
+				  ospf_get_name(oi->ospf),
+				  lookup_msg(ospf_nsm_state_msg, old_state,
+					     NULL),
+				  lookup_msg(ospf_nsm_state_msg, state, NULL));
 
 		/* Dont originate router LSA if the current
 		 * router is acting as a HELPER for this neighbour.
@@ -726,8 +721,10 @@ static void nsm_change_state(struct ospf_neighbor *nbr, int state)
 			ospf_router_lsa_update_area(oi->area);
 
 		if (oi->type == OSPF_IFTYPE_VIRTUALLINK) {
-			vl_area = ospf_area_lookup_by_area_id(
-				oi->ospf, oi->vl_data->vl_area_id);
+			vl_area =
+				ospf_area_lookup_by_area_id(oi->ospf,
+							    oi->vl_data
+								    ->vl_area_id);
 
 			if (vl_area)
 				ospf_router_lsa_update_area(vl_area);
@@ -739,10 +736,9 @@ static void nsm_change_state(struct ospf_neighbor *nbr, int state)
 		if (!OSPF_GR_IS_ACTIVE_HELPER(nbr)) {
 			/* Originate network-LSA. */
 			if (oi->state == ISM_DR) {
-				if (oi->network_lsa_self
-				    && oi->full_nbrs == 0) {
-					ospf_lsa_flush_area(
-						oi->network_lsa_self, oi->area);
+				if (oi->network_lsa_self && oi->full_nbrs == 0) {
+					ospf_lsa_flush_area(oi->network_lsa_self,
+							    oi->area);
 					ospf_lsa_unlock(&oi->network_lsa_self);
 					oi->network_lsa_self = NULL;
 				} else
@@ -773,10 +769,9 @@ static void nsm_change_state(struct ospf_neighbor *nbr, int state)
 		nbr->dd_flags =
 			OSPF_DD_FLAG_I | OSPF_DD_FLAG_M | OSPF_DD_FLAG_MS;
 		if (CHECK_FLAG(oi->ospf->config, OSPF_LOG_ADJACENCY_DETAIL))
-			zlog_info(
-				"%s: Initializing [DD]: %pI4 with seqnum:%x , flags:%x",
-				ospf_get_name(oi->ospf), &nbr->router_id,
-				nbr->dd_seqnum, nbr->dd_flags);
+			zlog_info("%s: Initializing [DD]: %pI4 with seqnum:%x , flags:%x",
+				  ospf_get_name(oi->ospf), &nbr->router_id,
+				  nbr->dd_seqnum, nbr->dd_flags);
 		ospf_db_desc_send(nbr);
 	}
 
@@ -802,8 +797,7 @@ void ospf_nsm_event(struct event *thread)
 
 	if (IS_DEBUG_OSPF(nsm, NSM_EVENTS))
 		zlog_debug("NSM[%s:%pI4:%s]: %s (%s)", IF_NAME(nbr->oi),
-			   &nbr->router_id,
-			   ospf_get_name(nbr->oi->ospf),
+			   &nbr->router_id, ospf_get_name(nbr->oi->ospf),
 			   lookup_msg(ospf_nsm_state_msg, nbr->state, NULL),
 			   ospf_nsm_event_str[event]);
 
@@ -824,16 +818,15 @@ void ospf_nsm_event(struct event *thread)
 			 * not
 			 * try set next_state.
 			 */
-			flog_err(
-				EC_OSPF_FSM_INVALID_STATE,
-				"NSM[%s:%pI4:%s]: %s (%s): Warning: action tried to change next_state to %s",
-				IF_NAME(nbr->oi), &nbr->router_id,
-				ospf_get_name(nbr->oi->ospf),
-				lookup_msg(ospf_nsm_state_msg, nbr->state,
-					   NULL),
-				ospf_nsm_event_str[event],
-				lookup_msg(ospf_nsm_state_msg, func_state,
-					   NULL));
+			flog_err(EC_OSPF_FSM_INVALID_STATE,
+				 "NSM[%s:%pI4:%s]: %s (%s): Warning: action tried to change next_state to %s",
+				 IF_NAME(nbr->oi), &nbr->router_id,
+				 ospf_get_name(nbr->oi->ospf),
+				 lookup_msg(ospf_nsm_state_msg, nbr->state,
+					    NULL),
+				 ospf_nsm_event_str[event],
+				 lookup_msg(ospf_nsm_state_msg, func_state,
+					    NULL));
 		}
 	}
 

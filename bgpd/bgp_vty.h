@@ -15,27 +15,28 @@ struct bgp;
 
 #define BGP_AF_STR "Address Family\n"
 #define BGP_AF_MODIFIER_STR "Address Family modifier\n"
-#define BGP_AFI_CMD_STR         "<ipv4|ipv6>"
+#define BGP_AFI_CMD_STR "<ipv4|ipv6>"
 #define BGP_AFI_HELP_STR BGP_AF_STR BGP_AF_STR
-#define BGP_SAFI_CMD_STR        "<unicast|multicast|vpn>"
+#define BGP_SAFI_CMD_STR "<unicast|multicast|vpn>"
 #define BGP_SAFI_HELP_STR                                                      \
 	BGP_AF_MODIFIER_STR BGP_AF_MODIFIER_STR BGP_AF_MODIFIER_STR
-#define BGP_AFI_SAFI_CMD_STR    BGP_AFI_CMD_STR" "BGP_SAFI_CMD_STR
-#define BGP_AFI_SAFI_HELP_STR   BGP_AFI_HELP_STR BGP_SAFI_HELP_STR
+#define BGP_AFI_SAFI_CMD_STR BGP_AFI_CMD_STR " " BGP_SAFI_CMD_STR
+#define BGP_AFI_SAFI_HELP_STR BGP_AFI_HELP_STR BGP_SAFI_HELP_STR
 
-#define BGP_SAFI_WITH_LABEL_CMD_STR  "<unicast|multicast|vpn|labeled-unicast|flowspec>"
+#define BGP_SAFI_WITH_LABEL_CMD_STR                                            \
+	"<unicast|multicast|vpn|labeled-unicast|flowspec>"
 #define BGP_SAFI_WITH_LABEL_HELP_STR                                           \
 	BGP_AF_MODIFIER_STR BGP_AF_MODIFIER_STR BGP_AF_MODIFIER_STR            \
 		BGP_AF_MODIFIER_STR BGP_AF_MODIFIER_STR
 
-#define BGP_SELF_ORIG_CMD_STR       "self-originate"
-#define BGP_SELF_ORIG_HELP_STR      "Display only self-originated routes\n"
+#define BGP_SELF_ORIG_CMD_STR "self-originate"
+#define BGP_SELF_ORIG_HELP_STR "Display only self-originated routes\n"
 
-#define SHOW_GR_HEADER \
-	"Codes: GR - Graceful Restart," \
-	" * -  Inheriting Global GR Config,\n" \
-	"       Restart - GR Mode-Restarting," \
-	" Helper - GR Mode-Helper,\n" \
+#define SHOW_GR_HEADER                                                         \
+	"Codes: GR - Graceful Restart,"                                        \
+	" * -  Inheriting Global GR Config,\n"                                 \
+	"       Restart - GR Mode-Restarting,"                                 \
+	" Helper - GR Mode-Helper,\n"                                          \
 	"       Disable - GR Mode-Disable.\n\n"
 
 #define BGP_SHOW_SUMMARY_HEADER_ALL                                            \
@@ -44,14 +45,15 @@ struct bgp;
 	"V         AS    LocalAS   MsgRcvd   MsgSent   TblVer  InQ OutQ  Up/Down State/PfxRcd   PfxSnt Desc\n"
 #define BGP_SHOW_SUMMARY_HEADER_FAILED "EstdCnt DropCnt ResetTime Reason\n"
 
-#define BGP_SHOW_PEER_GR_CAPABILITY(vty, p, json)                              \
-	do {                                                                   \
-		bgp_show_neighbor_graceful_restart_local_mode(vty, p, json);   \
-		bgp_show_neighbor_graceful_restart_remote_mode(vty, p, json);  \
-		bgp_show_neighnor_graceful_restart_flags(vty, p, json);        \
-		bgp_show_neighbor_graceful_restart_time(vty, p, json);         \
-		bgp_show_neighbor_graceful_restart_capability_per_afi_safi(    \
-			vty, p, json);                                         \
+#define BGP_SHOW_PEER_GR_CAPABILITY(vty, p, json)                                 \
+	do {                                                                      \
+		bgp_show_neighbor_graceful_restart_local_mode(vty, p, json);      \
+		bgp_show_neighbor_graceful_restart_remote_mode(vty, p, json);     \
+		bgp_show_neighnor_graceful_restart_flags(vty, p, json);           \
+		bgp_show_neighbor_graceful_restart_time(vty, p, json);            \
+		bgp_show_neighbor_graceful_restart_capability_per_afi_safi(vty,   \
+									   p,     \
+									   json); \
 	} while (0)
 
 #define VTY_BGP_GR_DEFINE_LOOP_VARIABLE                                        \
@@ -74,42 +76,40 @@ struct bgp;
 
 #define VTY_SEND_BGP_GR_CAPABILITY_TO_ZEBRA(_bgp, _ret)                        \
 	do {                                                                   \
-		if (gr_router_detected                                         \
-		    && _bgp->present_zebra_gr_state == ZEBRA_GR_DISABLE) {     \
+		if (gr_router_detected &&                                      \
+		    _bgp->present_zebra_gr_state == ZEBRA_GR_DISABLE) {        \
 			if (bgp_zebra_send_capabilities(_bgp, false))          \
 				_ret = BGP_ERR_INVALID_VALUE;                  \
-		} else if (!gr_router_detected                                 \
-			   && _bgp->present_zebra_gr_state                     \
-				      == ZEBRA_GR_ENABLE) {                    \
+		} else if (!gr_router_detected &&                              \
+			   _bgp->present_zebra_gr_state == ZEBRA_GR_ENABLE) {  \
 			if (bgp_zebra_send_capabilities(_bgp, true))           \
 				_ret = BGP_ERR_INVALID_VALUE;                  \
 		}                                                              \
 	} while (0)
 
-#define VTY_BGP_GR_ROUTER_DETECT_AND_SEND_CAPABILITY_TO_ZEBRA(                 \
-	_bgp, _peer_list, _ret)                                                \
-	do {                                                                   \
-		struct peer *peer_loop;                                        \
-		bool gr_router_detected = false;                               \
-		struct listnode *node = {0};                                   \
-		struct listnode *nnode = {0};                                  \
-		for (ALL_LIST_ELEMENTS(_peer_list, node, nnode, peer_loop)) {  \
-			if (peer_loop->bgp->t_startup)                         \
-				bgp_peer_gr_flags_update(peer_loop);           \
-			if (CHECK_FLAG(peer_loop->flags,                       \
-				       PEER_FLAG_GRACEFUL_RESTART))            \
-				gr_router_detected = true;                     \
-		}                                                              \
-		if (gr_router_detected                                         \
-		    && _bgp->present_zebra_gr_state == ZEBRA_GR_DISABLE) {     \
-			if (bgp_zebra_send_capabilities(_bgp, false))          \
-				_ret = BGP_ERR_INVALID_VALUE;                  \
-		} else if (!gr_router_detected                                 \
-			   && _bgp->present_zebra_gr_state                     \
-				      == ZEBRA_GR_ENABLE) {                    \
-			if (bgp_zebra_send_capabilities(_bgp, true))           \
-				_ret = BGP_ERR_INVALID_VALUE;                  \
-		}                                                              \
+#define VTY_BGP_GR_ROUTER_DETECT_AND_SEND_CAPABILITY_TO_ZEBRA(_bgp,             \
+							      _peer_list, _ret) \
+	do {                                                                    \
+		struct peer *peer_loop;                                         \
+		bool gr_router_detected = false;                                \
+		struct listnode *node = {0};                                    \
+		struct listnode *nnode = {0};                                   \
+		for (ALL_LIST_ELEMENTS(_peer_list, node, nnode, peer_loop)) {   \
+			if (peer_loop->bgp->t_startup)                          \
+				bgp_peer_gr_flags_update(peer_loop);            \
+			if (CHECK_FLAG(peer_loop->flags,                        \
+				       PEER_FLAG_GRACEFUL_RESTART))             \
+				gr_router_detected = true;                      \
+		}                                                               \
+		if (gr_router_detected &&                                       \
+		    _bgp->present_zebra_gr_state == ZEBRA_GR_DISABLE) {         \
+			if (bgp_zebra_send_capabilities(_bgp, false))           \
+				_ret = BGP_ERR_INVALID_VALUE;                   \
+		} else if (!gr_router_detected &&                               \
+			   _bgp->present_zebra_gr_state == ZEBRA_GR_ENABLE) {   \
+			if (bgp_zebra_send_capabilities(_bgp, true))            \
+				_ret = BGP_ERR_INVALID_VALUE;                   \
+		}                                                               \
 	} while (0)
 
 
@@ -121,16 +121,14 @@ struct bgp;
 			vty_out(vty, "No\n");                                  \
 	} while (0)
 
-#define PRINT_EOR_JSON(_eor_flag)                                              \
-	do {                                                                   \
-		if (eor_flag)                                                  \
-			json_object_boolean_true_add(                          \
-				json_endofrib_status,                          \
-				"endOfRibSentAfterUpdate");                    \
-		else                                                           \
-			json_object_boolean_false_add(                         \
-				json_endofrib_status,                          \
-				"endOfRibSentAfterUpdate");                    \
+#define PRINT_EOR_JSON(_eor_flag)                                                 \
+	do {                                                                      \
+		if (eor_flag)                                                     \
+			json_object_boolean_true_add(json_endofrib_status,        \
+						     "endOfRibSentAfterUpdate");  \
+		else                                                              \
+			json_object_boolean_false_add(json_endofrib_status,       \
+						      "endOfRibSentAfterUpdate"); \
 	} while (0)
 
 extern void bgp_clear_soft_in(struct bgp *bgp, afi_t afi, safi_t safi);

@@ -49,9 +49,9 @@ extern struct zebra_privs_t zserv_privs;
  * bug if frr calls ROUNDUP with 0.
  */
 #ifdef __APPLE__
-#define ROUNDUP_TYPE	int
+#define ROUNDUP_TYPE int
 #else
-#define ROUNDUP_TYPE	long
+#define ROUNDUP_TYPE long
 #endif
 
 /*
@@ -61,7 +61,7 @@ extern struct zebra_privs_t zserv_privs;
 
 /* OS X (Xcode as of 2014-12) is known not to define RT_ROUNDUP */
 #if defined(RT_ROUNDUP)
-#define ROUNDUP(a)	RT_ROUNDUP(a)
+#define ROUNDUP(a) RT_ROUNDUP(a)
 #endif /* defined(RT_ROUNDUP) */
 
 /*
@@ -84,14 +84,14 @@ extern struct zebra_privs_t zserv_privs;
 
 #if defined(SA_SIZE)
 /* SAROUNDUP is the only thing we need, and SA_SIZE provides that */
-#define SAROUNDUP(a)	SA_SIZE(a)
+#define SAROUNDUP(a) SA_SIZE(a)
 #else /* !SA_SIZE */
 /*
  * Given a pointer (sockaddr or void *), return the number of bytes
  * taken up by the sockaddr and any padding needed for alignment.
  */
 #if defined(HAVE_STRUCT_SOCKADDR_SA_LEN)
-#define SAROUNDUP(X)   ROUNDUP(((struct sockaddr *)(X))->sa_len)
+#define SAROUNDUP(X) ROUNDUP(((struct sockaddr *)(X))->sa_len)
 #else
 /*
  * One would hope all fixed-size structure definitions are aligned,
@@ -128,7 +128,7 @@ const struct message rtm_type_str[] = {{RTM_ADD, "RTM_ADD"},
 #endif /* RTM_OLDDEL */
 #ifdef RTM_RESOLVE
 				       {RTM_RESOLVE, "RTM_RESOLVE"},
-#endif	/* RTM_RESOLVE */
+#endif /* RTM_RESOLVE */
 				       {RTM_NEWADDR, "RTM_NEWADDR"},
 				       {RTM_DELADDR, "RTM_DELADDR"},
 				       {RTM_IFINFO, "RTM_IFINFO"},
@@ -261,9 +261,8 @@ size_t _rta_get(caddr_t sap, void *destp, size_t destlen, bool checkaf)
 		}
 
 		if (copylen > destlen) {
-			zlog_warn(
-				"%s: destination buffer too small (%zu vs %zu)",
-				__func__, copylen, destlen);
+			zlog_warn("%s: destination buffer too small (%zu vs %zu)",
+				  __func__, copylen, destlen);
 			memcpy(dest, sap, destlen);
 		} else
 			memcpy(dest, sap, copylen);
@@ -299,9 +298,8 @@ size_t rta_getsdlname(caddr_t sap, void *destp, short *destlen)
 
 	if (copylen > 0 && dest != NULL && sdl->sdl_family == AF_LINK) {
 		if (copylen > IFNAMSIZ) {
-			zlog_warn(
-				"%s: destination buffer too small (%zu vs %d)",
-				__func__, copylen, IFNAMSIZ);
+			zlog_warn("%s: destination buffer too small (%zu vs %d)",
+				  __func__, copylen, IFNAMSIZ);
 			memcpy(dest, sdl->sdl_data, IFNAMSIZ);
 			dest[IFNAMSIZ] = 0;
 			*destlen = IFNAMSIZ;
@@ -420,15 +418,14 @@ static int ifan_read(struct if_announcemsghdr *ifan)
 	ifp = if_lookup_by_index(ifan->ifan_index, VRF_DEFAULT);
 
 	if (ifp)
-		assert((ifp->ifindex == ifan->ifan_index)
-		       || (ifp->ifindex == IFINDEX_INTERNAL));
+		assert((ifp->ifindex == ifan->ifan_index) ||
+		       (ifp->ifindex == IFINDEX_INTERNAL));
 
-	if ((ifp == NULL) || ((ifp->ifindex == IFINDEX_INTERNAL)
-			      && (ifan->ifan_what == IFAN_ARRIVAL))) {
+	if ((ifp == NULL) || ((ifp->ifindex == IFINDEX_INTERNAL) &&
+			      (ifan->ifan_what == IFAN_ARRIVAL))) {
 		if (IS_ZEBRA_DEBUG_KERNEL)
-			zlog_debug(
-				"%s: creating interface for ifindex %d, name %s",
-				__func__, ifan->ifan_index, ifan->ifan_name);
+			zlog_debug("%s: creating interface for ifindex %d, name %s",
+				   __func__, ifan->ifan_index, ifan->ifan_name);
 
 		/* Create Interface */
 		ifp = if_get_by_name(ifan->ifan_name, VRF_DEFAULT,
@@ -457,8 +454,8 @@ static int ifan_read(struct if_announcemsghdr *ifan)
 /* BSD link detect translation */
 static void bsd_linkdetect_translate(struct if_msghdr *ifm)
 {
-	if ((ifm->ifm_data.ifi_link_state >= LINK_STATE_UP)
-	    || (ifm->ifm_data.ifi_link_state == LINK_STATE_UNKNOWN))
+	if ((ifm->ifm_data.ifi_link_state >= LINK_STATE_UP) ||
+	    (ifm->ifm_data.ifi_link_state == LINK_STATE_UNKNOWN))
 		SET_FLAG(ifm->ifm_flags, IFF_RUNNING);
 	else
 		UNSET_FLAG(ifm->ifm_flags, IFF_RUNNING);
@@ -564,9 +561,8 @@ int ifm_read(struct if_msghdr *ifm)
 		 */
 		if (ifnlen && (strncmp(ifp->name, ifname, IFNAMSIZ) != 0)) {
 			if (IS_ZEBRA_DEBUG_KERNEL)
-				zlog_debug(
-					"%s: ifp name %s doesn't match sdl name %s",
-					__func__, ifp->name, ifname);
+				zlog_debug("%s: ifp name %s doesn't match sdl name %s",
+					   __func__, ifp->name, ifname);
 			ifp = NULL;
 		}
 	}
@@ -622,9 +618,8 @@ int ifm_read(struct if_msghdr *ifm)
 		}
 
 		if (IS_ZEBRA_DEBUG_KERNEL)
-			zlog_debug(
-				"%s: updated/created ifp, ifname %s, ifindex %d",
-				__func__, ifp->name, ifp->ifindex);
+			zlog_debug("%s: updated/created ifp, ifname %s, ifindex %d",
+				   __func__, ifp->name, ifp->ifindex);
 		/*
 		 * Fill in newly created interface structure, or larval
 		 * structure with ifindex IFINDEX_INTERNAL.
@@ -666,8 +661,7 @@ int ifm_read(struct if_msghdr *ifm)
 
 			ifp->ll_type = sdl_to_zebra_link_type(sdl->sdl_type);
 			if (sdl->sdl_alen <= sizeof(ifp->hw_addr)) {
-				memcpy(ifp->hw_addr, LLADDR(sdl),
-				       sdl->sdl_alen);
+				memcpy(ifp->hw_addr, LLADDR(sdl), sdl->sdl_alen);
 				ifp->hw_addr_len = sdl->sdl_alen;
 			}
 		}
@@ -683,10 +677,9 @@ int ifm_read(struct if_msghdr *ifm)
 	 */
 	{
 		if (ifp->ifindex != ifm->ifm_index) {
-			zlog_debug(
-				"%s: index mismatch, ifname %s, ifp index %d, ifm index %d",
-				__func__, ifp->name, ifp->ifindex,
-				ifm->ifm_index);
+			zlog_debug("%s: index mismatch, ifname %s, ifp index %d, ifm index %d",
+				   __func__, ifp->name, ifp->ifindex,
+				   ifm->ifm_index);
 			return -1;
 		}
 
@@ -804,13 +797,12 @@ static void ifam_read_mesg(struct ifa_msghdr *ifm, union sockunion *addr,
 				(sockunion_family(addr) == AF_INET)
 					? ip_masklen(mask->sin.sin_addr)
 					: ip6_masklen(mask->sin6.sin6_addr);
-			zlog_debug(
-				"%s: ifindex %d, ifname %s, ifam_addrs {%s}, ifam_flags 0x%x, addr %pSU/%d broad %pSU dst %pSU gateway %pSU",
-				__func__, ifm->ifam_index,
-				(ifnlen ? ifname : "(nil)"),
-				rtatostr(ifm->ifam_addrs, fbuf, sizeof(fbuf)),
-				ifm->ifam_flags, addr, masklen, brd, &dst,
-				&gateway);
+			zlog_debug("%s: ifindex %d, ifname %s, ifam_addrs {%s}, ifam_flags 0x%x, addr %pSU/%d broad %pSU dst %pSU gateway %pSU",
+				   __func__, ifm->ifam_index,
+				   (ifnlen ? ifname : "(nil)"),
+				   rtatostr(ifm->ifam_addrs, fbuf, sizeof(fbuf)),
+				   ifm->ifam_flags, addr, masklen, brd, &dst,
+				   &gateway);
 		} break;
 		default:
 			zlog_debug("%s: ifindex %d, ifname %s, ifam_addrs {%s}",
@@ -1027,8 +1019,8 @@ void rtm_read(struct rt_msghdr *rtm)
 		return;
 #endif
 
-	if ((rtm->rtm_type == RTM_ADD || rtm->rtm_type == RTM_CHANGE)
-	    && !(flags & RTF_UP))
+	if ((rtm->rtm_type == RTM_ADD || rtm->rtm_type == RTM_CHANGE) &&
+	    !(flags & RTF_UP))
 		return;
 
 	/* This is connected route. */
@@ -1097,15 +1089,14 @@ void rtm_read(struct rt_msghdr *rtm)
 	} else
 		return;
 
-	if (rtm->rtm_type == RTM_GET || rtm->rtm_type == RTM_ADD
-	    || rtm->rtm_type == RTM_CHANGE)
+	if (rtm->rtm_type == RTM_GET || rtm->rtm_type == RTM_ADD ||
+	    rtm->rtm_type == RTM_CHANGE)
 		rib_add(afi, SAFI_UNICAST, VRF_DEFAULT, proto, 0, zebra_flags,
 			&p, NULL, &nh, 0, RT_TABLE_MAIN, 0, 0, distance, 0,
 			false);
 	else
-		rib_delete(afi, SAFI_UNICAST, VRF_DEFAULT, proto, 0,
-			   zebra_flags, &p, NULL, &nh, 0, RT_TABLE_MAIN, 0,
-			   distance, true);
+		rib_delete(afi, SAFI_UNICAST, VRF_DEFAULT, proto, 0, zebra_flags,
+			   &p, NULL, &nh, 0, RT_TABLE_MAIN, 0, distance, true);
 }
 
 /* Interface function for the kernel routing table updates.  Support
@@ -1160,8 +1151,8 @@ int rtm_write(int message, union sockunion *dest, union sockunion *mask,
  * other flag instead?
  */
 #ifdef RTF_CLONING
-	if (!gate && (message == RTM_ADD || message == RTM_CHANGE) && ifp
-	    && (ifp->flags & IFF_POINTOPOINT) == 0)
+	if (!gate && (message == RTM_ADD || message == RTM_CHANGE) && ifp &&
+	    (ifp->flags & IFF_POINTOPOINT) == 0)
 		msg.rtm.rtm_flags |= RTF_CLONING;
 #endif /* RTF_CLONING */
 
@@ -1177,10 +1168,9 @@ int rtm_write(int message, union sockunion *dest, union sockunion *mask,
 			if (mask)
 				inet_ntop(AF_INET, &mask->sin.sin_addr,
 					  mask_buf, INET_ADDRSTRLEN);
-			flog_warn(
-				EC_ZEBRA_RTM_NO_GATEWAY,
-				"%s: %s/%s: gate == NULL and no gateway found for ifindex %d",
-				__func__, dest_buf, mask_buf, index);
+			flog_warn(EC_ZEBRA_RTM_NO_GATEWAY,
+				  "%s: %s/%s: gate == NULL and no gateway found for ifindex %d",
+				  __func__, dest_buf, mask_buf, index);
 			return -1;
 		}
 		gate = (union sockunion *)&((struct zebra_if *)ifp->info)->sdl;
@@ -1196,8 +1186,8 @@ int rtm_write(int message, union sockunion *dest, union sockunion *mask,
 		msg.rtm.rtm_addrs |= RTA_SRC;
 		msg.rtm.rtm_flags |= RTF_MPLS;
 
-		if (mpls->smpls.smpls_label
-		    != htonl(MPLS_LABEL_IMPLICIT_NULL << MPLS_LABEL_OFFSET))
+		if (mpls->smpls.smpls_label !=
+		    htonl(MPLS_LABEL_IMPLICIT_NULL << MPLS_LABEL_OFFSET))
 			msg.rtm.rtm_mpls = MPLS_OP_PUSH;
 	}
 #endif
@@ -1274,9 +1264,9 @@ static void rtmsg_debug(struct rt_msghdr *rtm)
 /* This is pretty gross, better suggestions welcome -- mhandler */
 #ifndef RTAX_MAX
 #ifdef RTA_NUMBITS
-#define RTAX_MAX	RTA_NUMBITS
+#define RTAX_MAX RTA_NUMBITS
 #else
-#define RTAX_MAX	8
+#define RTAX_MAX 8
 #endif /* RTA_NUMBITS */
 #endif /* RTAX_MAX */
 
@@ -1399,10 +1389,9 @@ static void kernel_read(struct event *thread)
 #endif /* RTM_IFANNOUNCE */
 	default:
 		if (IS_ZEBRA_DEBUG_KERNEL)
-			zlog_debug(
-				"Unprocessed RTM_type: %s(%d)",
-				lookup_msg(rtm_type_str, rtm->rtm_type, NULL),
-				rtm->rtm_type);
+			zlog_debug("Unprocessed RTM_type: %s(%d)",
+				   lookup_msg(rtm_type_str, rtm->rtm_type, NULL),
+				   rtm->rtm_type);
 		break;
 	}
 }
@@ -1413,7 +1402,7 @@ static void routing_socket(struct zebra_ns *zns)
 	uint32_t default_rcvbuf;
 	socklen_t optlen;
 
-	frr_with_privs(&zserv_privs) {
+	frr_with_privs (&zserv_privs) {
 		routing_sock = ns_socket(AF_ROUTE, SOCK_RAW, 0, zns->ns_id);
 
 		dplane_routing_sock =

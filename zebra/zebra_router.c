@@ -139,11 +139,10 @@ void zebra_router_show_table_summary(struct vty *vty)
 	RB_FOREACH (zrt, zebra_router_table_head, &zrouter.tables) {
 		struct rib_table_info *info = route_table_get_info(zrt->table);
 
-		vty_out(vty, "%-16s%5d %9d %7s %15s %8d %10lu\n", info->zvrf->vrf->name,
-			zrt->ns_id, info->zvrf->vrf->vrf_id,
-			afi2str(zrt->afi), safi2str(zrt->safi),
-			zrt->tableid,
-			zrt->table->count);
+		vty_out(vty, "%-16s%5d %9d %7s %15s %8d %10lu\n",
+			info->zvrf->vrf->name, zrt->ns_id,
+			info->zvrf->vrf->vrf_id, afi2str(zrt->afi),
+			safi2str(zrt->safi), zrt->tableid, zrt->table->count);
 	}
 }
 
@@ -196,16 +195,14 @@ void zebra_router_release_table(struct zebra_vrf *zvrf, uint32_t tableid,
 
 uint32_t zebra_router_get_next_sequence(void)
 {
-	return 1
-	       + atomic_fetch_add_explicit(&zrouter.sequence_num, 1,
-					   memory_order_relaxed);
+	return 1 + atomic_fetch_add_explicit(&zrouter.sequence_num, 1,
+					     memory_order_relaxed);
 }
 
 void multicast_mode_ipv4_set(enum multicast_mode mode)
 {
 	if (IS_ZEBRA_DEBUG_RIB)
-		zlog_debug("%s: multicast lookup mode set (%d)", __func__,
-			   mode);
+		zlog_debug("%s: multicast lookup mode set (%d)", __func__, mode);
 	zrouter.ipv4_multicast_mode = mode;
 }
 
@@ -269,17 +266,18 @@ void zebra_router_init(bool asic_offload, bool notify_on_ack)
 	zebra_mlag_init();
 	zebra_neigh_init();
 
-	zrouter.rules_hash = hash_create_size(8, zebra_pbr_rules_hash_key,
-					      zebra_pbr_rules_hash_equal,
-					      "Rules Hash");
+	zrouter.rules_hash =
+		hash_create_size(8, zebra_pbr_rules_hash_key,
+				 zebra_pbr_rules_hash_equal, "Rules Hash");
 
 	zrouter.ipset_hash =
 		hash_create_size(8, zebra_pbr_ipset_hash_key,
 				 zebra_pbr_ipset_hash_equal, "IPset Hash");
 
-	zrouter.ipset_entry_hash = hash_create_size(
-		8, zebra_pbr_ipset_entry_hash_key,
-		zebra_pbr_ipset_entry_hash_equal, "IPset Hash Entry");
+	zrouter.ipset_entry_hash =
+		hash_create_size(8, zebra_pbr_ipset_entry_hash_key,
+				 zebra_pbr_ipset_entry_hash_equal,
+				 "IPset Hash Entry");
 
 	zrouter.iptable_hash = hash_create_size(8, zebra_pbr_iptable_hash_key,
 						zebra_pbr_iptable_hash_equal,

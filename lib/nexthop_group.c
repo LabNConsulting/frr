@@ -169,15 +169,15 @@ static struct nexthop *nhg_nh_find(const struct nexthop_group *nhg,
 		switch (nexthop->type) {
 		case NEXTHOP_TYPE_IPV4:
 		case NEXTHOP_TYPE_IPV6:
-			ret = nexthop_g_addr_cmp(nexthop->type,
-						 &nexthop->gate, &nh->gate);
+			ret = nexthop_g_addr_cmp(nexthop->type, &nexthop->gate,
+						 &nh->gate);
 			if (ret != 0)
 				continue;
 			break;
 		case NEXTHOP_TYPE_IPV4_IFINDEX:
 		case NEXTHOP_TYPE_IPV6_IFINDEX:
-			ret = nexthop_g_addr_cmp(nexthop->type,
-						 &nexthop->gate, &nh->gate);
+			ret = nexthop_g_addr_cmp(nexthop->type, &nexthop->gate,
+						 &nh->gate);
 			if (ret != 0)
 				continue;
 			/* Intentional Fall-Through */
@@ -197,11 +197,10 @@ static struct nexthop *nhg_nh_find(const struct nexthop_group *nhg,
 	return NULL;
 }
 
-static bool
-nexthop_group_equal_common(const struct nexthop_group *nhg1,
-			   const struct nexthop_group *nhg2,
-			   uint8_t (*nexthop_group_nexthop_num_func)(
-				   const struct nexthop_group *nhg))
+static bool nexthop_group_equal_common(const struct nexthop_group *nhg1,
+				       const struct nexthop_group *nhg2,
+				       uint8_t (*nexthop_group_nexthop_num_func)(
+					       const struct nexthop_group *nhg))
 {
 	if (nhg1 && !nhg2)
 		return false;
@@ -212,8 +211,8 @@ nexthop_group_equal_common(const struct nexthop_group *nhg1,
 	if (nhg1 == nhg2)
 		return true;
 
-	if (nexthop_group_nexthop_num_func(nhg1)
-	    != nexthop_group_nexthop_num_func(nhg2))
+	if (nexthop_group_nexthop_num_func(nhg1) !=
+	    nexthop_group_nexthop_num_func(nhg2))
 		return false;
 
 	return true;
@@ -305,8 +304,7 @@ void _nexthop_add(struct nexthop **target, struct nexthop *nexthop)
 }
 
 /* Add nexthop to sorted list of nexthops */
-static void _nexthop_add_sorted(struct nexthop **head,
-				struct nexthop *nexthop)
+static void _nexthop_add_sorted(struct nexthop **head, struct nexthop *nexthop)
 {
 	struct nexthop *position, *prev;
 
@@ -335,8 +333,7 @@ static void _nexthop_add_sorted(struct nexthop **head,
 		*head = nexthop;
 }
 
-void nexthop_group_add_sorted(struct nexthop_group *nhg,
-			      struct nexthop *nexthop)
+void nexthop_group_add_sorted(struct nexthop_group *nhg, struct nexthop *nexthop)
 {
 	struct nexthop *tail;
 
@@ -482,8 +479,7 @@ void nexthop_group_mark_duplicates(struct nexthop_group *nhg)
 			if (prev == nexthop)
 				break;
 			if (nexthop_same(nexthop, prev)) {
-				SET_FLAG(nexthop->flags,
-					 NEXTHOP_FLAG_DUPLICATE);
+				SET_FLAG(nexthop->flags, NEXTHOP_FLAG_DUPLICATE);
 				break;
 			}
 		}
@@ -531,7 +527,8 @@ static int nhgc_cmp_helper(const char *a, const char *b)
 	return strcmp(a, b);
 }
 
-static int nhgc_addr_cmp_helper(const union sockunion *a, const union sockunion *b)
+static int nhgc_addr_cmp_helper(const union sockunion *a,
+				const union sockunion *b)
 {
 	if (!a && !b)
 		return 0;
@@ -650,8 +647,7 @@ DEFUN_NOSH(no_nexthop_group, no_nexthop_group_cmd, "no nexthop-group NHGNAME",
 	return CMD_SUCCESS;
 }
 
-DEFPY(nexthop_group_backup, nexthop_group_backup_cmd,
-      "backup-group WORD$name",
+DEFPY(nexthop_group_backup, nexthop_group_backup_cmd, "backup-group WORD$name",
       "Specify a group name containing backup nexthops\n"
       "The name of the backup group\n")
 {
@@ -675,8 +671,7 @@ DEFPY(no_nexthop_group_backup, no_nexthop_group_backup_cmd,
 	return CMD_SUCCESS;
 }
 
-DEFPY(nexthop_group_resilience,
-      nexthop_group_resilience_cmd,
+DEFPY(nexthop_group_resilience, nexthop_group_resilience_cmd,
       "resilient buckets (1-256) idle-timer (1-4294967295) unbalanced-timer (1-4294967295)",
       "A resilient Nexthop Group\n"
       "Buckets in the Hash for this Group\n"
@@ -698,8 +693,7 @@ DEFPY(nexthop_group_resilience,
 	return CMD_SUCCESS;
 }
 
-DEFPY(no_nexthop_group_resilience,
-      no_nexthop_group_resilience_cmd,
+DEFPY(no_nexthop_group_resilience, no_nexthop_group_resilience_cmd,
       "no resilient [buckets (1-256) idle-timer (1-4294967295) unbalanced-timer (1-4294967295)]",
       NO_STR
       "A resilient Nexthop Group\n"
@@ -765,9 +759,9 @@ static void nexthop_group_unsave_nhop(struct nexthop_group_cmd *nhgc,
 	struct listnode *node;
 
 	for (ALL_LIST_ELEMENTS_RO(nhgc->nhg_list, node, nh)) {
-		if (nhgc_cmp_helper(nhvrf_name, nh->nhvrf_name) == 0
-		    && nhgc_addr_cmp_helper(addr, nh->addr) == 0
-		    && nhgc_cmp_helper(intf, nh->intf) == 0)
+		if (nhgc_cmp_helper(nhvrf_name, nh->nhvrf_name) == 0 &&
+		    nhgc_addr_cmp_helper(addr, nh->addr) == 0 &&
+		    nhgc_cmp_helper(intf, nh->intf) == 0)
 			break;
 	}
 
@@ -862,8 +856,7 @@ static bool nexthop_group_parse_nexthop(struct nexthop *nhop,
 
 	if (backup_str) {
 		/* Parse backup indexes */
-		ret = nexthop_str2backups(backup_str,
-					  &num, nhop->backup_idx);
+		ret = nexthop_str2backups(backup_str, &num, nhop->backup_idx);
 		if (ret == 0) {
 			SET_FLAG(nhop->flags, NEXTHOP_FLAG_HAS_BACKUP);
 			nhop->backup_num = num;
@@ -880,9 +873,10 @@ static bool nexthop_group_parse_nexthop(struct nexthop *nhop,
 static bool nexthop_group_parse_nhh(struct nexthop *nhop,
 				    const struct nexthop_hold *nhh)
 {
-	return (nexthop_group_parse_nexthop(
-		nhop, nhh->addr, nhh->intf, nhh->onlink, nhh->nhvrf_name,
-		nhh->labels, nhh->vni, NULL, nhh->weight, nhh->backup_str));
+	return (nexthop_group_parse_nexthop(nhop, nhh->addr, nhh->intf,
+					    nhh->onlink, nhh->nhvrf_name,
+					    nhh->labels, nhh->vni, NULL,
+					    nhh->weight, nhh->backup_str));
 }
 
 DEFPY(ecmp_nexthops, ecmp_nexthops_cmd,
@@ -938,10 +932,9 @@ DEFPY(ecmp_nexthops, ecmp_nexthops_cmd,
 					    vrf_name, label, vni, &lbl_ret,
 					    weight, backup_idx);
 
-	if (nhop.type == NEXTHOP_TYPE_IPV6
-	    && IN6_IS_ADDR_LINKLOCAL(&nhop.gate.ipv6)) {
-		vty_out(vty,
-			"Specified a v6 LL with no interface, rejecting\n");
+	if (nhop.type == NEXTHOP_TYPE_IPV6 &&
+	    IN6_IS_ADDR_LINKLOCAL(&nhop.gate.ipv6)) {
+		vty_out(vty, "Specified a v6 LL with no interface, rejecting\n");
 		return CMD_WARNING_CONFIG_FAILED;
 	}
 
@@ -952,14 +945,12 @@ DEFPY(ecmp_nexthops, ecmp_nexthops_cmd,
 			vty_out(vty, "%% Malformed label(s)\n");
 			break;
 		case -2:
-			vty_out(vty,
-				"%% Cannot use reserved label(s) (%d-%d)\n",
+			vty_out(vty, "%% Cannot use reserved label(s) (%d-%d)\n",
 				MPLS_LABEL_RESERVED_MIN,
 				MPLS_LABEL_RESERVED_MAX);
 			break;
 		case -3:
-			vty_out(vty,
-				"%% Too many labels. Enter %d or fewer\n",
+			vty_out(vty, "%% Too many labels. Enter %d or fewer\n",
 				MPLS_MAX_LABELS);
 			break;
 		}
@@ -1134,9 +1125,9 @@ void nexthop_group_json_nexthop(json_object *j, const struct nexthop *nh)
 	if (CHECK_FLAG(nh->flags, NEXTHOP_FLAG_HAS_BACKUP)) {
 		json_backups = json_object_new_array();
 		for (i = 0; i < nh->backup_num; i++)
-			json_object_array_add(
-				json_backups,
-				json_object_new_int(nh->backup_idx[i]));
+			json_object_array_add(json_backups,
+					      json_object_new_int(
+						      nh->backup_idx[i]));
 
 		json_object_object_add(j, "backupIdx", json_backups);
 	}
@@ -1356,9 +1347,9 @@ static void nhg_name_autocomplete(vector comps, struct cmd_token *token)
 	}
 }
 
-static const struct cmd_variable_handler nhg_name_handlers[] = {
-	{.tokenname = "NHGNAME", .completions = nhg_name_autocomplete},
-	{.completions = NULL}};
+static const struct cmd_variable_handler nhg_name_handlers[] =
+	{{.tokenname = "NHGNAME", .completions = nhg_name_autocomplete},
+	 {.completions = NULL}};
 
 void nexthop_group_init(void (*new)(const char *name),
 			void (*modify)(const struct nexthop_group_cmd *nhgc),

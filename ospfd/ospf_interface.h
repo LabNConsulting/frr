@@ -14,9 +14,9 @@
 #include "ospfd/ospf_spf.h"
 
 #define IF_OSPF_IF_INFO(I) ((struct ospf_if_info *)((I)->info))
-#define IF_DEF_PARAMS(I) (IF_OSPF_IF_INFO (I)->def_params)
-#define IF_OIFS(I)  (IF_OSPF_IF_INFO (I)->oifs)
-#define IF_OIFS_PARAMS(I) (IF_OSPF_IF_INFO (I)->params)
+#define IF_DEF_PARAMS(I) (IF_OSPF_IF_INFO(I)->def_params)
+#define IF_OIFS(I) (IF_OSPF_IF_INFO(I)->oifs)
+#define IF_OIFS_PARAMS(I) (IF_OSPF_IF_INFO(I)->params)
 
 /* Despite the name, this macro probably is for specialist use only */
 #define OSPF_IF_PARAM_CONFIGURED(S, P) ((S) && (S)->P##__config)
@@ -25,13 +25,12 @@
  * existing ospf interface
  */
 #define OSPF_IF_PARAM_IS_SET(O, P)                                             \
-	(OSPF_IF_PARAM_CONFIGURED((O)->params, P)                              \
-	 || OSPF_IF_PARAM_CONFIGURED(IF_DEF_PARAMS((O)->ifp)->P))
+	(OSPF_IF_PARAM_CONFIGURED((O)->params, P) ||                           \
+	 OSPF_IF_PARAM_CONFIGURED(IF_DEF_PARAMS((O)->ifp)->P))
 
 #define OSPF_IF_PARAM(O, P)                                                    \
-	(OSPF_IF_PARAM_CONFIGURED((O)->params, P)                              \
-		 ? (O)->params->P                                              \
-		 : IF_DEF_PARAMS((O)->ifp)->P)
+	(OSPF_IF_PARAM_CONFIGURED((O)->params, P) ? (O)->params->P             \
+						  : IF_DEF_PARAMS((O)->ifp)->P)
 
 #define DECLARE_IF_PARAM(T, P)                                                 \
 	T P;                                                                   \
@@ -57,8 +56,8 @@ struct ospf_if_params {
 	uint32_t if_area_id_fmt;
 
 	DECLARE_IF_PARAM(uint8_t, type); /* type of interface */
-#define OSPF_IF_ACTIVE                  0
-#define OSPF_IF_PASSIVE		        1
+#define OSPF_IF_ACTIVE 0
+#define OSPF_IF_PASSIVE 1
 
 #define OSPF_IF_PASSIVE_STATUS(O)                                              \
 	(OSPF_IF_PARAM_CONFIGURED((O)->params, passive_interface)              \
@@ -70,7 +69,7 @@ struct ospf_if_params {
 
 	DECLARE_IF_PARAM(uint32_t, v_hello); /* Hello Interval */
 	DECLARE_IF_PARAM(uint32_t, v_wait);  /* Router Dead Interval */
-	bool is_v_wait_set;                  /* Check for Dead Interval set */
+	bool is_v_wait_set;		     /* Check for Dead Interval set */
 
 	/* GR Hello Delay Interval */
 	DECLARE_IF_PARAM(uint16_t, v_gr_hello_delay);
@@ -86,7 +85,7 @@ struct ospf_if_params {
 	uint8_t auth_simple__config : 1;
 
 	DECLARE_IF_PARAM(struct list *,
-			 auth_crypt);     /* List of Auth cryptographic data. */
+			 auth_crypt);	  /* List of Auth cryptographic data. */
 	DECLARE_IF_PARAM(int, auth_type); /* OSPF authentication type */
 
 	/* Other, non-configuration state */
@@ -102,7 +101,7 @@ struct ospf_if_params {
 		uint32_t min_tx;
 		/** BFD profile. */
 		char profile[BFD_PROFILE_NAME_LEN];
-	} *bfd_config;
+	} * bfd_config;
 
 	/* MPLS LDP-IGP Sync configuration */
 	struct ldp_sync_info *ldp_sync_info;
@@ -114,17 +113,17 @@ struct ospf_if_params {
 	bool p2mp_delay_reflood;
 };
 
-enum { MEMBER_ALLROUTERS = 0,
-       MEMBER_DROUTERS,
-       MEMBER_MAX,
+enum {
+	MEMBER_ALLROUTERS = 0,
+	MEMBER_DROUTERS,
+	MEMBER_MAX,
 };
 
 struct ospf_if_info {
 	struct ospf_if_params *def_params;
 	struct route_table *params;
 	struct route_table *oifs;
-	unsigned int
-		membership_counts[MEMBER_MAX]; /* multicast group refcnts */
+	unsigned int membership_counts[MEMBER_MAX]; /* multicast group refcnts */
 
 	uint32_t curr_mtu;
 
@@ -135,9 +134,9 @@ struct ospf_if_info {
 struct ospf_interface;
 
 struct ospf_vl_data {
-	struct in_addr vl_peer;	/* Router-ID of the peer */
+	struct in_addr vl_peer;	       /* Router-ID of the peer */
 	struct in_addr vl_area_id;     /* Transit area */
-	int vl_area_id_fmt;	    /* Area ID format */
+	int vl_area_id_fmt;	       /* Area ID format */
 	struct ospf_interface *vl_oi;  /* Interface data structure */
 	struct vertex_nexthop nexthop; /* Nexthop router and oi to use */
 	struct in_addr peer_addr;      /* Address used to reach the peer */
@@ -146,7 +145,7 @@ struct ospf_vl_data {
 
 
 #define OSPF_VL_MAX_COUNT 256
-#define OSPF_VL_MTU	  1500
+#define OSPF_VL_MTU 1500
 
 #define OSPF_VL_FLAG_APPROVED 0x01
 
@@ -189,7 +188,7 @@ struct ospf_interface {
 	/* To which multicast groups do we currently belong? */
 	uint8_t multicast_memberships;
 #define OI_MEMBER_FLAG(M) (1 << (M))
-#define OI_MEMBER_COUNT(O,M) (IF_OSPF_IF_INFO(oi->ifp)->membership_counts[(M)])
+#define OI_MEMBER_COUNT(O, M) (IF_OSPF_IF_INFO(oi->ifp)->membership_counts[(M)])
 #define OI_MEMBER_CHECK(O, M)                                                  \
 	(CHECK_FLAG((O)->multicast_memberships, OI_MEMBER_FLAG(M)))
 #define OI_MEMBER_JOINED(O, M)                                                 \
@@ -203,7 +202,7 @@ struct ospf_interface {
 		IF_OSPF_IF_INFO((O)->ifp)->membership_counts[(M)]--;           \
 	} while (0)
 
-	struct prefix *address;      /* Interface prefix */
+	struct prefix *address;	     /* Interface prefix */
 	struct connected *connected; /* Pointer to connected */
 
 	/* Configured varables. */
@@ -213,12 +212,12 @@ struct ospf_interface {
 	uint32_t output_cost;  /* Acutual Interface Output Cost */
 
 	/* Neighbor information. */
-	struct route_table *nbrs;       /* OSPF Neighbor List */
+	struct route_table *nbrs;	/* OSPF Neighbor List */
 	struct ospf_neighbor *nbr_self; /* Neighbor Self */
-#define DR(I)			((I)->nbr_self->d_router)
-#define BDR(I)			((I)->nbr_self->bd_router)
-#define OPTIONS(I)		((I)->nbr_self->options)
-#define PRIORITY(I)		((I)->nbr_self->priority)
+#define DR(I) ((I)->nbr_self->d_router)
+#define BDR(I) ((I)->nbr_self->bd_router)
+#define OPTIONS(I) ((I)->nbr_self->options)
+#define PRIORITY(I) ((I)->nbr_self->priority)
 
 	/* List of configured NBMA neighbor. */
 	struct list *nbr_nbma;
@@ -233,7 +232,7 @@ struct ospf_interface {
 
 	/* self-originated LSAs. */
 	struct ospf_lsa *network_lsa_self; /* network-LSA. */
-	struct list *opaque_lsa_self;      /* Type-9 Opaque-LSAs */
+	struct list *opaque_lsa_self;	   /* Type-9 Opaque-LSAs */
 
 	struct route_table *ls_upd_queue;
 
@@ -290,9 +289,9 @@ extern int ospf_if_is_up(struct ospf_interface *oi);
 extern struct ospf_interface *ospf_if_exists(struct ospf_interface *oi);
 extern struct ospf_interface *ospf_if_lookup_by_lsa_pos(struct ospf_area *area,
 							int lsa_pos);
-extern struct ospf_interface *
-ospf_if_lookup_by_local_addr(struct ospf *ospf, struct interface *ifp,
-			     struct in_addr addr);
+extern struct ospf_interface *ospf_if_lookup_by_local_addr(struct ospf *ospf,
+							   struct interface *ifp,
+							   struct in_addr addr);
 extern struct ospf_interface *ospf_if_lookup_by_prefix(struct ospf *ospf,
 						       struct prefix_ipv4 *p);
 extern struct ospf_interface *ospf_if_table_lookup(struct interface *ifp,

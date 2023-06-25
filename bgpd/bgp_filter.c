@@ -94,9 +94,7 @@ static struct as_filter *bgp_aslist_seq_check(struct as_list *list, int64_t seq)
 
 /* as-path access-list 10 permit AS1. */
 
-static struct as_list_master as_list_master = {{NULL, NULL},
-					       NULL,
-					       NULL};
+static struct as_list_master as_list_master = {{NULL, NULL}, NULL, NULL};
 
 /* Allocate new AS filter. */
 static struct as_filter *as_filter_new(void)
@@ -409,8 +407,8 @@ static bool as_list_dup_check(struct as_list *aslist, struct as_filter *new)
 	struct as_filter *asfilter;
 
 	for (asfilter = aslist->head; asfilter; asfilter = asfilter->next) {
-		if (asfilter->type == new->type
-		    && strcmp(asfilter->reg_str, new->reg_str) == 0)
+		if (asfilter->type == new->type &&
+		    strcmp(asfilter->reg_str, new->reg_str) == 0)
 			return true;
 	}
 	return false;
@@ -497,8 +495,7 @@ DEFUN(as_path, bgp_as_path_cmd,
 
 DEFUN(no_as_path, no_bgp_as_path_cmd,
       "no bgp as-path access-list AS_PATH_FILTER_NAME [seq (0-4294967295)] <deny|permit> LINE...",
-      NO_STR
-      BGP_STR
+      NO_STR BGP_STR
       "BGP autonomous system path filter\n"
       "Specify an access list name\n"
       "Regular expression access list name\n"
@@ -515,8 +512,9 @@ DEFUN(no_as_path, no_bgp_as_path_cmd,
 	char *regstr;
 	regex_t *regex;
 
-	char *aslistname =
-		argv_find(argv, argc, "AS_PATH_FILTER_NAME", &idx) ? argv[idx]->arg : NULL;
+	char *aslistname = argv_find(argv, argc, "AS_PATH_FILTER_NAME", &idx)
+				   ? argv[idx]->arg
+				   : NULL;
 
 	/* Lookup AS list from AS path list. */
 	aslist = as_list_lookup(aslistname);
@@ -571,14 +569,12 @@ DEFUN(no_as_path, no_bgp_as_path_cmd,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_as_path_all,
-       no_bgp_as_path_all_cmd,
-       "no bgp as-path access-list AS_PATH_FILTER_NAME",
-       NO_STR
-       BGP_STR
-       "BGP autonomous system path filter\n"
-       "Specify an access list name\n"
-       "Regular expression access list name\n")
+DEFUN(no_as_path_all, no_bgp_as_path_all_cmd,
+      "no bgp as-path access-list AS_PATH_FILTER_NAME",
+      NO_STR BGP_STR
+      "BGP autonomous system path filter\n"
+      "Specify an access list name\n"
+      "Regular expression access list name\n")
 {
 	int idx_word = 4;
 	struct as_list *aslist;
@@ -638,14 +634,11 @@ static void as_list_show_all(struct vty *vty, json_object *json)
 		as_list_show(vty, aslist, json);
 }
 
-DEFUN (show_as_path_access_list,
-       show_bgp_as_path_access_list_cmd,
-       "show bgp as-path-access-list AS_PATH_FILTER_NAME [json]",
-       SHOW_STR
-       BGP_STR
-       "List AS path access lists\n"
-       "AS path access list name\n"
-       JSON_STR)
+DEFUN(show_as_path_access_list, show_bgp_as_path_access_list_cmd,
+      "show bgp as-path-access-list AS_PATH_FILTER_NAME [json]",
+      SHOW_STR BGP_STR
+      "List AS path access lists\n"
+      "AS path access list name\n" JSON_STR)
 {
 	int idx_word = 3;
 	struct as_list *aslist;
@@ -665,22 +658,15 @@ DEFUN (show_as_path_access_list,
 	return CMD_SUCCESS;
 }
 
-ALIAS (show_as_path_access_list,
-       show_ip_as_path_access_list_cmd,
-       "show ip as-path-access-list AS_PATH_FILTER_NAME [json]",
-       SHOW_STR
-       IP_STR
-       "List AS path access lists\n"
-       "AS path access list name\n"
-       JSON_STR)
+ALIAS(show_as_path_access_list, show_ip_as_path_access_list_cmd,
+      "show ip as-path-access-list AS_PATH_FILTER_NAME [json]",
+      SHOW_STR IP_STR
+      "List AS path access lists\n"
+      "AS path access list name\n" JSON_STR)
 
-DEFUN (show_as_path_access_list_all,
-       show_bgp_as_path_access_list_all_cmd,
-       "show bgp as-path-access-list [json]",
-       SHOW_STR
-       BGP_STR
-       "List AS path access lists\n"
-       JSON_STR)
+DEFUN(show_as_path_access_list_all, show_bgp_as_path_access_list_all_cmd,
+      "show bgp as-path-access-list [json]",
+      SHOW_STR BGP_STR "List AS path access lists\n" JSON_STR)
 {
 	bool uj = use_json(argc, argv);
 	json_object *json = NULL;
@@ -696,13 +682,9 @@ DEFUN (show_as_path_access_list_all,
 	return CMD_SUCCESS;
 }
 
-ALIAS (show_as_path_access_list_all,
-       show_ip_as_path_access_list_all_cmd,
-       "show ip as-path-access-list [json]",
-       SHOW_STR
-       IP_STR
-       "List AS path access lists\n"
-       JSON_STR)
+ALIAS(show_as_path_access_list_all, show_ip_as_path_access_list_all_cmd,
+      "show ip as-path-access-list [json]",
+      SHOW_STR IP_STR "List AS path access lists\n" JSON_STR)
 
 static int config_write_as_list(struct vty *vty)
 {
@@ -741,10 +723,10 @@ static void bgp_aspath_filter_cmd_completion(vector comps,
 		vector_set(comps, XSTRDUP(MTYPE_COMPLETION, aslist->name));
 }
 
-static const struct cmd_variable_handler aspath_filter_handlers[] = {
-	{.tokenname = "AS_PATH_FILTER_NAME",
-	 .completions = bgp_aspath_filter_cmd_completion},
-	{.completions = NULL}};
+static const struct cmd_variable_handler aspath_filter_handlers[] =
+	{{.tokenname = "AS_PATH_FILTER_NAME",
+	  .completions = bgp_aspath_filter_cmd_completion},
+	 {.completions = NULL}};
 
 /* Register functions. */
 void bgp_filter_init(void)

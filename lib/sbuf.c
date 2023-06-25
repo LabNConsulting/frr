@@ -77,8 +77,8 @@ void sbuf_push(struct sbuf *buf, int indent, const char *format, ...)
 		buf->pos = buf->size;
 
 	va_start(args, format);
-	written = vsnprintfrr(buf->buf + buf->pos, buf->size - buf->pos,
-			      format, args);
+	written = vsnprintfrr(buf->buf + buf->pos, buf->size - buf->pos, format,
+			      args);
 	va_end(args);
 
 	if (written >= 0)

@@ -33,20 +33,16 @@ int ospf_if_add_allspfrouters(struct ospf *top, struct prefix *p,
 {
 	int ret;
 
-	ret = setsockopt_ipv4_multicast(top->fd, IP_ADD_MEMBERSHIP,
-					p->u.prefix4, htonl(OSPF_ALLSPFROUTERS),
-					ifindex);
+	ret = setsockopt_ipv4_multicast(top->fd, IP_ADD_MEMBERSHIP, p->u.prefix4,
+					htonl(OSPF_ALLSPFROUTERS), ifindex);
 	if (ret < 0)
-		flog_err(
-			EC_LIB_SOCKET,
-			"can't setsockopt IP_ADD_MEMBERSHIP (fd %d, addr %pI4, ifindex %u, AllSPFRouters): %s; perhaps a kernel limit on # of multicast group memberships has been exceeded?",
-			top->fd, &p->u.prefix4, ifindex,
-			safe_strerror(errno));
+		flog_err(EC_LIB_SOCKET,
+			 "can't setsockopt IP_ADD_MEMBERSHIP (fd %d, addr %pI4, ifindex %u, AllSPFRouters): %s; perhaps a kernel limit on # of multicast group memberships has been exceeded?",
+			 top->fd, &p->u.prefix4, ifindex, safe_strerror(errno));
 	else {
 		if (IS_DEBUG_OSPF_EVENT)
-			zlog_debug(
-				"interface %pI4 [%u] join AllSPFRouters Multicast group.",
-				&p->u.prefix4, ifindex);
+			zlog_debug("interface %pI4 [%u] join AllSPFRouters Multicast group.",
+				   &p->u.prefix4, ifindex);
 	}
 
 	return ret;
@@ -63,13 +59,11 @@ int ospf_if_drop_allspfrouters(struct ospf *top, struct prefix *p,
 	if (ret < 0)
 		flog_err(EC_LIB_SOCKET,
 			 "can't setsockopt IP_DROP_MEMBERSHIP (fd %d, addr %pI4, ifindex %u, AllSPFRouters): %s",
-			 top->fd, &p->u.prefix4, ifindex,
-			 safe_strerror(errno));
+			 top->fd, &p->u.prefix4, ifindex, safe_strerror(errno));
 	else {
 		if (IS_DEBUG_OSPF_EVENT)
-			zlog_debug(
-				"interface %pI4 [%u] leave AllSPFRouters Multicast group.",
-				&p->u.prefix4, ifindex);
+			zlog_debug("interface %pI4 [%u] leave AllSPFRouters Multicast group.",
+				   &p->u.prefix4, ifindex);
 	}
 
 	return ret;
@@ -81,20 +75,16 @@ int ospf_if_add_alldrouters(struct ospf *top, struct prefix *p,
 {
 	int ret;
 
-	ret = setsockopt_ipv4_multicast(top->fd, IP_ADD_MEMBERSHIP,
-					p->u.prefix4, htonl(OSPF_ALLDROUTERS),
-					ifindex);
+	ret = setsockopt_ipv4_multicast(top->fd, IP_ADD_MEMBERSHIP, p->u.prefix4,
+					htonl(OSPF_ALLDROUTERS), ifindex);
 	if (ret < 0)
-		flog_err(
-			EC_LIB_SOCKET,
-			"can't setsockopt IP_ADD_MEMBERSHIP (fd %d, addr %pI4, ifindex %u, AllDRouters): %s; perhaps a kernel limit on # of multicast group memberships has been exceeded?",
-			top->fd, &p->u.prefix4, ifindex,
-			safe_strerror(errno));
+		flog_err(EC_LIB_SOCKET,
+			 "can't setsockopt IP_ADD_MEMBERSHIP (fd %d, addr %pI4, ifindex %u, AllDRouters): %s; perhaps a kernel limit on # of multicast group memberships has been exceeded?",
+			 top->fd, &p->u.prefix4, ifindex, safe_strerror(errno));
 	else {
 		if (IS_DEBUG_OSPF_EVENT)
-			zlog_debug(
-				"interface %pI4 [%u] join AllDRouters Multicast group.",
-				&p->u.prefix4, ifindex);
+			zlog_debug("interface %pI4 [%u] join AllDRouters Multicast group.",
+				   &p->u.prefix4, ifindex);
 	}
 	return ret;
 }
@@ -110,12 +100,10 @@ int ospf_if_drop_alldrouters(struct ospf *top, struct prefix *p,
 	if (ret < 0)
 		flog_err(EC_LIB_SOCKET,
 			 "can't setsockopt IP_DROP_MEMBERSHIP (fd %d, addr %pI4, ifindex %u, AllDRouters): %s",
-			 top->fd, &p->u.prefix4, ifindex,
-			 safe_strerror(errno));
+			 top->fd, &p->u.prefix4, ifindex, safe_strerror(errno));
 	else if (IS_DEBUG_OSPF_EVENT)
-		zlog_debug(
-			"interface %pI4 [%u] leave AllDRouters Multicast group.",
-			&p->u.prefix4, ifindex);
+		zlog_debug("interface %pI4 [%u] leave AllDRouters Multicast group.",
+			   &p->u.prefix4, ifindex);
 
 	return ret;
 }
@@ -148,8 +136,7 @@ int ospf_if_ipmulticast(int fd, struct prefix *p, ifindex_t ifindex)
 	if (ret < 0)
 		flog_err(EC_LIB_SOCKET,
 			 "can't setsockopt IP_MULTICAST_IF(fd %d, addr %pI4, ifindex %u): %s",
-			 fd, &p->u.prefix4, ifindex,
-			 safe_strerror(errno));
+			 fd, &p->u.prefix4, ifindex, safe_strerror(errno));
 #endif
 
 	return ret;
@@ -169,7 +156,7 @@ static int sock_init_common(vrf_id_t vrf_id, const char *name, int *pfd)
 		return -1;
 	}
 
-	frr_with_privs(&ospfd_privs) {
+	frr_with_privs (&ospfd_privs) {
 		ospf_sock = vrf_socket(AF_INET, SOCK_RAW, IPPROTO_OSPFIGP,
 				       vrf_id, name);
 		if (ospf_sock < 0) {
@@ -191,8 +178,7 @@ static int sock_init_common(vrf_id_t vrf_id, const char *name, int *pfd)
 #elif defined(IPTOS_PREC_INTERNETCONTROL)
 #warning "IP_HDRINCL not available on this system"
 #warning "using IPTOS_PREC_INTERNETCONTROL"
-		ret = setsockopt_ipv4_tos(ospf_sock,
-					  IPTOS_PREC_INTERNETCONTROL);
+		ret = setsockopt_ipv4_tos(ospf_sock, IPTOS_PREC_INTERNETCONTROL);
 		if (ret < 0) {
 			flog_err(EC_LIB_SOCKET,
 				 "can't set sockopt IP_TOS %d to socket %d: %s",

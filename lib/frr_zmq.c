@@ -320,13 +320,12 @@ void frrzmq_thread_cancel(struct frrzmq_cb **cb, struct cb_core *core)
 		return;
 
 	/* Ok to free the callback context if no more ... context. */
-	if ((*cb)->read.cancelled && !(*cb)->read.thread
-	    && (*cb)->write.cancelled && ((*cb)->write.thread == NULL))
+	if ((*cb)->read.cancelled && !(*cb)->read.thread &&
+	    (*cb)->write.cancelled && ((*cb)->write.thread == NULL))
 		XFREE(MTYPE_ZEROMQ_CB, *cb);
 }
 
-void frrzmq_check_events(struct frrzmq_cb **cbp, struct cb_core *core,
-			 int event)
+void frrzmq_check_events(struct frrzmq_cb **cbp, struct cb_core *core, int event)
 {
 	struct frrzmq_cb *cb;
 	int events;

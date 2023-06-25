@@ -12,36 +12,29 @@
 #include "bgp_route.h"
 
 static const struct bgp_addpath_strategy_names strat_names[BGP_ADDPATH_MAX] = {
-	{
-		.config_name = "addpath-tx-all-paths",
-		.human_name = "All",
-		.human_description = "Advertise all paths via addpath",
-		.type_json_name = "addpathTxAllPaths",
-		.id_json_name = "addpathTxIdAll"
-	},
-	{
-		.config_name = "addpath-tx-bestpath-per-AS",
-		.human_name = "Best-Per-AS",
-		.human_description = "Advertise bestpath per AS via addpath",
-		.type_json_name = "addpathTxBestpathPerAS",
-		.id_json_name = "addpathTxIdBestPerAS"
-	},
-	{
-		.config_name = "addpath-tx-best-selected",
-		.human_name = "Best-Selected",
-		.human_description = "Advertise best N selected paths via addpath",
-		.type_json_name = "addpathTxBestSelectedPaths",
-		.id_json_name = "addpathTxIdBestSelected"
-	},
+	{.config_name = "addpath-tx-all-paths",
+	 .human_name = "All",
+	 .human_description = "Advertise all paths via addpath",
+	 .type_json_name = "addpathTxAllPaths",
+	 .id_json_name = "addpathTxIdAll"},
+	{.config_name = "addpath-tx-bestpath-per-AS",
+	 .human_name = "Best-Per-AS",
+	 .human_description = "Advertise bestpath per AS via addpath",
+	 .type_json_name = "addpathTxBestpathPerAS",
+	 .id_json_name = "addpathTxIdBestPerAS"},
+	{.config_name = "addpath-tx-best-selected",
+	 .human_name = "Best-Selected",
+	 .human_description = "Advertise best N selected paths via addpath",
+	 .type_json_name = "addpathTxBestSelectedPaths",
+	 .id_json_name = "addpathTxIdBestSelected"},
 };
 
-static const struct bgp_addpath_strategy_names unknown_names = {
-	.config_name = "addpath-tx-unknown",
-	.human_name = "Unknown-Addpath-Strategy",
-	.human_description = "Unknown Addpath Strategy",
-	.type_json_name = "addpathTxUnknown",
-	.id_json_name = "addpathTxIdUnknown"
-};
+static const struct bgp_addpath_strategy_names unknown_names =
+	{.config_name = "addpath-tx-unknown",
+	 .human_name = "Unknown-Addpath-Strategy",
+	 .human_description = "Unknown Addpath Strategy",
+	 .type_json_name = "addpathTxUnknown",
+	 .id_json_name = "addpathTxIdUnknown"};
 
 /*
  * Returns a structure full of strings associated with an addpath type. Will
@@ -87,7 +80,7 @@ void bgp_addpath_init_bgp_data(struct bgp_addpath_bgp_data *d)
  * Free up resources associated with BGP route info structures.
  */
 void bgp_addpath_free_info_data(struct bgp_addpath_info_data *d,
-			      struct bgp_addpath_node_data *nd)
+				struct bgp_addpath_node_data *nd)
 {
 	int i;
 
@@ -103,7 +96,7 @@ void bgp_addpath_free_info_data(struct bgp_addpath_info_data *d,
  * in a particular AFI/SAFI.
  */
 uint32_t bgp_addpath_id_for_peer(struct peer *peer, afi_t afi, safi_t safi,
-				struct bgp_addpath_info_data *d)
+				 struct bgp_addpath_info_data *d)
 {
 	if (safi == SAFI_LABELED_UNICAST)
 		safi = SAFI_UNICAST;
@@ -133,8 +126,8 @@ bool bgp_addpath_info_has_ids(struct bgp_addpath_info_data *d)
  * Releases any ID's associated with the BGP prefix.
  */
 void bgp_addpath_free_node_data(struct bgp_addpath_bgp_data *bd,
-			      struct bgp_addpath_node_data *nd, afi_t afi,
-			      safi_t safi)
+				struct bgp_addpath_node_data *nd, afi_t afi,
+				safi_t safi)
 {
 	int i;
 
@@ -186,16 +179,14 @@ static void bgp_addpath_flush_type_rn(struct bgp *bgp, afi_t afi, safi_t safi,
 	if (safi == SAFI_LABELED_UNICAST)
 		safi = SAFI_UNICAST;
 
-	idalloc_drain_pool(
-		bgp->tx_addpath.id_allocators[afi][safi][addpath_type],
-		&(dest->tx_addpath.free_ids[addpath_type]));
+	idalloc_drain_pool(bgp->tx_addpath.id_allocators[afi][safi][addpath_type],
+			   &(dest->tx_addpath.free_ids[addpath_type]));
 	for (pi = bgp_dest_get_bgp_path_info(dest); pi; pi = pi->next) {
-		if (pi->tx_addpath.addpath_tx_id[addpath_type]
-		    != IDALLOC_INVALID) {
-			idalloc_free(
-				bgp->tx_addpath
-					.id_allocators[afi][safi][addpath_type],
-				pi->tx_addpath.addpath_tx_id[addpath_type]);
+		if (pi->tx_addpath.addpath_tx_id[addpath_type] !=
+		    IDALLOC_INVALID) {
+			idalloc_free(bgp->tx_addpath.id_allocators[afi][safi]
+								  [addpath_type],
+				     pi->tx_addpath.addpath_tx_id[addpath_type]);
 			pi->tx_addpath.addpath_tx_id[addpath_type] =
 				IDALLOC_INVALID;
 		}
@@ -261,7 +252,7 @@ static void bgp_addpath_populate_path(struct id_alloc *allocator,
  * In labeled-unicast, addpath allocations SHOULD be done in unicast SAFI.
  */
 static void bgp_addpath_populate_type(struct bgp *bgp, afi_t afi, safi_t safi,
-				    enum bgp_addpath_strat addpath_type)
+				      enum bgp_addpath_strat addpath_type)
 {
 	struct bgp_dest *dest, *ndest;
 	char buf[200];
@@ -275,13 +266,13 @@ static void bgp_addpath_populate_type(struct bgp *bgp, afi_t afi, safi_t safi,
 		 (int)safi);
 	buf[sizeof(buf) - 1] = '\0';
 	zlog_info("Computing addpath IDs for addpath type %s",
-		bgp_addpath_names(addpath_type)->human_name);
+		  bgp_addpath_names(addpath_type)->human_name);
 
 	bgp->tx_addpath.id_allocators[afi][safi][addpath_type] =
 		idalloc_new(buf);
 
 	idalloc_reserve(bgp->tx_addpath.id_allocators[afi][safi][addpath_type],
-		BGP_ADDPATH_TX_ID_FOR_DEFAULT_ORIGINATE);
+			BGP_ADDPATH_TX_ID_FOR_DEFAULT_ORIGINATE);
 
 	allocator = bgp->tx_addpath.id_allocators[afi][safi][addpath_type];
 
@@ -325,15 +316,15 @@ void bgp_addpath_type_changed(struct bgp *bgp)
 	int peer_count[AFI_MAX][SAFI_MAX][BGP_ADDPATH_MAX];
 	enum bgp_addpath_strat type;
 
-	FOREACH_AFI_SAFI(afi, safi) {
-		for (type=0; type<BGP_ADDPATH_MAX; type++) {
+	FOREACH_AFI_SAFI (afi, safi) {
+		for (type = 0; type < BGP_ADDPATH_MAX; type++) {
 			peer_count[afi][safi][type] = 0;
 		}
 		bgp->tx_addpath.total_peercount[afi][safi] = 0;
 	}
 
 	for (ALL_LIST_ELEMENTS(bgp->peer, node, nnode, peer)) {
-		FOREACH_AFI_SAFI(afi, safi) {
+		FOREACH_AFI_SAFI (afi, safi) {
 			type = peer->addpath_type[afi][safi];
 			if (type != BGP_ADDPATH_NONE) {
 				peer_count[afi][safi][type] += 1;
@@ -342,16 +333,15 @@ void bgp_addpath_type_changed(struct bgp *bgp)
 		}
 	}
 
-	FOREACH_AFI_SAFI(afi, safi) {
-		for (type=0; type<BGP_ADDPATH_MAX; type++) {
+	FOREACH_AFI_SAFI (afi, safi) {
+		for (type = 0; type < BGP_ADDPATH_MAX; type++) {
 			int old = bgp->tx_addpath.peercount[afi][safi][type];
 			int new = peer_count[afi][safi][type];
 
 			bgp->tx_addpath.peercount[afi][safi][type] = new;
 
 			if (old == 0 && new != 0) {
-				bgp_addpath_populate_type(bgp, afi, safi,
-					type);
+				bgp_addpath_populate_type(bgp, afi, safi, type);
 			} else if (old != 0 && new == 0) {
 				bgp_addpath_flush_type(bgp, afi, safi, type);
 			}
@@ -395,13 +385,10 @@ void bgp_addpath_set_peer_type(struct peer *peer, afi_t afi, safi_t safi,
 
 	if (addpath_type != BGP_ADDPATH_NONE) {
 		if (bgp_addpath_dmed_required(addpath_type)) {
-			if (!CHECK_FLAG(bgp->flags,
-					BGP_FLAG_DETERMINISTIC_MED)) {
-				zlog_warn(
-					"%s: enabling bgp deterministic-med, this is required for addpath-tx-bestpath-per-AS",
-					peer->host);
-				SET_FLAG(bgp->flags,
-					 BGP_FLAG_DETERMINISTIC_MED);
+			if (!CHECK_FLAG(bgp->flags, BGP_FLAG_DETERMINISTIC_MED)) {
+				zlog_warn("%s: enabling bgp deterministic-med, this is required for addpath-tx-bestpath-per-AS",
+					  peer->host);
+				SET_FLAG(bgp->flags, BGP_FLAG_DETERMINISTIC_MED);
 				bgp_recalculate_all_bestpaths(bgp);
 			}
 		}
@@ -420,19 +407,19 @@ void bgp_addpath_set_peer_type(struct peer *peer, afi_t afi, safi_t safi,
 		 */
 		if (group != NULL) {
 			for (ALL_LIST_ELEMENTS(group->peer, node, nnode,
-			     tmp_peer)) {
+					       tmp_peer)) {
 				if (tmp_peer->addpath_type[afi][safi] ==
 				    old_type) {
-					bgp_addpath_set_peer_type(
-						tmp_peer, afi, safi,
-						addpath_type, paths);
+					bgp_addpath_set_peer_type(tmp_peer, afi,
+								  safi,
+								  addpath_type,
+								  paths);
 				}
 			}
 		}
 	} else {
 		peer_change_action(peer, afi, safi, peer_change_reset);
 	}
-
 }
 
 /*
@@ -461,10 +448,11 @@ void bgp_addpath_update_ids(struct bgp *bgp, struct bgp_dest *bn, afi_t afi,
 
 		/* Free Unused IDs back to the pool.*/
 		for (pi = bgp_dest_get_bgp_path_info(bn); pi; pi = pi->next) {
-			if (pi->tx_addpath.addpath_tx_id[i] != IDALLOC_INVALID
-			    && !bgp_addpath_tx_path(i, pi)) {
+			if (pi->tx_addpath.addpath_tx_id[i] != IDALLOC_INVALID &&
+			    !bgp_addpath_tx_path(i, pi)) {
 				idalloc_free_to_pool(pool_ptr,
-					pi->tx_addpath.addpath_tx_id[i]);
+						     pi->tx_addpath
+							     .addpath_tx_id[i]);
 				pi->tx_addpath.addpath_tx_id[i] =
 					IDALLOC_INVALID;
 			}
@@ -472,11 +460,11 @@ void bgp_addpath_update_ids(struct bgp *bgp, struct bgp_dest *bn, afi_t afi,
 
 		/* Give IDs to paths that need them (pulling from the pool) */
 		for (pi = bgp_dest_get_bgp_path_info(bn); pi; pi = pi->next) {
-			if (pi->tx_addpath.addpath_tx_id[i] == IDALLOC_INVALID
-			    && bgp_addpath_tx_path(i, pi)) {
+			if (pi->tx_addpath.addpath_tx_id[i] == IDALLOC_INVALID &&
+			    bgp_addpath_tx_path(i, pi)) {
 				pi->tx_addpath.addpath_tx_id[i] =
-					idalloc_allocate_prefer_pool(
-						alloc, pool_ptr);
+					idalloc_allocate_prefer_pool(alloc,
+								     pool_ptr);
 			}
 		}
 

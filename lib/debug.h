@@ -124,14 +124,13 @@ struct debug_callbacks {
  *
  * MT-Safe
  */
-#define DEBUG_MODE_SET(name, mode, onoff)                                      \
-	do {                                                                   \
-		if (onoff)                                                     \
-			SET_FLAG_ATOMIC(&(name)->flags,                        \
-					(mode)&DEBUG_MODE_ALL);                \
-		else                                                           \
-			UNSET_FLAG_ATOMIC(&(name)->flags,                      \
-					  (mode)&DEBUG_MODE_ALL);              \
+#define DEBUG_MODE_SET(name, mode, onoff)                                       \
+	do {                                                                    \
+		if (onoff)                                                      \
+			SET_FLAG_ATOMIC(&(name)->flags, (mode)&DEBUG_MODE_ALL); \
+		else                                                            \
+			UNSET_FLAG_ATOMIC(&(name)->flags,                       \
+					  (mode)&DEBUG_MODE_ALL);               \
 	} while (0)
 
 /* Convenience macros for specific set operations. */
@@ -143,13 +142,12 @@ struct debug_callbacks {
  *
  * MT-Safe
  */
-#define DEBUG_OPT_SET(name, opt, onoff)                                        \
-	do {                                                                   \
-		if (onoff)                                                     \
-			SET_FLAG_ATOMIC(&(name)->flags, (opt)&DEBUG_OPT_ALL);  \
-		else                                                           \
-			UNSET_FLAG_ATOMIC(&(name)->flags,                      \
-					  (opt)&DEBUG_OPT_ALL);                \
+#define DEBUG_OPT_SET(name, opt, onoff)                                         \
+	do {                                                                    \
+		if (onoff)                                                      \
+			SET_FLAG_ATOMIC(&(name)->flags, (opt)&DEBUG_OPT_ALL);   \
+		else                                                            \
+			UNSET_FLAG_ATOMIC(&(name)->flags, (opt)&DEBUG_OPT_ALL); \
 	} while (0)
 
 /* Convenience macros for specific set operations. */

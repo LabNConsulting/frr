@@ -36,11 +36,11 @@ struct ipaddr {
 };
 
 #define IS_IPADDR_NONE(p) ((p)->ipa_type == IPADDR_NONE)
-#define IS_IPADDR_V4(p)   ((p)->ipa_type == IPADDR_V4)
-#define IS_IPADDR_V6(p)   ((p)->ipa_type == IPADDR_V6)
+#define IS_IPADDR_V4(p) ((p)->ipa_type == IPADDR_V4)
+#define IS_IPADDR_V6(p) ((p)->ipa_type == IPADDR_V6)
 
-#define SET_IPADDR_V4(p)  (p)->ipa_type = IPADDR_V4
-#define SET_IPADDR_V6(p)  (p)->ipa_type = IPADDR_V6
+#define SET_IPADDR_V4(p) (p)->ipa_type = IPADDR_V4
+#define SET_IPADDR_V6(p) (p)->ipa_type = IPADDR_V6
 
 #define IPADDRSZ(p)                                                            \
 	(IS_IPADDR_V4((p)) ? sizeof(struct in_addr) : sizeof(struct in6_addr))
@@ -165,7 +165,7 @@ static inline bool ipaddr_is_zero(const struct ipaddr *ip)
 }
 
 #ifdef _FRR_ATTRIBUTE_PRINTFRR
-#pragma FRR printfrr_ext "%pIA"  (struct ipaddr *)
+#pragma FRR printfrr_ext "%pIA"(struct ipaddr *)
 #endif
 
 #ifdef __cplusplus

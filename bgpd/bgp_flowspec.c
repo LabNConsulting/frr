@@ -20,31 +20,29 @@
 #include "bgpd/bgp_debug.h"
 #include "bgpd/bgp_errors.h"
 
-static int bgp_fs_nlri_validate(uint8_t *nlri_content, uint32_t len,
-				afi_t afi)
+static int bgp_fs_nlri_validate(uint8_t *nlri_content, uint32_t len, afi_t afi)
 {
 	uint32_t offset = 0;
 	int type;
 	int ret = 0, error = 0;
 
-	while (offset < len-1) {
+	while (offset < len - 1) {
 		type = nlri_content[offset];
 		offset++;
 		switch (type) {
 		case FLOWSPEC_DEST_PREFIX:
 		case FLOWSPEC_SRC_PREFIX:
-			ret = bgp_flowspec_ip_address(
-						BGP_FLOWSPEC_VALIDATE_ONLY,
-						nlri_content + offset,
-						len - offset, NULL, &error,
-						afi, NULL);
+			ret = bgp_flowspec_ip_address(BGP_FLOWSPEC_VALIDATE_ONLY,
+						      nlri_content + offset,
+						      len - offset, NULL,
+						      &error, afi, NULL);
 			break;
 		case FLOWSPEC_FLOW_LABEL:
 			if (afi == AFI_IP)
 				return -1;
 			ret = bgp_flowspec_op_decode(BGP_FLOWSPEC_VALIDATE_ONLY,
-						   nlri_content + offset,
-						   len - offset, NULL, &error);
+						     nlri_content + offset,
+						     len - offset, NULL, &error);
 			break;
 		case FLOWSPEC_IP_PROTOCOL:
 		case FLOWSPEC_PORT:
@@ -53,22 +51,21 @@ static int bgp_fs_nlri_validate(uint8_t *nlri_content, uint32_t len,
 		case FLOWSPEC_ICMP_TYPE:
 		case FLOWSPEC_ICMP_CODE:
 			ret = bgp_flowspec_op_decode(BGP_FLOWSPEC_VALIDATE_ONLY,
-						   nlri_content + offset,
-						   len - offset, NULL, &error);
+						     nlri_content + offset,
+						     len - offset, NULL, &error);
 			break;
 		case FLOWSPEC_TCP_FLAGS:
 		case FLOWSPEC_FRAGMENT:
-			ret = bgp_flowspec_bitmask_decode(
-						   BGP_FLOWSPEC_VALIDATE_ONLY,
-						   nlri_content + offset,
-						   len - offset, NULL, &error);
+			ret = bgp_flowspec_bitmask_decode(BGP_FLOWSPEC_VALIDATE_ONLY,
+							  nlri_content + offset,
+							  len - offset, NULL,
+							  &error);
 			break;
 		case FLOWSPEC_PKT_LEN:
 		case FLOWSPEC_DSCP:
-			ret = bgp_flowspec_op_decode(
-						BGP_FLOWSPEC_VALIDATE_ONLY,
-						nlri_content + offset,
-						len - offset, NULL, &error);
+			ret = bgp_flowspec_op_decode(BGP_FLOWSPEC_VALIDATE_ONLY,
+						     nlri_content + offset,
+						     len - offset, NULL, &error);
 			break;
 		default:
 			error = -1;
@@ -128,10 +125,9 @@ int bgp_nlri_parse_flowspec(struct peer *peer, struct attr *attr,
 		}
 		/* When packet overflow occur return immediately. */
 		if (pnt + psize > lim) {
-			flog_err(
-				EC_BGP_FLOWSPEC_PACKET,
-				"Flowspec NLRI length inconsistent ( size %u seen)",
-				psize);
+			flog_err(EC_BGP_FLOWSPEC_PACKET,
+				 "Flowspec NLRI length inconsistent ( size %u seen)",
+				 psize);
 			return BGP_NLRI_PARSE_ERROR_PACKET_OVERFLOW;
 		}
 
@@ -142,9 +138,8 @@ int bgp_nlri_parse_flowspec(struct peer *peer, struct attr *attr,
 		}
 
 		if (bgp_fs_nlri_validate(pnt, psize, afi) < 0) {
-			flog_err(
-				EC_BGP_FLOWSPEC_PACKET,
-				"Bad flowspec format or NLRI options not supported");
+			flog_err(EC_BGP_FLOWSPEC_PACKET,
+				 "Bad flowspec format or NLRI options not supported");
 			return BGP_NLRI_PARSE_ERROR_FLOWSPEC_BAD_FORMAT;
 		}
 		p.family = AF_FLOWSPEC;
@@ -154,45 +149,42 @@ int bgp_nlri_parse_flowspec(struct peer *peer, struct attr *attr,
 		p.u.prefix_flowspec.family = afi2family(afi);
 		temp = XCALLOC(MTYPE_TMP, psize);
 		memcpy(temp, pnt, psize);
-		p.u.prefix_flowspec.ptr = (uintptr_t) temp;
+		p.u.prefix_flowspec.ptr = (uintptr_t)temp;
 
 		if (BGP_DEBUG(flowspec, FLOWSPEC)) {
 			char return_string[BGP_FLOWSPEC_NLRI_STRING_MAX];
-			char local_string[BGP_FLOWSPEC_NLRI_STRING_MAX*2+16];
+			char local_string[BGP_FLOWSPEC_NLRI_STRING_MAX * 2 + 16];
 			char ec_string[BGP_FLOWSPEC_NLRI_STRING_MAX];
 			char *s = NULL;
 
 			bgp_fs_nlri_get_string((unsigned char *)
-					       p.u.prefix_flowspec.ptr,
+						       p.u.prefix_flowspec.ptr,
 					       p.u.prefix_flowspec.prefixlen,
 					       return_string,
 					       NLRI_STRING_FORMAT_MIN, NULL,
 					       afi);
-			snprintf(ec_string, sizeof(ec_string),
-				 "EC{none}");
+			snprintf(ec_string, sizeof(ec_string), "EC{none}");
 			if (attr && bgp_attr_get_ecommunity(attr)) {
-				s = ecommunity_ecom2str(
-					bgp_attr_get_ecommunity(attr),
-					ECOMMUNITY_FORMAT_ROUTE_MAP, 0);
-				snprintf(ec_string, sizeof(ec_string),
-					 "EC{%s}",
-					s == NULL ? "none" : s);
+				s = ecommunity_ecom2str(bgp_attr_get_ecommunity(
+								attr),
+							ECOMMUNITY_FORMAT_ROUTE_MAP,
+							0);
+				snprintf(ec_string, sizeof(ec_string), "EC{%s}",
+					 s == NULL ? "none" : s);
 
 				if (s)
 					ecommunity_strfree(&s);
 			}
 			snprintf(local_string, sizeof(local_string),
-				 "FS Rx %s %s %s %s", withdraw ?
-				 "Withdraw":"Update",
-				 afi2str(afi), return_string,
-				 attr != NULL ? ec_string : "");
+				 "FS Rx %s %s %s %s",
+				 withdraw ? "Withdraw" : "Update", afi2str(afi),
+				 return_string, attr != NULL ? ec_string : "");
 			zlog_info("%s", local_string);
 		}
 		/* Process the route. */
 		if (!withdraw) {
-			bgp_update(peer, &p, 0, attr, afi, safi,
-				   ZEBRA_ROUTE_BGP, BGP_ROUTE_NORMAL, NULL,
-				   NULL, 0, 0, NULL);
+			bgp_update(peer, &p, 0, attr, afi, safi, ZEBRA_ROUTE_BGP,
+				   BGP_ROUTE_NORMAL, NULL, NULL, 0, 0, NULL);
 		} else {
 			bgp_withdraw(peer, &p, 0, afi, safi, ZEBRA_ROUTE_BGP,
 				     BGP_ROUTE_NORMAL, NULL, NULL, 0, NULL);

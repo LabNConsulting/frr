@@ -42,8 +42,7 @@ DEFINE_MTYPE(LIB, MSG_CONN, "msg connection state");
  *	MPP_SCHED_BOTH - this call and the procmsg buf should be scheduled to
  *run.
  */
-enum mgmt_msg_rsched mgmt_msg_read(struct mgmt_msg_state *ms, int fd,
-				   bool debug)
+enum mgmt_msg_rsched mgmt_msg_read(struct mgmt_msg_state *ms, int fd, bool debug)
 {
 	const char *dbgtag = debug ? ms->idtag : NULL;
 	size_t avail = STREAM_WRITEABLE(ms->ins);
@@ -69,8 +68,7 @@ enum mgmt_msg_rsched mgmt_msg_read(struct mgmt_msg_state *ms, int fd,
 			if (n == 0)
 				MGMT_MSG_ERR(ms, "got EOF/disconnect");
 			else
-				MGMT_MSG_ERR(ms,
-					     "got error while reading: '%s'",
+				MGMT_MSG_ERR(ms, "got error while reading: '%s'",
 					     safe_strerror(errno));
 			return MSR_DISCONNECT;
 		}
@@ -224,16 +222,14 @@ enum mgmt_msg_wsched mgmt_msg_write(struct mgmt_msg_state *ms, int fd,
 				MGMT_MSG_ERR(ms,
 					     "connection closed while writing");
 			else if (ERRNO_IO_RETRY(errno)) {
-				MGMT_MSG_DBG(
-					dbgtag,
-					"retry error while writing %zd bytes: %s (%d)",
-					left, safe_strerror(errno), errno);
+				MGMT_MSG_DBG(dbgtag,
+					     "retry error while writing %zd bytes: %s (%d)",
+					     left, safe_strerror(errno), errno);
 				return MSW_SCHED_STREAM;
 			} else
-				MGMT_MSG_ERR(
-					ms,
-					"error while writing %zd bytes: %s (%d)",
-					left, safe_strerror(errno), errno);
+				MGMT_MSG_ERR(ms,
+					     "error while writing %zd bytes: %s (%d)",
+					     left, safe_strerror(errno), errno);
 
 			n = mgmt_msg_reset_writes(ms);
 			MGMT_MSG_DBG(dbgtag, "drop and freed %zd streams", n);
@@ -254,10 +250,9 @@ enum mgmt_msg_wsched mgmt_msg_write(struct mgmt_msg_state *ms, int fd,
 		nproc++;
 	}
 	if (s) {
-		MGMT_MSG_DBG(
-			dbgtag,
-			"reached %zu buffer writes, pausing with %zu streams left",
-			ms->max_write_buf, ms->outq.count);
+		MGMT_MSG_DBG(dbgtag,
+			     "reached %zu buffer writes, pausing with %zu streams left",
+			     ms->max_write_buf, ms->outq.count);
 		return MSW_SCHED_STREAM;
 	}
 	MGMT_MSG_DBG(dbgtag, "flushed all streams from output q");
@@ -299,21 +294,18 @@ int mgmt_msg_send_msg(struct mgmt_msg_state *ms, uint8_t version, void *msg,
 	}
 
 	if (!ms->outs) {
-		MGMT_MSG_DBG(dbgtag, "creating new stream for msg len %zu",
-			     len);
+		MGMT_MSG_DBG(dbgtag, "creating new stream for msg len %zu", len);
 		ms->outs = stream_new(ms->max_msg_sz);
 	} else if (STREAM_WRITEABLE(ms->outs) < mlen) {
-		MGMT_MSG_DBG(
-			dbgtag,
-			"enq existing stream len %zu and creating new stream for msg len %zu",
-			STREAM_WRITEABLE(ms->outs), mlen);
+		MGMT_MSG_DBG(dbgtag,
+			     "enq existing stream len %zu and creating new stream for msg len %zu",
+			     STREAM_WRITEABLE(ms->outs), mlen);
 		stream_fifo_push(&ms->outq, ms->outs);
 		ms->outs = stream_new(ms->max_msg_sz);
 	} else {
-		MGMT_MSG_DBG(
-			dbgtag,
-			"using existing stream with avail %zu for msg len %zu",
-			STREAM_WRITEABLE(ms->outs), mlen);
+		MGMT_MSG_DBG(dbgtag,
+			     "using existing stream with avail %zu for msg len %zu",
+			     STREAM_WRITEABLE(ms->outs), mlen);
 	}
 	s = ms->outs;
 
@@ -526,9 +518,9 @@ void msg_conn_disconnect(struct msg_conn *conn, bool reconnect)
 
 	if (reconnect) {
 		assert(conn->is_client);
-		msg_client_sched_connect(
-			container_of(conn, struct msg_client, conn),
-			MSG_CONN_DEFAULT_CONN_RETRY_MSEC);
+		msg_client_sched_connect(container_of(conn, struct msg_client,
+						      conn),
+					 MSG_CONN_DEFAULT_CONN_RETRY_MSEC);
 	}
 }
 
@@ -655,10 +647,9 @@ static bool msg_client_connect_short_circuit(struct msg_client *client)
 	}
 
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockets)) {
-		MGMT_MSG_ERR(
-			&client->conn.mstate,
-			"socketpair failed trying to short-circuit connection on %s: %s",
-			client->sopath, safe_strerror(errno));
+		MGMT_MSG_ERR(&client->conn.mstate,
+			     "socketpair failed trying to short-circuit connection on %s: %s",
+			     client->sopath, safe_strerror(errno));
 		return false;
 	}
 
@@ -675,17 +666,15 @@ static bool msg_client_connect_short_circuit(struct msg_client *client)
 	client->conn.remote_conn = server_conn;
 	server_conn->remote_conn = &client->conn;
 
-	MGMT_MSG_DBG(
-		dbgtag,
-		"short-circuit connection on %s server %s:%d to client %s:%d",
-		client->sopath, server_conn->mstate.idtag, server_conn->fd,
-		client->conn.mstate.idtag, client->conn.fd);
+	MGMT_MSG_DBG(dbgtag,
+		     "short-circuit connection on %s server %s:%d to client %s:%d",
+		     client->sopath, server_conn->mstate.idtag, server_conn->fd,
+		     client->conn.mstate.idtag, client->conn.fd);
 
-	MGMT_MSG_DBG(
-		server_conn->debug ? server_conn->mstate.idtag : NULL,
-		"short-circuit connection on %s client %s:%d to server %s:%d",
-		client->sopath, client->conn.mstate.idtag, client->conn.fd,
-		server_conn->mstate.idtag, server_conn->fd);
+	MGMT_MSG_DBG(server_conn->debug ? server_conn->mstate.idtag : NULL,
+		     "short-circuit connection on %s client %s:%d to server %s:%d",
+		     client->sopath, client->conn.mstate.idtag, client->conn.fd,
+		     server_conn->mstate.idtag, server_conn->fd);
 
 	return true;
 }

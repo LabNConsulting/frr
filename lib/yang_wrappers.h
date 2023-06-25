@@ -46,60 +46,50 @@ extern int16_t yang_str2int16(const char *value);
 extern struct yang_data *yang_data_new_int16(const char *xpath, int16_t value);
 extern int16_t yang_dnode_get_int16(const struct lyd_node *dnode,
 				    const char *xpath_fmt, ...) PRINTFRR(2, 3);
-extern int16_t yang_get_default_int16(const char *xpath_fmt, ...)
-	PRINTFRR(1, 2);
+extern int16_t yang_get_default_int16(const char *xpath_fmt, ...) PRINTFRR(1, 2);
 
 /* int32 */
 extern int32_t yang_str2int32(const char *value);
 extern struct yang_data *yang_data_new_int32(const char *xpath, int32_t value);
 extern int32_t yang_dnode_get_int32(const struct lyd_node *dnode,
 				    const char *xpath_fmt, ...) PRINTFRR(2, 3);
-extern int32_t yang_get_default_int32(const char *xpath_fmt, ...)
-	PRINTFRR(1, 2);
+extern int32_t yang_get_default_int32(const char *xpath_fmt, ...) PRINTFRR(1, 2);
 
 /* int64 */
 extern int64_t yang_str2int64(const char *value);
 extern struct yang_data *yang_data_new_int64(const char *xpath, int64_t value);
 extern int64_t yang_dnode_get_int64(const struct lyd_node *dnode,
 				    const char *xpath_fmt, ...) PRINTFRR(2, 3);
-extern int64_t yang_get_default_int64(const char *xpath_fmt, ...)
-	PRINTFRR(1, 2);
+extern int64_t yang_get_default_int64(const char *xpath_fmt, ...) PRINTFRR(1, 2);
 
 /* uint8 */
 extern uint8_t yang_str2uint8(const char *value);
 extern struct yang_data *yang_data_new_uint8(const char *xpath, uint8_t value);
 extern uint8_t yang_dnode_get_uint8(const struct lyd_node *dnode,
 				    const char *xpath_fmt, ...) PRINTFRR(2, 3);
-extern uint8_t yang_get_default_uint8(const char *xpath_fmt, ...)
-	PRINTFRR(1, 2);
+extern uint8_t yang_get_default_uint8(const char *xpath_fmt, ...) PRINTFRR(1, 2);
 
 /* uint16 */
 extern uint16_t yang_str2uint16(const char *value);
-extern struct yang_data *yang_data_new_uint16(const char *xpath,
-					      uint16_t value);
+extern struct yang_data *yang_data_new_uint16(const char *xpath, uint16_t value);
 extern uint16_t yang_dnode_get_uint16(const struct lyd_node *dnode,
-				      const char *xpath_fmt, ...)
-	PRINTFRR(2, 3);
+				      const char *xpath_fmt, ...) PRINTFRR(2, 3);
 extern uint16_t yang_get_default_uint16(const char *xpath_fmt, ...)
 	PRINTFRR(1, 2);
 
 /* uint32 */
 extern uint32_t yang_str2uint32(const char *value);
-extern struct yang_data *yang_data_new_uint32(const char *xpath,
-					      uint32_t value);
+extern struct yang_data *yang_data_new_uint32(const char *xpath, uint32_t value);
 extern uint32_t yang_dnode_get_uint32(const struct lyd_node *dnode,
-				      const char *xpath_fmt, ...)
-	PRINTFRR(2, 3);
+				      const char *xpath_fmt, ...) PRINTFRR(2, 3);
 extern uint32_t yang_get_default_uint32(const char *xpath_fmt, ...)
 	PRINTFRR(1, 2);
 
 /* uint64 */
 extern uint64_t yang_str2uint64(const char *value);
-extern struct yang_data *yang_data_new_uint64(const char *xpath,
-					      uint64_t value);
+extern struct yang_data *yang_data_new_uint64(const char *xpath, uint64_t value);
 extern uint64_t yang_dnode_get_uint64(const struct lyd_node *dnode,
-				      const char *xpath_fmt, ...)
-	PRINTFRR(2, 3);
+				      const char *xpath_fmt, ...) PRINTFRR(2, 3);
 extern uint64_t yang_get_default_uint64(const char *xpath_fmt, ...)
 	PRINTFRR(1, 2);
 
@@ -111,8 +101,7 @@ extern const char *yang_dnode_get_string(const struct lyd_node *dnode,
 	PRINTFRR(2, 3);
 extern void yang_dnode_get_string_buf(char *buf, size_t size,
 				      const struct lyd_node *dnode,
-				      const char *xpath_fmt, ...)
-	PRINTFRR(4, 5);
+				      const char *xpath_fmt, ...) PRINTFRR(4, 5);
 extern const char *yang_get_default_string(const char *xpath_fmt, ...)
 	PRINTFRR(1, 2);
 extern void yang_get_default_string_buf(char *buf, size_t size,

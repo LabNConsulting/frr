@@ -51,14 +51,13 @@ static void ospf_route_map_update(const char *name)
 				continue;
 
 			for (ALL_LIST_ELEMENTS_RO(red_list, node, red)) {
-				if (ROUTEMAP_NAME(red)
-				    && strcmp(ROUTEMAP_NAME(red), name) == 0) {
+				if (ROUTEMAP_NAME(red) &&
+				    strcmp(ROUTEMAP_NAME(red), name) == 0) {
 					/* Keep old route-map. */
 					struct route_map *old = ROUTEMAP(red);
 
-					ROUTEMAP(red) =
-						route_map_lookup_by_name(
-							ROUTEMAP_NAME(red));
+					ROUTEMAP(red) = route_map_lookup_by_name(
+						ROUTEMAP_NAME(red));
 
 					if (!old)
 						route_map_counter_increment(
@@ -66,12 +65,11 @@ static void ospf_route_map_update(const char *name)
 
 					/* No update for this distribute type.
 					 */
-					if (old == NULL
-					    && ROUTEMAP(red) == NULL)
+					if (old == NULL && ROUTEMAP(red) == NULL)
 						continue;
 
-					ospf_distribute_list_update(
-						ospf, type, red->instance);
+					ospf_distribute_list_update(ospf, type,
+								    red->instance);
 				}
 			}
 		}
@@ -95,10 +93,10 @@ static void ospf_route_map_event(const char *name)
 				continue;
 
 			for (ALL_LIST_ELEMENTS_RO(red_list, node, red)) {
-				if (ROUTEMAP_NAME(red) && ROUTEMAP(red)
-				    && !strcmp(ROUTEMAP_NAME(red), name)) {
-					ospf_distribute_list_update(
-						ospf, type, red->instance);
+				if (ROUTEMAP_NAME(red) && ROUTEMAP(red) &&
+				    !strcmp(ROUTEMAP_NAME(red), name)) {
+					ospf_distribute_list_update(ospf, type,
+								    red->instance);
 				}
 			}
 		}
@@ -121,9 +119,8 @@ route_match_ip_nexthop(void *rule, const struct prefix *prefix, void *object)
 	alist = access_list_lookup(AFI_IP, (char *)rule);
 	if (alist == NULL) {
 		if (unlikely(CHECK_FLAG(rmap_debug, DEBUG_ROUTEMAP_DETAIL)))
-			zlog_debug(
-				"%s: Access-List Specified: %s does not exist defaulting to NO_MATCH",
-				__func__, (char *)rule);
+			zlog_debug("%s: Access-List Specified: %s does not exist defaulting to NO_MATCH",
+				   __func__, (char *)rule);
 		return RMAP_NOMATCH;
 	}
 
@@ -145,12 +142,9 @@ static void route_match_ip_nexthop_free(void *rule)
 }
 
 /* Route map commands for metric matching. */
-static const struct route_map_rule_cmd route_match_ip_nexthop_cmd = {
-	"ip next-hop",
-	route_match_ip_nexthop,
-	route_match_ip_nexthop_compile,
-	route_match_ip_nexthop_free
-};
+static const struct route_map_rule_cmd route_match_ip_nexthop_cmd =
+	{"ip next-hop", route_match_ip_nexthop, route_match_ip_nexthop_compile,
+	 route_match_ip_nexthop_free};
 
 /* `match ip next-hop prefix-list PREFIX_LIST' */
 
@@ -169,9 +163,8 @@ route_match_ip_next_hop_prefix_list(void *rule, const struct prefix *prefix,
 	plist = prefix_list_lookup(AFI_IP, (char *)rule);
 	if (plist == NULL) {
 		if (unlikely(CHECK_FLAG(rmap_debug, DEBUG_ROUTEMAP_DETAIL)))
-			zlog_debug(
-				"%s: Prefix List %s specified does not exist defaulting to NO_MATCH",
-				__func__, (char *)rule);
+			zlog_debug("%s: Prefix List %s specified does not exist defaulting to NO_MATCH",
+				   __func__, (char *)rule);
 		return RMAP_NOMATCH;
 	}
 
@@ -189,13 +182,10 @@ static void route_match_ip_next_hop_prefix_list_free(void *rule)
 	XFREE(MTYPE_ROUTE_MAP_COMPILED, rule);
 }
 
-static const struct route_map_rule_cmd
-		route_match_ip_next_hop_prefix_list_cmd = {
-	"ip next-hop prefix-list",
-	route_match_ip_next_hop_prefix_list,
-	route_match_ip_next_hop_prefix_list_compile,
-	route_match_ip_next_hop_prefix_list_free
-};
+static const struct route_map_rule_cmd route_match_ip_next_hop_prefix_list_cmd =
+	{"ip next-hop prefix-list", route_match_ip_next_hop_prefix_list,
+	 route_match_ip_next_hop_prefix_list_compile,
+	 route_match_ip_next_hop_prefix_list_free};
 
 /* `match ip next-hop type <blackhole>' */
 
@@ -226,13 +216,10 @@ static void route_match_ip_next_hop_type_free(void *rule)
 	XFREE(MTYPE_ROUTE_MAP_COMPILED, rule);
 }
 
-static const struct route_map_rule_cmd
-		route_match_ip_next_hop_type_cmd = {
-	"ip next-hop type",
-	route_match_ip_next_hop_type,
-	route_match_ip_next_hop_type_compile,
-	route_match_ip_next_hop_type_free
-};
+static const struct route_map_rule_cmd route_match_ip_next_hop_type_cmd =
+	{"ip next-hop type", route_match_ip_next_hop_type,
+	 route_match_ip_next_hop_type_compile,
+	 route_match_ip_next_hop_type_free};
 
 /* `match ip address IP_ACCESS_LIST' */
 /* Match function should return 1 if match is success else return
@@ -246,9 +233,8 @@ route_match_ip_address(void *rule, const struct prefix *prefix, void *object)
 	alist = access_list_lookup(AFI_IP, (char *)rule);
 	if (alist == NULL) {
 		if (unlikely(CHECK_FLAG(rmap_debug, DEBUG_ROUTEMAP_DETAIL)))
-			zlog_debug(
-				"%s: Access-List Specified: %s does not exist defaulting to NO_MATCH",
-				__func__, (char *)rule);
+			zlog_debug("%s: Access-List Specified: %s does not exist defaulting to NO_MATCH",
+				   __func__, (char *)rule);
 		return RMAP_NOMATCH;
 	}
 
@@ -270,12 +256,9 @@ static void route_match_ip_address_free(void *rule)
 }
 
 /* Route map commands for ip address matching. */
-static const struct route_map_rule_cmd route_match_ip_address_cmd = {
-	"ip address",
-	route_match_ip_address,
-	route_match_ip_address_compile,
-	route_match_ip_address_free
-};
+static const struct route_map_rule_cmd route_match_ip_address_cmd =
+	{"ip address", route_match_ip_address, route_match_ip_address_compile,
+	 route_match_ip_address_free};
 
 /* `match ip address prefix-list PREFIX_LIST' */
 static enum route_map_cmd_result_t
@@ -287,9 +270,8 @@ route_match_ip_address_prefix_list(void *rule, const struct prefix *prefix,
 	plist = prefix_list_lookup(AFI_IP, (char *)rule);
 	if (plist == NULL) {
 		if (unlikely(CHECK_FLAG(rmap_debug, DEBUG_ROUTEMAP_DETAIL)))
-			zlog_debug(
-				"%s: Prefix List %s specified does not exist defaulting to NO_MATCH",
-				__func__, (char *)rule);
+			zlog_debug("%s: Prefix List %s specified does not exist defaulting to NO_MATCH",
+				   __func__, (char *)rule);
 
 		return RMAP_NOMATCH;
 	}
@@ -308,13 +290,10 @@ static void route_match_ip_address_prefix_list_free(void *rule)
 	XFREE(MTYPE_ROUTE_MAP_COMPILED, rule);
 }
 
-static const struct route_map_rule_cmd
-		route_match_ip_address_prefix_list_cmd = {
-	"ip address prefix-list",
-	route_match_ip_address_prefix_list,
-	route_match_ip_address_prefix_list_compile,
-	route_match_ip_address_prefix_list_free
-};
+static const struct route_map_rule_cmd route_match_ip_address_prefix_list_cmd =
+	{"ip address prefix-list", route_match_ip_address_prefix_list,
+	 route_match_ip_address_prefix_list_compile,
+	 route_match_ip_address_prefix_list_free};
 
 /* `match interface IFNAME' */
 /* Match function should return 1 if match is success else return
@@ -348,12 +327,9 @@ static void route_match_interface_free(void *rule)
 }
 
 /* Route map commands for ip address matching. */
-static const struct route_map_rule_cmd route_match_interface_cmd = {
-	"interface",
-	route_match_interface,
-	route_match_interface_compile,
-	route_match_interface_free
-};
+static const struct route_map_rule_cmd route_match_interface_cmd =
+	{"interface", route_match_interface, route_match_interface_compile,
+	 route_match_interface_free};
 
 /* Match function return 1 if match is success else return zero. */
 static enum route_map_cmd_result_t
@@ -602,8 +578,8 @@ static void *route_set_metric_type_compile(const char *arg)
 	else if (strcmp(arg, "type-2") == 0)
 		*metric_type = EXTERNAL_METRIC_TYPE_2;
 
-	if (*metric_type == EXTERNAL_METRIC_TYPE_1
-	    || *metric_type == EXTERNAL_METRIC_TYPE_2)
+	if (*metric_type == EXTERNAL_METRIC_TYPE_1 ||
+	    *metric_type == EXTERNAL_METRIC_TYPE_2)
 		return metric_type;
 
 	XFREE(MTYPE_ROUTE_MAP_COMPILED, metric_type);
@@ -647,13 +623,12 @@ static const struct route_map_rule_cmd route_set_tag_cmd = {
 	route_map_rule_tag_free,
 };
 
-DEFUN_YANG (set_metric_type,
-       set_metric_type_cmd,
-       "set metric-type <type-1|type-2>",
-       SET_STR
-       "Type of metric for destination routing protocol\n"
-       "OSPF[6] external type 1 metric\n"
-       "OSPF[6] external type 2 metric\n")
+DEFUN_YANG(set_metric_type, set_metric_type_cmd,
+	   "set metric-type <type-1|type-2>",
+	   SET_STR
+	   "Type of metric for destination routing protocol\n"
+	   "OSPF[6] external type 1 metric\n"
+	   "OSPF[6] external type 2 metric\n")
 {
 	char *ext = argv[2]->text;
 
@@ -668,14 +643,12 @@ DEFUN_YANG (set_metric_type,
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFUN_YANG (no_set_metric_type,
-       no_set_metric_type_cmd,
-       "no set metric-type [<type-1|type-2>]",
-       NO_STR
-       SET_STR
-       "Type of metric for destination routing protocol\n"
-       "OSPF[6] external type 1 metric\n"
-       "OSPF[6] external type 2 metric\n")
+DEFUN_YANG(no_set_metric_type, no_set_metric_type_cmd,
+	   "no set metric-type [<type-1|type-2>]",
+	   NO_STR SET_STR
+	   "Type of metric for destination routing protocol\n"
+	   "OSPF[6] external type 1 metric\n"
+	   "OSPF[6] external type 2 metric\n")
 {
 	const char *xpath =
 		"./set-action[action='frr-ospf-route-map:metric-type']";

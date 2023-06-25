@@ -94,14 +94,13 @@ static int filter_match_cisco(struct filter *mfilter, const struct prefix *p)
 		masklen2ip(p->prefixlen, &mask);
 		check_mask = mask.s_addr & ~filter->mask_mask.s_addr;
 
-		if (memcmp(&check_addr, &filter->addr.s_addr, IPV4_MAX_BYTELEN)
-			    == 0
-		    && memcmp(&check_mask, &filter->mask.s_addr,
-			      IPV4_MAX_BYTELEN)
-			       == 0)
+		if (memcmp(&check_addr, &filter->addr.s_addr,
+			   IPV4_MAX_BYTELEN) == 0 &&
+		    memcmp(&check_mask, &filter->mask.s_addr,
+			   IPV4_MAX_BYTELEN) == 0)
 			return 1;
-	} else if (memcmp(&check_addr, &filter->addr.s_addr, IPV4_MAX_BYTELEN)
-		   == 0)
+	} else if (memcmp(&check_addr, &filter->addr.s_addr,
+			  IPV4_MAX_BYTELEN) == 0)
 		return 1;
 
 	return 0;
@@ -327,8 +326,7 @@ int64_t filter_new_seq_get(struct access_list *access)
 }
 
 /* Return access list entry which has same seq number. */
-static struct filter *filter_seq_check(struct access_list *access,
-						  int64_t seq)
+static struct filter *filter_seq_check(struct access_list *access, int64_t seq)
 {
 	struct filter *filter;
 
@@ -340,8 +338,7 @@ static struct filter *filter_seq_check(struct access_list *access,
 
 /* Delete filter from specified access_list.  If there is hook
    function execute it. */
-void access_list_filter_delete(struct access_list *access,
-			       struct filter *filter)
+void access_list_filter_delete(struct access_list *access, struct filter *filter)
 {
 	struct access_master *master;
 
@@ -366,8 +363,7 @@ void access_list_filter_delete(struct access_list *access,
 }
 
 /* Add new filter to the end of specified access_list. */
-void access_list_filter_add(struct access_list *access,
-			    struct filter *filter)
+void access_list_filter_add(struct access_list *access, struct filter *filter)
 {
 	struct filter *replace;
 	struct filter *point;
@@ -503,8 +499,8 @@ static int filter_show(struct vty *vty, const char *name, afi_t afi,
 							       "addressFamily",
 							       afi2str(afi));
 					json_rules = json_object_new_array();
-					json_object_object_add(
-						json_acl, "rules", json_rules);
+					json_object_object_add(json_acl, "rules",
+							       json_rules);
 				} else {
 					vty_out(vty, "%s %s access list %s\n",
 						type,
@@ -525,9 +521,8 @@ static int filter_show(struct vty *vty, const char *name, afi_t afi,
 
 				json_object_int_add(json_rule, "sequenceNumber",
 						    mfilter->seq);
-				json_object_string_add(
-					json_rule, "filterType",
-					filter_type_str(mfilter));
+				json_object_string_add(json_rule, "filterType",
+						       filter_type_str(mfilter));
 			} else {
 				vty_out(vty, "    seq %" PRId64, mfilter->seq);
 				vty_out(vty, " %s%s", filter_type_str(mfilter),
@@ -543,21 +538,22 @@ static int filter_show(struct vty *vty, const char *name, afi_t afi,
 							  json_rule);
 			else {
 				if (json) {
-					json_object_string_addf(
-						json_rule, "address", "%pI4",
-						&filter->addr);
-					json_object_string_addf(
-						json_rule, "mask", "%pI4",
-						&filter->addr_mask);
+					json_object_string_addf(json_rule,
+								"address",
+								"%pI4",
+								&filter->addr);
+					json_object_string_addf(json_rule,
+								"mask", "%pI4",
+								&filter->addr_mask);
 				} else {
-					if (filter->addr_mask.s_addr
-					    == 0xffffffff)
+					if (filter->addr_mask.s_addr ==
+					    0xffffffff)
 						vty_out(vty, " any\n");
 					else {
 						vty_out(vty, " %pI4",
 							&filter->addr);
-						if (filter->addr_mask.s_addr
-						    != INADDR_ANY)
+						if (filter->addr_mask.s_addr !=
+						    INADDR_ANY)
 							vty_out(vty,
 								", wildcard bits %pI4",
 								&filter->addr_mask);
@@ -572,73 +568,55 @@ static int filter_show(struct vty *vty, const char *name, afi_t afi,
 }
 
 /* show MAC access list - this only has MAC filters for now*/
-DEFUN (show_mac_access_list,
-       show_mac_access_list_cmd,
-       "show mac access-list",
-       SHOW_STR
-       "mac access lists\n"
-       "List mac access lists\n")
+DEFUN(show_mac_access_list, show_mac_access_list_cmd, "show mac access-list",
+      SHOW_STR
+      "mac access lists\n"
+      "List mac access lists\n")
 {
 	return filter_show(vty, NULL, AFI_L2VPN, false);
 }
 
-DEFUN (show_mac_access_list_name,
-       show_mac_access_list_name_cmd,
-       "show mac access-list ACCESSLIST_MAC_NAME",
-       SHOW_STR
-       "mac access lists\n"
-       "List mac access lists\n"
-       "mac address\n")
+DEFUN(show_mac_access_list_name, show_mac_access_list_name_cmd,
+      "show mac access-list ACCESSLIST_MAC_NAME",
+      SHOW_STR
+      "mac access lists\n"
+      "List mac access lists\n"
+      "mac address\n")
 {
 	return filter_show(vty, argv[3]->arg, AFI_L2VPN, false);
 }
 
-DEFUN (show_ip_access_list,
-       show_ip_access_list_cmd,
-       "show ip access-list [json]",
-       SHOW_STR
-       IP_STR
-       "List IP access lists\n"
-       JSON_STR)
+DEFUN(show_ip_access_list, show_ip_access_list_cmd, "show ip access-list [json]",
+      SHOW_STR IP_STR "List IP access lists\n" JSON_STR)
 {
 	bool uj = use_json(argc, argv);
 	return filter_show(vty, NULL, AFI_IP, uj);
 }
 
-DEFUN (show_ip_access_list_name,
-       show_ip_access_list_name_cmd,
-       "show ip access-list ACCESSLIST4_NAME [json]",
-       SHOW_STR
-       IP_STR
-       "List IP access lists\n"
-       "IP access-list name\n"
-       JSON_STR)
+DEFUN(show_ip_access_list_name, show_ip_access_list_name_cmd,
+      "show ip access-list ACCESSLIST4_NAME [json]",
+      SHOW_STR IP_STR
+      "List IP access lists\n"
+      "IP access-list name\n" JSON_STR)
 {
 	bool uj = use_json(argc, argv);
 	int idx_acl = 3;
 	return filter_show(vty, argv[idx_acl]->arg, AFI_IP, uj);
 }
 
-DEFUN (show_ipv6_access_list,
-       show_ipv6_access_list_cmd,
-       "show ipv6 access-list [json]",
-       SHOW_STR
-       IPV6_STR
-       "List IPv6 access lists\n"
-       JSON_STR)
+DEFUN(show_ipv6_access_list, show_ipv6_access_list_cmd,
+      "show ipv6 access-list [json]",
+      SHOW_STR IPV6_STR "List IPv6 access lists\n" JSON_STR)
 {
 	bool uj = use_json(argc, argv);
 	return filter_show(vty, NULL, AFI_IP6, uj);
 }
 
-DEFUN (show_ipv6_access_list_name,
-       show_ipv6_access_list_name_cmd,
-       "show ipv6 access-list ACCESSLIST6_NAME [json]",
-       SHOW_STR
-       IPV6_STR
-       "List IPv6 access lists\n"
-       "IPv6 access-list name\n"
-       JSON_STR)
+DEFUN(show_ipv6_access_list_name, show_ipv6_access_list_name_cmd,
+      "show ipv6 access-list ACCESSLIST6_NAME [json]",
+      SHOW_STR IPV6_STR
+      "List IPv6 access lists\n"
+      "IPv6 access-list name\n" JSON_STR)
 {
 	bool uj = use_json(argc, argv);
 	int idx_word = 3;
@@ -847,16 +825,16 @@ static void access_list_mac_autocomplete(vector comps, struct cmd_token *token)
 	access_list_autocomplete_afi(AFI_L2VPN, comps, token);
 }
 
-static const struct cmd_variable_handler access_list_handlers[] = {
-	{.tokenname = "ACCESSLIST_NAME",
-	 .completions = access_list_autocomplete},
-	{.tokenname = "ACCESSLIST4_NAME",
-	 .completions = access_list4_autocomplete},
-	{.tokenname = "ACCESSLIST6_NAME",
-	 .completions = access_list6_autocomplete},
-	{.tokenname = "ACCESSLIST_MAC_NAME",
-	 .completions = access_list_mac_autocomplete},
-	{.completions = NULL}};
+static const struct cmd_variable_handler access_list_handlers[] =
+	{{.tokenname = "ACCESSLIST_NAME",
+	  .completions = access_list_autocomplete},
+	 {.tokenname = "ACCESSLIST4_NAME",
+	  .completions = access_list4_autocomplete},
+	 {.tokenname = "ACCESSLIST6_NAME",
+	  .completions = access_list6_autocomplete},
+	 {.tokenname = "ACCESSLIST_MAC_NAME",
+	  .completions = access_list_mac_autocomplete},
+	 {.completions = NULL}};
 
 static void access_list_reset_ipv6(void)
 {

@@ -246,11 +246,11 @@ static bool cmd_nodes_equal(struct graph_node *ga, struct graph_node *gb)
 
 	case FORK_TKN:
 		/* one is keywords, the other just option or selector ... */
-		if (cmd_nodes_link(a->forkjoin, ga)
-		    != cmd_nodes_link(b->forkjoin, gb))
+		if (cmd_nodes_link(a->forkjoin, ga) !=
+		    cmd_nodes_link(b->forkjoin, gb))
 			return false;
-		if (cmd_nodes_link(ga, a->forkjoin)
-		    != cmd_nodes_link(gb, b->forkjoin))
+		if (cmd_nodes_link(ga, a->forkjoin) !=
+		    cmd_nodes_link(gb, b->forkjoin))
 			return false;
 		return cmd_subgraph_equal(ga, gb, a->forkjoin);
 
@@ -377,10 +377,9 @@ static void cmd_merge_nodes(struct graph *oldgraph, struct graph *newgraph,
 
 				if (told->type == END_TKN) {
 					if (direction < 0) {
-						graph_delete_node(
-							oldgraph,
-							vector_slot(cold->to,
-								    0));
+						graph_delete_node(oldgraph,
+								  vector_slot(cold->to,
+									      0));
 						graph_delete_node(oldgraph,
 								  cold);
 					} else
@@ -393,11 +392,11 @@ static void cmd_merge_nodes(struct graph *oldgraph, struct graph *newgraph,
 				/* the entire fork compared as equal, we
 				 * continue after it. */
 				if (told->type == FORK_TKN) {
-					if (tnew->attr < told->attr
-					    && direction > 0)
-						cmd_fork_bump_attr(
-							cold, told->forkjoin,
-							tnew->attr);
+					if (tnew->attr < told->attr &&
+					    direction > 0)
+						cmd_fork_bump_attr(cold,
+								   told->forkjoin,
+								   tnew->attr);
 					/* XXX: no reverse bump on uninstall */
 					told = (cold = told->forkjoin)->data;
 					tnew = (cnew = tnew->forkjoin)->data;
@@ -502,10 +501,9 @@ void cmd_graph_node_print_cb(struct graph_node *gn, struct buffer *buf)
 		buffer_putstr(buf, " (h)");
 	if (tok->text) {
 		if (tok->type == WORD_TKN)
-			snprintf(
-				nbuf, sizeof(nbuf),
-				"<br/>\"<font color=\"#0055ff\" point-size=\"11\"><b>%s</b></font>\"",
-				tok->text);
+			snprintf(nbuf, sizeof(nbuf),
+				 "<br/>\"<font color=\"#0055ff\" point-size=\"11\"><b>%s</b></font>\"",
+				 tok->text);
 		else
 			snprintf(nbuf, sizeof(nbuf), "<br/>%s", tok->text);
 		buffer_putstr(buf, nbuf);
@@ -556,13 +554,11 @@ void cmd_graph_node_print_cb(struct graph_node *gn, struct buffer *buf)
 			snprintf(nbuf, sizeof(nbuf), "  n%p -> end%p;\n", gn,
 				 adj);
 			buffer_putstr(buf, nbuf);
-			snprintf(
-				nbuf, sizeof(nbuf),
-				"  end%p [ shape=box, label=<end>, style = filled, fillcolor = \"#ffddaa\" ];\n",
-				adj);
-		} else
-			snprintf(nbuf, sizeof(nbuf), "  n%p -> n%p;\n", gn,
+			snprintf(nbuf, sizeof(nbuf),
+				 "  end%p [ shape=box, label=<end>, style = filled, fillcolor = \"#ffddaa\" ];\n",
 				 adj);
+		} else
+			snprintf(nbuf, sizeof(nbuf), "  n%p -> n%p;\n", gn, adj);
 
 		buffer_putstr(buf, nbuf);
 	}

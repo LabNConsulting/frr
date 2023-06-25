@@ -36,8 +36,8 @@ static void bgp_process_reads(struct event *event);
 static bool validate_header(struct peer *);
 
 /* generic i/o status codes */
-#define BGP_IO_TRANS_ERR (1 << 0) /* EAGAIN or similar occurred */
-#define BGP_IO_FATAL_ERR (1 << 1) /* some kind of fatal TCP error */
+#define BGP_IO_TRANS_ERR (1 << 0)     /* EAGAIN or similar occurred */
+#define BGP_IO_FATAL_ERR (1 << 1)     /* some kind of fatal TCP error */
 #define BGP_IO_WORK_FULL_ERR (1 << 2) /* No room in work buffer */
 
 /* Thread external API ----------------------------------------------------- */
@@ -268,9 +268,8 @@ static void bgp_process_reads(struct event *thread)
 		ibuf_full = true;
 		if (!ibuf_full_logged) {
 			if (bgp_debug_neighbor_events(peer))
-				zlog_debug(
-					"%s [Event] Peer Input-Queue is full: limit (%u)",
-					peer->host, bm->inq_limit);
+				zlog_debug("%s [Event] Peer Input-Queue is full: limit (%u)",
+					   peer->host, bm->inq_limit);
 
 			ibuf_full_logged = true;
 		}
@@ -372,7 +371,7 @@ static uint16_t bgp_write(struct peer *peer)
 			for (unsigned int i = 0; i < ic; i++) {
 				size_t ss = iov[i].iov_len;
 
-				if (ss > (unsigned int) num)
+				if (ss > (unsigned int)num)
 					break;
 
 				msg_written++;
@@ -385,8 +384,7 @@ static uint16_t bgp_write(struct peer *peer)
 
 			assert(total_written < count);
 
-			memmove(&iov, &iov[msg_written],
-				sizeof(iov[0]) * iovsz);
+			memmove(&iov, &iov[msg_written], sizeof(iov[0]) * iovsz);
 			streams = &streams[msg_written];
 			stream_forward_getp(streams[0], num);
 			iov[0].iov_base = stream_pnt(streams[0]);
@@ -490,8 +488,8 @@ done : {
  */
 static uint16_t bgp_read(struct peer *peer, int *code_p)
 {
-	size_t readsize; /* how many bytes we want to read */
-	ssize_t nbytes;  /* how many bytes we actually read */
+	size_t readsize;	/* how many bytes we want to read */
+	ssize_t nbytes;		/* how many bytes we actually read */
 	size_t ibuf_work_space; /* space we can read into the work buf */
 	uint16_t status = 0;
 
@@ -533,8 +531,8 @@ static uint16_t bgp_read(struct peer *peer, int *code_p)
 
 		SET_FLAG(status, BGP_IO_FATAL_ERR);
 	} else {
-		assert(ringbuf_put(peer->ibuf_work, peer->ibuf_scratch, nbytes)
-		       == (size_t)nbytes);
+		assert(ringbuf_put(peer->ibuf_work, peer->ibuf_scratch,
+				   nbytes) == (size_t)nbytes);
 	}
 
 	return status;
@@ -553,9 +551,12 @@ static bool validate_header(struct peer *peer)
 	uint8_t type;
 	struct ringbuf *pkt = peer->ibuf_work;
 
-	static const uint8_t m_correct[BGP_MARKER_SIZE] = {
-		0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-		0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+	static const uint8_t m_correct[BGP_MARKER_SIZE] = {0xff, 0xff, 0xff,
+							   0xff, 0xff, 0xff,
+							   0xff, 0xff, 0xff,
+							   0xff, 0xff, 0xff,
+							   0xff, 0xff, 0xff,
+							   0xff};
 	uint8_t m_rx[BGP_MARKER_SIZE] = {0x00};
 
 	if (ringbuf_peek(pkt, 0, m_rx, BGP_MARKER_SIZE) != BGP_MARKER_SIZE)
@@ -574,11 +575,10 @@ static bool validate_header(struct peer *peer)
 	size = ntohs(size);
 
 	/* BGP type check. */
-	if (type != BGP_MSG_OPEN && type != BGP_MSG_UPDATE
-	    && type != BGP_MSG_NOTIFY && type != BGP_MSG_KEEPALIVE
-	    && type != BGP_MSG_ROUTE_REFRESH_NEW
-	    && type != BGP_MSG_ROUTE_REFRESH_OLD
-	    && type != BGP_MSG_CAPABILITY) {
+	if (type != BGP_MSG_OPEN && type != BGP_MSG_UPDATE &&
+	    type != BGP_MSG_NOTIFY && type != BGP_MSG_KEEPALIVE &&
+	    type != BGP_MSG_ROUTE_REFRESH_NEW &&
+	    type != BGP_MSG_ROUTE_REFRESH_OLD && type != BGP_MSG_CAPABILITY) {
 		if (bgp_debug_neighbor_events(peer))
 			zlog_debug("%s unknown message type 0x%02x", peer->host,
 				   type);
@@ -589,17 +589,16 @@ static bool validate_header(struct peer *peer)
 	}
 
 	/* Minimum packet length check. */
-	if ((size < BGP_HEADER_SIZE) || (size > peer->max_packet_size)
-	    || (type == BGP_MSG_OPEN && size < BGP_MSG_OPEN_MIN_SIZE)
-	    || (type == BGP_MSG_UPDATE && size < BGP_MSG_UPDATE_MIN_SIZE)
-	    || (type == BGP_MSG_NOTIFY && size < BGP_MSG_NOTIFY_MIN_SIZE)
-	    || (type == BGP_MSG_KEEPALIVE && size != BGP_MSG_KEEPALIVE_MIN_SIZE)
-	    || (type == BGP_MSG_ROUTE_REFRESH_NEW
-		&& size < BGP_MSG_ROUTE_REFRESH_MIN_SIZE)
-	    || (type == BGP_MSG_ROUTE_REFRESH_OLD
-		&& size < BGP_MSG_ROUTE_REFRESH_MIN_SIZE)
-	    || (type == BGP_MSG_CAPABILITY
-		&& size < BGP_MSG_CAPABILITY_MIN_SIZE)) {
+	if ((size < BGP_HEADER_SIZE) || (size > peer->max_packet_size) ||
+	    (type == BGP_MSG_OPEN && size < BGP_MSG_OPEN_MIN_SIZE) ||
+	    (type == BGP_MSG_UPDATE && size < BGP_MSG_UPDATE_MIN_SIZE) ||
+	    (type == BGP_MSG_NOTIFY && size < BGP_MSG_NOTIFY_MIN_SIZE) ||
+	    (type == BGP_MSG_KEEPALIVE && size != BGP_MSG_KEEPALIVE_MIN_SIZE) ||
+	    (type == BGP_MSG_ROUTE_REFRESH_NEW &&
+	     size < BGP_MSG_ROUTE_REFRESH_MIN_SIZE) ||
+	    (type == BGP_MSG_ROUTE_REFRESH_OLD &&
+	     size < BGP_MSG_ROUTE_REFRESH_MIN_SIZE) ||
+	    (type == BGP_MSG_CAPABILITY && size < BGP_MSG_CAPABILITY_MIN_SIZE)) {
 		if (bgp_debug_neighbor_events(peer)) {
 			zlog_debug("%s bad message length - %d for %s",
 				   peer->host, size,

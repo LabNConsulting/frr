@@ -51,8 +51,8 @@ static void ospf_bfd_session_change(struct bfd_session_params *bsp,
 	struct ospf_neighbor *nbr = arg;
 
 	/* BFD peer went down. */
-	if (bss->state == BFD_STATUS_DOWN
-	    && bss->previous_state == BFD_STATUS_UP) {
+	if (bss->state == BFD_STATUS_DOWN &&
+	    bss->previous_state == BFD_STATUS_UP) {
 		if (IS_DEBUG_OSPF(bfd, BFD_LIB))
 			zlog_debug("%s: NSM[%s:%pI4]: BFD Down", __func__,
 				   IF_NAME(nbr->oi), &nbr->address.u.prefix4);
@@ -150,9 +150,9 @@ void ospf_bfd_write_config(struct vty *vty, const struct ospf_if_params *params
 			   __attribute__((unused)))
 {
 #if HAVE_BFDD == 0
-	if (params->bfd_config->detection_multiplier != BFD_DEF_DETECT_MULT
-	    || params->bfd_config->min_rx != BFD_DEF_MIN_RX
-	    || params->bfd_config->min_tx != BFD_DEF_MIN_TX)
+	if (params->bfd_config->detection_multiplier != BFD_DEF_DETECT_MULT ||
+	    params->bfd_config->min_rx != BFD_DEF_MIN_RX ||
+	    params->bfd_config->min_tx != BFD_DEF_MIN_TX)
 		vty_out(vty, " ip ospf bfd %d %d %d\n",
 			params->bfd_config->detection_multiplier,
 			params->bfd_config->min_rx, params->bfd_config->min_tx);
@@ -191,12 +191,10 @@ void ospf_interface_bfd_show(struct vty *vty, const struct interface *ifp,
 			bfd_config->min_tx);
 }
 
-DEFUN (ip_ospf_bfd,
-       ip_ospf_bfd_cmd,
-       "ip ospf bfd",
-       "IP Information\n"
-       "OSPF interface commands\n"
-       "Enables BFD support\n")
+DEFUN(ip_ospf_bfd, ip_ospf_bfd_cmd, "ip ospf bfd",
+      "IP Information\n"
+      "OSPF interface commands\n"
+      "Enables BFD support\n")
 {
 	VTY_DECLVAR_CONTEXT(interface, ifp);
 	ospf_interface_enable_bfd(ifp);
@@ -209,15 +207,14 @@ DEFUN_HIDDEN(
 #else
 DEFUN(
 #endif /* HAVE_BFDD */
-       ip_ospf_bfd_param,
-       ip_ospf_bfd_param_cmd,
-       "ip ospf bfd (2-255) (50-60000) (50-60000)",
-       "IP Information\n"
-       "OSPF interface commands\n"
-       "Enables BFD support\n"
-       "Detect Multiplier\n"
-       "Required min receive interval\n"
-       "Desired min transmit interval\n")
+	ip_ospf_bfd_param, ip_ospf_bfd_param_cmd,
+	"ip ospf bfd (2-255) (50-60000) (50-60000)",
+	"IP Information\n"
+	"OSPF interface commands\n"
+	"Enables BFD support\n"
+	"Detect Multiplier\n"
+	"Required min receive interval\n"
+	"Desired min transmit interval\n")
 {
 	VTY_DECLVAR_CONTEXT(interface, ifp);
 	struct ospf_if_params *params;
@@ -238,14 +235,10 @@ DEFUN(
 	return CMD_SUCCESS;
 }
 
-DEFUN (ip_ospf_bfd_prof,
-       ip_ospf_bfd_prof_cmd,
-       "ip ospf bfd profile BFDPROF",
-       "IP Information\n"
-       "OSPF interface commands\n"
-       "Enables BFD support\n"
-       BFD_PROFILE_STR
-       BFD_PROFILE_NAME_STR)
+DEFUN(ip_ospf_bfd_prof, ip_ospf_bfd_prof_cmd, "ip ospf bfd profile BFDPROF",
+      "IP Information\n"
+      "OSPF interface commands\n"
+      "Enables BFD support\n" BFD_PROFILE_STR BFD_PROFILE_NAME_STR)
 {
 	VTY_DECLVAR_CONTEXT(interface, ifp);
 	struct ospf_if_params *params;
@@ -264,15 +257,12 @@ DEFUN (ip_ospf_bfd_prof,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_ip_ospf_bfd_prof,
-       no_ip_ospf_bfd_prof_cmd,
-       "no ip ospf bfd profile [BFDPROF]",
-       NO_STR
-       "IP Information\n"
-       "OSPF interface commands\n"
-       "Enables BFD support\n"
-       BFD_PROFILE_STR
-       BFD_PROFILE_NAME_STR)
+DEFUN(no_ip_ospf_bfd_prof, no_ip_ospf_bfd_prof_cmd,
+      "no ip ospf bfd profile [BFDPROF]",
+      NO_STR
+      "IP Information\n"
+      "OSPF interface commands\n"
+      "Enables BFD support\n" BFD_PROFILE_STR BFD_PROFILE_NAME_STR)
 {
 	VTY_DECLVAR_CONTEXT(interface, ifp);
 	struct ospf_if_params *params;
@@ -287,21 +277,20 @@ DEFUN (no_ip_ospf_bfd_prof,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_ip_ospf_bfd,
-       no_ip_ospf_bfd_cmd,
+DEFUN(no_ip_ospf_bfd, no_ip_ospf_bfd_cmd,
 #if HAVE_BFDD > 0
-       "no ip ospf bfd",
+      "no ip ospf bfd",
 #else
-       "no ip ospf bfd [(2-255) (50-60000) (50-60000)]",
+      "no ip ospf bfd [(2-255) (50-60000) (50-60000)]",
 #endif /* HAVE_BFDD */
-       NO_STR
-       "IP Information\n"
-       "OSPF interface commands\n"
-       "Disables BFD support\n"
+      NO_STR
+      "IP Information\n"
+      "OSPF interface commands\n"
+      "Disables BFD support\n"
 #if HAVE_BFDD == 0
-       "Detect Multiplier\n"
-       "Required min receive interval\n"
-       "Desired min transmit interval\n"
+      "Detect Multiplier\n"
+      "Required min receive interval\n"
+      "Desired min transmit interval\n"
 #endif /* !HAVE_BFDD */
 )
 {

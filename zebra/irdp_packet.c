@@ -89,8 +89,7 @@ static void parse_irdp_packet(char *p, int len, struct interface *ifp)
 
 	if (iplen < ICMP_MINLEN) {
 		flog_err(EC_ZEBRA_IRDP_LEN_MISMATCH,
-			 "IRDP: RX ICMP packet too short from %pI4",
-			 &src);
+			 "IRDP: RX ICMP packet too short from %pI4", &src);
 		return;
 	}
 
@@ -100,8 +99,7 @@ static void parse_irdp_packet(char *p, int len, struct interface *ifp)
 	 len of IP-header) 14+20 */
 	if (iplen > IRDP_RX_BUF - 34) {
 		flog_err(EC_ZEBRA_IRDP_LEN_MISMATCH,
-			 "IRDP: RX ICMP packet too long from %pI4",
-			 &src);
+			 "IRDP: RX ICMP packet too long from %pI4", &src);
 		return;
 	}
 
@@ -111,40 +109,38 @@ static void parse_irdp_packet(char *p, int len, struct interface *ifp)
 	icmp->checksum = 0;
 	/* check icmp checksum */
 	if (in_cksum(icmp, datalen) != saved_chksum) {
-		flog_warn(
-			EC_ZEBRA_IRDP_BAD_CHECKSUM,
-			"IRDP: RX ICMP packet from %pI4 Bad checksum, silently ignored",
-			&src);
+		flog_warn(EC_ZEBRA_IRDP_BAD_CHECKSUM,
+			  "IRDP: RX ICMP packet from %pI4 Bad checksum, silently ignored",
+			  &src);
 		return;
 	}
 
 	/* Handle just only IRDP */
-	if (!(icmp->type == ICMP_ROUTERADVERT
-	      || icmp->type == ICMP_ROUTERSOLICIT))
+	if (!(icmp->type == ICMP_ROUTERADVERT ||
+	      icmp->type == ICMP_ROUTERSOLICIT))
 		return;
 
 	if (icmp->code != 0) {
-		flog_warn(
-			EC_ZEBRA_IRDP_BAD_TYPE_CODE,
-			"IRDP: RX packet type %d from %pI4 Bad ICMP type code, silently ignored",
-			icmp->type, &src);
+		flog_warn(EC_ZEBRA_IRDP_BAD_TYPE_CODE,
+			  "IRDP: RX packet type %d from %pI4 Bad ICMP type code, silently ignored",
+			  icmp->type, &src);
 		return;
 	}
 
-	if (!((ntohl(ip->ip_dst.s_addr) == INADDR_BROADCAST)
-	      && (irdp->flags & IF_BROADCAST))
-	    || (ntohl(ip->ip_dst.s_addr) == INADDR_ALLRTRS_GROUP
-		&& !(irdp->flags & IF_BROADCAST))) {
-		flog_warn(
-			EC_ZEBRA_IRDP_BAD_RX_FLAGS,
-			"IRDP: RX illegal from %pI4 to %s while %s operates in %s; Please correct settings",
-			&src,
-			ntohl(ip->ip_dst.s_addr) == INADDR_ALLRTRS_GROUP
-				? "multicast"
-				: inet_ntop(AF_INET, &ip->ip_dst,
-					    buf, sizeof(buf)),
-			ifp->name,
-			irdp->flags & IF_BROADCAST ? "broadcast" : "multicast");
+	if (!((ntohl(ip->ip_dst.s_addr) == INADDR_BROADCAST) &&
+	      (irdp->flags & IF_BROADCAST)) ||
+	    (ntohl(ip->ip_dst.s_addr) == INADDR_ALLRTRS_GROUP &&
+	     !(irdp->flags & IF_BROADCAST))) {
+		flog_warn(EC_ZEBRA_IRDP_BAD_RX_FLAGS,
+			  "IRDP: RX illegal from %pI4 to %s while %s operates in %s; Please correct settings",
+			  &src,
+			  ntohl(ip->ip_dst.s_addr) == INADDR_ALLRTRS_GROUP
+				  ? "multicast"
+				  : inet_ntop(AF_INET, &ip->ip_dst, buf,
+					      sizeof(buf)),
+			  ifp->name,
+			  irdp->flags & IF_BROADCAST ? "broadcast"
+						     : "multicast");
 		return;
 	}
 
@@ -162,10 +158,9 @@ static void parse_irdp_packet(char *p, int len, struct interface *ifp)
 		break;
 
 	default:
-		flog_warn(
-			EC_ZEBRA_IRDP_BAD_TYPE_CODE,
-			"IRDP: RX packet type %d from %pI4 Bad ICMP type code, silently ignored",
-			icmp->type, &src);
+		flog_warn(EC_ZEBRA_IRDP_BAD_TYPE_CODE,
+			  "IRDP: RX packet type %d from %pI4 Bad ICMP type code, silently ignored",
+			  icmp->type, &src);
 	}
 }
 
@@ -299,8 +294,7 @@ void send_packet(struct interface *ifp, struct stream *s, uint32_t dst,
 
 	on = 1;
 	if (setsockopt(irdp_sock, IPPROTO_IP, IP_HDRINCL, (char *)&on,
-		       sizeof(on))
-	    < 0)
+		       sizeof(on)) < 0)
 		flog_err(EC_LIB_SOCKET,
 			 "IRDP: Cannot set IP_HDRINCLU %s(%d) on %s",
 			 safe_strerror(errno), errno, ifp->name);
@@ -310,8 +304,7 @@ void send_packet(struct interface *ifp, struct stream *s, uint32_t dst,
 		uint32_t bon = 1;
 
 		if (setsockopt(irdp_sock, SOL_SOCKET, SO_BROADCAST, &bon,
-			       sizeof(bon))
-		    < 0)
+			       sizeof(bon)) < 0)
 			flog_err(EC_LIB_SOCKET,
 				 "IRDP: Cannot set SO_BROADCAST %s(%d) on %s",
 				 safe_strerror(errno), errno, ifp->name);

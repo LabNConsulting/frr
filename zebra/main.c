@@ -70,23 +70,23 @@ uint32_t rcvbufsize = 128 * 1024;
 #endif
 
 #define OPTION_V6_RR_SEMANTICS 2000
-#define OPTION_ASIC_OFFLOAD    2001
+#define OPTION_ASIC_OFFLOAD 2001
 
 /* Command line options. */
-const struct option longopts[] = {
-	{"batch", no_argument, NULL, 'b'},
-	{"allow_delete", no_argument, NULL, 'a'},
-	{"socket", required_argument, NULL, 'z'},
-	{"ecmp", required_argument, NULL, 'e'},
-	{"retain", no_argument, NULL, 'r'},
-	{"graceful_restart", required_argument, NULL, 'K'},
-	{"asic-offload", optional_argument, NULL, OPTION_ASIC_OFFLOAD},
+const struct option longopts[] =
+	{{"batch", no_argument, NULL, 'b'},
+	 {"allow_delete", no_argument, NULL, 'a'},
+	 {"socket", required_argument, NULL, 'z'},
+	 {"ecmp", required_argument, NULL, 'e'},
+	 {"retain", no_argument, NULL, 'r'},
+	 {"graceful_restart", required_argument, NULL, 'K'},
+	 {"asic-offload", optional_argument, NULL, OPTION_ASIC_OFFLOAD},
 #ifdef HAVE_NETLINK
-	{"vrfwnetns", no_argument, NULL, 'n'},
-	{"nl-bufsize", required_argument, NULL, 's'},
-	{"v6-rr-semantics", no_argument, NULL, OPTION_V6_RR_SEMANTICS},
+	 {"vrfwnetns", no_argument, NULL, 'n'},
+	 {"nl-bufsize", required_argument, NULL, 's'},
+	 {"v6-rr-semantics", no_argument, NULL, OPTION_V6_RR_SEMANTICS},
 #endif /* HAVE_NETLINK */
-	{0}};
+	 {0}};
 
 zebra_capabilities_t _caps_p[] = {ZCAP_NET_ADMIN, ZCAP_SYS_ADMIN,
 				  ZCAP_NET_RAW,
@@ -134,8 +134,7 @@ static void sigint(void)
 
 	zlog_notice("Terminating on signal");
 
-	atomic_store_explicit(&zrouter.in_shutdown, true,
-			      memory_order_relaxed);
+	atomic_store_explicit(&zrouter.in_shutdown, true, memory_order_relaxed);
 
 	/* send RA lifetime of 0 before stopping. rfc4861/6.2.5 */
 	rtadv_stop_ra_all();
@@ -276,8 +275,7 @@ FRR_DAEMON_INFO(
 	.privs = &zserv_privs,
 
 	.yang_modules = zebra_yang_modules,
-	.n_yang_modules = array_size(zebra_yang_modules),
-);
+	.n_yang_modules = array_size(zebra_yang_modules), );
 
 /* Main startup routine. */
 int main(int argc, char **argv)
@@ -335,13 +333,12 @@ int main(int argc, char **argv)
 		case 'e': {
 			unsigned long int parsed_multipath =
 				strtoul(optarg, NULL, 10);
-			if (parsed_multipath == 0
-			    || parsed_multipath > MULTIPATH_NUM
-			    || parsed_multipath > UINT32_MAX) {
-				flog_err(
-					EC_ZEBRA_BAD_MULTIPATH_NUM,
-					"Multipath Number specified must be less than %u and greater than 0",
-					MULTIPATH_NUM);
+			if (parsed_multipath == 0 ||
+			    parsed_multipath > MULTIPATH_NUM ||
+			    parsed_multipath > UINT32_MAX) {
+				flog_err(EC_ZEBRA_BAD_MULTIPATH_NUM,
+					 "Multipath Number specified must be less than %u and greater than 0",
+					 MULTIPATH_NUM);
 				return 1;
 			}
 			zrouter.multipath_num = parsed_multipath;
@@ -425,22 +422,22 @@ int main(int argc, char **argv)
 	/* SET_FLAG (zebra_debug_event, ZEBRA_DEBUG_EVENT); */
 
 	/* Process the configuration file. Among other configuration
-	*  directives we can meet those installing static routes. Such
-	*  requests will not be executed immediately, but queued in
-	*  zebra->ribq structure until we enter the main execution loop.
-	*  The notifications from kernel will show originating PID equal
-	*  to that after daemon() completes (if ever called).
-	*/
+	 *  directives we can meet those installing static routes. Such
+	 *  requests will not be executed immediately, but queued in
+	 *  zebra->ribq structure until we enter the main execution loop.
+	 *  The notifications from kernel will show originating PID equal
+	 *  to that after daemon() completes (if ever called).
+	 */
 	frr_config_fork();
 
 	/* After we have successfully acquired the pidfile, we can be sure
-	*  about being the only copy of zebra process, which is submitting
-	*  changes to the FIB.
-	*  Clean up zebra-originated routes. The requests will be sent to OS
-	*  immediately, so originating PID in notifications from kernel
-	*  will be equal to the current getpid(). To know about such routes,
-	* we have to have route_read() called before.
-	*/
+	 *  about being the only copy of zebra process, which is submitting
+	 *  changes to the FIB.
+	 *  Clean up zebra-originated routes. The requests will be sent to OS
+	 *  immediately, so originating PID in notifications from kernel
+	 *  will be equal to the current getpid(). To know about such routes,
+	 * we have to have route_read() called before.
+	 */
 	zrouter.startup_time = monotime(NULL);
 	event_add_timer(zrouter.master, rib_sweep_route, NULL, graceful_restart,
 			&zrouter.sweeper);

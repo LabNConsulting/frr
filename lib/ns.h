@@ -21,12 +21,12 @@ typedef uint32_t ns_id_t;
 #define NS_UNKNOWN UINT32_MAX
 
 /* Default netns directory (Linux) */
-#define NS_RUN_DIR         "/var/run/netns"
+#define NS_RUN_DIR "/var/run/netns"
 
 #ifdef HAVE_NETNS
-#define NS_DEFAULT_NAME    "/proc/self/ns/net"
-#else  /* !HAVE_NETNS */
-#define NS_DEFAULT_NAME    "default-netns"
+#define NS_DEFAULT_NAME "/proc/self/ns/net"
+#else /* !HAVE_NETNS */
+#define NS_DEFAULT_NAME "default-netns"
 #endif /* HAVE_NETNS */
 
 struct ns {
@@ -70,10 +70,10 @@ RB_PROTOTYPE(ns_head, ns, entry, ns_compare)
  * NS hooks
  */
 
-#define NS_NEW_HOOK        0   /* a new netns is just created */
-#define NS_DELETE_HOOK     1   /* a netns is to be deleted */
-#define NS_ENABLE_HOOK     2   /* a netns is ready to use */
-#define NS_DISABLE_HOOK    3   /* a netns is to be unusable */
+#define NS_NEW_HOOK 0	  /* a new netns is just created */
+#define NS_DELETE_HOOK 1  /* a netns is to be deleted */
+#define NS_ENABLE_HOOK 2  /* a netns is ready to use */
+#define NS_DISABLE_HOOK 3 /* a netns is to be unusable */
 
 /*
  * Add a specific hook ns module.
@@ -113,11 +113,8 @@ extern char *ns_netns_pathname(struct vty *vty, const char *name);
 #define NS_WALK_CONTINUE 0
 #define NS_WALK_STOP 1
 
-extern void ns_walk_func(int (*func)(struct ns *,
-				     void *,
-				     void **),
-			 void *param_in,
-			 void **param_out);
+extern void ns_walk_func(int (*func)(struct ns *, void *, void **),
+			 void *param_in, void **param_out);
 
 /* API to get the NETNS name, from the ns pointer */
 extern const char *ns_get_name(struct ns *ns);

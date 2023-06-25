@@ -81,7 +81,7 @@ struct bgp_tea_subtlv_remote_endpoint {
  * This is the length of the value part of the ipsec tunnel authenticator
  * subtlv. Currently we only support the length for authenticator type 1.
  */
-#define BGP_ENCAP_SUBTLV_IPSEC_TA_SIZE	20
+#define BGP_ENCAP_SUBTLV_IPSEC_TA_SIZE 20
 
 struct bgp_tea_subtlv_ipsec_ta {
 	uint16_t authenticator_type;  /* only type 1 is supported so far */
@@ -93,15 +93,15 @@ struct bgp_tea_subtlv_ipsec_ta {
  * Subtlv valid flags
  * TBD change names to add "VALID"
  */
-#define BGP_TEA_SUBTLV_ENCAP		0x00000001
-#define BGP_TEA_SUBTLV_PROTO_TYPE	0x00000002
-#define BGP_TEA_SUBTLV_COLOR		0x00000004
-#define BGP_TEA_SUBTLV_IPSEC_TA		0x00000008
-#define BGP_TEA_SUBTLV_REMOTE_ENDPOINT	0x00000010
+#define BGP_TEA_SUBTLV_ENCAP 0x00000001
+#define BGP_TEA_SUBTLV_PROTO_TYPE 0x00000002
+#define BGP_TEA_SUBTLV_COLOR 0x00000004
+#define BGP_TEA_SUBTLV_IPSEC_TA 0x00000008
+#define BGP_TEA_SUBTLV_REMOTE_ENDPOINT 0x00000010
 
-#define CHECK_SUBTLV_FLAG(ptr, flag)  CHECK_FLAG((ptr)->valid_subtlvs, (flag))
-#define SET_SUBTLV_FLAG(ptr, flag)      SET_FLAG((ptr)->valid_subtlvs, (flag))
-#define UNSET_SUBTLV_FLAG(ptr, flag)  UNSET_FLAG((ptr)->valid_subtlvs, (flag))
+#define CHECK_SUBTLV_FLAG(ptr, flag) CHECK_FLAG((ptr)->valid_subtlvs, (flag))
+#define SET_SUBTLV_FLAG(ptr, flag) SET_FLAG((ptr)->valid_subtlvs, (flag))
+#define UNSET_SUBTLV_FLAG(ptr, flag) UNSET_FLAG((ptr)->valid_subtlvs, (flag))
 
 /*
  * Tunnel Type-specific APIs
@@ -114,22 +114,22 @@ struct bgp_encap_type_reserved {
 struct bgp_encap_type_l2tpv3_over_ip {
 	uint32_t valid_subtlvs;
 	struct bgp_tea_subtlv_encap_l2tpv3_over_ip st_encap;
-	struct bgp_tea_subtlv_proto_type st_proto;	 /* optional */
+	struct bgp_tea_subtlv_proto_type st_proto;	   /* optional */
 	struct bgp_tea_subtlv_color st_color;		   /* optional */
 	struct bgp_tea_subtlv_remote_endpoint st_endpoint; /* optional */
 };
 
 struct bgp_encap_type_gre {
 	uint32_t valid_subtlvs;
-	struct bgp_tea_subtlv_encap_gre_key st_encap;      /* optional */
-	struct bgp_tea_subtlv_proto_type st_proto;	 /* optional */
+	struct bgp_tea_subtlv_encap_gre_key st_encap;	   /* optional */
+	struct bgp_tea_subtlv_proto_type st_proto;	   /* optional */
 	struct bgp_tea_subtlv_color st_color;		   /* optional */
 	struct bgp_tea_subtlv_remote_endpoint st_endpoint; /* optional */
 };
 
 struct bgp_encap_type_ip_in_ip {
 	uint32_t valid_subtlvs;
-	struct bgp_tea_subtlv_proto_type st_proto;	 /* optional */
+	struct bgp_tea_subtlv_proto_type st_proto;	   /* optional */
 	struct bgp_tea_subtlv_color st_color;		   /* optional */
 	struct bgp_tea_subtlv_remote_endpoint st_endpoint; /* optional */
 };
@@ -142,30 +142,30 @@ struct bgp_encap_type_transmit_tunnel_endpoint {
 
 struct bgp_encap_type_ipsec_in_tunnel_mode {
 	uint32_t valid_subtlvs;
-	struct bgp_tea_subtlv_ipsec_ta st_ipsec_ta;	/* optional */
+	struct bgp_tea_subtlv_ipsec_ta st_ipsec_ta;	   /* optional */
 	struct bgp_tea_subtlv_remote_endpoint st_endpoint; /* optional */
 };
 
 struct bgp_encap_type_ip_in_ip_tunnel_with_ipsec_transport_mode {
 	uint32_t valid_subtlvs;
-	struct bgp_tea_subtlv_ipsec_ta st_ipsec_ta;	/* optional */
+	struct bgp_tea_subtlv_ipsec_ta st_ipsec_ta;	   /* optional */
 	struct bgp_tea_subtlv_remote_endpoint st_endpoint; /* optional */
 };
 
 struct bgp_encap_type_mpls_in_ip_tunnel_with_ipsec_transport_mode {
 	uint32_t valid_subtlvs;
-	struct bgp_tea_subtlv_ipsec_ta st_ipsec_ta;	/* optional */
+	struct bgp_tea_subtlv_ipsec_ta st_ipsec_ta;	   /* optional */
 	struct bgp_tea_subtlv_remote_endpoint st_endpoint; /* optional */
 };
 
 #define VXLAN_ENCAP_MASK_VNID_VALID 0x80000000
-#define VXLAN_ENCAP_MASK_MAC_VALID  0x40000000
+#define VXLAN_ENCAP_MASK_MAC_VALID 0x40000000
 
 struct bgp_encap_type_vxlan {
 	uint32_t valid_subtlvs;
 	struct bgp_tea_subtlv_remote_endpoint st_endpoint; /* optional */
 	/* draft-ietf-idr-tunnel-encaps-02 */
-	uint32_t vnid;	/* does not include V and M bit */
+	uint32_t vnid;	      /* does not include V and M bit */
 	uint8_t *mac_address; /* optional */
 };
 

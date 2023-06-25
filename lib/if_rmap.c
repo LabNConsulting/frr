@@ -16,8 +16,7 @@
 #include "lib/if_rmap_clippy.c"
 
 DEFINE_MTYPE_STATIC(LIB, IF_RMAP_CTX, "Interface route map container");
-DEFINE_MTYPE_STATIC(LIB, IF_RMAP_CTX_NAME,
-		    "Interface route map container name");
+DEFINE_MTYPE_STATIC(LIB, IF_RMAP_CTX_NAME, "Interface route map container name");
 DEFINE_MTYPE_STATIC(LIB, IF_RMAP, "Interface route map");
 DEFINE_MTYPE_STATIC(LIB, IF_RMAP_NAME, "I.f. route map name");
 
@@ -59,8 +58,7 @@ void if_rmap_hook_add(struct if_rmap_ctx *ctx,
 }
 
 void if_rmap_hook_delete(struct if_rmap_ctx *ctx,
-			 void (*func)(struct if_rmap_ctx *ctx,
-				      struct if_rmap *))
+			 void (*func)(struct if_rmap_ctx *ctx, struct if_rmap *))
 {
 	ctx->if_rmap_delete_hook = func;
 }
@@ -147,10 +145,9 @@ static int if_route_map_handler(struct vty *vty, bool no, const char *dir,
 	char xpath[XPATH_MAXLEN];
 
 	if (!no) {
-		snprintf(
-			xpath, sizeof(xpath),
-			"./if-route-maps/if-route-map[interface='%s']/%s-route-map",
-			ifname, dir);
+		snprintf(xpath, sizeof(xpath),
+			 "./if-route-maps/if-route-map[interface='%s']/%s-route-map",
+			 ifname, dir);
 	} else {
 		/*
 		 * If we are deleting the last policy for this interface,
@@ -159,14 +156,12 @@ static int if_route_map_handler(struct vty *vty, bool no, const char *dir,
 		 */
 		dnode = yang_dnode_get(vty->candidate_config->dnode,
 				       VTY_CURR_XPATH);
-		if (yang_dnode_existsf(
-			    dnode,
-			    "./if-route-maps/if-route-map[interface='%s']/%s-route-map",
-			    ifname, other_dir)) {
-			snprintf(
-				xpath, sizeof(xpath),
-				"./if-route-maps/if-route-map[interface='%s']/%s-route-map",
-				ifname, dir);
+		if (yang_dnode_existsf(dnode,
+				       "./if-route-maps/if-route-map[interface='%s']/%s-route-map",
+				       ifname, other_dir)) {
+			snprintf(xpath, sizeof(xpath),
+				 "./if-route-maps/if-route-map[interface='%s']/%s-route-map",
+				 ifname, dir);
 		} else {
 			/* both dir will be empty so delete the list node */
 			snprintf(xpath, sizeof(xpath),

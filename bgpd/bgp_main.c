@@ -56,16 +56,16 @@
 #endif
 
 /* bgpd options, we use GNU getopt library. */
-static const struct option longopts[] = {
-	{"bgp_port", required_argument, NULL, 'p'},
-	{"listenon", required_argument, NULL, 'l'},
-	{"no_kernel", no_argument, NULL, 'n'},
-	{"skip_runas", no_argument, NULL, 'S'},
-	{"ecmp", required_argument, NULL, 'e'},
-	{"int_num", required_argument, NULL, 'I'},
-	{"no_zebra", no_argument, NULL, 'Z'},
-	{"socket_size", required_argument, NULL, 's'},
-	{0}};
+static const struct option longopts[] =
+	{{"bgp_port", required_argument, NULL, 'p'},
+	 {"listenon", required_argument, NULL, 'l'},
+	 {"no_kernel", no_argument, NULL, 'n'},
+	 {"skip_runas", no_argument, NULL, 'S'},
+	 {"ecmp", required_argument, NULL, 'e'},
+	 {"int_num", required_argument, NULL, 'I'},
+	 {"no_zebra", no_argument, NULL, 'Z'},
+	 {"socket_size", required_argument, NULL, 's'},
+	 {0}};
 
 /* signal definitions */
 void sighup(void);
@@ -145,7 +145,7 @@ __attribute__((__noreturn__)) void sigint(void)
 {
 	zlog_notice("Terminating on signal");
 	assert(bm->terminating == false);
-	bm->terminating = true;	/* global flag that shutting down */
+	bm->terminating = true; /* global flag that shutting down */
 
 	/* Disable BFD events to avoid wasting processing. */
 	bfd_protocol_integration_set_shutdown(true);
@@ -348,11 +348,8 @@ static void bgp_vrf_terminate(void)
 }
 
 static const struct frr_yang_module_info *const bgpd_yang_modules[] = {
-	&frr_filter_info,
-	&frr_interface_info,
-	&frr_route_map_info,
-	&frr_vrf_info,
-	&frr_bgp_route_map_info,
+	&frr_filter_info, &frr_interface_info,	   &frr_route_map_info,
+	&frr_vrf_info,	  &frr_bgp_route_map_info,
 };
 
 FRR_DAEMON_INFO(bgpd, BGP, .vty_port = BGP_VTY_PORT,
@@ -362,8 +359,7 @@ FRR_DAEMON_INFO(bgpd, BGP, .vty_port = BGP_VTY_PORT,
 		.signals = bgp_signals, .n_signals = array_size(bgp_signals),
 
 		.privs = &bgpd_privs, .yang_modules = bgpd_yang_modules,
-		.n_yang_modules = array_size(bgpd_yang_modules),
-);
+		.n_yang_modules = array_size(bgpd_yang_modules), );
 
 #define DEPRECATED_OPTIONS ""
 
@@ -387,16 +383,15 @@ int main(int argc, char **argv)
 	addresses->cmp = (int (*)(void *, void *))strcmp;
 
 	frr_preinit(&bgpd_di, argc, argv);
-	frr_opt_add(
-		"p:l:SnZe:I:s:" DEPRECATED_OPTIONS, longopts,
-		"  -p, --bgp_port     Set BGP listen port number (0 means do not listen).\n"
-		"  -l, --listenon     Listen on specified address (implies -n)\n"
-		"  -n, --no_kernel    Do not install route to kernel.\n"
-		"  -Z, --no_zebra     Do not communicate with Zebra.\n"
-		"  -S, --skip_runas   Skip capabilities checks, and changing user and group IDs.\n"
-		"  -e, --ecmp         Specify ECMP to use.\n"
-		"  -I, --int_num      Set instance number (label-manager)\n"
-		"  -s, --socket_size  Set BGP peer socket send buffer size\n");
+	frr_opt_add("p:l:SnZe:I:s:" DEPRECATED_OPTIONS, longopts,
+		    "  -p, --bgp_port     Set BGP listen port number (0 means do not listen).\n"
+		    "  -l, --listenon     Listen on specified address (implies -n)\n"
+		    "  -n, --no_kernel    Do not install route to kernel.\n"
+		    "  -Z, --no_zebra     Do not communicate with Zebra.\n"
+		    "  -S, --skip_runas   Skip capabilities checks, and changing user and group IDs.\n"
+		    "  -e, --ecmp         Specify ECMP to use.\n"
+		    "  -I, --int_num      Set instance number (label-manager)\n"
+		    "  -s, --socket_size  Set BGP peer socket send buffer size\n");
 
 	/* Command line argument treatment. */
 	while (1) {
@@ -425,13 +420,12 @@ int main(int argc, char **argv)
 		case 'e': {
 			unsigned long int parsed_multipath =
 				strtoul(optarg, NULL, 10);
-			if (parsed_multipath == 0
-			    || parsed_multipath > MULTIPATH_NUM
-			    || parsed_multipath > UINT_MAX) {
-				flog_err(
-					EC_BGP_MULTIPATH,
-					"Multipath Number specified must be less than %u and greater than 0",
-					MULTIPATH_NUM);
+			if (parsed_multipath == 0 ||
+			    parsed_multipath > MULTIPATH_NUM ||
+			    parsed_multipath > UINT_MAX) {
+				flog_err(EC_BGP_MULTIPATH,
+					 "Multipath Number specified must be less than %u and greater than 0",
+					 MULTIPATH_NUM);
 				return 1;
 			}
 			multipath_num = parsed_multipath;
@@ -491,8 +485,8 @@ int main(int argc, char **argv)
 	} else {
 		for (ALL_LIST_ELEMENTS_RO(bm->addresses, node, address))
 			snprintf(bgpd_di.startinfo + strlen(bgpd_di.startinfo),
-				 sizeof(bgpd_di.startinfo)
-					 - strlen(bgpd_di.startinfo),
+				 sizeof(bgpd_di.startinfo) -
+					 strlen(bgpd_di.startinfo),
 				 ", bgp@%s:%d", address, bm->port);
 	}
 

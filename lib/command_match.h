@@ -42,9 +42,8 @@ enum match_type {
  * matcher_rv return values to do basic error checking.
  */
 #define MATCHER_ERROR(matcher_rv)                                              \
-	((matcher_rv) == MATCHER_INCOMPLETE                                    \
-	 || (matcher_rv) == MATCHER_NO_MATCH                                   \
-	 || (matcher_rv) == MATCHER_AMBIGUOUS)
+	((matcher_rv) == MATCHER_INCOMPLETE ||                                 \
+	 (matcher_rv) == MATCHER_NO_MATCH || (matcher_rv) == MATCHER_AMBIGUOUS)
 
 /**
  * Attempt to find an exact command match for a line of user input.

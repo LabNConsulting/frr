@@ -12,7 +12,7 @@
 #include "bgpd/bgp_clist.h"
 
 /* Large Communities value is twelve octets long.  */
-#define LCOMMUNITY_SIZE                        12
+#define LCOMMUNITY_SIZE 12
 
 /* Large Communities attribute.  */
 struct lcommunity {
@@ -37,7 +37,7 @@ struct lcommunity_val {
 	char val[LCOMMUNITY_SIZE];
 };
 
-#define lcom_length(X)    ((X)->size * LCOMMUNITY_SIZE)
+#define lcom_length(X) ((X)->size * LCOMMUNITY_SIZE)
 
 extern void lcommunity_init(void);
 extern void lcommunity_finish(void);
@@ -60,22 +60,18 @@ extern char *lcommunity_str(struct lcommunity *, bool make_json,
 extern bool lcommunity_include(struct lcommunity *lcom, uint8_t *ptr);
 extern void lcommunity_del_val(struct lcommunity *lcom, uint8_t *ptr);
 
-extern void bgp_compute_aggregate_lcommunity(
-					struct bgp_aggregate *aggregate,
-					struct lcommunity *lcommunity);
+extern void bgp_compute_aggregate_lcommunity(struct bgp_aggregate *aggregate,
+					     struct lcommunity *lcommunity);
 
-extern void bgp_compute_aggregate_lcommunity_hash(
-					struct bgp_aggregate *aggregate,
-					struct lcommunity *lcommunity);
-extern void bgp_compute_aggregate_lcommunity_val(
-					struct bgp_aggregate *aggregate);
+extern void
+bgp_compute_aggregate_lcommunity_hash(struct bgp_aggregate *aggregate,
+				      struct lcommunity *lcommunity);
+extern void bgp_compute_aggregate_lcommunity_val(struct bgp_aggregate *aggregate);
 
-extern void bgp_remove_lcommunity_from_aggregate(
-					struct bgp_aggregate *aggregate,
-					struct lcommunity *lcommunity);
-extern void bgp_remove_lcomm_from_aggregate_hash(
-					struct bgp_aggregate *aggregate,
-					struct lcommunity *lcommunity);
+extern void bgp_remove_lcommunity_from_aggregate(struct bgp_aggregate *aggregate,
+						 struct lcommunity *lcommunity);
+extern void bgp_remove_lcomm_from_aggregate_hash(struct bgp_aggregate *aggregate,
+						 struct lcommunity *lcommunity);
 extern void bgp_aggr_lcommunity_remove(void *arg);
 
 #endif /* _QUAGGA_BGP_LCOMMUNITY_H */

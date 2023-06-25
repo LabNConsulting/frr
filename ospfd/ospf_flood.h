@@ -33,8 +33,7 @@ extern unsigned long ospf_ls_retransmit_count(struct ospf_neighbor *);
 extern unsigned long ospf_ls_retransmit_count_self(struct ospf_neighbor *, int);
 extern int ospf_ls_retransmit_isempty(struct ospf_neighbor *);
 extern void ospf_ls_retransmit_add(struct ospf_neighbor *, struct ospf_lsa *);
-extern void ospf_ls_retransmit_delete(struct ospf_neighbor *,
-				      struct ospf_lsa *);
+extern void ospf_ls_retransmit_delete(struct ospf_neighbor *, struct ospf_lsa *);
 extern void ospf_ls_retransmit_clear(struct ospf_neighbor *);
 extern struct ospf_lsa *ospf_ls_retransmit_lookup(struct ospf_neighbor *,
 						  struct ospf_lsa *);

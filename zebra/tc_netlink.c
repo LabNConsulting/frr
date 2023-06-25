@@ -196,10 +196,10 @@ static ssize_t netlink_qdisc_msg_encode(int cmd, struct zebra_dplane_ctx *ctx,
 
 		switch (dplane_ctx_tc_qdisc_get_kind(ctx)) {
 		case TC_QDISC_HTB: {
-			struct tc_htb_glob htb_glob = {
-				.rate2quantum = 10,
-				.version = 3,
-				.defcls = TC_MINOR_NOCLASS};
+			struct tc_htb_glob htb_glob = {.rate2quantum = 10,
+						       .version = 3,
+						       .defcls =
+							       TC_MINOR_NOCLASS};
 			nl_attr_put(&req->n, datalen, TCA_HTB_INIT, &htb_glob,
 				    sizeof(htb_glob));
 			break;
@@ -521,13 +521,12 @@ static ssize_t netlink_tfilter_msg_encode(int cmd, struct zebra_dplane_ctx *ctx,
 		nl_attr_put(&req->n, datalen, TCA_KIND, kind_str,
 			    strlen(kind_str) + 1);
 
-		zlog_debug(
-			"netlink tfilter encoder: op: %s priority: %u protocol: %u kind: %s handle: %u filter_bm: %u ip_proto: %u",
-			op == DPLANE_OP_TC_FILTER_UPDATE ? "update" : "add",
-			priority, protocol, kind_str,
-			dplane_ctx_tc_filter_get_handle(ctx),
-			dplane_ctx_tc_filter_get_filter_bm(ctx),
-			dplane_ctx_tc_filter_get_ip_proto(ctx));
+		zlog_debug("netlink tfilter encoder: op: %s priority: %u protocol: %u kind: %s handle: %u filter_bm: %u ip_proto: %u",
+			   op == DPLANE_OP_TC_FILTER_UPDATE ? "update" : "add",
+			   priority, protocol, kind_str,
+			   dplane_ctx_tc_filter_get_handle(ctx),
+			   dplane_ctx_tc_filter_get_filter_bm(ctx),
+			   dplane_ctx_tc_filter_get_ip_proto(ctx));
 
 		nest = nl_attr_nest(&req->n, datalen, TCA_OPTIONS);
 		switch (dplane_ctx_tc_filter_get_kind(ctx)) {
@@ -591,11 +590,11 @@ netlink_put_tc_qdisc_update_msg(struct nl_batch *bth,
 	op = dplane_ctx_get_op(ctx);
 
 	if (op == DPLANE_OP_TC_QDISC_INSTALL) {
-		ret = netlink_batch_add_msg(
-			bth, ctx, netlink_newqdisc_msg_encoder, false);
+		ret = netlink_batch_add_msg(bth, ctx,
+					    netlink_newqdisc_msg_encoder, false);
 	} else if (op == DPLANE_OP_TC_QDISC_UNINSTALL) {
-		ret = netlink_batch_add_msg(
-			bth, ctx, netlink_delqdisc_msg_encoder, false);
+		ret = netlink_batch_add_msg(bth, ctx,
+					    netlink_delqdisc_msg_encoder, false);
 	} else {
 		return FRR_NETLINK_ERROR;
 	}
@@ -613,11 +612,13 @@ netlink_put_tc_class_update_msg(struct nl_batch *bth,
 	op = dplane_ctx_get_op(ctx);
 
 	if (op == DPLANE_OP_TC_CLASS_ADD || op == DPLANE_OP_TC_CLASS_UPDATE) {
-		ret = netlink_batch_add_msg(
-			bth, ctx, netlink_newtclass_msg_encoder, false);
+		ret = netlink_batch_add_msg(bth, ctx,
+					    netlink_newtclass_msg_encoder,
+					    false);
 	} else if (op == DPLANE_OP_TC_CLASS_DELETE) {
-		ret = netlink_batch_add_msg(
-			bth, ctx, netlink_deltclass_msg_encoder, false);
+		ret = netlink_batch_add_msg(bth, ctx,
+					    netlink_deltclass_msg_encoder,
+					    false);
 	} else {
 		return FRR_NETLINK_ERROR;
 	}
@@ -635,8 +636,9 @@ netlink_put_tc_filter_update_msg(struct nl_batch *bth,
 	op = dplane_ctx_get_op(ctx);
 
 	if (op == DPLANE_OP_TC_FILTER_ADD) {
-		ret = netlink_batch_add_msg(
-			bth, ctx, netlink_newtfilter_msg_encoder, false);
+		ret = netlink_batch_add_msg(bth, ctx,
+					    netlink_newtfilter_msg_encoder,
+					    false);
 	} else if (op == DPLANE_OP_TC_FILTER_UPDATE) {
 		/*
 		 * Replace will fail if either filter type or the number of
@@ -645,13 +647,16 @@ netlink_put_tc_filter_update_msg(struct nl_batch *bth,
 		 * TFILTER may have refs to TCLASS.
 		 */
 
-		(void)netlink_batch_add_msg(
-			bth, ctx, netlink_deltfilter_msg_encoder, false);
-		ret = netlink_batch_add_msg(
-			bth, ctx, netlink_newtfilter_msg_encoder, false);
+		(void)netlink_batch_add_msg(bth, ctx,
+					    netlink_deltfilter_msg_encoder,
+					    false);
+		ret = netlink_batch_add_msg(bth, ctx,
+					    netlink_newtfilter_msg_encoder,
+					    false);
 	} else if (op == DPLANE_OP_TC_FILTER_DELETE) {
-		ret = netlink_batch_add_msg(
-			bth, ctx, netlink_deltfilter_msg_encoder, false);
+		ret = netlink_batch_add_msg(bth, ctx,
+					    netlink_deltfilter_msg_encoder,
+					    false);
 	} else {
 		return FRR_NETLINK_ERROR;
 	}
@@ -712,10 +717,9 @@ int netlink_qdisc_change(struct nlmsghdr *h, ns_id_t ns_id, int startup)
 	len = h->nlmsg_len - NLMSG_LENGTH(sizeof(struct tcmsg));
 
 	if (len < 0) {
-		zlog_err(
-			"%s: Message received from netlink is of a broken size %d %zu",
-			__func__, h->nlmsg_len,
-			(size_t)NLMSG_LENGTH(sizeof(struct tcmsg)));
+		zlog_err("%s: Message received from netlink is of a broken size %d %zu",
+			 __func__, h->nlmsg_len,
+			 (size_t)NLMSG_LENGTH(sizeof(struct tcmsg)));
 		return -1;
 	}
 
@@ -779,10 +783,9 @@ int netlink_tclass_change(struct nlmsghdr *h, ns_id_t ns_id, int startup)
 	len = h->nlmsg_len - NLMSG_LENGTH(sizeof(struct tcmsg));
 
 	if (len < 0) {
-		zlog_err(
-			"%s: Message received from netlink is of a broken size %d %zu",
-			__func__, h->nlmsg_len,
-			(size_t)NLMSG_LENGTH(sizeof(struct tcmsg)));
+		zlog_err("%s: Message received from netlink is of a broken size %d %zu",
+			 __func__, h->nlmsg_len,
+			 (size_t)NLMSG_LENGTH(sizeof(struct tcmsg)));
 		return -1;
 	}
 
@@ -815,10 +818,9 @@ int netlink_tfilter_change(struct nlmsghdr *h, ns_id_t ns_id, int startup)
 	len = h->nlmsg_len - NLMSG_LENGTH(sizeof(struct tcmsg));
 
 	if (len < 0) {
-		zlog_err(
-			"%s: Message received from netlink is of a broken size %d %zu",
-			__func__, h->nlmsg_len,
-			(size_t)NLMSG_LENGTH(sizeof(struct tcmsg)));
+		zlog_err("%s: Message received from netlink is of a broken size %d %zu",
+			 __func__, h->nlmsg_len,
+			 (size_t)NLMSG_LENGTH(sizeof(struct tcmsg)));
 		return -1;
 	}
 

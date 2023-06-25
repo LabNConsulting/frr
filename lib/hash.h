@@ -136,8 +136,7 @@ extern struct hash *hash_create(unsigned int (*hash_key)(const void *),
  */
 extern struct hash *
 hash_create_size(unsigned int size, unsigned int (*hash_key)(const void *),
-		 bool (*hash_cmp)(const void *, const void *),
-		 const char *name);
+		 bool (*hash_cmp)(const void *, const void *), const char *name);
 
 /*
  * Retrieve or insert data from / into a hash table.

@@ -23,39 +23,39 @@
 #define BGP_MED_MAX UINT32_MAX
 
 /* BGP Attribute type range. */
-#define BGP_ATTR_TYPE_RANGE     256
-#define BGP_ATTR_BITMAP_SIZE    (BGP_ATTR_TYPE_RANGE / BITMAP_NBBY)
+#define BGP_ATTR_TYPE_RANGE 256
+#define BGP_ATTR_BITMAP_SIZE (BGP_ATTR_TYPE_RANGE / BITMAP_NBBY)
 
 /* BGP Attribute flags. */
-#define BGP_ATTR_FLAG_OPTIONAL  0x80	/* Attribute is optional. */
-#define BGP_ATTR_FLAG_TRANS     0x40	/* Attribute is transitive. */
-#define BGP_ATTR_FLAG_PARTIAL   0x20	/* Attribute is partial. */
-#define BGP_ATTR_FLAG_EXTLEN    0x10	/* Extended length flag. */
+#define BGP_ATTR_FLAG_OPTIONAL 0x80 /* Attribute is optional. */
+#define BGP_ATTR_FLAG_TRANS 0x40    /* Attribute is transitive. */
+#define BGP_ATTR_FLAG_PARTIAL 0x20  /* Attribute is partial. */
+#define BGP_ATTR_FLAG_EXTLEN 0x10   /* Extended length flag. */
 
 /* BGP attribute header must bigger than 2. */
-#define BGP_ATTR_MIN_LEN        3       /* Attribute flag, type length. */
+#define BGP_ATTR_MIN_LEN 3 /* Attribute flag, type length. */
 #define BGP_ATTR_DEFAULT_WEIGHT 32768
 
 /* Valid lengths for mp_nexthop_len */
-#define BGP_ATTR_NHLEN_IPV4               IPV4_MAX_BYTELEN
-#define BGP_ATTR_NHLEN_VPNV4              8+IPV4_MAX_BYTELEN
-#define BGP_ATTR_NHLEN_IPV6_GLOBAL        IPV6_MAX_BYTELEN
+#define BGP_ATTR_NHLEN_IPV4 IPV4_MAX_BYTELEN
+#define BGP_ATTR_NHLEN_VPNV4 8 + IPV4_MAX_BYTELEN
+#define BGP_ATTR_NHLEN_IPV6_GLOBAL IPV6_MAX_BYTELEN
 #define BGP_ATTR_NHLEN_IPV6_GLOBAL_AND_LL (IPV6_MAX_BYTELEN * 2)
-#define BGP_ATTR_NHLEN_VPNV6_GLOBAL       8+IPV6_MAX_BYTELEN
-#define BGP_ATTR_NHLEN_VPNV6_GLOBAL_AND_LL ((8+IPV6_MAX_BYTELEN) * 2)
+#define BGP_ATTR_NHLEN_VPNV6_GLOBAL 8 + IPV6_MAX_BYTELEN
+#define BGP_ATTR_NHLEN_VPNV6_GLOBAL_AND_LL ((8 + IPV6_MAX_BYTELEN) * 2)
 
 /* Prefix SID types */
-#define BGP_PREFIX_SID_LABEL_INDEX     1
-#define BGP_PREFIX_SID_IPV6            2
+#define BGP_PREFIX_SID_LABEL_INDEX 1
+#define BGP_PREFIX_SID_IPV6 2
 #define BGP_PREFIX_SID_ORIGINATOR_SRGB 3
 #define BGP_PREFIX_SID_VPN_SID 4
 #define BGP_PREFIX_SID_SRV6_L3_SERVICE 5
 #define BGP_PREFIX_SID_SRV6_L2_SERVICE 6
 
-#define BGP_PREFIX_SID_LABEL_INDEX_LENGTH      7
-#define BGP_PREFIX_SID_IPV6_LENGTH            19
-#define BGP_PREFIX_SID_ORIGINATOR_SRGB_LENGTH  6
-#define BGP_PREFIX_SID_VPN_SID_LENGTH         19
+#define BGP_PREFIX_SID_LABEL_INDEX_LENGTH 7
+#define BGP_PREFIX_SID_IPV6_LENGTH 19
+#define BGP_PREFIX_SID_ORIGINATOR_SRGB_LENGTH 6
+#define BGP_PREFIX_SID_VPN_SID_LENGTH 19
 
 /* SRv6 Service Sub-TLV types */
 #define BGP_PREFIX_SID_SRV6_L3_SERVICE_SID_INFO 1
@@ -65,9 +65,11 @@
 #define BGP_PREFIX_SID_SRV6_L3_SERVICE_SID_STRUCTURE 1
 #define BGP_PREFIX_SID_SRV6_L3_SERVICE_SID_STRUCTURE_LENGTH 6
 
-#define BGP_ATTR_NH_AFI(afi, attr) \
-	((afi != AFI_L2VPN) ? afi : \
-	((attr->mp_nexthop_len == BGP_ATTR_NHLEN_IPV4) ? AFI_IP : AFI_IP6))
+#define BGP_ATTR_NH_AFI(afi, attr)                                             \
+	((afi != AFI_L2VPN)                                                    \
+		 ? afi                                                         \
+		 : ((attr->mp_nexthop_len == BGP_ATTR_NHLEN_IPV4) ? AFI_IP     \
+								  : AFI_IP6))
 
 /* PMSI tunnel types (RFC 6514) */
 
@@ -433,7 +435,7 @@ encap_tlv_dup(struct bgp_attr_encap_subtlv *orig);
 extern void bgp_attr_flush_encap(struct attr *attr);
 
 extern void bgp_attr_extcom_tunnel_type(struct attr *attr,
-					 bgp_encap_types *tunnel_type);
+					bgp_encap_types *tunnel_type);
 
 /**
  * Set of functions to encode MP_REACH_NLRI and MP_UNREACH_NLRI attributes.
@@ -475,8 +477,7 @@ static inline bool bgp_rmap_nhop_changed(uint32_t out_rmap_flags,
 		 CHECK_FLAG(out_rmap_flags, BATTR_RMAP_VPNV4_NHOP_CHANGED) ||
 		 CHECK_FLAG(out_rmap_flags,
 			    BATTR_RMAP_VPNV6_GLOBAL_NHOP_CHANGED) ||
-		 CHECK_FLAG(out_rmap_flags,
-			    BATTR_RMAP_IPV6_GLOBAL_NHOP_CHANGED) ||
+		 CHECK_FLAG(out_rmap_flags, BATTR_RMAP_IPV6_GLOBAL_NHOP_CHANGED) ||
 		 CHECK_FLAG(out_rmap_flags,
 			    BATTR_RMAP_IPV6_PREFER_GLOBAL_CHANGED) ||
 		 CHECK_FLAG(out_rmap_flags, BATTR_RMAP_IPV6_LL_NHOP_CHANGED) ||
@@ -501,8 +502,7 @@ static inline void bgp_attr_set_pmsi_tnl_type(struct attr *attr,
 	attr->pmsi_tnl_type = pmsi_tnl_type;
 }
 
-static inline struct ecommunity *
-bgp_attr_get_ecommunity(const struct attr *attr)
+static inline struct ecommunity *bgp_attr_get_ecommunity(const struct attr *attr)
 {
 	return attr->ecommunity;
 }
@@ -518,8 +518,7 @@ static inline void bgp_attr_set_ecommunity(struct attr *attr,
 		UNSET_FLAG(attr->flag, ATTR_FLAG_BIT(BGP_ATTR_EXT_COMMUNITIES));
 }
 
-static inline struct lcommunity *
-bgp_attr_get_lcommunity(const struct attr *attr)
+static inline struct lcommunity *bgp_attr_get_lcommunity(const struct attr *attr)
 {
 	return attr->lcommunity;
 }

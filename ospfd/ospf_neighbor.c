@@ -43,8 +43,8 @@ static void ospf_nbr_key(struct ospf_interface *oi, struct ospf_neighbor *nbr,
 	key->prefixlen = IPV4_MAX_BITLEN;
 
 	/* vlinks are indexed by router-id */
-	if (oi->type == OSPF_IFTYPE_VIRTUALLINK
-	    || oi->type == OSPF_IFTYPE_POINTOPOINT)
+	if (oi->type == OSPF_IFTYPE_VIRTUALLINK ||
+	    oi->type == OSPF_IFTYPE_POINTOPOINT)
 		key->u.prefix4 = nbr->router_id;
 	else
 		key->u.prefix4 = nbr->src;
@@ -180,8 +180,8 @@ void ospf_nbr_delete(struct ospf_neighbor *nbr)
 		 */
 
 		/* Reverse the lookup rules */
-		if (oi->type == OSPF_IFTYPE_VIRTUALLINK
-		    || oi->type == OSPF_IFTYPE_POINTOPOINT)
+		if (oi->type == OSPF_IFTYPE_VIRTUALLINK ||
+		    oi->type == OSPF_IFTYPE_POINTOPOINT)
 			p.u.prefix4 = nbr->src;
 		else
 			p.u.prefix4 = nbr->router_id;
@@ -267,9 +267,8 @@ void ospf_nbr_add_self(struct ospf_interface *oi, struct in_addr router_id)
 	if (rn->info) {
 		/* There is already pseudo neighbor. */
 		if (IS_DEBUG_OSPF_EVENT)
-			zlog_debug(
-				"router_id %pI4 already present in neighbor table. node refcount %u",
-				&router_id, route_node_get_lock_count(rn));
+			zlog_debug("router_id %pI4 already present in neighbor table. node refcount %u",
+				   &router_id, route_node_get_lock_count(rn));
 		route_unlock_node(rn);
 	} else
 		rn->info = oi->nbr_self;
@@ -391,9 +390,8 @@ void ospf_renegotiate_optional_capabilities(struct ospf *top)
 				continue;
 
 			if (IS_DEBUG_OSPF_EVENT)
-				zlog_debug(
-					"Renegotiate optional capabilities with neighbor(%pI4)",
-					&nbr->router_id);
+				zlog_debug("Renegotiate optional capabilities with neighbor(%pI4)",
+					   &nbr->router_id);
 
 			OSPF_NSM_EVENT_SCHEDULE(nbr, NSM_SeqNumberMismatch);
 		}
@@ -411,8 +409,8 @@ struct ospf_neighbor *ospf_nbr_lookup(struct ospf_interface *oi, struct ip *iph,
 {
 	struct in_addr srcaddr = iph->ip_src;
 
-	if (oi->type == OSPF_IFTYPE_VIRTUALLINK
-	    || oi->type == OSPF_IFTYPE_POINTOPOINT)
+	if (oi->type == OSPF_IFTYPE_VIRTUALLINK ||
+	    oi->type == OSPF_IFTYPE_POINTOPOINT)
 		return (ospf_nbr_lookup_by_routerid(oi->nbrs,
 						    &ospfh->router_id));
 	else
@@ -456,8 +454,7 @@ static struct ospf_neighbor *ospf_nbr_add(struct ospf_interface *oi,
 	ospf_neighbor_bfd_apply(nbr);
 
 	if (IS_DEBUG_OSPF_EVENT)
-		zlog_debug("NSM[%s:%pI4]: start", IF_NAME(oi),
-			   &nbr->router_id);
+		zlog_debug("NSM[%s:%pI4]: start", IF_NAME(oi), &nbr->router_id);
 
 	return nbr;
 }
@@ -473,8 +470,8 @@ struct ospf_neighbor *ospf_nbr_get(struct ospf_interface *oi,
 	key.family = AF_INET;
 	key.prefixlen = IPV4_MAX_BITLEN;
 
-	if (oi->type == OSPF_IFTYPE_VIRTUALLINK
-	    || oi->type == OSPF_IFTYPE_POINTOPOINT)
+	if (oi->type == OSPF_IFTYPE_VIRTUALLINK ||
+	    oi->type == OSPF_IFTYPE_POINTOPOINT)
 		key.u.prefix4 = ospfh->router_id; /* index vlink and ptp nbrs by
 						     router-id */
 	else

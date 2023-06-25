@@ -175,19 +175,19 @@ static void *program_counter(void *context)
 #ifdef GNU_LINUX
 /* these are from GNU libc, rather than Linux, strictly speaking */
 #if defined(REG_EIP)
-#  define REG_INDEX REG_EIP
+#define REG_INDEX REG_EIP
 #elif defined(REG_RIP)
-#  define REG_INDEX REG_RIP
+#define REG_INDEX REG_RIP
 #elif defined(__powerpc__)
-#  define REG_INDEX 32
+#define REG_INDEX 32
 #endif
-#endif		       /* GNU_LINUX */
+#endif /* GNU_LINUX */
 
 #ifdef REG_INDEX
 #ifdef HAVE_UCONTEXT_T_UC_MCONTEXT_GREGS
-#  define REGS gregs[REG_INDEX]
+#define REGS gregs[REG_INDEX]
 #elif defined(HAVE_UCONTEXT_T_UC_MCONTEXT_UC_REGS)
-#  define REGS uc_regs->gregs[REG_INDEX]
+#define REGS uc_regs->gregs[REG_INDEX]
 #endif /* HAVE_UCONTEXT_T_UC_MCONTEXT_GREGS */
 #endif /* REG_INDEX */
 
@@ -258,7 +258,7 @@ static void trap_default_signals(void)
 #ifdef SIGEMT
 		SIGEMT,
 #endif
-		SIGFPE,  SIGBUS, SIGSEGV,
+		SIGFPE,	 SIGBUS, SIGSEGV,
 #ifdef SIGSYS
 		SIGSYS,
 #endif
@@ -270,7 +270,7 @@ static void trap_default_signals(void)
 #endif
 	};
 	static const int exit_signals[] = {
-		SIGHUP,    SIGINT, SIGALRM, SIGTERM, SIGUSR1, SIGUSR2,
+		SIGHUP,	   SIGINT, SIGALRM, SIGTERM, SIGUSR1, SIGUSR2,
 #ifdef SIGPOLL
 		SIGPOLL,
 #endif
@@ -300,8 +300,8 @@ static void trap_default_signals(void)
 
 		for (j = 0; j < sigmap[i].nsigs; j++) {
 			struct sigaction oact;
-			if ((sigaction(sigmap[i].sigs[j], NULL, &oact) == 0)
-			    && (oact.sa_handler == SIG_DFL)) {
+			if ((sigaction(sigmap[i].sigs[j], NULL, &oact) == 0) &&
+			    (oact.sa_handler == SIG_DFL)) {
 				struct sigaction act;
 				sigfillset(&act.sa_mask);
 				if (sigmap[i].handler == NULL) {
@@ -319,13 +319,11 @@ static void trap_default_signals(void)
 						act.sa_flags |= SA_RESETHAND;
 #endif
 				}
-				if (sigaction(sigmap[i].sigs[j], &act, NULL)
-				    < 0)
-					flog_err(
-						EC_LIB_SYSTEM_CALL,
-						"Unable to set signal handler for signal %d: %s",
-						sigmap[i].sigs[j],
-						safe_strerror(errno));
+				if (sigaction(sigmap[i].sigs[j], &act, NULL) < 0)
+					flog_err(EC_LIB_SYSTEM_CALL,
+						 "Unable to set signal handler for signal %d: %s",
+						 sigmap[i].sigs[j],
+						 safe_strerror(errno));
 			}
 		}
 	}

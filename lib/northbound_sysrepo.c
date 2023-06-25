@@ -214,10 +214,9 @@ static int frr_sr_process_change(struct nb_config *candidate,
 	ret = nb_candidate_edit(candidate, nb_node, nb_op, xpath, NULL, data);
 	yang_data_free(data);
 	if (ret != NB_OK && ret != NB_ERR_NOT_FOUND) {
-		flog_warn(
-			EC_LIB_NB_CANDIDATE_EDIT_ERROR,
-			"%s: failed to edit candidate configuration: operation [%s] xpath [%s]",
-			__func__, nb_operation_name(nb_op), xpath);
+		flog_warn(EC_LIB_NB_CANDIDATE_EDIT_ERROR,
+			  "%s: failed to edit candidate configuration: operation [%s] xpath [%s]",
+			  __func__, nb_operation_name(nb_op), xpath);
 		return NB_ERR;
 	}
 
@@ -246,8 +245,7 @@ static int frr_sr_config_change_cb_prepare(sr_session_ctx_t *session,
 	candidate = nb_config_dup(running_config);
 
 	while ((ret = sr_get_change_next(session, it, &sr_op, &sr_old_val,
-					 &sr_new_val))
-	       == SR_ERR_OK) {
+					 &sr_new_val)) == SR_ERR_OK) {
 		ret = frr_sr_process_change(candidate, sr_op, sr_old_val,
 					    sr_new_val);
 		sr_free_val(sr_old_val);
@@ -268,14 +266,12 @@ static int frr_sr_config_change_cb_prepare(sr_session_ctx_t *session,
 	 * Validate the configuration changes and allocate all resources
 	 * required to apply them.
 	 */
-	ret = nb_candidate_commit_prepare(context, candidate, NULL,
-					  &transaction, false, false, errmsg,
-					  sizeof(errmsg));
+	ret = nb_candidate_commit_prepare(context, candidate, NULL, &transaction,
+					  false, false, errmsg, sizeof(errmsg));
 	if (ret != NB_OK && ret != NB_ERR_NO_CHANGES)
-		flog_warn(
-			EC_LIB_LIBSYSREPO,
-			"%s: failed to prepare configuration transaction: %s (%s)",
-			__func__, nb_err_name(ret), errmsg);
+		flog_warn(EC_LIB_LIBSYSREPO,
+			  "%s: failed to prepare configuration transaction: %s (%s)",
+			  __func__, nb_err_name(ret), errmsg);
 
 	if (!transaction)
 		nb_config_free(candidate);
@@ -358,8 +354,7 @@ static int frr_sr_state_data_iter_cb(const struct lysc_node *snode,
 	ly_errno = lyd_new_path(NULL, ly_native_ctx, data->xpath, data->value,
 				0, &dnode);
 	if (ly_errno) {
-		flog_warn(EC_LIB_LIBYANG, "%s: lyd_new_path() failed",
-			  __func__);
+		flog_warn(EC_LIB_LIBYANG, "%s: lyd_new_path() failed", __func__);
 		yang_data_free(data);
 		return NB_ERR;
 	}
@@ -378,8 +373,7 @@ static int frr_sr_state_cb(sr_session_ctx_t *session, uint32_t sub_id,
 
 	dnode = *parent;
 	if (nb_oper_data_iterate(request_xpath, NULL, 0,
-				 frr_sr_state_data_iter_cb, dnode)
-	    != NB_OK) {
+				 frr_sr_state_data_iter_cb, dnode) != NB_OK) {
 		flog_warn(EC_LIB_NB_OPERATIONAL_DATA,
 			  "%s: failed to obtain operational data [xpath %s]",
 			  __func__, xpath);
@@ -426,8 +420,7 @@ static int frr_sr_config_rpc_cb(sr_session_ctx_t *session, uint32_t sub_id,
 
 	/* Execute callback registered for this XPath. */
 	if (nb_callback_rpc(nb_node, xpath, input, output, errmsg,
-			    sizeof(errmsg))
-	    != NB_OK) {
+			    sizeof(errmsg)) != NB_OK) {
 		flog_warn(EC_LIB_NB_CB_RPC, "%s: rpc callback failed: %s",
 			  __func__, xpath);
 		ret = SR_ERR_OPERATION_FAILED;
@@ -450,10 +443,9 @@ static int frr_sr_config_rpc_cb(sr_session_ctx_t *session, uint32_t sub_id,
 
 		for (ALL_LIST_ELEMENTS_RO(output, node, data)) {
 			if (yang_data_frr2sr(data, &values[i++]) != 0) {
-				flog_err(
-					EC_LIB_SYSREPO_DATA_CONVERT,
-					"%s: failed to convert data to Sysrepo format",
-					__func__);
+				flog_err(EC_LIB_SYSREPO_DATA_CONVERT,
+					 "%s: failed to convert data to Sysrepo format",
+					 __func__);
 				ret = SR_ERR_INTERNAL;
 				sr_free_values(values, cb_output_cnt);
 				goto exit;
@@ -493,10 +485,9 @@ static int frr_sr_notification_send(const char *xpath, struct list *arguments)
 
 		for (ALL_LIST_ELEMENTS_RO(arguments, node, data)) {
 			if (yang_data_frr2sr(data, &values[i++]) != 0) {
-				flog_err(
-					EC_LIB_SYSREPO_DATA_CONVERT,
-					"%s: failed to convert data to sysrepo format",
-					__func__);
+				flog_err(EC_LIB_SYSREPO_DATA_CONVERT,
+					 "%s: failed to convert data to sysrepo format",
+					 __func__);
 				sr_free_values(values, values_cnt);
 				return NB_ERR;
 			}
@@ -539,10 +530,11 @@ static void frr_sr_subscribe_config(struct yang_module *module)
 	       "sysrepo: subscribing for configuration changes made in the '%s' module",
 	       module->name);
 
-	ret = sr_module_change_subscribe(
-		session, module->name, NULL, frr_sr_config_change_cb, NULL, 0,
-		SR_SUBSCR_DEFAULT | SR_SUBSCR_ENABLED | SR_SUBSCR_NO_THREAD,
-		&module->sr_subscription);
+	ret = sr_module_change_subscribe(session, module->name, NULL,
+					 frr_sr_config_change_cb, NULL, 0,
+					 SR_SUBSCR_DEFAULT | SR_SUBSCR_ENABLED |
+						 SR_SUBSCR_NO_THREAD,
+					 &module->sr_subscription);
 	if (ret != SR_ERR_OK)
 		flog_err(EC_LIB_LIBSYSREPO, "sr_module_change_subscribe(): %s",
 			 sr_strerror(ret));
@@ -603,14 +595,11 @@ static int frr_sr_subscribe_rpc(const struct lysc_node *snode, void *arg)
 }
 
 /* CLI commands. */
-DEFUN (debug_nb_sr,
-       debug_nb_sr_cmd,
-       "[no] debug northbound client sysrepo",
-       NO_STR
-       DEBUG_STR
-       "Northbound debugging\n"
-       "Northbound client\n"
-       "Sysrepo\n")
+DEFUN(debug_nb_sr, debug_nb_sr_cmd, "[no] debug northbound client sysrepo",
+      NO_STR DEBUG_STR
+      "Northbound debugging\n"
+      "Northbound client\n"
+      "Sysrepo\n")
 {
 	uint32_t mode = DEBUG_NODE2MODE(vty->node);
 	bool no = strmatch(argv[0]->text, "no");
@@ -753,5 +742,4 @@ static int frr_sr_module_init(void)
 
 FRR_MODULE_SETUP(.name = "frr_sysrepo", .version = FRR_VERSION,
 		 .description = "FRR sysrepo integration module",
-		 .init = frr_sr_module_init,
-);
+		 .init = frr_sr_module_init, );

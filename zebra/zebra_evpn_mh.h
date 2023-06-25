@@ -36,11 +36,11 @@ struct zebra_evpn_es {
 
 	/* ES flags */
 	uint32_t flags;
-#define ZEBRA_EVPNES_LOCAL         (1 << 0) /* configured in zebra */
-#define ZEBRA_EVPNES_REMOTE        (1 << 1) /* added by bgp */
-#define ZEBRA_EVPNES_OPER_UP       (1 << 2) /* es->ifp is oper-up */
+#define ZEBRA_EVPNES_LOCAL (1 << 0)	    /* configured in zebra */
+#define ZEBRA_EVPNES_REMOTE (1 << 1)	    /* added by bgp */
+#define ZEBRA_EVPNES_OPER_UP (1 << 2)	    /* es->ifp is oper-up */
 #define ZEBRA_EVPNES_READY_FOR_BGP (1 << 3) /* ready to be sent to BGP */
-#define ZEBRA_EVPNES_NHG_ACTIVE    (1 << 4) /* NHG has been installed */
+#define ZEBRA_EVPNES_NHG_ACTIVE (1 << 4)    /* NHG has been installed */
 /* This flag is only applicable to local ESs and signifies that this
  * VTEP is not the DF
  */
@@ -107,7 +107,7 @@ struct zebra_evpn_es_evi {
 	/* ES-EVI flags */
 	uint32_t flags;
 	/* local ES-EVI */
-#define ZEBRA_EVPNES_EVI_LOCAL         (1 << 0) /* created by zebra */
+#define ZEBRA_EVPNES_EVI_LOCAL (1 << 0)		/* created by zebra */
 #define ZEBRA_EVPNES_EVI_READY_FOR_BGP (1 << 1) /* ready to be sent to BGP */
 
 	/* memory used for adding the es_evi to
@@ -225,8 +225,8 @@ struct zebra_evpn_mh_info {
 	 * allocated from the nh_id_bitmap.
 	 */
 	bitfield_t nh_id_bitmap;
-#define EVPN_NH_ID_MAX       (16*1024)
-#define EVPN_NH_ID_VAL_MASK  0xffffff
+#define EVPN_NH_ID_MAX (16 * 1024)
+#define EVPN_NH_ID_VAL_MASK 0xffffff
 /* The purpose of using different types for NHG and NH is NOT to manage the
  * id space separately. It is simply to make debugging easier.
  */
@@ -273,15 +273,14 @@ static inline bool zebra_evpn_mac_is_es_local(struct zebra_mac *mac)
 /* Returns true if the id is of L2-NHG or L2-NH type */
 static inline bool zebra_evpn_mh_is_fdb_nh(uint32_t id)
 {
-	return ((id & EVPN_NHG_ID_TYPE_BIT) ||
-			(id & EVPN_NH_ID_TYPE_BIT));
+	return ((id & EVPN_NHG_ID_TYPE_BIT) || (id & EVPN_NH_ID_TYPE_BIT));
 }
 
 static inline bool
 zebra_evpn_es_local_mac_via_network_port(struct zebra_evpn_es *es)
 {
-	return !(es->flags & ZEBRA_EVPNES_OPER_UP)
-	       && (zmh_info->flags & ZEBRA_EVPN_MH_REDIRECT_OFF);
+	return !(es->flags & ZEBRA_EVPNES_OPER_UP) &&
+	       (zmh_info->flags & ZEBRA_EVPN_MH_REDIRECT_OFF);
 }
 
 static inline bool zebra_evpn_mh_do_dup_addr_detect(void)
@@ -329,8 +328,8 @@ int zebra_evpn_remote_es_add(const esi_t *esi, struct in_addr vtep_ip,
 			     bool esr_rxed, uint8_t df_alg, uint16_t df_pref);
 int zebra_evpn_remote_es_del(const esi_t *esi, struct in_addr vtep_ip);
 extern void zebra_evpn_es_evi_show(struct vty *vty, bool uj, int detail);
-extern void zebra_evpn_es_evi_show_vni(struct vty *vty, bool uj,
-		vni_t vni, int detail);
+extern void zebra_evpn_es_evi_show_vni(struct vty *vty, bool uj, vni_t vni,
+				       int detail);
 extern void zebra_evpn_es_mac_deref_entry(struct zebra_mac *mac);
 extern bool zebra_evpn_es_mac_ref_entry(struct zebra_mac *mac,
 					struct zebra_evpn_es *es);
@@ -349,14 +348,13 @@ zebra_evpn_acc_vl_find_index(vlanid_t vid, ifindex_t bridge_ifindex);
 extern void zebra_evpn_acc_vl_show_vid(struct vty *vty, bool uj, vlanid_t vid,
 				       struct interface *br_if);
 extern void zebra_evpn_es_cleanup(void);
-extern int zebra_evpn_mh_mac_holdtime_update(struct vty *vty,
-		uint32_t duration, bool set_default);
+extern int zebra_evpn_mh_mac_holdtime_update(struct vty *vty, uint32_t duration,
+					     bool set_default);
 void zebra_evpn_mh_config_write(struct vty *vty);
-int zebra_evpn_mh_neigh_holdtime_update(struct vty *vty,
-		uint32_t duration, bool set_default);
+int zebra_evpn_mh_neigh_holdtime_update(struct vty *vty, uint32_t duration,
+					bool set_default);
 void zebra_evpn_es_local_br_port_update(struct zebra_if *zif);
-extern int zebra_evpn_mh_startup_delay_update(struct vty *vty,
-					      uint32_t duration,
+extern int zebra_evpn_mh_startup_delay_update(struct vty *vty, uint32_t duration,
 					      bool set_default);
 extern void zebra_evpn_mh_uplink_oper_update(struct zebra_if *zif);
 extern void zebra_evpn_mh_update_protodown_bond_mbr(struct zebra_if *zif,

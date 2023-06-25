@@ -38,160 +38,160 @@
 DEFINE_MTYPE_STATIC(OSPFD, SNMP, "OSPF SNMP");
 
 /* OSPF2-MIB. */
-#define OSPF2MIB 1,3,6,1,2,1,14
+#define OSPF2MIB 1, 3, 6, 1, 2, 1, 14
 
 /* OSPF MIB General Group values. */
-#define OSPFROUTERID                     1
-#define OSPFADMINSTAT                    2
-#define OSPFVERSIONNUMBER                3
-#define OSPFAREABDRRTRSTATUS             4
-#define OSPFASBDRRTRSTATUS               5
-#define OSPFEXTERNLSACOUNT               6
-#define OSPFEXTERNLSACKSUMSUM            7
-#define OSPFTOSSUPPORT                   8
-#define OSPFORIGINATENEWLSAS             9
-#define OSPFRXNEWLSAS                    10
-#define OSPFEXTLSDBLIMIT                 11
-#define OSPFMULTICASTEXTENSIONS          12
-#define OSPFEXITOVERFLOWINTERVAL         13
-#define OSPFDEMANDEXTENSIONS             14
+#define OSPFROUTERID 1
+#define OSPFADMINSTAT 2
+#define OSPFVERSIONNUMBER 3
+#define OSPFAREABDRRTRSTATUS 4
+#define OSPFASBDRRTRSTATUS 5
+#define OSPFEXTERNLSACOUNT 6
+#define OSPFEXTERNLSACKSUMSUM 7
+#define OSPFTOSSUPPORT 8
+#define OSPFORIGINATENEWLSAS 9
+#define OSPFRXNEWLSAS 10
+#define OSPFEXTLSDBLIMIT 11
+#define OSPFMULTICASTEXTENSIONS 12
+#define OSPFEXITOVERFLOWINTERVAL 13
+#define OSPFDEMANDEXTENSIONS 14
 
 /* OSPF MIB ospfAreaTable. */
-#define OSPFAREAID                       1
-#define OSPFAUTHTYPE                     2
-#define OSPFIMPORTASEXTERN               3
-#define OSPFSPFRUNS                      4
-#define OSPFAREABDRRTRCOUNT              5
-#define OSPFASBDRRTRCOUNT                6
-#define OSPFAREALSACOUNT                 7
-#define OSPFAREALSACKSUMSUM              8
-#define OSPFAREASUMMARY                  9
-#define OSPFAREASTATUS                   10
+#define OSPFAREAID 1
+#define OSPFAUTHTYPE 2
+#define OSPFIMPORTASEXTERN 3
+#define OSPFSPFRUNS 4
+#define OSPFAREABDRRTRCOUNT 5
+#define OSPFASBDRRTRCOUNT 6
+#define OSPFAREALSACOUNT 7
+#define OSPFAREALSACKSUMSUM 8
+#define OSPFAREASUMMARY 9
+#define OSPFAREASTATUS 10
 
 /* OSPF MIB ospfStubAreaTable. */
-#define OSPFSTUBAREAID                   1
-#define OSPFSTUBTOS                      2
-#define OSPFSTUBMETRIC                   3
-#define OSPFSTUBSTATUS                   4
-#define OSPFSTUBMETRICTYPE               5
+#define OSPFSTUBAREAID 1
+#define OSPFSTUBTOS 2
+#define OSPFSTUBMETRIC 3
+#define OSPFSTUBSTATUS 4
+#define OSPFSTUBMETRICTYPE 5
 
 /* OSPF MIB ospfLsdbTable. */
-#define OSPFLSDBAREAID                   1
-#define OSPFLSDBTYPE                     2
-#define OSPFLSDBLSID                     3
-#define OSPFLSDBROUTERID                 4
-#define OSPFLSDBSEQUENCE                 5
-#define OSPFLSDBAGE                      6
-#define OSPFLSDBCHECKSUM                 7
-#define OSPFLSDBADVERTISEMENT            8
+#define OSPFLSDBAREAID 1
+#define OSPFLSDBTYPE 2
+#define OSPFLSDBLSID 3
+#define OSPFLSDBROUTERID 4
+#define OSPFLSDBSEQUENCE 5
+#define OSPFLSDBAGE 6
+#define OSPFLSDBCHECKSUM 7
+#define OSPFLSDBADVERTISEMENT 8
 
 /* OSPF MIB ospfAreaRangeTable. */
-#define OSPFAREARANGEAREAID              1
-#define OSPFAREARANGENET                 2
-#define OSPFAREARANGEMASK                3
-#define OSPFAREARANGESTATUS              4
-#define OSPFAREARANGEEFFECT              5
+#define OSPFAREARANGEAREAID 1
+#define OSPFAREARANGENET 2
+#define OSPFAREARANGEMASK 3
+#define OSPFAREARANGESTATUS 4
+#define OSPFAREARANGEEFFECT 5
 
 /* OSPF MIB ospfHostTable. */
-#define OSPFHOSTIPADDRESS                1
-#define OSPFHOSTTOS                      2
-#define OSPFHOSTMETRIC                   3
-#define OSPFHOSTSTATUS                   4
-#define OSPFHOSTAREAID                   5
+#define OSPFHOSTIPADDRESS 1
+#define OSPFHOSTTOS 2
+#define OSPFHOSTMETRIC 3
+#define OSPFHOSTSTATUS 4
+#define OSPFHOSTAREAID 5
 
 /* OSPF MIB ospfIfTable. */
-#define OSPFIFIPADDRESS                  1
-#define OSPFADDRESSLESSIF                2
-#define OSPFIFAREAID                     3
-#define OSPFIFTYPE                       4
-#define OSPFIFADMINSTAT                  5
-#define OSPFIFRTRPRIORITY                6
-#define OSPFIFTRANSITDELAY               7
-#define OSPFIFRETRANSINTERVAL            8
-#define OSPFIFHELLOINTERVAL              9
-#define OSPFIFRTRDEADINTERVAL            10
-#define OSPFIFPOLLINTERVAL               11
-#define OSPFIFSTATE                      12
-#define OSPFIFDESIGNATEDROUTER           13
-#define OSPFIFBACKUPDESIGNATEDROUTER     14
-#define OSPFIFEVENTS                     15
-#define OSPFIFAUTHKEY                    16
-#define OSPFIFSTATUS                     17
-#define OSPFIFMULTICASTFORWARDING        18
-#define OSPFIFDEMAND                     19
-#define OSPFIFAUTHTYPE                   20
+#define OSPFIFIPADDRESS 1
+#define OSPFADDRESSLESSIF 2
+#define OSPFIFAREAID 3
+#define OSPFIFTYPE 4
+#define OSPFIFADMINSTAT 5
+#define OSPFIFRTRPRIORITY 6
+#define OSPFIFTRANSITDELAY 7
+#define OSPFIFRETRANSINTERVAL 8
+#define OSPFIFHELLOINTERVAL 9
+#define OSPFIFRTRDEADINTERVAL 10
+#define OSPFIFPOLLINTERVAL 11
+#define OSPFIFSTATE 12
+#define OSPFIFDESIGNATEDROUTER 13
+#define OSPFIFBACKUPDESIGNATEDROUTER 14
+#define OSPFIFEVENTS 15
+#define OSPFIFAUTHKEY 16
+#define OSPFIFSTATUS 17
+#define OSPFIFMULTICASTFORWARDING 18
+#define OSPFIFDEMAND 19
+#define OSPFIFAUTHTYPE 20
 
 /* OSPF MIB ospfIfMetricTable. */
-#define OSPFIFMETRICIPADDRESS            1
-#define OSPFIFMETRICADDRESSLESSIF        2
-#define OSPFIFMETRICTOS                  3
-#define OSPFIFMETRICVALUE                4
-#define OSPFIFMETRICSTATUS               5
+#define OSPFIFMETRICIPADDRESS 1
+#define OSPFIFMETRICADDRESSLESSIF 2
+#define OSPFIFMETRICTOS 3
+#define OSPFIFMETRICVALUE 4
+#define OSPFIFMETRICSTATUS 5
 
 /* OSPF MIB ospfVirtIfTable. */
-#define OSPFVIRTIFAREAID                 1
-#define OSPFVIRTIFNEIGHBOR               2
-#define OSPFVIRTIFTRANSITDELAY           3
-#define OSPFVIRTIFRETRANSINTERVAL        4
-#define OSPFVIRTIFHELLOINTERVAL          5
-#define OSPFVIRTIFRTRDEADINTERVAL        6
-#define OSPFVIRTIFSTATE                  7
-#define OSPFVIRTIFEVENTS                 8
-#define OSPFVIRTIFAUTHKEY                9
-#define OSPFVIRTIFSTATUS                 10
-#define OSPFVIRTIFAUTHTYPE               11
+#define OSPFVIRTIFAREAID 1
+#define OSPFVIRTIFNEIGHBOR 2
+#define OSPFVIRTIFTRANSITDELAY 3
+#define OSPFVIRTIFRETRANSINTERVAL 4
+#define OSPFVIRTIFHELLOINTERVAL 5
+#define OSPFVIRTIFRTRDEADINTERVAL 6
+#define OSPFVIRTIFSTATE 7
+#define OSPFVIRTIFEVENTS 8
+#define OSPFVIRTIFAUTHKEY 9
+#define OSPFVIRTIFSTATUS 10
+#define OSPFVIRTIFAUTHTYPE 11
 
 /* OSPF MIB ospfNbrTable. */
-#define OSPFNBRIPADDR                    1
-#define OSPFNBRADDRESSLESSINDEX          2
-#define OSPFNBRRTRID                     3
-#define OSPFNBROPTIONS                   4
-#define OSPFNBRPRIORITY                  5
-#define OSPFNBRSTATE                     6
-#define OSPFNBREVENTS                    7
-#define OSPFNBRLSRETRANSQLEN             8
-#define OSPFNBMANBRSTATUS                9
-#define OSPFNBMANBRPERMANENCE            10
-#define OSPFNBRHELLOSUPPRESSED           11
+#define OSPFNBRIPADDR 1
+#define OSPFNBRADDRESSLESSINDEX 2
+#define OSPFNBRRTRID 3
+#define OSPFNBROPTIONS 4
+#define OSPFNBRPRIORITY 5
+#define OSPFNBRSTATE 6
+#define OSPFNBREVENTS 7
+#define OSPFNBRLSRETRANSQLEN 8
+#define OSPFNBMANBRSTATUS 9
+#define OSPFNBMANBRPERMANENCE 10
+#define OSPFNBRHELLOSUPPRESSED 11
 
 /* OSPF MIB ospfVirtNbrTable. */
-#define OSPFVIRTNBRAREA                  1
-#define OSPFVIRTNBRRTRID                 2
-#define OSPFVIRTNBRIPADDR                3
-#define OSPFVIRTNBROPTIONS               4
-#define OSPFVIRTNBRSTATE                 5
-#define OSPFVIRTNBREVENTS                6
-#define OSPFVIRTNBRLSRETRANSQLEN         7
-#define OSPFVIRTNBRHELLOSUPPRESSED       8
+#define OSPFVIRTNBRAREA 1
+#define OSPFVIRTNBRRTRID 2
+#define OSPFVIRTNBRIPADDR 3
+#define OSPFVIRTNBROPTIONS 4
+#define OSPFVIRTNBRSTATE 5
+#define OSPFVIRTNBREVENTS 6
+#define OSPFVIRTNBRLSRETRANSQLEN 7
+#define OSPFVIRTNBRHELLOSUPPRESSED 8
 
 /* OSPF MIB ospfExtLsdbTable. */
-#define OSPFEXTLSDBTYPE                  1
-#define OSPFEXTLSDBLSID                  2
-#define OSPFEXTLSDBROUTERID              3
-#define OSPFEXTLSDBSEQUENCE              4
-#define OSPFEXTLSDBAGE                   5
-#define OSPFEXTLSDBCHECKSUM              6
-#define OSPFEXTLSDBADVERTISEMENT         7
+#define OSPFEXTLSDBTYPE 1
+#define OSPFEXTLSDBLSID 2
+#define OSPFEXTLSDBROUTERID 3
+#define OSPFEXTLSDBSEQUENCE 4
+#define OSPFEXTLSDBAGE 5
+#define OSPFEXTLSDBCHECKSUM 6
+#define OSPFEXTLSDBADVERTISEMENT 7
 
 /* OSPF MIB ospfAreaAggregateTable. */
-#define OSPFAREAAGGREGATEAREAID          1
-#define OSPFAREAAGGREGATELSDBTYPE        2
-#define OSPFAREAAGGREGATENET             3
-#define OSPFAREAAGGREGATEMASK            4
-#define OSPFAREAAGGREGATESTATUS          5
-#define OSPFAREAAGGREGATEEFFECT          6
+#define OSPFAREAAGGREGATEAREAID 1
+#define OSPFAREAAGGREGATELSDBTYPE 2
+#define OSPFAREAAGGREGATENET 3
+#define OSPFAREAAGGREGATEMASK 4
+#define OSPFAREAAGGREGATESTATUS 5
+#define OSPFAREAAGGREGATEEFFECT 6
 
 /* SYNTAX Status from OSPF-MIB. */
-#define OSPF_STATUS_ENABLED  1
+#define OSPF_STATUS_ENABLED 1
 #define OSPF_STATUS_DISABLED 2
 
 /* SNMP value hack. */
-#define COUNTER     ASN_COUNTER
-#define INTEGER     ASN_INTEGER
-#define GAUGE       ASN_GAUGE
-#define TIMETICKS   ASN_TIMETICKS
-#define IPADDRESS   ASN_IPADDRESS
-#define STRING      ASN_OCTET_STR
+#define COUNTER ASN_COUNTER
+#define INTEGER ASN_INTEGER
+#define GAUGE ASN_GAUGE
+#define TIMETICKS ASN_TIMETICKS
+#define IPADDRESS ASN_IPADDRESS
+#define STRING ASN_OCTET_STR
 
 /* Because DR/DROther values are exhanged wrt RFC */
 #define ISM_SNMP(x)                                                            \
@@ -248,18 +248,8 @@ static struct variable ospf_variables[] = {
 	{OSPFORIGINATENEWLSAS, COUNTER, RONLY, ospfGeneralGroup, 2, {1, 9}},
 	{OSPFRXNEWLSAS, COUNTER, RONLY, ospfGeneralGroup, 2, {1, 10}},
 	{OSPFEXTLSDBLIMIT, INTEGER, RWRITE, ospfGeneralGroup, 2, {1, 11}},
-	{OSPFMULTICASTEXTENSIONS,
-	 INTEGER,
-	 RWRITE,
-	 ospfGeneralGroup,
-	 2,
-	 {1, 12}},
-	{OSPFEXITOVERFLOWINTERVAL,
-	 INTEGER,
-	 RWRITE,
-	 ospfGeneralGroup,
-	 2,
-	 {1, 13}},
+	{OSPFMULTICASTEXTENSIONS, INTEGER, RWRITE, ospfGeneralGroup, 2, {1, 12}},
+	{OSPFEXITOVERFLOWINTERVAL, INTEGER, RWRITE, ospfGeneralGroup, 2, {1, 13}},
 	{OSPFDEMANDEXTENSIONS, INTEGER, RWRITE, ospfGeneralGroup, 2, {1, 14}},
 
 	/* OSPF area data structure. */
@@ -292,31 +282,11 @@ static struct variable ospf_variables[] = {
 	{OSPFLSDBADVERTISEMENT, STRING, RONLY, ospfLsdbEntry, 3, {4, 1, 8}},
 
 	/* Area range table. */
-	{OSPFAREARANGEAREAID,
-	 IPADDRESS,
-	 RONLY,
-	 ospfAreaRangeEntry,
-	 3,
-	 {5, 1, 1}},
+	{OSPFAREARANGEAREAID, IPADDRESS, RONLY, ospfAreaRangeEntry, 3, {5, 1, 1}},
 	{OSPFAREARANGENET, IPADDRESS, RONLY, ospfAreaRangeEntry, 3, {5, 1, 2}},
-	{OSPFAREARANGEMASK,
-	 IPADDRESS,
-	 RWRITE,
-	 ospfAreaRangeEntry,
-	 3,
-	 {5, 1, 3}},
-	{OSPFAREARANGESTATUS,
-	 INTEGER,
-	 RWRITE,
-	 ospfAreaRangeEntry,
-	 3,
-	 {5, 1, 4}},
-	{OSPFAREARANGEEFFECT,
-	 INTEGER,
-	 RWRITE,
-	 ospfAreaRangeEntry,
-	 3,
-	 {5, 1, 5}},
+	{OSPFAREARANGEMASK, IPADDRESS, RWRITE, ospfAreaRangeEntry, 3, {5, 1, 3}},
+	{OSPFAREARANGESTATUS, INTEGER, RWRITE, ospfAreaRangeEntry, 3, {5, 1, 4}},
+	{OSPFAREARANGEEFFECT, INTEGER, RWRITE, ospfAreaRangeEntry, 3, {5, 1, 5}},
 
 	/* OSPF host table. */
 	{OSPFHOSTIPADDRESS, IPADDRESS, RONLY, ospfHostEntry, 3, {6, 1, 1}},
@@ -348,22 +318,12 @@ static struct variable ospf_variables[] = {
 	{OSPFIFEVENTS, COUNTER, RONLY, ospfIfEntry, 3, {7, 1, 15}},
 	{OSPFIFAUTHKEY, STRING, RWRITE, ospfIfEntry, 3, {7, 1, 16}},
 	{OSPFIFSTATUS, INTEGER, RWRITE, ospfIfEntry, 3, {7, 1, 17}},
-	{OSPFIFMULTICASTFORWARDING,
-	 INTEGER,
-	 RWRITE,
-	 ospfIfEntry,
-	 3,
-	 {7, 1, 18}},
+	{OSPFIFMULTICASTFORWARDING, INTEGER, RWRITE, ospfIfEntry, 3, {7, 1, 18}},
 	{OSPFIFDEMAND, INTEGER, RWRITE, ospfIfEntry, 3, {7, 1, 19}},
 	{OSPFIFAUTHTYPE, INTEGER, RWRITE, ospfIfEntry, 3, {7, 1, 20}},
 
 	/* OSPF interface metric table. */
-	{OSPFIFMETRICIPADDRESS,
-	 IPADDRESS,
-	 RONLY,
-	 ospfIfMetricEntry,
-	 3,
-	 {8, 1, 1}},
+	{OSPFIFMETRICIPADDRESS, IPADDRESS, RONLY, ospfIfMetricEntry, 3, {8, 1, 1}},
 	{OSPFIFMETRICADDRESSLESSIF,
 	 INTEGER,
 	 RONLY,
@@ -377,30 +337,10 @@ static struct variable ospf_variables[] = {
 	/* OSPF virtual interface table. */
 	{OSPFVIRTIFAREAID, IPADDRESS, RONLY, ospfVirtIfEntry, 3, {9, 1, 1}},
 	{OSPFVIRTIFNEIGHBOR, IPADDRESS, RONLY, ospfVirtIfEntry, 3, {9, 1, 2}},
-	{OSPFVIRTIFTRANSITDELAY,
-	 INTEGER,
-	 RWRITE,
-	 ospfVirtIfEntry,
-	 3,
-	 {9, 1, 3}},
-	{OSPFVIRTIFRETRANSINTERVAL,
-	 INTEGER,
-	 RWRITE,
-	 ospfVirtIfEntry,
-	 3,
-	 {9, 1, 4}},
-	{OSPFVIRTIFHELLOINTERVAL,
-	 INTEGER,
-	 RWRITE,
-	 ospfVirtIfEntry,
-	 3,
-	 {9, 1, 5}},
-	{OSPFVIRTIFRTRDEADINTERVAL,
-	 INTEGER,
-	 RWRITE,
-	 ospfVirtIfEntry,
-	 3,
-	 {9, 1, 6}},
+	{OSPFVIRTIFTRANSITDELAY, INTEGER, RWRITE, ospfVirtIfEntry, 3, {9, 1, 3}},
+	{OSPFVIRTIFRETRANSINTERVAL, INTEGER, RWRITE, ospfVirtIfEntry, 3, {9, 1, 4}},
+	{OSPFVIRTIFHELLOINTERVAL, INTEGER, RWRITE, ospfVirtIfEntry, 3, {9, 1, 5}},
+	{OSPFVIRTIFRTRDEADINTERVAL, INTEGER, RWRITE, ospfVirtIfEntry, 3, {9, 1, 6}},
 	{OSPFVIRTIFSTATE, INTEGER, RONLY, ospfVirtIfEntry, 3, {9, 1, 7}},
 	{OSPFVIRTIFEVENTS, COUNTER, RONLY, ospfVirtIfEntry, 3, {9, 1, 8}},
 	{OSPFVIRTIFAUTHKEY, STRING, RWRITE, ospfVirtIfEntry, 3, {9, 1, 9}},
@@ -427,12 +367,7 @@ static struct variable ospf_variables[] = {
 	{OSPFVIRTNBROPTIONS, INTEGER, RONLY, ospfVirtNbrEntry, 3, {11, 1, 4}},
 	{OSPFVIRTNBRSTATE, INTEGER, RONLY, ospfVirtNbrEntry, 3, {11, 1, 5}},
 	{OSPFVIRTNBREVENTS, COUNTER, RONLY, ospfVirtNbrEntry, 3, {11, 1, 6}},
-	{OSPFVIRTNBRLSRETRANSQLEN,
-	 INTEGER,
-	 RONLY,
-	 ospfVirtNbrEntry,
-	 3,
-	 {11, 1, 7}},
+	{OSPFVIRTNBRLSRETRANSQLEN, INTEGER, RONLY, ospfVirtNbrEntry, 3, {11, 1, 7}},
 	{OSPFVIRTNBRHELLOSUPPRESSED,
 	 INTEGER,
 	 RONLY,
@@ -443,21 +378,11 @@ static struct variable ospf_variables[] = {
 	/* OSPF link state database, external. */
 	{OSPFEXTLSDBTYPE, INTEGER, RONLY, ospfExtLsdbEntry, 3, {12, 1, 1}},
 	{OSPFEXTLSDBLSID, IPADDRESS, RONLY, ospfExtLsdbEntry, 3, {12, 1, 2}},
-	{OSPFEXTLSDBROUTERID,
-	 IPADDRESS,
-	 RONLY,
-	 ospfExtLsdbEntry,
-	 3,
-	 {12, 1, 3}},
+	{OSPFEXTLSDBROUTERID, IPADDRESS, RONLY, ospfExtLsdbEntry, 3, {12, 1, 3}},
 	{OSPFEXTLSDBSEQUENCE, INTEGER, RONLY, ospfExtLsdbEntry, 3, {12, 1, 4}},
 	{OSPFEXTLSDBAGE, INTEGER, RONLY, ospfExtLsdbEntry, 3, {12, 1, 5}},
 	{OSPFEXTLSDBCHECKSUM, INTEGER, RONLY, ospfExtLsdbEntry, 3, {12, 1, 6}},
-	{OSPFEXTLSDBADVERTISEMENT,
-	 STRING,
-	 RONLY,
-	 ospfExtLsdbEntry,
-	 3,
-	 {12, 1, 7}},
+	{OSPFEXTLSDBADVERTISEMENT, STRING, RONLY, ospfExtLsdbEntry, 3, {12, 1, 7}},
 
 	/* OSPF area aggregate table. */
 	{OSPFAREAAGGREGATEAREAID,
@@ -523,8 +448,8 @@ static uint8_t *ospfGeneralGroup(struct variable *v, oid *name, size_t *length,
 	ospf = ospf_lookup_by_vrf_id(VRF_DEFAULT);
 
 	/* Check whether the instance identifier is valid */
-	if (smux_header_generic(v, name, length, exact, var_len, write_method)
-	    == MATCH_FAILED)
+	if (smux_header_generic(v, name, length, exact, var_len,
+				write_method) == MATCH_FAILED)
 		return NULL;
 
 	/* Return the current value of the variable */
@@ -676,8 +601,8 @@ static uint8_t *ospfAreaEntry(struct variable *v, oid *name, size_t *length,
 	struct ospf_area *area;
 	struct in_addr addr;
 
-	if (smux_header_table(v, name, length, exact, var_len, write_method)
-	    == MATCH_FAILED)
+	if (smux_header_table(v, name, length, exact, var_len, write_method) ==
+	    MATCH_FAILED)
 		return NULL;
 
 	memset(&addr, 0, sizeof(addr));
@@ -705,7 +630,7 @@ static uint8_t *ospfAreaEntry(struct variable *v, oid *name, size_t *length,
 	case OSPFAREALSACKSUMSUM: /* 8 */
 		return SNMP_INTEGER(0);
 	case OSPFAREASUMMARY: /* 9 */
-#define OSPF_noAreaSummary   1
+#define OSPF_noAreaSummary 1
 #define OSPF_sendAreaSummary 2
 		if (area->no_summary)
 			return SNMP_INTEGER(OSPF_noAreaSummary);
@@ -735,8 +660,8 @@ static struct ospf_area *ospf_stub_area_lookup_next(struct in_addr *area_id,
 			if (first) {
 				*area_id = area->area_id;
 				return area;
-			} else if (ntohl(area->area_id.s_addr)
-				   > ntohl(area_id->s_addr)) {
+			} else if (ntohl(area->area_id.s_addr) >
+				   ntohl(area_id->s_addr)) {
 				*area_id = area->area_id;
 				return area;
 			}
@@ -804,8 +729,8 @@ static uint8_t *ospfStubAreaEntry(struct variable *v, oid *name, size_t *length,
 	struct ospf_area *area;
 	struct in_addr addr;
 
-	if (smux_header_table(v, name, length, exact, var_len, write_method)
-	    == MATCH_FAILED)
+	if (smux_header_table(v, name, length, exact, var_len, write_method) ==
+	    MATCH_FAILED)
 		return NULL;
 
 	memset(&addr, 0, sizeof(addr));
@@ -830,9 +755,9 @@ static uint8_t *ospfStubAreaEntry(struct variable *v, oid *name, size_t *length,
 		return SNMP_INTEGER(SNMP_VALID);
 	case OSPFSTUBMETRICTYPE: /* 5 */
 				 /* OSPF Metric type. */
-#define OSPF_ospfMetric     1
+#define OSPF_ospfMetric 1
 #define OSPF_comparableCost 2
-#define OSPF_nonComparable  3
+#define OSPF_nonComparable 3
 		return SNMP_INTEGER(OSPF_ospfMetric);
 	default:
 		return NULL;
@@ -1001,13 +926,12 @@ static struct ospf_lsa *ospfLsdbLookup(struct variable *v, oid *name,
 				offset++;
 				oid_copy_in_addr(offset, &lsa->data->id);
 				offset += IN_ADDR_SIZE;
-				oid_copy_in_addr(offset,
-						 &lsa->data->adv_router);
+				oid_copy_in_addr(offset, &lsa->data->adv_router);
 
 				return lsa;
 			}
-		} while ((area = ospf_area_lookup_next(ospf, area_id, 0))
-			 != NULL);
+		} while ((area = ospf_area_lookup_next(ospf, area_id, 0)) !=
+			 NULL);
 	}
 	return NULL;
 }
@@ -1024,8 +948,8 @@ static uint8_t *ospfLsdbEntry(struct variable *v, oid *name, size_t *length,
 	struct in_addr router_id;
 	struct ospf *ospf;
 
-	if (smux_header_table(v, name, length, exact, var_len, write_method)
-	    == MATCH_FAILED)
+	if (smux_header_table(v, name, length, exact, var_len, write_method) ==
+	    MATCH_FAILED)
 		return NULL;
 
 	/* INDEX { ospfLsdbAreaId, ospfLsdbType,
@@ -1151,8 +1075,8 @@ static struct ospf_area_range *ospfAreaRangeLookup(struct variable *v,
 
 			if (range) {
 				/* Fill in length. */
-				*length = v->namelen + IN_ADDR_SIZE
-					  + IN_ADDR_SIZE;
+				*length = v->namelen + IN_ADDR_SIZE +
+					  IN_ADDR_SIZE;
 
 				/* Fill in value. */
 				offset = name + v->namelen;
@@ -1162,8 +1086,8 @@ static struct ospf_area_range *ospfAreaRangeLookup(struct variable *v,
 
 				return range;
 			}
-		} while ((area = ospf_area_lookup_next(ospf, area_id, 0))
-			 != NULL);
+		} while ((area = ospf_area_lookup_next(ospf, area_id, 0)) !=
+			 NULL);
 	}
 	return NULL;
 }
@@ -1178,8 +1102,8 @@ static uint8_t *ospfAreaRangeEntry(struct variable *v, oid *name,
 	struct in_addr mask;
 	struct ospf *ospf;
 
-	if (smux_header_table(v, name, length, exact, var_len, write_method)
-	    == MATCH_FAILED)
+	if (smux_header_table(v, name, length, exact, var_len, write_method) ==
+	    MATCH_FAILED)
 		return NULL;
 
 	/* Check OSPF instance. */
@@ -1209,7 +1133,7 @@ static uint8_t *ospfAreaRangeEntry(struct variable *v, oid *name,
 	case OSPFAREARANGESTATUS: /* 4 */
 		return SNMP_INTEGER(SNMP_VALID);
 	case OSPFAREARANGEEFFECT: /* 5 */
-#define OSPF_advertiseMatching      1
+#define OSPF_advertiseMatching 1
 #define OSPF_doNotAdvertiseMatching 2
 		return SNMP_INTEGER(OSPF_advertiseMatching);
 	default:
@@ -1257,8 +1181,8 @@ static uint8_t *ospfHostEntry(struct variable *v, oid *name, size_t *length,
 	struct in_addr addr;
 	struct ospf *ospf;
 
-	if (smux_header_table(v, name, length, exact, var_len, write_method)
-	    == MATCH_FAILED)
+	if (smux_header_table(v, name, length, exact, var_len, write_method) ==
+	    MATCH_FAILED)
 		return NULL;
 
 	/* Check OSPF instance. */
@@ -1370,8 +1294,8 @@ static int ospf_snmp_if_update(struct interface *ifp)
 		} else {
 			/* Unnumbered interfaces --> Sort them based on
 			 * interface indexes */
-			if (osif->addr.s_addr != INADDR_ANY
-			    || osif->ifindex > ifindex)
+			if (osif->addr.s_addr != INADDR_ANY ||
+			    osif->ifindex > ifindex)
 				break;
 		}
 		pn = node;
@@ -1419,12 +1343,14 @@ static struct ospf_interface *ospf_snmp_if_lookup(struct in_addr *ifaddr,
 	for (ALL_LIST_ELEMENTS_RO(ospf_snmp_iflist, node, osif)) {
 		if (ifaddr->s_addr) {
 			if (IPV4_ADDR_SAME(&osif->addr, ifaddr))
-				oi = ospf_if_lookup_by_local_addr(
-					ospf, osif->ifp, *ifaddr);
+				oi = ospf_if_lookup_by_local_addr(ospf,
+								  osif->ifp,
+								  *ifaddr);
 		} else {
 			if (osif->ifindex == *ifindex)
-				oi = ospf_if_lookup_by_local_addr(
-					ospf, osif->ifp, *ifaddr);
+				oi = ospf_if_lookup_by_local_addr(ospf,
+								  osif->ifp,
+								  *ifaddr);
 		}
 	}
 	return oi;
@@ -1470,15 +1396,15 @@ static struct ospf_interface *ospf_snmp_if_lookup_next(struct in_addr *ifaddr,
 			 * address */
 			/* it must have lager IPv4 address value than the lookup
 			 * entry */
-			if ((ospf_snmp_is_if_have_addr(osif->ifp))
-			    && (ntohl(osif->addr.s_addr)
-				> ntohl(ifaddr->s_addr))) {
+			if ((ospf_snmp_is_if_have_addr(osif->ifp)) &&
+			    (ntohl(osif->addr.s_addr) > ntohl(ifaddr->s_addr))) {
 				*ifaddr = osif->addr;
 				*ifindex = osif->ifindex;
 
 				/* and it must be an OSPF interface */
-				oi = ospf_if_lookup_by_local_addr(
-					ospf, osif->ifp, *ifaddr);
+				oi = ospf_if_lookup_by_local_addr(ospf,
+								  osif->ifp,
+								  *ifaddr);
 				if (oi)
 					return oi;
 			}
@@ -1489,8 +1415,8 @@ static struct ospf_interface *ospf_snmp_if_lookup_next(struct in_addr *ifaddr,
 			   address */
 			/* it must have lager interface index than the lookup
 			   entry */
-			if ((!ospf_snmp_is_if_have_addr(osif->ifp))
-			    && (osif->ifindex > *ifindex)) {
+			if ((!ospf_snmp_is_if_have_addr(osif->ifp)) &&
+			    (osif->ifindex > *ifindex)) {
 			*ifaddr = osif->addr;
 			*ifindex = osif->ifindex;
 
@@ -1506,9 +1432,9 @@ static struct ospf_interface *ospf_snmp_if_lookup_next(struct in_addr *ifaddr,
 
 static int ospf_snmp_iftype(struct interface *ifp)
 {
-#define ospf_snmp_iftype_broadcast         1
-#define ospf_snmp_iftype_nbma              2
-#define ospf_snmp_iftype_pointToPoint      3
+#define ospf_snmp_iftype_broadcast 1
+#define ospf_snmp_iftype_nbma 2
+#define ospf_snmp_iftype_pointToPoint 3
 #define ospf_snmp_iftype_pointToMultipoint 5
 	if (if_is_broadcast(ifp))
 		return ospf_snmp_iftype_broadcast;
@@ -1577,8 +1503,8 @@ static uint8_t *ospfIfEntry(struct variable *v, oid *name, size_t *length,
 	struct ospf_interface *oi;
 	struct ospf *ospf;
 
-	if (smux_header_table(v, name, length, exact, var_len, write_method)
-	    == MATCH_FAILED)
+	if (smux_header_table(v, name, length, exact, var_len, write_method) ==
+	    MATCH_FAILED)
 		return NULL;
 
 	ifindex = 0;
@@ -1637,9 +1563,9 @@ static uint8_t *ospfIfEntry(struct variable *v, oid *name, size_t *length,
 	case OSPFIFSTATUS: /* 17 */
 		return SNMP_INTEGER(SNMP_VALID);
 	case OSPFIFMULTICASTFORWARDING: /* 18 */
-#define ospf_snmp_multiforward_blocked    1
-#define ospf_snmp_multiforward_multicast  2
-#define ospf_snmp_multiforward_unicast    3
+#define ospf_snmp_multiforward_blocked 1
+#define ospf_snmp_multiforward_multicast 2
+#define ospf_snmp_multiforward_unicast 3
 		return SNMP_INTEGER(ospf_snmp_multiforward_blocked);
 	case OSPFIFDEMAND: /* 19 */
 		return SNMP_INTEGER(SNMP_FALSE);
@@ -1724,8 +1650,8 @@ static uint8_t *ospfIfMetricEntry(struct variable *v, oid *name, size_t *length,
 	struct ospf_interface *oi;
 	struct ospf *ospf;
 
-	if (smux_header_table(v, name, length, exact, var_len, write_method)
-	    == MATCH_FAILED)
+	if (smux_header_table(v, name, length, exact, var_len, write_method) ==
+	    MATCH_FAILED)
 		return NULL;
 
 	ifindex = 0;
@@ -1910,8 +1836,8 @@ static uint8_t *ospfVirtIfEntry(struct variable *v, oid *name, size_t *length,
 	struct in_addr area_id;
 	struct in_addr neighbor;
 
-	if (smux_header_table(v, name, length, exact, var_len, write_method)
-	    == MATCH_FAILED)
+	if (smux_header_table(v, name, length, exact, var_len, write_method) ==
+	    MATCH_FAILED)
 		return NULL;
 
 	memset(&area_id, 0, sizeof(area_id));
@@ -1969,8 +1895,8 @@ static struct ospf_neighbor *ospf_snmp_nbr_lookup(struct ospf *ospf,
 
 	for (ALL_LIST_ELEMENTS(ospf->oiflist, node, nnode, oi)) {
 		for (rn = route_top(oi->nbrs); rn; rn = route_next(rn))
-			if ((nbr = rn->info) != NULL
-			    && nbr != oi->nbr_self
+			if ((nbr = rn->info) != NULL &&
+			    nbr != oi->nbr_self
 			    /* If EXACT match is needed, provide ALL entry found
 					&& nbr->state != NSM_Down
 			     */
@@ -1999,21 +1925,21 @@ static struct ospf_neighbor *ospf_snmp_nbr_lookup_next(struct in_addr *nbr_addr,
 
 	for (ALL_LIST_ELEMENTS_RO(ospf->oiflist, nn, oi)) {
 		for (rn = route_top(oi->nbrs); rn; rn = route_next(rn))
-			if ((nbr = rn->info) != NULL && nbr != oi->nbr_self
-			    && nbr->state != NSM_Down
-			    && nbr->src.s_addr != INADDR_ANY) {
+			if ((nbr = rn->info) != NULL && nbr != oi->nbr_self &&
+			    nbr->state != NSM_Down &&
+			    nbr->src.s_addr != INADDR_ANY) {
 				if (first) {
 					if (!min)
 						min = nbr;
-					else if (ntohl(nbr->src.s_addr)
-						 < ntohl(min->src.s_addr))
+					else if (ntohl(nbr->src.s_addr) <
+						 ntohl(min->src.s_addr))
 						min = nbr;
-				} else if (ntohl(nbr->src.s_addr)
-					   > ntohl(nbr_addr->s_addr)) {
+				} else if (ntohl(nbr->src.s_addr) >
+					   ntohl(nbr_addr->s_addr)) {
 					if (!min)
 						min = nbr;
-					else if (ntohl(nbr->src.s_addr)
-						 < ntohl(min->src.s_addr))
+					else if (ntohl(nbr->src.s_addr) <
+						 ntohl(min->src.s_addr))
 						min = nbr;
 				}
 			}
@@ -2122,8 +2048,8 @@ static uint8_t *ospfNbrEntry(struct variable *v, oid *name, size_t *length,
 	struct ospf_neighbor *nbr;
 	struct ospf_interface *oi;
 
-	if (smux_header_table(v, name, length, exact, var_len, write_method)
-	    == MATCH_FAILED)
+	if (smux_header_table(v, name, length, exact, var_len, write_method) ==
+	    MATCH_FAILED)
 		return NULL;
 
 	memset(&nbr_addr, 0, sizeof(nbr_addr));
@@ -2173,8 +2099,8 @@ static uint8_t *ospfVirtNbrEntry(struct variable *v, oid *name, size_t *length,
 	struct in_addr neighbor;
 	struct ospf *ospf;
 
-	if (smux_header_table(v, name, length, exact, var_len, write_method)
-	    == MATCH_FAILED)
+	if (smux_header_table(v, name, length, exact, var_len, write_method) ==
+	    MATCH_FAILED)
 		return NULL;
 
 	memset(&area_id, 0, sizeof(area_id));
@@ -2313,8 +2239,8 @@ static uint8_t *ospfExtLsdbEntry(struct variable *v, oid *name, size_t *length,
 	struct in_addr router_id;
 	struct ospf *ospf;
 
-	if (smux_header_table(v, name, length, exact, var_len, write_method)
-	    == MATCH_FAILED)
+	if (smux_header_table(v, name, length, exact, var_len, write_method) ==
+	    MATCH_FAILED)
 		return NULL;
 
 	type = OSPF_AS_EXTERNAL_LSA;
@@ -2361,8 +2287,8 @@ static uint8_t *ospfAreaAggregateEntry(struct variable *v, oid *name,
 				       size_t *var_len,
 				       WriteMethod **write_method)
 {
-	if (smux_header_table(v, name, length, exact, var_len, write_method)
-	    == MATCH_FAILED)
+	if (smux_header_table(v, name, length, exact, var_len, write_method) ==
+	    MATCH_FAILED)
 		return NULL;
 
 	/* Return the current value of the variable */
@@ -2386,10 +2312,10 @@ static uint8_t *ospfAreaAggregateEntry(struct variable *v, oid *name,
 }
 
 /* OSPF Traps. */
-#define IFSTATECHANGE      16
-#define VIRTIFSTATECHANGE   1
-#define NBRSTATECHANGE      2
-#define VIRTNBRSTATECHANGE  3
+#define IFSTATECHANGE 16
+#define VIRTIFSTATECHANGE 1
+#define NBRSTATECHANGE 2
+#define VIRTNBRSTATECHANGE 3
 
 static struct trap_object ospfNbrTrapList[] = {{-2, {1, OSPFROUTERID}},
 					       {3, {10, 1, OSPFNBRIPADDR}},
@@ -2397,22 +2323,23 @@ static struct trap_object ospfNbrTrapList[] = {{-2, {1, OSPFROUTERID}},
 					       {3, {10, 1, OSPFNBRSTATE}}};
 
 
-static struct trap_object ospfVirtNbrTrapList[] = {
-	{-2, {1, 1}},
-	{3, {11, 1, OSPFVIRTNBRAREA}},
-	{3, {11, 1, OSPFVIRTNBRRTRID}},
-	{3, {11, 1, OSPFVIRTNBRSTATE}}};
+static struct trap_object ospfVirtNbrTrapList[] = {{-2, {1, 1}},
+						   {3, {11, 1, OSPFVIRTNBRAREA}},
+						   {3,
+						    {11, 1, OSPFVIRTNBRRTRID}},
+						   {3,
+						    {11, 1, OSPFVIRTNBRSTATE}}};
 
 static struct trap_object ospfIfTrapList[] = {{-2, {1, OSPFROUTERID}},
 					      {3, {7, 1, OSPFIFIPADDRESS}},
 					      {3, {7, 1, OSPFADDRESSLESSIF}},
 					      {3, {7, 1, OSPFIFSTATE}}};
 
-static struct trap_object ospfVirtIfTrapList[] = {
-	{-2, {1, OSPFROUTERID}},
-	{3, {9, 1, OSPFVIRTIFAREAID}},
-	{3, {9, 1, OSPFVIRTIFNEIGHBOR}},
-	{3, {9, 1, OSPFVIRTIFSTATE}}};
+static struct trap_object ospfVirtIfTrapList[] = {{-2, {1, OSPFROUTERID}},
+						  {3, {9, 1, OSPFVIRTIFAREAID}},
+						  {3,
+						   {9, 1, OSPFVIRTIFNEIGHBOR}},
+						  {3, {9, 1, OSPFVIRTIFSTATE}}};
 
 static void ospfTrapNbrStateChange(struct ospf_neighbor *on)
 {
@@ -2455,15 +2382,15 @@ static int ospf_snmp_nsm_change(struct ospf_neighbor *nbr, int next_state,
 	/* Transition to/from state Full should be handled only by
 	 * DR when in Broadcast or Non-Brodcast Multi-Access networks
 	 */
-	if ((next_state == NSM_Full || old_state == NSM_Full)
-	    && (nbr->oi->state != ISM_DR)
-	    && (nbr->oi->type == OSPF_IFTYPE_BROADCAST
-		|| nbr->oi->type == OSPF_IFTYPE_NBMA))
+	if ((next_state == NSM_Full || old_state == NSM_Full) &&
+	    (nbr->oi->state != ISM_DR) &&
+	    (nbr->oi->type == OSPF_IFTYPE_BROADCAST ||
+	     nbr->oi->type == OSPF_IFTYPE_NBMA))
 		return 0;
 
 	/* State progression to non-terminal state */
-	if (next_state > old_state && next_state != NSM_Full
-	    && next_state != NSM_TwoWay)
+	if (next_state > old_state && next_state != NSM_Full &&
+	    next_state != NSM_TwoWay)
 		return 0;
 
 	if (nbr->oi->type == OSPF_IFTYPE_VIRTUALLINK)
@@ -2512,8 +2439,9 @@ static int ospf_snmp_ism_change(struct ospf_interface *oi, int state,
 				int old_state)
 {
 	/* Terminal state or regression */
-	if ((state == ISM_DR) || (state == ISM_Backup) || (state == ISM_DROther)
-	    || (state == ISM_PointToPoint) || (state < old_state)) {
+	if ((state == ISM_DR) || (state == ISM_Backup) ||
+	    (state == ISM_DROther) || (state == ISM_PointToPoint) ||
+	    (state < old_state)) {
 		/* ospfVirtIfStateChange */
 		if (oi->type == OSPF_IFTYPE_VIRTUALLINK)
 			ospfTrapVirtIfStateChange(oi);
@@ -2549,5 +2477,4 @@ static int ospf_snmp_module_init(void)
 
 FRR_MODULE_SETUP(.name = "ospfd_snmp", .version = FRR_VERSION,
 		 .description = "ospfd AgentX SNMP module",
-		 .init = ospf_snmp_module_init,
-);
+		 .init = ospf_snmp_module_init, );

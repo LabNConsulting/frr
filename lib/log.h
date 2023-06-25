@@ -47,7 +47,7 @@ struct message {
 
 extern void zlog_thread_info(int log_level);
 
-#define ZLOG_FILTERS_MAX 100      /* Max # of filters at once */
+#define ZLOG_FILTERS_MAX 100	  /* Max # of filters at once */
 #define ZLOG_FILTER_LENGTH_MAX 80 /* 80 character filter limit */
 
 struct zlog_cfg_filterfile {
@@ -133,11 +133,11 @@ extern const char *zserv_gr_client_cap_string(unsigned int zcc);
 
 /* structure useful for avoiding repeated rendering of the same timestamp */
 struct timestamp_control {
-	size_t len;			/* length of rendered timestamp */
-	int precision;			/* configuration parameter */
-	int already_rendered;		/* should be initialized to 0 */
-	char buf[FRR_TIMESTAMP_LEN];	/* will contain the rendered timestamp
-					 */
+	size_t len;		     /* length of rendered timestamp */
+	int precision;		     /* configuration parameter */
+	int already_rendered;	     /* should be initialized to 0 */
+	char buf[FRR_TIMESTAMP_LEN]; /* will contain the rendered timestamp
+				      */
 };
 
 /* Defines for use in command construction: */

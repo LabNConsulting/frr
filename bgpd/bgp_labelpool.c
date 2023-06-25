@@ -61,8 +61,8 @@ DEFINE_MTYPE_STATIC(BGPD, BGP_LABEL_CB, "BGP Dynamic Label Assignment");
 DEFINE_MTYPE_STATIC(BGPD, BGP_LABEL_CBQ, "BGP Dynamic Label Callback");
 
 struct lp_chunk {
-	uint32_t	first;
-	uint32_t	last;
+	uint32_t first;
+	uint32_t last;
 	uint32_t nfree;		     /* un-allocated count */
 	uint32_t idx_last_allocated; /* start looking here */
 	bitfield_t allocated_map;
@@ -72,30 +72,30 @@ struct lp_chunk {
  * label control block
  */
 struct lp_lcb {
-	mpls_label_t	label;		/* MPLS_LABEL_NONE = not allocated */
-	int		type;
-	void		*labelid;	/* unique ID */
+	mpls_label_t label; /* MPLS_LABEL_NONE = not allocated */
+	int type;
+	void *labelid; /* unique ID */
 	/*
 	 * callback for label allocation and loss
 	 *
 	 * allocated: false = lost
 	 */
-	int		(*cbfunc)(mpls_label_t label, void *lblid, bool alloc);
+	int (*cbfunc)(mpls_label_t label, void *lblid, bool alloc);
 };
 
 struct lp_fifo {
 	struct lp_fifo_item fifo;
-	struct lp_lcb	lcb;
+	struct lp_lcb lcb;
 };
 
 DECLARE_LIST(lp_fifo, struct lp_fifo, fifo);
 
 struct lp_cbq_item {
-	int		(*cbfunc)(mpls_label_t label, void *lblid, bool alloc);
-	int		type;
-	mpls_label_t	label;
-	void		*labelid;
-	bool		allocated;	/* false = lost */
+	int (*cbfunc)(mpls_label_t label, void *lblid, bool alloc);
+	int type;
+	mpls_label_t label;
+	void *labelid;
+	bool allocated; /* false = lost */
 };
 
 static wq_item_status lp_cbq_docallback(struct work_queue *wq, void *data)
@@ -106,7 +106,8 @@ static wq_item_status lp_cbq_docallback(struct work_queue *wq, void *data)
 
 	if (debug)
 		zlog_debug("%s: calling callback with labelid=%p label=%u allocated=%d",
-			__func__, lcbq->labelid, lcbq->label, lcbq->allocated);
+			   __func__, lcbq->labelid, lcbq->label,
+			   lcbq->allocated);
 
 	if (lcbq->label == MPLS_LABEL_NONE) {
 		/* shouldn't happen */
@@ -127,7 +128,7 @@ static wq_item_status lp_cbq_docallback(struct work_queue *wq, void *data)
 		 */
 		if (debug)
 			zlog_debug("%s: callback rejected allocation, releasing labelid=%p label=%u",
-				__func__, lcbq->labelid, lcbq->label);
+				   __func__, lcbq->labelid, lcbq->label);
 
 		uintptr_t lbl = lcbq->label;
 		void *labelid;
@@ -143,10 +144,10 @@ static wq_item_status lp_cbq_docallback(struct work_queue *wq, void *data)
 		if (!skiplist_search(lp->inuse, (void *)lbl, &labelid)) {
 			if (labelid == lcbq->labelid) {
 				if (!skiplist_search(lp->ledger, labelid,
-					(void **)&lcb)) {
+						     (void **)&lcb)) {
 					if (lcbq->label == lcb->label)
 						skiplist_delete(lp->ledger,
-							labelid, NULL);
+								labelid, NULL);
 				}
 				skiplist_delete(lp->inuse, (void *)lbl, NULL);
 			}
@@ -179,7 +180,7 @@ void bgp_lp_init(struct event_loop *master, struct labelpool *pool)
 	if (BGP_DEBUG(labelpool, LABELPOOL))
 		zlog_debug("%s: entry", __func__);
 
-	lp = pool;	/* Set module pointer to pool data */
+	lp = pool; /* Set module pointer to pool data */
 
 	lp->ledger = skiplist_new(0, NULL, lp_lcb_free);
 	lp->inuse = skiplist_new(0, NULL, NULL);
@@ -271,8 +272,8 @@ static mpls_label_t get_label_from_pool(void *labelid)
 		unsigned int index;
 
 		if (debug)
-			zlog_debug("%s: chunk first=%u last=%u",
-				__func__, chunk->first, chunk->last);
+			zlog_debug("%s: chunk first=%u last=%u", __func__,
+				   chunk->first, chunk->last);
 
 		/*
 		 * don't look in chunks with no available labels
@@ -284,9 +285,10 @@ static mpls_label_t get_label_from_pool(void *labelid)
 		 * roll through bitfield starting where we stopped
 		 * last time
 		 */
-		index = bf_find_next_clear_bit_wrap(
-			&chunk->allocated_map, chunk->idx_last_allocated + 1,
-			0);
+		index = bf_find_next_clear_bit_wrap(&chunk->allocated_map,
+						    chunk->idx_last_allocated +
+							    1,
+						    0);
 
 		/*
 		 * since chunk->nfree is non-zero, we should always get
@@ -318,16 +320,14 @@ static mpls_label_t get_label_from_pool(void *labelid)
 /*
  * Success indicated by value of "label" field in returned LCB
  */
-static struct lp_lcb *lcb_alloc(
-	int	type,
-	void	*labelid,
-	int	(*cbfunc)(mpls_label_t label, void *labelid, bool allocated))
+static struct lp_lcb *lcb_alloc(int type, void *labelid,
+				int (*cbfunc)(mpls_label_t label, void *labelid,
+					      bool allocated))
 {
 	/*
 	 * Set up label control block
 	 */
-	struct lp_lcb *new = XCALLOC(MTYPE_BGP_LABEL_CB,
-		sizeof(struct lp_lcb));
+	struct lp_lcb *new = XCALLOC(MTYPE_BGP_LABEL_CB, sizeof(struct lp_lcb));
 
 	new->label = get_label_from_pool(labelid);
 	new->type = type;
@@ -363,10 +363,8 @@ static struct lp_lcb *lcb_alloc(
  * Prior requests for a given labelid are detected so that requests and
  * assignments are not duplicated.
  */
-void bgp_lp_get(
-	int	type,
-	void	*labelid,
-	int	(*cbfunc)(mpls_label_t label, void *labelid, bool allocated))
+void bgp_lp_get(int type, void *labelid,
+		int (*cbfunc)(mpls_label_t label, void *labelid, bool allocated))
 {
 	struct lp_lcb *lcb;
 	int requested = 0;
@@ -383,8 +381,8 @@ void bgp_lp_get(
 	} else {
 		lcb = lcb_alloc(type, labelid, cbfunc);
 		if (debug)
-			zlog_debug("%s: inserting lcb=%p label=%u",
-				__func__, lcb, lcb->label);
+			zlog_debug("%s: inserting lcb=%p label=%u", __func__,
+				   lcb, lcb->label);
 		int rc = skiplist_insert(lp->ledger, labelid, lcb);
 
 		if (rc) {
@@ -425,8 +423,8 @@ void bgp_lp_get(
 		return;
 
 	if (debug)
-		zlog_debug("%s: slow path. lcb=%p label=%u",
-			__func__, lcb, lcb->label);
+		zlog_debug("%s: slow path. lcb=%p label=%u", __func__, lcb,
+			   lcb->label);
 
 	/*
 	 * Slow path: we are out of labels in the local pool,
@@ -437,8 +435,8 @@ void bgp_lp_get(
 	 * need to get a chunk for each one.
 	 */
 
-	struct lp_fifo *lf = XCALLOC(MTYPE_BGP_LABEL_FIFO,
-		sizeof(struct lp_fifo));
+	struct lp_fifo *lf =
+		XCALLOC(MTYPE_BGP_LABEL_FIFO, sizeof(struct lp_fifo));
 
 	lf->lcb = *lcb;
 	/* if this is a LU request, lock node before queueing */
@@ -457,10 +455,7 @@ void bgp_lp_get(
 	}
 }
 
-void bgp_lp_release(
-	int		type,
-	void		*labelid,
-	mpls_label_t	label)
+void bgp_lp_release(int type, void *labelid, mpls_label_t label)
 {
 	struct lp_lcb *lcb;
 
@@ -515,7 +510,7 @@ static void bgp_sync_label_manager(struct event *e)
 
 			if (debug) {
 				zlog_debug("%s: labelid %p: request no longer in effect",
-						__func__, labelid);
+					   __func__, labelid);
 			}
 			/* if this was a BGP_LU request, unlock node
 			 */
@@ -528,8 +523,8 @@ static void bgp_sync_label_manager(struct event *e)
 			/* request already has a label */
 			if (debug) {
 				zlog_debug("%s: labelid %p: request already has a label: %u=0x%x, lcb=%p",
-						__func__, labelid,
-						lcb->label, lcb->label, lcb);
+					   __func__, labelid, lcb->label,
+					   lcb->label, lcb);
 			}
 			/* if this was a BGP_LU request, unlock node
 			 */
@@ -546,7 +541,7 @@ static void bgp_sync_label_manager(struct event *e)
 			 */
 			if (debug) {
 				zlog_debug("%s: out of labels, await more",
-						__func__);
+					   __func__);
 			}
 			break;
 		}
@@ -556,7 +551,7 @@ static void bgp_sync_label_manager(struct event *e)
 		 * Enqueue response work item with new label.
 		 */
 		struct lp_cbq_item *q = XCALLOC(MTYPE_BGP_LABEL_CBQ,
-			sizeof(struct lp_cbq_item));
+						sizeof(struct lp_cbq_item));
 
 		q->cbfunc = lcb->cbfunc;
 		q->type = lcb->type;
@@ -566,16 +561,16 @@ static void bgp_sync_label_manager(struct event *e)
 
 		if (debug)
 			zlog_debug("%s: assigning label %u to labelid %p",
-				__func__, q->label, q->labelid);
+				   __func__, q->label, q->labelid);
 
 		work_queue_add(lp->callback_q, q);
 
-finishedrequest:
+	finishedrequest:
 		XFREE(MTYPE_BGP_LABEL_FIFO, lf);
-}
+	}
 
-event_add_timer(bm->master, bgp_sync_label_manager, NULL, 1,
-		&bm->t_bgp_sync_label_manager);
+	event_add_timer(bm->master, bgp_sync_label_manager, NULL, 1,
+			&bm->t_bgp_sync_label_manager);
 }
 
 void bgp_lp_event_chunk(uint32_t first, uint32_t last)
@@ -632,8 +627,7 @@ void bgp_lp_event_zebra_up(void)
 	/*
 	 * Get label chunk allocation request dispatched to zebra
 	 */
-	labels_needed = lp_fifo_count(&lp->requests) +
-		skiplist_count(lp->inuse);
+	labels_needed = lp_fifo_count(&lp->requests) + skiplist_count(lp->inuse);
 
 	if (labels_needed > lp->next_chunksize) {
 		while ((lp->next_chunksize < labels_needed) &&
@@ -673,7 +667,7 @@ void bgp_lp_event_zebra_up(void)
 				struct lp_cbq_item *q;
 
 				q = XCALLOC(MTYPE_BGP_LABEL_CBQ,
-					sizeof(struct lp_cbq_item));
+					    sizeof(struct lp_cbq_item));
 				q->cbfunc = lcb->cbfunc;
 				q->type = lcb->type;
 				q->label = lcb->label;
@@ -689,7 +683,7 @@ void bgp_lp_event_zebra_up(void)
 			 * request queue
 			 */
 			struct lp_fifo *lf = XCALLOC(MTYPE_BGP_LABEL_FIFO,
-				sizeof(struct lp_fifo));
+						     sizeof(struct lp_fifo));
 
 			lf->lcb = *lcb;
 			check_bgp_lu_cb_lock(lcb);
@@ -792,8 +786,9 @@ DEFUN(show_bgp_labelpool_ledger, show_bgp_labelpool_ledger_cmd,
 		case LP_TYPE_BGP_LU:
 			if (!CHECK_FLAG(dest->flags, BGP_NODE_LABEL_REQUESTED))
 				if (uj) {
-					json_object_string_add(
-						json_elem, "prefix", "INVALID");
+					json_object_string_add(json_elem,
+							       "prefix",
+							       "INVALID");
 					json_object_int_add(json_elem, "label",
 							    lcb->label);
 				} else
@@ -802,8 +797,9 @@ DEFUN(show_bgp_labelpool_ledger, show_bgp_labelpool_ledger_cmd,
 			else {
 				p = bgp_dest_get_prefix(dest);
 				if (uj) {
-					json_object_string_addf(
-						json_elem, "prefix", "%pFX", p);
+					json_object_string_addf(json_elem,
+								"prefix",
+								"%pFX", p);
 					json_object_int_add(json_elem, "label",
 							    lcb->label);
 				} else
@@ -903,8 +899,9 @@ DEFUN(show_bgp_labelpool_inuse, show_bgp_labelpool_inuse_cmd,
 		case LP_TYPE_BGP_LU:
 			if (!CHECK_FLAG(dest->flags, BGP_NODE_LABEL_REQUESTED))
 				if (uj) {
-					json_object_string_add(
-						json_elem, "prefix", "INVALID");
+					json_object_string_add(json_elem,
+							       "prefix",
+							       "INVALID");
 					json_object_int_add(json_elem, "label",
 							    label);
 				} else
@@ -913,8 +910,9 @@ DEFUN(show_bgp_labelpool_inuse, show_bgp_labelpool_inuse_cmd,
 			else {
 				p = bgp_dest_get_prefix(dest);
 				if (uj) {
-					json_object_string_addf(
-						json_elem, "prefix", "%pFX", p);
+					json_object_string_addf(json_elem,
+								"prefix",
+								"%pFX", p);
 					json_object_int_add(json_elem, "label",
 							    label);
 				} else
@@ -928,8 +926,7 @@ DEFUN(show_bgp_labelpool_inuse, show_bgp_labelpool_inuse_cmd,
 						       "VRF");
 				json_object_int_add(json_elem, "label", label);
 			} else
-				vty_out(vty, "%-18s         %u\n", "VRF",
-					label);
+				vty_out(vty, "%-18s         %u\n", "VRF", label);
 			break;
 		case LP_TYPE_NEXTHOP:
 			if (uj) {
@@ -998,18 +995,19 @@ DEFUN(show_bgp_labelpool_requests, show_bgp_labelpool_requests_cmd,
 		}
 		switch (item->lcb.type) {
 		case LP_TYPE_BGP_LU:
-			if (!CHECK_FLAG(dest->flags,
-					BGP_NODE_LABEL_REQUESTED)) {
+			if (!CHECK_FLAG(dest->flags, BGP_NODE_LABEL_REQUESTED)) {
 				if (uj)
-					json_object_string_add(
-						json_elem, "prefix", "INVALID");
+					json_object_string_add(json_elem,
+							       "prefix",
+							       "INVALID");
 				else
 					vty_out(vty, "INVALID\n");
 			} else {
 				p = bgp_dest_get_prefix(dest);
 				if (uj)
-					json_object_string_addf(
-						json_elem, "prefix", "%pFX", p);
+					json_object_string_addf(json_elem,
+								"prefix",
+								"%pFX", p);
 				else
 					vty_out(vty, "%-18pFX\n", p);
 			}
@@ -1260,8 +1258,8 @@ static int test_cb(mpls_label_t label, void *labelid, bool allocated)
 
 			time_ms = monotime_since(&tcb->starttime, NULL) / 1000;
 			skiplist_insert(tcb->timestamps_alloc,
-					(void *)(uintptr_t)tcb
-						->counter[LPT_STAT_ALLOCATED],
+					(void *)(uintptr_t)
+						tcb->counter[LPT_STAT_ALLOCATED],
 					(void *)time_ms);
 		}
 		if (skiplist_insert(tcb->labels, labelid,
@@ -1276,8 +1274,8 @@ static int test_cb(mpls_label_t label, void *labelid, bool allocated)
 
 			time_ms = monotime_since(&tcb->starttime, NULL) / 1000;
 			skiplist_insert(tcb->timestamps_dealloc,
-					(void *)(uintptr_t)tcb
-						->counter[LPT_STAT_ALLOCATED],
+					(void *)(uintptr_t)
+						tcb->counter[LPT_STAT_ALLOCATED],
 					(void *)time_ms);
 		}
 		if (skiplist_delete(tcb->labels, labelid, 0)) {
@@ -1354,8 +1352,7 @@ static int lptest_start(struct vty *vty)
 		return -1;
 	}
 
-	if (skiplist_count(lp_tests) >=
-	    (1 << (8 * sizeof(lpt_generation))) - 1) {
+	if (skiplist_count(lp_tests) >= (1 << (8 * sizeof(lpt_generation))) - 1) {
 		/*
 		 * Too many test runs
 		 */

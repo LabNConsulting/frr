@@ -10,16 +10,16 @@
 #include "bgp_updgrp.h"
 
 /* sort of packet direction */
-#define DUMP_ON        1
-#define DUMP_SEND      2
-#define DUMP_RECV      4
+#define DUMP_ON 1
+#define DUMP_SEND 2
+#define DUMP_RECV 4
 
 /* for dump_update */
-#define DUMP_WITHDRAW  8
-#define DUMP_NLRI     16
+#define DUMP_WITHDRAW 8
+#define DUMP_NLRI 16
 
 /* dump detail */
-#define DUMP_DETAIL   32
+#define DUMP_DETAIL 32
 
 /* RD + Prefix + Path-Id */
 #define BGP_PRD_PATH_STRLEN                                                    \
@@ -35,12 +35,12 @@ extern int Debug_Keepalive;
 extern int Debug_Update;
 extern int Debug_Radix;
 
-#define	NLRI	 1
-#define	WITHDRAW 2
-#define	NO_OPT	 3
-#define	SEND	 4
-#define	RECV	 5
-#define	DETAIL	 6
+#define NLRI 1
+#define WITHDRAW 2
+#define NO_OPT 3
+#define SEND 4
+#define RECV 5
+#define DETAIL 6
 
 /* Prototypes. */
 extern void bgp_debug_init(void);
@@ -99,44 +99,44 @@ struct bgp_debug_filter {
 	struct prefix *p;
 };
 
-#define BGP_DEBUG_AS4                 0x01
-#define BGP_DEBUG_AS4_SEGMENT         0x02
+#define BGP_DEBUG_AS4 0x01
+#define BGP_DEBUG_AS4_SEGMENT 0x02
 
-#define BGP_DEBUG_BESTPATH            0x01
-#define BGP_DEBUG_NEIGHBOR_EVENTS     0x01
-#define BGP_DEBUG_PACKET              0x01
-#define BGP_DEBUG_KEEPALIVE           0x01
-#define BGP_DEBUG_UPDATE_IN           0x01
-#define BGP_DEBUG_UPDATE_OUT          0x02
-#define BGP_DEBUG_UPDATE_PREFIX       0x04
-#define BGP_DEBUG_ZEBRA               0x01
-#define BGP_DEBUG_ALLOW_MARTIANS      0x01
-#define BGP_DEBUG_NHT                 0x01
-#define BGP_DEBUG_UPDATE_GROUPS       0x01
-#define BGP_DEBUG_VPN_LEAK_FROM_VRF   0x01
-#define BGP_DEBUG_VPN_LEAK_TO_VRF     0x02
+#define BGP_DEBUG_BESTPATH 0x01
+#define BGP_DEBUG_NEIGHBOR_EVENTS 0x01
+#define BGP_DEBUG_PACKET 0x01
+#define BGP_DEBUG_KEEPALIVE 0x01
+#define BGP_DEBUG_UPDATE_IN 0x01
+#define BGP_DEBUG_UPDATE_OUT 0x02
+#define BGP_DEBUG_UPDATE_PREFIX 0x04
+#define BGP_DEBUG_ZEBRA 0x01
+#define BGP_DEBUG_ALLOW_MARTIANS 0x01
+#define BGP_DEBUG_NHT 0x01
+#define BGP_DEBUG_UPDATE_GROUPS 0x01
+#define BGP_DEBUG_VPN_LEAK_FROM_VRF 0x01
+#define BGP_DEBUG_VPN_LEAK_TO_VRF 0x02
 #define BGP_DEBUG_VPN_LEAK_RMAP_EVENT 0x04
-#define BGP_DEBUG_VPN_LEAK_LABEL      0x08
-#define BGP_DEBUG_FLOWSPEC            0x01
-#define BGP_DEBUG_LABELPOOL           0x01
-#define BGP_DEBUG_PBR                 0x01
-#define BGP_DEBUG_PBR_ERROR           0x02
-#define BGP_DEBUG_EVPN_MH_ES          0x01
-#define BGP_DEBUG_EVPN_MH_RT          0x02
+#define BGP_DEBUG_VPN_LEAK_LABEL 0x08
+#define BGP_DEBUG_FLOWSPEC 0x01
+#define BGP_DEBUG_LABELPOOL 0x01
+#define BGP_DEBUG_PBR 0x01
+#define BGP_DEBUG_PBR_ERROR 0x02
+#define BGP_DEBUG_EVPN_MH_ES 0x01
+#define BGP_DEBUG_EVPN_MH_RT 0x02
 
-#define BGP_DEBUG_PACKET_SEND         0x01
-#define BGP_DEBUG_PACKET_SEND_DETAIL  0x02
+#define BGP_DEBUG_PACKET_SEND 0x01
+#define BGP_DEBUG_PACKET_SEND_DETAIL 0x02
 
-#define BGP_DEBUG_GRACEFUL_RESTART     0x01
+#define BGP_DEBUG_GRACEFUL_RESTART 0x01
 
-#define BGP_DEBUG_BFD_LIB             0x01
+#define BGP_DEBUG_BFD_LIB 0x01
 #define BGP_DEBUG_COND_ADV 0x01
 
-#define CONF_DEBUG_ON(a, b)	(conf_bgp_debug_ ## a |= (BGP_DEBUG_ ## b))
-#define CONF_DEBUG_OFF(a, b)	(conf_bgp_debug_ ## a &= ~(BGP_DEBUG_ ## b))
+#define CONF_DEBUG_ON(a, b) (conf_bgp_debug_##a |= (BGP_DEBUG_##b))
+#define CONF_DEBUG_OFF(a, b) (conf_bgp_debug_##a &= ~(BGP_DEBUG_##b))
 
-#define TERM_DEBUG_ON(a, b)	(term_bgp_debug_ ## a |= (BGP_DEBUG_ ## b))
-#define TERM_DEBUG_OFF(a, b)	(term_bgp_debug_ ## a &= ~(BGP_DEBUG_ ## b))
+#define TERM_DEBUG_ON(a, b) (term_bgp_debug_##a |= (BGP_DEBUG_##b))
+#define TERM_DEBUG_OFF(a, b) (term_bgp_debug_##a &= ~(BGP_DEBUG_##b))
 
 #define DEBUG_ON(a, b)                                                         \
 	do {                                                                   \
@@ -149,8 +149,8 @@ struct bgp_debug_filter {
 		TERM_DEBUG_OFF(a, b);                                          \
 	} while (0)
 
-#define BGP_DEBUG(a, b)		(term_bgp_debug_ ## a & BGP_DEBUG_ ## b)
-#define CONF_BGP_DEBUG(a, b)    (conf_bgp_debug_ ## a & BGP_DEBUG_ ## b)
+#define BGP_DEBUG(a, b) (term_bgp_debug_##a & BGP_DEBUG_##b)
+#define CONF_BGP_DEBUG(a, b) (conf_bgp_debug_##a & BGP_DEBUG_##b)
 
 extern const char *const bgp_type_str[];
 

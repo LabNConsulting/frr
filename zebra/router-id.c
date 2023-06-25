@@ -54,8 +54,7 @@ static int router_id_bad_address(struct connected *ifc)
 
 static bool router_id_v6_is_any(struct prefix *p)
 {
-	return memcmp(&p->u.prefix6, &in6addr_any, sizeof(struct in6_addr))
-	       == 0;
+	return memcmp(&p->u.prefix6, &in6addr_any, sizeof(struct in6_addr)) == 0;
 }
 
 int router_id_get(afi_t afi, struct prefix *p, struct zebra_vrf *zvrf)
@@ -260,13 +259,10 @@ void router_id_write(struct vty *vty, struct zebra_vrf *zvrf)
 	}
 }
 
-DEFUN (ip_router_id,
-       ip_router_id_cmd,
-       "ip router-id A.B.C.D vrf NAME",
-       IP_STR
-       "Manually set the router-id\n"
-       "IP address to use for router-id\n"
-       VRF_CMD_HELP_STR)
+DEFUN(ip_router_id, ip_router_id_cmd, "ip router-id A.B.C.D vrf NAME",
+      IP_STR
+      "Manually set the router-id\n"
+      "IP address to use for router-id\n" VRF_CMD_HELP_STR)
 {
 	int idx = 0;
 	struct prefix rid;
@@ -290,20 +286,14 @@ DEFUN (ip_router_id,
 	return CMD_SUCCESS;
 }
 
-ALIAS (ip_router_id,
-       router_id_cmd,
-       "router-id A.B.C.D vrf NAME",
-       "Manually set the router-id\n"
-       "IP address to use for router-id\n"
-       VRF_CMD_HELP_STR);
+ALIAS(ip_router_id, router_id_cmd, "router-id A.B.C.D vrf NAME",
+      "Manually set the router-id\n"
+      "IP address to use for router-id\n" VRF_CMD_HELP_STR);
 
-DEFUN (ipv6_router_id,
-       ipv6_router_id_cmd,
-       "ipv6 router-id X:X::X:X vrf NAME",
-       IPV6_STR
-       "Manually set the router-id\n"
-       "IPv6 address to use for router-id\n"
-       VRF_CMD_HELP_STR)
+DEFUN(ipv6_router_id, ipv6_router_id_cmd, "ipv6 router-id X:X::X:X vrf NAME",
+      IPV6_STR
+      "Manually set the router-id\n"
+      "IPv6 address to use for router-id\n" VRF_CMD_HELP_STR)
 {
 	int idx = 0;
 	struct prefix rid;
@@ -328,12 +318,10 @@ DEFUN (ipv6_router_id,
 }
 
 
-DEFUN (ip_router_id_in_vrf,
-       ip_router_id_in_vrf_cmd,
-       "ip router-id A.B.C.D",
-       IP_STR
-       "Manually set the router-id\n"
-       "IP address to use for router-id\n")
+DEFUN(ip_router_id_in_vrf, ip_router_id_in_vrf_cmd, "ip router-id A.B.C.D",
+      IP_STR
+      "Manually set the router-id\n"
+      "IP address to use for router-id\n")
 {
 	ZEBRA_DECLVAR_CONTEXT_VRF(vrf, zvrf);
 	int idx = 0;
@@ -352,18 +340,15 @@ DEFUN (ip_router_id_in_vrf,
 	return CMD_SUCCESS;
 }
 
-ALIAS (ip_router_id_in_vrf,
-       router_id_in_vrf_cmd,
-       "router-id A.B.C.D",
-       "Manually set the router-id\n"
-       "IP address to use for router-id\n");
+ALIAS(ip_router_id_in_vrf, router_id_in_vrf_cmd, "router-id A.B.C.D",
+      "Manually set the router-id\n"
+      "IP address to use for router-id\n");
 
-DEFUN (ipv6_router_id_in_vrf,
-       ipv6_router_id_in_vrf_cmd,
-       "ipv6 router-id X:X::X:X",
-       IP6_STR
-       "Manually set the IPv6 router-id\n"
-       "IPV6 address to use for router-id\n")
+DEFUN(ipv6_router_id_in_vrf, ipv6_router_id_in_vrf_cmd,
+      "ipv6 router-id X:X::X:X",
+      IP6_STR
+      "Manually set the IPv6 router-id\n"
+      "IPV6 address to use for router-id\n")
 {
 	ZEBRA_DECLVAR_CONTEXT_VRF(vrf, zvrf);
 	int idx = 0;
@@ -382,14 +367,10 @@ DEFUN (ipv6_router_id_in_vrf,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_ip_router_id,
-       no_ip_router_id_cmd,
-       "no ip router-id [A.B.C.D vrf NAME]",
-       NO_STR
-       IP_STR
-       "Remove the manually configured router-id\n"
-       "IP address to use for router-id\n"
-       VRF_CMD_HELP_STR)
+DEFUN(no_ip_router_id, no_ip_router_id_cmd, "no ip router-id [A.B.C.D vrf NAME]",
+      NO_STR IP_STR
+      "Remove the manually configured router-id\n"
+      "IP address to use for router-id\n" VRF_CMD_HELP_STR)
 {
 	int idx = 0;
 	struct prefix rid;
@@ -409,22 +390,16 @@ DEFUN (no_ip_router_id,
 	return CMD_SUCCESS;
 }
 
-ALIAS (no_ip_router_id,
-       no_router_id_cmd,
-       "no router-id [A.B.C.D vrf NAME]",
-       NO_STR
-       "Remove the manually configured router-id\n"
-       "IP address to use for router-id\n"
-       VRF_CMD_HELP_STR);
+ALIAS(no_ip_router_id, no_router_id_cmd, "no router-id [A.B.C.D vrf NAME]",
+      NO_STR
+      "Remove the manually configured router-id\n"
+      "IP address to use for router-id\n" VRF_CMD_HELP_STR);
 
-DEFUN (no_ipv6_router_id,
-       no_ipv6_router_id_cmd,
-       "no ipv6 router-id [X:X::X:X vrf NAME]",
-       NO_STR
-       IPV6_STR
-       "Remove the manually configured IPv6 router-id\n"
-       "IPv6 address to use for router-id\n"
-       VRF_CMD_HELP_STR)
+DEFUN(no_ipv6_router_id, no_ipv6_router_id_cmd,
+      "no ipv6 router-id [X:X::X:X vrf NAME]",
+      NO_STR IPV6_STR
+      "Remove the manually configured IPv6 router-id\n"
+      "IPv6 address to use for router-id\n" VRF_CMD_HELP_STR)
 {
 	int idx = 0;
 	struct prefix rid;
@@ -443,13 +418,11 @@ DEFUN (no_ipv6_router_id,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_ip_router_id_in_vrf,
-       no_ip_router_id_in_vrf_cmd,
-       "no ip router-id [A.B.C.D]",
-       NO_STR
-       IP_STR
-       "Remove the manually configured router-id\n"
-       "IP address to use for router-id\n")
+DEFUN(no_ip_router_id_in_vrf, no_ip_router_id_in_vrf_cmd,
+      "no ip router-id [A.B.C.D]",
+      NO_STR IP_STR
+      "Remove the manually configured router-id\n"
+      "IP address to use for router-id\n")
 {
 	ZEBRA_DECLVAR_CONTEXT_VRF(vrf, zvrf);
 
@@ -464,20 +437,16 @@ DEFUN (no_ip_router_id_in_vrf,
 	return CMD_SUCCESS;
 }
 
-ALIAS (no_ip_router_id_in_vrf,
-       no_router_id_in_vrf_cmd,
-       "no router-id [A.B.C.D]",
-       NO_STR
-       "Remove the manually configured router-id\n"
-       "IP address to use for router-id\n");
+ALIAS(no_ip_router_id_in_vrf, no_router_id_in_vrf_cmd, "no router-id [A.B.C.D]",
+      NO_STR
+      "Remove the manually configured router-id\n"
+      "IP address to use for router-id\n");
 
-DEFUN (no_ipv6_router_id_in_vrf,
-       no_ipv6_router_id_in_vrf_cmd,
-       "no ipv6 router-id [X:X::X:X]",
-       NO_STR
-       IP6_STR
-       "Remove the manually configured IPv6 router-id\n"
-       "IPv6 address to use for router-id\n")
+DEFUN(no_ipv6_router_id_in_vrf, no_ipv6_router_id_in_vrf_cmd,
+      "no ipv6 router-id [X:X::X:X]",
+      NO_STR IP6_STR
+      "Remove the manually configured IPv6 router-id\n"
+      "IPv6 address to use for router-id\n")
 {
 	ZEBRA_DECLVAR_CONTEXT_VRF(vrf, zvrf);
 
@@ -491,14 +460,10 @@ DEFUN (no_ipv6_router_id_in_vrf,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_ip_router_id,
-       show_ip_router_id_cmd,
-       "show [ip|ipv6] router-id [vrf NAME]",
-       SHOW_STR
-       IP_STR
-       IPV6_STR
-       "Show the configured router-id\n"
-       VRF_CMD_HELP_STR)
+DEFUN(show_ip_router_id, show_ip_router_id_cmd,
+      "show [ip|ipv6] router-id [vrf NAME]",
+      SHOW_STR IP_STR IPV6_STR
+      "Show the configured router-id\n" VRF_CMD_HELP_STR)
 {
 	int idx = 0;
 	vrf_id_t vrf_id = VRF_DEFAULT;
@@ -523,8 +488,8 @@ DEFUN (show_ip_router_id,
 			inet_ntop(AF_INET6, &zvrf->rid6_user_assigned.u.prefix6,
 				  addr_name, sizeof(addr_name));
 		} else {
-			if (zvrf->rid_user_assigned.u.prefix4.s_addr
-			    == INADDR_ANY)
+			if (zvrf->rid_user_assigned.u.prefix4.s_addr ==
+			    INADDR_ANY)
 				return CMD_SUCCESS;
 			inet_ntop(AF_INET, &zvrf->rid_user_assigned.u.prefix4,
 				  addr_name, sizeof(addr_name));
@@ -551,8 +516,7 @@ static int router_id_v6_cmp(void *a, void *b)
 	const struct connected *ifa = (const struct connected *)a;
 	const struct connected *ifb = (const struct connected *)b;
 
-	return IPV6_ADDR_CMP(&ifa->address->u.prefix6,
-			     &ifb->address->u.prefix6);
+	return IPV6_ADDR_CMP(&ifa->address->u.prefix6, &ifb->address->u.prefix6);
 }
 
 void router_id_cmd_init(void)
@@ -585,14 +549,12 @@ void router_id_init(struct zebra_vrf *zvrf)
 	zvrf->rid6_all_sorted_list = &zvrf->_rid6_all_sorted_list;
 	zvrf->rid6_lo_sorted_list = &zvrf->_rid6_lo_sorted_list;
 
-	memset(zvrf->rid_all_sorted_list, 0,
-	       sizeof(zvrf->_rid_all_sorted_list));
+	memset(zvrf->rid_all_sorted_list, 0, sizeof(zvrf->_rid_all_sorted_list));
 	memset(zvrf->rid_lo_sorted_list, 0, sizeof(zvrf->_rid_lo_sorted_list));
 	memset(&zvrf->rid_user_assigned, 0, sizeof(zvrf->rid_user_assigned));
 	memset(zvrf->rid6_all_sorted_list, 0,
 	       sizeof(zvrf->_rid6_all_sorted_list));
-	memset(zvrf->rid6_lo_sorted_list, 0,
-	       sizeof(zvrf->_rid6_lo_sorted_list));
+	memset(zvrf->rid6_lo_sorted_list, 0, sizeof(zvrf->_rid6_lo_sorted_list));
 	memset(&zvrf->rid6_user_assigned, 0, sizeof(zvrf->rid6_user_assigned));
 
 	zvrf->rid_all_sorted_list->cmp = router_id_cmp;

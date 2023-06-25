@@ -106,8 +106,7 @@ static struct peer *bgp_peer_lookup_next(struct in_addr *src)
 		for (ALL_LIST_ELEMENTS_RO(bgp->peer, node, peer)) {
 			if (sockunion_family(&peer->su) != AF_INET)
 				continue;
-			if (ntohl(sockunion2ip(&peer->su)) <=
-			    ntohl(src->s_addr))
+			if (ntohl(sockunion2ip(&peer->su)) <= ntohl(src->s_addr))
 				continue;
 
 			if (!next_peer ||
@@ -269,8 +268,7 @@ static uint8_t *bgpPeerTable(struct variable *v, oid name[], size_t *length,
 			return SNMP_IPADDRESS(bgp_empty_addr);
 	case BGPPEERLOCALPORT:
 		if (peer->su_local)
-			return SNMP_INTEGER(
-				ntohs(peer->su_local->sin.sin_port));
+			return SNMP_INTEGER(ntohs(peer->su_local->sin.sin_port));
 		else
 			return SNMP_INTEGER(0);
 	case BGPPEERREMOTEADDR:
@@ -485,8 +483,7 @@ static struct bgp_path_info *bgp4PathAttrLookup(struct variable *v, oid name[],
 				const struct prefix *rn_p =
 					bgp_dest_get_prefix(dest);
 
-				*length =
-					v->namelen + BGP_PATHATTR_ENTRY_OFFSET;
+				*length = v->namelen + BGP_PATHATTR_ENTRY_OFFSET;
 
 				offset = name + v->namelen;
 				oid_copy_in_addr(offset, &rn_p->u.prefix4);
@@ -583,12 +580,7 @@ static struct variable bgp_variables[] = {
 	{BGPPEERIDENTIFIER, IPADDRESS, RONLY, bgpPeerTable, 3, {3, 1, 1}},
 	{BGPPEERSTATE, INTEGER, RONLY, bgpPeerTable, 3, {3, 1, 2}},
 	{BGPPEERADMINSTATUS, INTEGER, RWRITE, bgpPeerTable, 3, {3, 1, 3}},
-	{BGPPEERNEGOTIATEDVERSION,
-	 INTEGER32,
-	 RONLY,
-	 bgpPeerTable,
-	 3,
-	 {3, 1, 4}},
+	{BGPPEERNEGOTIATEDVERSION, INTEGER32, RONLY, bgpPeerTable, 3, {3, 1, 4}},
 	{BGPPEERLOCALADDR, IPADDRESS, RONLY, bgpPeerTable, 3, {3, 1, 5}},
 	{BGPPEERLOCALPORT, INTEGER, RONLY, bgpPeerTable, 3, {3, 1, 6}},
 	{BGPPEERREMOTEADDR, IPADDRESS, RONLY, bgpPeerTable, 3, {3, 1, 7}},
@@ -597,12 +589,7 @@ static struct variable bgp_variables[] = {
 	{BGPPEERINUPDATES, COUNTER32, RONLY, bgpPeerTable, 3, {3, 1, 10}},
 	{BGPPEEROUTUPDATES, COUNTER32, RONLY, bgpPeerTable, 3, {3, 1, 11}},
 	{BGPPEERINTOTALMESSAGES, COUNTER32, RONLY, bgpPeerTable, 3, {3, 1, 12}},
-	{BGPPEEROUTTOTALMESSAGES,
-	 COUNTER32,
-	 RONLY,
-	 bgpPeerTable,
-	 3,
-	 {3, 1, 13}},
+	{BGPPEEROUTTOTALMESSAGES, COUNTER32, RONLY, bgpPeerTable, 3, {3, 1, 13}},
 	{BGPPEERLASTERROR, OCTET_STRING, RONLY, bgpPeerTable, 3, {3, 1, 14}},
 	{BGPPEERFSMESTABLISHEDTRANSITIONS,
 	 COUNTER32,
@@ -610,44 +597,19 @@ static struct variable bgp_variables[] = {
 	 bgpPeerTable,
 	 3,
 	 {3, 1, 15}},
-	{BGPPEERFSMESTABLISHEDTIME,
-	 GAUGE32,
-	 RONLY,
-	 bgpPeerTable,
-	 3,
-	 {3, 1, 16}},
-	{BGPPEERCONNECTRETRYINTERVAL,
-	 INTEGER,
-	 RWRITE,
-	 bgpPeerTable,
-	 3,
-	 {3, 1, 17}},
+	{BGPPEERFSMESTABLISHEDTIME, GAUGE32, RONLY, bgpPeerTable, 3, {3, 1, 16}},
+	{BGPPEERCONNECTRETRYINTERVAL, INTEGER, RWRITE, bgpPeerTable, 3, {3, 1, 17}},
 	{BGPPEERHOLDTIME, INTEGER, RONLY, bgpPeerTable, 3, {3, 1, 18}},
 	{BGPPEERKEEPALIVE, INTEGER, RONLY, bgpPeerTable, 3, {3, 1, 19}},
-	{BGPPEERHOLDTIMECONFIGURED,
-	 INTEGER,
-	 RWRITE,
-	 bgpPeerTable,
-	 3,
-	 {3, 1, 20}},
-	{BGPPEERKEEPALIVECONFIGURED,
-	 INTEGER,
-	 RWRITE,
-	 bgpPeerTable,
-	 3,
-	 {3, 1, 21}},
+	{BGPPEERHOLDTIMECONFIGURED, INTEGER, RWRITE, bgpPeerTable, 3, {3, 1, 20}},
+	{BGPPEERKEEPALIVECONFIGURED, INTEGER, RWRITE, bgpPeerTable, 3, {3, 1, 21}},
 	{BGPPEERMINROUTEADVERTISEMENTINTERVAL,
 	 INTEGER,
 	 RWRITE,
 	 bgpPeerTable,
 	 3,
 	 {3, 1, 23}},
-	{BGPPEERINUPDATEELAPSEDTIME,
-	 GAUGE32,
-	 RONLY,
-	 bgpPeerTable,
-	 3,
-	 {3, 1, 24}},
+	{BGPPEERINUPDATEELAPSEDTIME, GAUGE32, RONLY, bgpPeerTable, 3, {3, 1, 24}},
 	/* BGP identifier. */
 	{BGPIDENTIFIER, IPADDRESS, RONLY, bgpIdentifier, 1, {4}},
 	/* BGP received path attribute table. */
@@ -665,12 +627,7 @@ static struct variable bgp_variables[] = {
 	 bgpRcvdPathAttrTable,
 	 3,
 	 {5, 1, 4}},
-	{BGPPATHATTRNEXTHOP,
-	 IPADDRESS,
-	 RONLY,
-	 bgpRcvdPathAttrTable,
-	 3,
-	 {5, 1, 5}},
+	{BGPPATHATTRNEXTHOP, IPADDRESS, RONLY, bgpRcvdPathAttrTable, 3, {5, 1, 5}},
 	{BGPPATHATTRINTERASMETRIC,
 	 INTEGER32,
 	 RONLY,
@@ -698,24 +655,14 @@ static struct variable bgp_variables[] = {
 	 bgp4PathAttrTable,
 	 3,
 	 {6, 1, 5}},
-	{BGP4PATHATTRNEXTHOP,
-	 IPADDRESS,
-	 RONLY,
-	 bgp4PathAttrTable,
-	 3,
-	 {6, 1, 6}},
+	{BGP4PATHATTRNEXTHOP, IPADDRESS, RONLY, bgp4PathAttrTable, 3, {6, 1, 6}},
 	{BGP4PATHATTRMULTIEXITDISC,
 	 INTEGER,
 	 RONLY,
 	 bgp4PathAttrTable,
 	 3,
 	 {6, 1, 7}},
-	{BGP4PATHATTRLOCALPREF,
-	 INTEGER,
-	 RONLY,
-	 bgp4PathAttrTable,
-	 3,
-	 {6, 1, 8}},
+	{BGP4PATHATTRLOCALPREF, INTEGER, RONLY, bgp4PathAttrTable, 3, {6, 1, 8}},
 	{BGP4PATHATTRATOMICAGGREGATE,
 	 INTEGER,
 	 RONLY,

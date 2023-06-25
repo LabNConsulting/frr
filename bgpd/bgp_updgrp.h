@@ -40,24 +40,22 @@
 	(PEER_FLAG_LOCAL_AS_NO_PREPEND | PEER_FLAG_LOCAL_AS_REPLACE_AS)
 
 #define PEER_UPDGRP_AF_FLAGS                                                   \
-	(PEER_FLAG_SEND_COMMUNITY | PEER_FLAG_SEND_EXT_COMMUNITY               \
-	 | PEER_FLAG_SEND_LARGE_COMMUNITY                                      \
-	 | PEER_FLAG_DEFAULT_ORIGINATE | PEER_FLAG_REFLECTOR_CLIENT            \
-	 | PEER_FLAG_RSERVER_CLIENT | PEER_FLAG_NEXTHOP_SELF                   \
-	 | PEER_FLAG_NEXTHOP_UNCHANGED | PEER_FLAG_FORCE_NEXTHOP_SELF          \
-	 | PEER_FLAG_AS_PATH_UNCHANGED | PEER_FLAG_MED_UNCHANGED               \
-	 | PEER_FLAG_NEXTHOP_LOCAL_UNCHANGED | PEER_FLAG_REMOVE_PRIVATE_AS     \
-	 | PEER_FLAG_REMOVE_PRIVATE_AS_ALL                                     \
-	 | PEER_FLAG_REMOVE_PRIVATE_AS_REPLACE                                 \
-	 | PEER_FLAG_REMOVE_PRIVATE_AS_ALL_REPLACE                             \
-	 | PEER_FLAG_AS_OVERRIDE)
+	(PEER_FLAG_SEND_COMMUNITY | PEER_FLAG_SEND_EXT_COMMUNITY |             \
+	 PEER_FLAG_SEND_LARGE_COMMUNITY | PEER_FLAG_DEFAULT_ORIGINATE |        \
+	 PEER_FLAG_REFLECTOR_CLIENT | PEER_FLAG_RSERVER_CLIENT |               \
+	 PEER_FLAG_NEXTHOP_SELF | PEER_FLAG_NEXTHOP_UNCHANGED |                \
+	 PEER_FLAG_FORCE_NEXTHOP_SELF | PEER_FLAG_AS_PATH_UNCHANGED |          \
+	 PEER_FLAG_MED_UNCHANGED | PEER_FLAG_NEXTHOP_LOCAL_UNCHANGED |         \
+	 PEER_FLAG_REMOVE_PRIVATE_AS | PEER_FLAG_REMOVE_PRIVATE_AS_ALL |       \
+	 PEER_FLAG_REMOVE_PRIVATE_AS_REPLACE |                                 \
+	 PEER_FLAG_REMOVE_PRIVATE_AS_ALL_REPLACE | PEER_FLAG_AS_OVERRIDE)
 
 #define PEER_UPDGRP_CAP_FLAGS (PEER_CAP_AS4_RCV)
 
 #define PEER_UPDGRP_AF_CAP_FLAGS                                               \
-	(PEER_CAP_ORF_PREFIX_SM_RCV | PEER_CAP_ORF_PREFIX_SM_OLD_RCV           \
-	 | PEER_CAP_ADDPATH_AF_TX_ADV | PEER_CAP_ADDPATH_AF_RX_RCV             \
-	 | PEER_CAP_ENHE_AF_NEGO)
+	(PEER_CAP_ORF_PREFIX_SM_RCV | PEER_CAP_ORF_PREFIX_SM_OLD_RCV |         \
+	 PEER_CAP_ADDPATH_AF_TX_ADV | PEER_CAP_ADDPATH_AF_RX_RCV |             \
+	 PEER_CAP_ENHE_AF_NEGO)
 
 enum bpacket_attr_vec_type { BGP_ATTR_VEC_NH = 0, BGP_ATTR_VEC_MAX };
 
@@ -66,14 +64,14 @@ typedef struct {
 	unsigned long offset;
 } bpacket_attr_vec;
 
-#define BPKT_ATTRVEC_FLAGS_UPDATED        (1 << 0)
-#define BPKT_ATTRVEC_FLAGS_RMAP_NH_PEER_ADDRESS   (1 << 1)
+#define BPKT_ATTRVEC_FLAGS_UPDATED (1 << 0)
+#define BPKT_ATTRVEC_FLAGS_RMAP_NH_PEER_ADDRESS (1 << 1)
 #define BPKT_ATTRVEC_FLAGS_REFLECTED (1 << 2)
-#define BPKT_ATTRVEC_FLAGS_RMAP_NH_UNCHANGED   (1 << 3)
-#define BPKT_ATTRVEC_FLAGS_RMAP_IPV4_NH_CHANGED   (1 << 4)
-#define BPKT_ATTRVEC_FLAGS_RMAP_IPV6_GNH_CHANGED  (1 << 5)
-#define BPKT_ATTRVEC_FLAGS_RMAP_IPV6_LNH_CHANGED  (1 << 6)
-#define BPKT_ATTRVEC_FLAGS_RMAP_VPNV4_NH_CHANGED  (1 << 7)
+#define BPKT_ATTRVEC_FLAGS_RMAP_NH_UNCHANGED (1 << 3)
+#define BPKT_ATTRVEC_FLAGS_RMAP_IPV4_NH_CHANGED (1 << 4)
+#define BPKT_ATTRVEC_FLAGS_RMAP_IPV6_GNH_CHANGED (1 << 5)
+#define BPKT_ATTRVEC_FLAGS_RMAP_IPV6_LNH_CHANGED (1 << 6)
+#define BPKT_ATTRVEC_FLAGS_RMAP_VPNV4_NH_CHANGED (1 << 7)
 #define BPKT_ATTRVEC_FLAGS_RMAP_VPNV6_GNH_CHANGED (1 << 8)
 
 typedef struct bpacket_attr_vec_arr {
@@ -292,37 +290,37 @@ struct updwalk_context {
 	bool uj;
 	json_object *json_updategrps;
 
-#define UPDWALK_FLAGS_ADVQUEUE   (1 << 0)
+#define UPDWALK_FLAGS_ADVQUEUE (1 << 0)
 #define UPDWALK_FLAGS_ADVERTISED (1 << 1)
 };
 
 #define UPDWALK_CONTINUE HASHWALK_CONTINUE
 #define UPDWALK_ABORT HASHWALK_ABORT
 
-#define PAF_PEER(p)        ((p)->peer)
-#define PAF_SUBGRP(p)      ((p)->subgroup)
-#define PAF_UPDGRP(p)      ((p)->subgroup->update_group)
-#define PAF_PKTQ(f)        SUBGRP_PKTQ((f)->subgroup)
+#define PAF_PEER(p) ((p)->peer)
+#define PAF_SUBGRP(p) ((p)->subgroup)
+#define PAF_UPDGRP(p) ((p)->subgroup->update_group)
+#define PAF_PKTQ(f) SUBGRP_PKTQ((f)->subgroup)
 
-#define UPDGRP_PEER(u)     ((u)->conf)
-#define UPDGRP_AFI(u)      ((u)->afi)
-#define UPDGRP_SAFI(u)     ((u)->safi)
-#define UPDGRP_INST(u)     ((u)->bgp)
+#define UPDGRP_PEER(u) ((u)->conf)
+#define UPDGRP_AFI(u) ((u)->afi)
+#define UPDGRP_SAFI(u) ((u)->safi)
+#define UPDGRP_INST(u) ((u)->bgp)
 #define UPDGRP_AFFLAGS(u) ((u)->conf->af_flags[UPDGRP_AFI(u)][UPDGRP_SAFI(u)])
-#define UPDGRP_DBG_ON(u)   ((u)->num_dbg_en_peers)
-#define UPDGRP_PEER_DBG_EN(u)  (((u)->num_dbg_en_peers)++)
+#define UPDGRP_DBG_ON(u) ((u)->num_dbg_en_peers)
+#define UPDGRP_PEER_DBG_EN(u) (((u)->num_dbg_en_peers)++)
 #define UPDGRP_PEER_DBG_DIS(u) (((u)->num_dbg_en_peers)--)
 #define UPDGRP_PEER_DBG_OFF(u) (u)->num_dbg_en_peers = 0
 
-#define SUBGRP_AFI(s)      UPDGRP_AFI((s)->update_group)
-#define SUBGRP_SAFI(s)     UPDGRP_SAFI((s)->update_group)
-#define SUBGRP_PEER(s)     UPDGRP_PEER((s)->update_group)
-#define SUBGRP_PCOUNT(s)   ((s)->peer_count)
-#define SUBGRP_PFIRST(s)   LIST_FIRST(&((s)->peers))
-#define SUBGRP_PKTQ(s)     &((s)->pkt_queue)
-#define SUBGRP_INST(s)     UPDGRP_INST((s)->update_group)
-#define SUBGRP_AFFLAGS(s)  UPDGRP_AFFLAGS((s)->update_group)
-#define SUBGRP_UPDGRP(s)   ((s)->update_group)
+#define SUBGRP_AFI(s) UPDGRP_AFI((s)->update_group)
+#define SUBGRP_SAFI(s) UPDGRP_SAFI((s)->update_group)
+#define SUBGRP_PEER(s) UPDGRP_PEER((s)->update_group)
+#define SUBGRP_PCOUNT(s) ((s)->peer_count)
+#define SUBGRP_PFIRST(s) LIST_FIRST(&((s)->peers))
+#define SUBGRP_PKTQ(s) &((s)->pkt_queue)
+#define SUBGRP_INST(s) UPDGRP_INST((s)->update_group)
+#define SUBGRP_AFFLAGS(s) UPDGRP_AFFLAGS((s)->update_group)
+#define SUBGRP_UPDGRP(s) ((s)->update_group)
 
 /*
  * Walk all subgroups in an update group.
@@ -409,8 +407,7 @@ extern void bpacket_attr_vec_arr_set_vec(struct bpacket_attr_vec_arr *vecarr,
 					 enum bpacket_attr_vec_type type,
 					 struct stream *s, struct attr *attr);
 extern void subgroup_default_update_packet(struct update_subgroup *subgrp,
-					   struct attr *attr,
-					   struct peer *from);
+					   struct attr *attr, struct peer *from);
 extern void subgroup_default_withdraw_packet(struct update_subgroup *subgrp);
 
 /* bgp_updgrp_adv.c */
@@ -419,9 +416,8 @@ bgp_advertise_clean_subgroup(struct update_subgroup *subgrp,
 			     struct bgp_adj_out *adj);
 extern void update_group_show_adj_queue(struct bgp *bgp, afi_t afi, safi_t safi,
 					struct vty *vty, uint64_t id);
-extern void update_group_show_advertised(struct bgp *bgp, afi_t afi,
-					 safi_t safi, struct vty *vty,
-					 uint64_t id);
+extern void update_group_show_advertised(struct bgp *bgp, afi_t afi, safi_t safi,
+					 struct vty *vty, uint64_t id);
 extern void update_group_show_packet_queue(struct bgp *bgp, afi_t afi,
 					   safi_t safi, struct vty *vty,
 					   uint64_t id);
@@ -454,8 +450,7 @@ void subgroup_announce_table(struct update_subgroup *subgrp,
 			     struct bgp_table *table);
 extern void subgroup_trigger_write(struct update_subgroup *subgrp);
 
-extern int update_group_clear_update_dbg(struct update_group *updgrp,
-					 void *arg);
+extern int update_group_clear_update_dbg(struct update_group *updgrp, void *arg);
 
 extern void update_bgp_group_free(struct bgp *bgp);
 extern bool bgp_addpath_encode_tx(struct peer *peer, afi_t afi, safi_t safi);
@@ -585,9 +580,9 @@ static inline void bgp_announce_peer(struct peer *peer)
  */
 static inline int advertise_list_is_empty(struct update_subgroup *subgrp)
 {
-	if (bgp_adv_fifo_count(&subgrp->sync->update)
-	    || bgp_adv_fifo_count(&subgrp->sync->withdraw)
-	    || bgp_adv_fifo_count(&subgrp->sync->withdraw_low)) {
+	if (bgp_adv_fifo_count(&subgrp->sync->update) ||
+	    bgp_adv_fifo_count(&subgrp->sync->withdraw) ||
+	    bgp_adv_fifo_count(&subgrp->sync->withdraw_low)) {
 		return 0;
 	}
 

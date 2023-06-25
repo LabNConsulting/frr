@@ -13,7 +13,7 @@
 #include "routing_nb.h"
 
 
-DEFINE_HOOK(routing_conf_event, (struct nb_cb_create_args *args), (args));
+DEFINE_HOOK(routing_conf_event, (struct nb_cb_create_args * args), (args));
 
 /*
  * XPath: /frr-routing:routing/control-plane-protocols/control-plane-protocol

@@ -44,8 +44,8 @@ static unsigned int spf_reason_flags = 0;
 
 /* dummy vertex to flag "in spftree" */
 static const struct vertex vertex_in_spftree = {};
-#define LSA_SPF_IN_SPFTREE	(struct vertex *)&vertex_in_spftree
-#define LSA_SPF_NOT_EXPLORED	NULL
+#define LSA_SPF_IN_SPFTREE (struct vertex *)&vertex_in_spftree
+#define LSA_SPF_NOT_EXPLORED NULL
 
 static void ospf_clear_spf_reason_flags(void)
 {
@@ -243,11 +243,10 @@ static void ospf_vertex_dump(const char *msg, struct vertex *v,
 
 		for (ALL_LIST_ELEMENTS_RO(v->parents, node, vp)) {
 			if (vp) {
-				zlog_debug(
-					"parent %pI4 backlink %d nexthop %pI4 lsa pos %d",
-					&vp->parent->lsa->id, vp->backlink,
-					&vp->nexthop->router,
-					vp->nexthop->lsa_pos);
+				zlog_debug("parent %pI4 backlink %d nexthop %pI4 lsa pos %d",
+					   &vp->parent->lsa->id, vp->backlink,
+					   &vp->nexthop->router,
+					   vp->nexthop->lsa_pos);
 			}
 		}
 	}
@@ -421,10 +420,10 @@ static void ospf_spf_remove_branch(struct vertex_parent *vertex_parent,
 	 * First check if there are more nexthops for that parent to that child
 	 */
 	for (ALL_LIST_ELEMENTS_RO(child->parents, node, vertex_parent_found)) {
-		if (vertex_parent_found->parent->id.s_addr
-			    == vertex_parent->parent->id.s_addr
-		    && vertex_parent_found->nexthop->router.s_addr
-			       != vertex_parent->nexthop->router.s_addr)
+		if (vertex_parent_found->parent->id.s_addr ==
+			    vertex_parent->parent->id.s_addr &&
+		    vertex_parent_found->nexthop->router.s_addr !=
+			    vertex_parent->nexthop->router.s_addr)
 			has_more_links = true;
 	}
 
@@ -476,10 +475,9 @@ static int ospf_spf_remove_link(struct vertex *vertex, struct list *vertex_list,
 	for (ALL_LIST_ELEMENTS_RO(vertex->children, node, child)) {
 		for (ALL_LIST_ELEMENTS_RO(child->parents, inner_node,
 					  vertex_parent)) {
-			if ((vertex_parent->local_nexthop->router.s_addr
-			     & link->link_data.s_addr)
-			    == (link->link_id.s_addr
-				& link->link_data.s_addr)) {
+			if ((vertex_parent->local_nexthop->router.s_addr &
+			     link->link_data.s_addr) ==
+			    (link->link_id.s_addr & link->link_data.s_addr)) {
 				ospf_spf_remove_branch(vertex_parent, child,
 						       vertex_list);
 				return 0;
@@ -580,24 +578,24 @@ static int ospf_lsa_has_link(struct lsa_header *w, struct lsa_header *v)
 
 		length = ntohs(w->length);
 
-		for (i = 0; i < ntohs(rl->links)
-			    && length >= sizeof(struct router_lsa);
+		for (i = 0; i < ntohs(rl->links) &&
+			    length >= sizeof(struct router_lsa);
 		     i++, length -= 12) {
 			switch (rl->link[i].type) {
 			case LSA_LINK_TYPE_POINTOPOINT:
 			case LSA_LINK_TYPE_VIRTUALLINK:
 				/* Router LSA ID. */
-				if (v->type == OSPF_ROUTER_LSA
-				    && IPV4_ADDR_SAME(&rl->link[i].link_id,
-						      &v->id)) {
+				if (v->type == OSPF_ROUTER_LSA &&
+				    IPV4_ADDR_SAME(&rl->link[i].link_id,
+						   &v->id)) {
 					return i;
 				}
 				break;
 			case LSA_LINK_TYPE_TRANSIT:
 				/* Network LSA ID. */
-				if (v->type == OSPF_NETWORK_LSA
-				    && IPV4_ADDR_SAME(&rl->link[i].link_id,
-						      &v->id)) {
+				if (v->type == OSPF_NETWORK_LSA &&
+				    IPV4_ADDR_SAME(&rl->link[i].link_id,
+						   &v->id)) {
 					return i;
 				}
 				break;
@@ -633,8 +631,8 @@ ospf_get_next_link(struct vertex *v, struct vertex *w,
 		p = ((uint8_t *)v->lsa) + OSPF_LSA_HEADER_SIZE + 4;
 	else {
 		p = (uint8_t *)prev_link;
-		p += (OSPF_ROUTER_LSA_LINK_SIZE
-		      + (prev_link->m[0].tos_count * OSPF_ROUTER_LSA_TOS_SIZE));
+		p += (OSPF_ROUTER_LSA_LINK_SIZE +
+		      (prev_link->m[0].tos_count * OSPF_ROUTER_LSA_TOS_SIZE));
 	}
 
 	lim = ((uint8_t *)v->lsa) + ntohs(v->lsa->length);
@@ -642,8 +640,8 @@ ospf_get_next_link(struct vertex *v, struct vertex *w,
 	while (p < lim) {
 		l = (struct router_lsa_link *)p;
 
-		p += (OSPF_ROUTER_LSA_LINK_SIZE
-		      + (l->m[0].tos_count * OSPF_ROUTER_LSA_TOS_SIZE));
+		p += (OSPF_ROUTER_LSA_LINK_SIZE +
+		      (l->m[0].tos_count * OSPF_ROUTER_LSA_TOS_SIZE));
 
 		if (l->m[0].type != lsa_type)
 			continue;
@@ -707,9 +705,8 @@ static struct vertex_parent *ospf_spf_add_parent(struct vertex *v,
 	 */
 	if (distance < w->distance) {
 		if (IS_DEBUG_OSPF_EVENT)
-			zlog_debug(
-				"%s: distance %d better than %d, flushing existing parents",
-				__func__, distance, w->distance);
+			zlog_debug("%s: distance %d better than %d, flushing existing parents",
+				   __func__, distance, w->distance);
 		ospf_spf_flush_parents(w);
 		w->distance = distance;
 	}
@@ -721,9 +718,8 @@ static struct vertex_parent *ospf_spf_add_parent(struct vertex *v,
 	for (ALL_LIST_ELEMENTS_RO(w->parents, node, wp)) {
 		if (memcmp(newhop, wp->nexthop, sizeof(*newhop)) == 0) {
 			if (IS_DEBUG_OSPF_EVENT)
-				zlog_debug(
-					"%s: ... nexthop already on parent list, skipping add",
-					__func__);
+				zlog_debug("%s: ... nexthop already on parent list, skipping add",
+					   __func__);
 
 			return NULL;
 		}
@@ -751,8 +747,8 @@ static int match_stub_prefix(struct lsa_header *lsa, struct in_addr v_link_addr,
 
 	while (p < lim) {
 		l = (struct router_lsa_link *)p;
-		p += (OSPF_ROUTER_LSA_LINK_SIZE
-		      + (l->m[0].tos_count * OSPF_ROUTER_LSA_TOS_SIZE));
+		p += (OSPF_ROUTER_LSA_LINK_SIZE +
+		      (l->m[0].tos_count * OSPF_ROUTER_LSA_TOS_SIZE));
 
 		if (l->m[0].type != LSA_LINK_TYPE_STUB)
 			continue;
@@ -761,10 +757,10 @@ static int match_stub_prefix(struct lsa_header *lsa, struct in_addr v_link_addr,
 			(l->link_id.s_addr & l->link_data.s_addr);
 
 		/* check that both links belong to the same stub subnet */
-		if ((masked_lsa_addr.s_addr
-		     == (v_link_addr.s_addr & l->link_data.s_addr))
-		    && (masked_lsa_addr.s_addr
-			== (w_link_addr.s_addr & l->link_data.s_addr)))
+		if ((masked_lsa_addr.s_addr ==
+		     (v_link_addr.s_addr & l->link_data.s_addr)) &&
+		    (masked_lsa_addr.s_addr ==
+		     (w_link_addr.s_addr & l->link_data.s_addr)))
 			return 1;
 	}
 
@@ -814,10 +810,9 @@ static unsigned int ospf_nexthop_calculation(struct ospf_area *area,
 		assert(l != NULL);
 
 		if (IS_DEBUG_OSPF_EVENT)
-			zlog_debug(
-				"%s: considering link type:%d link_id:%pI4 link_data:%pI4",
-				__func__, l->m[0].type, &l->link_id,
-				&l->link_data);
+			zlog_debug("%s: considering link type:%d link_id:%pI4 link_data:%pI4",
+				   __func__, l->m[0].type, &l->link_id,
+				   &l->link_data);
 
 		if (w->type == OSPF_VERTEX_ROUTER) {
 			/*
@@ -833,11 +828,10 @@ static unsigned int ospf_nexthop_calculation(struct ospf_area *area,
 					oi = ospf_if_lookup_by_lsa_pos(area,
 								       lsa_pos);
 					if (!oi) {
-						zlog_debug(
-							"%s: OI not found in LSA: lsa_pos: %d link_id:%pI4 link_data:%pI4",
-							__func__, lsa_pos,
-							&l->link_id,
-							&l->link_data);
+						zlog_debug("%s: OI not found in LSA: lsa_pos: %d link_id:%pI4 link_data:%pI4",
+							   __func__, lsa_pos,
+							   &l->link_id,
+							   &l->link_data);
 						return 0;
 					}
 				}
@@ -900,10 +894,11 @@ static unsigned int ospf_nexthop_calculation(struct ospf_area *area,
 				 * the interface code needs to be removed
 				 * somehow.
 				 */
-				if (area->ospf->ti_lfa_enabled
-				    || (oi && oi->type == OSPF_IFTYPE_POINTOPOINT)
-				    || (oi && oi->type == OSPF_IFTYPE_POINTOMULTIPOINT
-					   && oi->address->prefixlen == IPV4_MAX_BITLEN)) {
+				if (area->ospf->ti_lfa_enabled ||
+				    (oi && oi->type == OSPF_IFTYPE_POINTOPOINT) ||
+				    (oi &&
+				     oi->type == OSPF_IFTYPE_POINTOMULTIPOINT &&
+				     oi->address->prefixlen == IPV4_MAX_BITLEN)) {
 					struct ospf_neighbor *nbr_w = NULL;
 
 					/* Calculating node is root node, link
@@ -919,8 +914,9 @@ static unsigned int ospf_nexthop_calculation(struct ospf_area *area,
 
 					/* Reverse lookup */
 					if (!added) {
-						while ((l2 = ospf_get_next_link(
-								w, v, l2))) {
+						while ((l2 = ospf_get_next_link(w,
+										v,
+										l2))) {
 							if (match_stub_prefix(
 								    v->lsa,
 								    l->link_data,
@@ -932,8 +928,9 @@ static unsigned int ospf_nexthop_calculation(struct ospf_area *area,
 							}
 						}
 					}
-				} else if (oi && oi->type
-					   == OSPF_IFTYPE_POINTOMULTIPOINT) {
+				} else if (oi &&
+					   oi->type ==
+						   OSPF_IFTYPE_POINTOMULTIPOINT) {
 					struct prefix_ipv4 la;
 
 					la.family = AF_INET;
@@ -947,10 +944,8 @@ static unsigned int ospf_nexthop_calculation(struct ospf_area *area,
 									l2))) {
 						la.prefix = l2->link_data;
 
-						if (prefix_cmp((struct prefix
-									*)&la,
-							       oi->address)
-						    != 0)
+						if (prefix_cmp((struct prefix *)&la,
+							       oi->address) != 0)
 							continue;
 						added = 1;
 						nexthop = l2->link_data;
@@ -979,9 +974,9 @@ static unsigned int ospf_nexthop_calculation(struct ospf_area *area,
 					}
 					return 1;
 				} else
-					zlog_info(
-						"%s: could not determine nexthop for link %s",
-						__func__, oi ? oi->ifp->name : "");
+					zlog_info("%s: could not determine nexthop for link %s",
+						  __func__,
+						  oi ? oi->ifp->name : "");
 			} /* end point-to-point link from V to W */
 			else if (l->m[0].type == LSA_LINK_TYPE_VIRTUALLINK) {
 				/*
@@ -1000,9 +995,9 @@ static unsigned int ospf_nexthop_calculation(struct ospf_area *area,
 				vl_data = ospf_vl_lookup(area->ospf, NULL,
 							 l->link_id);
 
-				if (vl_data
-				    && CHECK_FLAG(vl_data->flags,
-						  OSPF_VL_FLAG_APPROVED)) {
+				if (vl_data &&
+				    CHECK_FLAG(vl_data->flags,
+					       OSPF_VL_FLAG_APPROVED)) {
 					nh = vertex_nexthop_new();
 					nh->router = vl_data->nexthop.router;
 					nh->lsa_pos = vl_data->nexthop.lsa_pos;
@@ -1024,9 +1019,8 @@ static unsigned int ospf_nexthop_calculation(struct ospf_area *area,
 
 					return 1;
 				} else
-					zlog_info(
-						"%s: vl_data for VL link not found",
-						__func__);
+					zlog_info("%s: vl_data for VL link not found",
+						  __func__);
 			} /* end virtual-link from V to W */
 			return 0;
 		} /* end W is a Router vertex */
@@ -1192,16 +1186,15 @@ static int ospf_spf_is_protected_resource(struct ospf_area *area,
 			return 0;
 
 		/* For P2P: check if the link belongs to the same subnet */
-		if (link_type == LSA_LINK_TYPE_POINTOPOINT
-		    && (p_link->link_id.s_addr & p_link->link_data.s_addr)
-			       == (link->link_data.s_addr
-				   & p_link->link_data.s_addr))
+		if (link_type == LSA_LINK_TYPE_POINTOPOINT &&
+		    (p_link->link_id.s_addr & p_link->link_data.s_addr) ==
+			    (link->link_data.s_addr & p_link->link_data.s_addr))
 			return 1;
 
 		/* For stub: check if this the same subnet */
-		if (link_type == LSA_LINK_TYPE_STUB
-		    && (p_link->link_id.s_addr == link->link_id.s_addr)
-		    && (p_link->link_data.s_addr == link->link_data.s_addr))
+		if (link_type == LSA_LINK_TYPE_STUB &&
+		    (p_link->link_id.s_addr == link->link_id.s_addr) &&
+		    (p_link->link_data.s_addr == link->link_data.s_addr))
 			return 1;
 
 		break;
@@ -1211,8 +1204,8 @@ static int ospf_spf_is_protected_resource(struct ospf_area *area,
 			return 0;
 
 		/* For P2P: check if the link leads to the protected node */
-		if (link_type == LSA_LINK_TYPE_POINTOPOINT
-		    && link->link_id.s_addr == router_id.s_addr)
+		if (link_type == LSA_LINK_TYPE_POINTOPOINT &&
+		    link->link_id.s_addr == router_id.s_addr)
 			return 1;
 
 		/* The rest is about stub links! */
@@ -1229,17 +1222,17 @@ static int ospf_spf_is_protected_resource(struct ospf_area *area,
 
 		while (p < lim) {
 			l = (struct router_lsa_link *)p;
-			p += (OSPF_ROUTER_LSA_LINK_SIZE
-			      + (l->m[0].tos_count * OSPF_ROUTER_LSA_TOS_SIZE));
+			p += (OSPF_ROUTER_LSA_LINK_SIZE +
+			      (l->m[0].tos_count * OSPF_ROUTER_LSA_TOS_SIZE));
 
 			/* We only care about P2P with the proper link id */
-			if ((l->m[0].type != LSA_LINK_TYPE_POINTOPOINT)
-			    || (l->link_id.s_addr != router_id.s_addr))
+			if ((l->m[0].type != LSA_LINK_TYPE_POINTOPOINT) ||
+			    (l->link_id.s_addr != router_id.s_addr))
 				continue;
 
 			/* Link data in the subnet given by the link? */
-			if ((link->link_id.s_addr & link->link_data.s_addr)
-			    == (l->link_data.s_addr & link->link_data.s_addr))
+			if ((link->link_id.s_addr & link->link_data.s_addr) ==
+			    (l->link_data.s_addr & link->link_data.s_addr))
 				return 1;
 		}
 
@@ -1259,8 +1252,7 @@ static int ospf_spf_is_protected_resource(struct ospf_area *area,
  *
  * TODO: Only P2P supported by now!
  */
-static uint16_t get_reverse_distance(struct vertex *v,
-				     struct router_lsa_link *l,
+static uint16_t get_reverse_distance(struct vertex *v, struct router_lsa_link *l,
 				     struct ospf_lsa *w_lsa)
 {
 	uint8_t *p, *lim;
@@ -1274,12 +1266,12 @@ static uint16_t get_reverse_distance(struct vertex *v,
 
 	while (p < lim) {
 		w_link = (struct router_lsa_link *)p;
-		p += (OSPF_ROUTER_LSA_LINK_SIZE
-		      + (w_link->m[0].tos_count * OSPF_ROUTER_LSA_TOS_SIZE));
+		p += (OSPF_ROUTER_LSA_LINK_SIZE +
+		      (w_link->m[0].tos_count * OSPF_ROUTER_LSA_TOS_SIZE));
 
 		/* Only care about P2P with link ID equal to V's router id */
-		if (w_link->m[0].type == LSA_LINK_TYPE_POINTOPOINT
-		    && w_link->link_id.s_addr == v->id.s_addr) {
+		if (w_link->m[0].type == LSA_LINK_TYPE_POINTOPOINT &&
+		    w_link->link_id.s_addr == v->id.s_addr) {
 			distance = ntohs(w_link->m[0].metric);
 			break;
 		}
@@ -1344,8 +1336,8 @@ static void ospf_spf_next(struct vertex *v, struct ospf_area *area,
 			lsa_pos = lsa_pos_next; /* LSA link position */
 			lsa_pos_next++;
 
-			p += (OSPF_ROUTER_LSA_LINK_SIZE
-			      + (l->m[0].tos_count * OSPF_ROUTER_LSA_TOS_SIZE));
+			p += (OSPF_ROUTER_LSA_LINK_SIZE +
+			      (l->m[0].tos_count * OSPF_ROUTER_LSA_TOS_SIZE));
 
 			/*
 			 * (a) If this is a link to a stub network, examine the
@@ -1375,11 +1367,10 @@ static void ospf_spf_next(struct vertex *v, struct ospf_area *area,
 			switch (type) {
 			case LSA_LINK_TYPE_POINTOPOINT:
 			case LSA_LINK_TYPE_VIRTUALLINK:
-				if (type == LSA_LINK_TYPE_VIRTUALLINK
-				    && IS_DEBUG_OSPF_EVENT)
-					zlog_debug(
-						"looking up LSA through VL: %pI4",
-						&l->link_id);
+				if (type == LSA_LINK_TYPE_VIRTUALLINK &&
+				    IS_DEBUG_OSPF_EVENT)
+					zlog_debug("looking up LSA through VL: %pI4",
+						   &l->link_id);
 				w_lsa = ospf_lsa_lookup(area->ospf, area,
 							OSPF_ROUTER_LSA,
 							l->link_id, l->link_id);
@@ -1389,11 +1380,11 @@ static void ospf_spf_next(struct vertex *v, struct ospf_area *area,
 				break;
 			case LSA_LINK_TYPE_TRANSIT:
 				if (IS_DEBUG_OSPF_EVENT)
-					zlog_debug(
-						"Looking up Network LSA, ID: %pI4",
-						&l->link_id);
-				w_lsa = ospf_lsa_lookup_by_id(
-					area, OSPF_NETWORK_LSA, l->link_id);
+					zlog_debug("Looking up Network LSA, ID: %pI4",
+						   &l->link_id);
+				w_lsa = ospf_lsa_lookup_by_id(area,
+							      OSPF_NETWORK_LSA,
+							      l->link_id);
 				if (w_lsa && IS_DEBUG_OSPF_EVENT)
 					zlog_debug("found the LSA");
 				break;
@@ -1407,8 +1398,8 @@ static void ospf_spf_next(struct vertex *v, struct ospf_area *area,
 			 * For TI-LFA we might need the reverse SPF.
 			 * Currently only works with P2P!
 			 */
-			if (type == LSA_LINK_TYPE_POINTOPOINT
-			    && area->spf_reversed)
+			if (type == LSA_LINK_TYPE_POINTOPOINT &&
+			    area->spf_reversed)
 				link_distance =
 					get_reverse_distance(v, l, w_lsa);
 			else
@@ -1422,8 +1413,7 @@ static void ospf_spf_next(struct vertex *v, struct ospf_area *area,
 			p += sizeof(struct in_addr);
 
 			/* Lookup the vertex W's LSA. */
-			w_lsa = ospf_lsa_lookup_by_id(area, OSPF_ROUTER_LSA,
-						      *r);
+			w_lsa = ospf_lsa_lookup_by_id(area, OSPF_ROUTER_LSA, *r);
 			if (w_lsa && IS_DEBUG_OSPF_EVENT)
 				zlog_debug("found Router LSA %pI4",
 					   &w_lsa->data->id);
@@ -1495,16 +1485,14 @@ static void ospf_spf_next(struct vertex *v, struct ospf_area *area,
 			w = w_lsa->stat;
 			if (w->distance < distance) {
 				continue;
-			}
-			else if (w->distance == distance) {
+			} else if (w->distance == distance) {
 				/*
 				 * Found an equal-cost path to W.
 				 * Calculate nexthop of to W from V.
 				 */
 				ospf_nexthop_calculation(area, v, w, l,
 							 distance, lsa_pos);
-			}
-			else {
+			} else {
 				/*
 				 * Found a lower-cost path to W.
 				 * nexthop_calculation is conditional, if it
@@ -1518,7 +1506,7 @@ static void ospf_spf_next(struct vertex *v, struct ospf_area *area,
 				vertex_pqueue_add(candidate, w);
 			}
 		} /* end W is already on the candidate list */
-	}	 /* end loop over the links in V's LSA */
+	}	  /* end loop over the links in V's LSA */
 }
 
 static void ospf_spf_dump(struct vertex *v, int i)
@@ -1529,13 +1517,11 @@ static void ospf_spf_dump(struct vertex *v, int i)
 
 	if (v->type == OSPF_VERTEX_ROUTER) {
 		if (IS_DEBUG_OSPF_EVENT)
-			zlog_debug("SPF Result: %d [R] %pI4", i,
-				   &v->lsa->id);
+			zlog_debug("SPF Result: %d [R] %pI4", i, &v->lsa->id);
 	} else {
 		struct network_lsa *lsa = (struct network_lsa *)v->lsa;
 		if (IS_DEBUG_OSPF_EVENT)
-			zlog_debug("SPF Result: %d [N] %pI4/%d", i,
-				   &v->lsa->id,
+			zlog_debug("SPF Result: %d [N] %pI4/%d", i, &v->lsa->id,
 				   ip_masklen(lsa->mask));
 	}
 
@@ -1615,12 +1601,12 @@ static void ospf_spf_process_stubs(struct ospf_area *area, struct vertex *v,
 		while (p < lim) {
 			l = (struct router_lsa_link *)p;
 
-			p += (OSPF_ROUTER_LSA_LINK_SIZE
-			      + (l->m[0].tos_count * OSPF_ROUTER_LSA_TOS_SIZE));
+			p += (OSPF_ROUTER_LSA_LINK_SIZE +
+			      (l->m[0].tos_count * OSPF_ROUTER_LSA_TOS_SIZE));
 
 			/* Don't process TI-LFA protected resources */
-			if (l->m[0].type == LSA_LINK_TYPE_STUB
-			    && !ospf_spf_is_protected_resource(area, l, v->lsa))
+			if (l->m[0].type == LSA_LINK_TYPE_STUB &&
+			    !ospf_spf_is_protected_resource(area, l, v->lsa))
 				ospf_intra_add_stub(rt, l, v, area,
 						    parent_is_root, lsa_pos);
 			lsa_pos++;
@@ -1712,9 +1698,8 @@ void ospf_spf_calculate(struct ospf_area *area, struct ospf_lsa *root_lsa,
 	 */
 	if (!root_lsa) {
 		if (IS_DEBUG_OSPF_EVENT)
-			zlog_debug(
-				"%s: Skip area %pI4's calculation due to empty root LSA",
-				__func__, &area->area_id);
+			zlog_debug("%s: Skip area %pI4's calculation due to empty root LSA",
+				   __func__, &area->area_id);
 		return;
 	}
 
@@ -1862,7 +1847,7 @@ static void ospf_spf_calculate_schedule_worker(struct event *thread)
 	/* Execute SPF for each area including backbone, see RFC 2328 16.1. */
 	monotime(&spf_start_time);
 	new_table = route_table_init(); /* routing table */
-	new_rtrs = route_table_init();  /* ABR/ASBR routing table */
+	new_rtrs = route_table_init();	/* ABR/ASBR routing table */
 
 	/* If we have opaque enabled then track all router reachability */
 	if (CHECK_FLAG(ospf->opaque, OPAQUE_OPERATION_READY_BIT))
@@ -1897,10 +1882,9 @@ static void ospf_spf_calculate_schedule_worker(struct event *thread)
 	ospf_ase_calculate_timer_add(ospf);
 
 	if (IS_DEBUG_OSPF_EVENT)
-		zlog_debug(
-			"%s: ospf install new route, vrf %s id %u new_table count %lu",
-			__func__, ospf_vrf_id_to_name(ospf->vrf_id),
-			ospf->vrf_id, new_table->count);
+		zlog_debug("%s: ospf install new route, vrf %s id %u new_table count %lu",
+			   __func__, ospf_vrf_id_to_name(ospf->vrf_id),
+			   ospf->vrf_id, new_table->count);
 
 	/* Update routing table. */
 	monotime(&start_time);
@@ -1942,8 +1926,7 @@ static void ospf_spf_calculate_schedule_worker(struct event *thread)
 	/* Schedule Segment Routing update */
 	ospf_sr_update_task(ospf);
 
-	total_spf_time =
-		monotime_since(&spf_start_time, &ospf->ts_spf_duration);
+	total_spf_time = monotime_since(&spf_start_time, &ospf->ts_spf_duration);
 
 	rbuf[0] = '\0';
 	if (spf_reason_flags) {
@@ -1958,7 +1941,7 @@ static void ospf_spf_calculate_schedule_worker(struct event *thread)
 		if (spf_reason_flags & (1 << SPF_FLAG_ABR_STATUS_CHANGE))
 			strlcat(rbuf, "ABR, ", sizeof(rbuf));
 		if (spf_reason_flags & (1 << SPF_FLAG_ASBR_STATUS_CHANGE))
-			strlcat(rbuf, "ASBR, ",	sizeof(rbuf));
+			strlcat(rbuf, "ASBR, ", sizeof(rbuf));
 		if (spf_reason_flags & (1 << SPF_FLAG_MAXAGE))
 			strlcat(rbuf, "M, ", sizeof(rbuf));
 		if (spf_reason_flags & (1 << SPF_FLAG_GR_FINISH))
@@ -2006,9 +1989,8 @@ void ospf_spf_calculate_schedule(struct ospf *ospf, ospf_spf_reason_t reason)
 	/* SPF calculation timer is already scheduled. */
 	if (ospf->t_spf_calc) {
 		if (IS_DEBUG_OSPF_EVENT)
-			zlog_debug(
-				"SPF: calculation timer is already scheduled: %p",
-				(void *)ospf->t_spf_calc);
+			zlog_debug("SPF: calculation timer is already scheduled: %p",
+				   (void *)ospf->t_spf_calc);
 		return;
 	}
 

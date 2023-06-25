@@ -252,8 +252,7 @@ void lua_decode_sockunion(lua_State *L, int idx, union sockunion *su)
 
 void *lua_tosockunion(lua_State *L, int idx)
 {
-	union sockunion *su =
-		XCALLOC(MTYPE_SCRIPT_RES, sizeof(union sockunion));
+	union sockunion *su = XCALLOC(MTYPE_SCRIPT_RES, sizeof(union sockunion));
 
 	lua_decode_sockunion(L, idx, su);
 	return su;
@@ -425,12 +424,9 @@ static int frrlua_log_error(lua_State *L)
 }
 
 static const luaL_Reg log_funcs[] = {
-	{"debug", frrlua_log_debug},
-	{"info", frrlua_log_info},
-	{"notice", frrlua_log_notice},
-	{"warn", frrlua_log_warn},
-	{"error", frrlua_log_error},
-	{},
+	{"debug", frrlua_log_debug},   {"info", frrlua_log_info},
+	{"notice", frrlua_log_notice}, {"warn", frrlua_log_warn},
+	{"error", frrlua_log_error},   {},
 };
 
 void frrlua_export_logging(lua_State *L)

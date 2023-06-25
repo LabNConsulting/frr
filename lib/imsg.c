@@ -86,14 +86,14 @@ ssize_t imsg_read(struct imsgbuf *ibuf)
 
 again:
 #ifdef __OpenBSD__
-	if (getdtablecount() + imsg_fd_overhead
-		    + (int)((CMSG_SPACE(sizeof(int)) - CMSG_SPACE(0))
-			    / sizeof(int))
-	    >= getdtablesize()) {
+	if (getdtablecount() + imsg_fd_overhead +
+		    (int)((CMSG_SPACE(sizeof(int)) - CMSG_SPACE(0)) /
+			  sizeof(int)) >=
+	    getdtablesize()) {
 #else
-	if (available_fds(imsg_fd_overhead
-			  + (CMSG_SPACE(sizeof(int)) - CMSG_SPACE(0))
-				    / sizeof(int))) {
+	if (available_fds(imsg_fd_overhead +
+			  (CMSG_SPACE(sizeof(int)) - CMSG_SPACE(0)) /
+				  sizeof(int))) {
 #endif
 		errno = EAGAIN;
 		free(ifd);
@@ -111,8 +111,8 @@ again:
 
 	for (cmsg = CMSG_FIRSTHDR(&msg); cmsg != NULL;
 	     cmsg = CMSG_NXTHDR(&msg, cmsg)) {
-		if (cmsg->cmsg_level == SOL_SOCKET
-		    && cmsg->cmsg_type == SCM_RIGHTS) {
+		if (cmsg->cmsg_level == SOL_SOCKET &&
+		    cmsg->cmsg_type == SCM_RIGHTS) {
 			int i;
 			int j;
 
@@ -121,9 +121,9 @@ again:
 			 * padding rules, our control buffer might contain
 			 * more than one fd, and we must close them.
 			 */
-			j = ((char *)cmsg + cmsg->cmsg_len
-			     - (char *)CMSG_DATA(cmsg))
-			    / sizeof(int);
+			j = ((char *)cmsg + cmsg->cmsg_len -
+			     (char *)CMSG_DATA(cmsg)) /
+			    sizeof(int);
 			for (i = 0; i < j; i++) {
 				fd = ((int *)CMSG_DATA(cmsg))[i];
 				if (ifd != NULL) {

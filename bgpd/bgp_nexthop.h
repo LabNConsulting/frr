@@ -11,13 +11,12 @@
 #include "prefix.h"
 #include "bgp_table.h"
 
-#define NEXTHOP_FAMILY(nexthop_len)                                            \
-	(((nexthop_len) == 4 || (nexthop_len) == 12                            \
-		  ? AF_INET                                                    \
-		  : ((nexthop_len) == 16 || (nexthop_len) == 24                \
-				     || (nexthop_len) == 32                    \
-				     || (nexthop_len) == 48                    \
-			     ? AF_INET6                                        \
+#define NEXTHOP_FAMILY(nexthop_len)                                             \
+	(((nexthop_len) == 4 || (nexthop_len) == 12                             \
+		  ? AF_INET                                                     \
+		  : ((nexthop_len) == 16 || (nexthop_len) == 24 ||              \
+				     (nexthop_len) == 32 || (nexthop_len) == 48 \
+			     ? AF_INET6                                         \
 			     : AF_UNSPEC)))
 
 #define BGP_MP_NEXTHOP_FAMILY NEXTHOP_FAMILY
@@ -45,13 +44,13 @@ struct bgp_nexthop_cache {
  * If the nexthop is EVPN gateway IP NH, VALID flag is set only if the nexthop
  * is RIB reachable as well as MAC/IP is present
  */
-#define BGP_NEXTHOP_VALID             (1 << 0)
-#define BGP_NEXTHOP_REGISTERED        (1 << 1)
-#define BGP_NEXTHOP_CONNECTED         (1 << 2)
-#define BGP_NEXTHOP_PEER_NOTIFIED     (1 << 3)
-#define BGP_STATIC_ROUTE              (1 << 4)
-#define BGP_STATIC_ROUTE_EXACT_MATCH  (1 << 5)
-#define BGP_NEXTHOP_LABELED_VALID     (1 << 6)
+#define BGP_NEXTHOP_VALID (1 << 0)
+#define BGP_NEXTHOP_REGISTERED (1 << 1)
+#define BGP_NEXTHOP_CONNECTED (1 << 2)
+#define BGP_NEXTHOP_PEER_NOTIFIED (1 << 3)
+#define BGP_STATIC_ROUTE (1 << 4)
+#define BGP_STATIC_ROUTE_EXACT_MATCH (1 << 5)
+#define BGP_NEXTHOP_LABELED_VALID (1 << 6)
 
 /*
  * This flag is added for EVPN gateway IP nexthops.
@@ -72,8 +71,8 @@ struct bgp_nexthop_cache {
 
 	uint16_t change_flags;
 
-#define BGP_NEXTHOP_CHANGED           (1 << 0)
-#define BGP_NEXTHOP_METRIC_CHANGED    (1 << 1)
+#define BGP_NEXTHOP_CHANGED (1 << 0)
+#define BGP_NEXTHOP_METRIC_CHANGED (1 << 1)
 #define BGP_NEXTHOP_CONNECTED_CHANGED (1 << 2)
 #define BGP_NEXTHOP_MACIP_CHANGED (1 << 3)
 
@@ -124,16 +123,14 @@ extern bool bgp_subgrp_multiaccess_check_v6(struct in6_addr nexthop,
 					    struct update_subgroup *subgrp,
 					    struct peer *exclude);
 extern bool bgp_multiaccess_check_v4(struct in_addr nexthop, struct peer *peer);
-extern bool bgp_multiaccess_check_v6(struct in6_addr nexthop,
-				     struct peer *peer);
+extern bool bgp_multiaccess_check_v6(struct in6_addr nexthop, struct peer *peer);
 extern int bgp_config_write_scan_time(struct vty *);
 extern bool bgp_nexthop_self(struct bgp *bgp, afi_t afi, uint8_t type,
 			     uint8_t sub_type, struct attr *attr,
 			     struct bgp_dest *dest);
 extern struct bgp_nexthop_cache *bnc_new(struct bgp_nexthop_cache_head *tree,
 					 struct prefix *prefix,
-					 uint32_t srte_color,
-					 ifindex_t ifindex);
+					 uint32_t srte_color, ifindex_t ifindex);
 extern bool bnc_existing_for_prefix(struct bgp_nexthop_cache *bnc);
 extern void bnc_free(struct bgp_nexthop_cache *bnc);
 extern struct bgp_nexthop_cache *bnc_find(struct bgp_nexthop_cache_head *tree,

@@ -90,12 +90,9 @@ int ospf_mpls_te_init(void)
 
 	/* Register Opaque AREA LSA Type 1 for Traffic Engineering */
 	rc = ospf_register_opaque_functab(
-		OSPF_OPAQUE_AREA_LSA,
-		OPAQUE_TYPE_TRAFFIC_ENGINEERING_LSA,
-		ospf_mpls_te_new_if,
-		ospf_mpls_te_del_if,
-		ospf_mpls_te_ism_change,
-		ospf_mpls_te_nsm_change,
+		OSPF_OPAQUE_AREA_LSA, OPAQUE_TYPE_TRAFFIC_ENGINEERING_LSA,
+		ospf_mpls_te_new_if, ospf_mpls_te_del_if,
+		ospf_mpls_te_ism_change, ospf_mpls_te_nsm_change,
 		ospf_mpls_te_config_write_router,
 		NULL, /* ospf_mpls_te_config_write_if */
 		NULL, /* ospf_mpls_te_config_write_debug */
@@ -104,10 +101,9 @@ int ospf_mpls_te_init(void)
 		ospf_mpls_te_lsa_update, /* ospf_mpls_te_new_lsa_hook */
 		ospf_mpls_te_lsa_delete /* ospf_mpls_te_del_lsa_hook */);
 	if (rc != 0) {
-		flog_warn(
-			EC_OSPF_OPAQUE_REGISTRATION,
-			"MPLS-TE (%s): Failed to register Traffic Engineering functions",
-			__func__);
+		flog_warn(EC_OSPF_OPAQUE_REGISTRATION,
+			  "MPLS-TE (%s): Failed to register Traffic Engineering functions",
+			  __func__);
 		return rc;
 	}
 
@@ -117,30 +113,28 @@ int ospf_mpls_te_init(void)
 	 * function when looking to the opaque LSA of the OSPF database.
 	 */
 	rc = ospf_register_opaque_functab(OSPF_OPAQUE_AREA_LSA,
-					  OPAQUE_TYPE_INTER_AS_LSA, NULL,
-					  NULL, NULL, NULL, NULL, NULL, NULL,
+					  OPAQUE_TYPE_INTER_AS_LSA, NULL, NULL,
+					  NULL, NULL, NULL, NULL, NULL,
 					  ospf_mpls_te_show_info,
 					  ospf_mpls_te_lsa_inter_as_area,
 					  ospf_mpls_te_lsa_refresh, NULL, NULL);
 	if (rc != 0) {
-		flog_warn(
-			EC_OSPF_OPAQUE_REGISTRATION,
-			"MPLS-TE (%s): Failed to register Inter-AS with Area scope",
-			__func__);
+		flog_warn(EC_OSPF_OPAQUE_REGISTRATION,
+			  "MPLS-TE (%s): Failed to register Inter-AS with Area scope",
+			  __func__);
 		return rc;
 	}
 
 	rc = ospf_register_opaque_functab(OSPF_OPAQUE_AS_LSA,
-					  OPAQUE_TYPE_INTER_AS_LSA, NULL,
-					  NULL, NULL, NULL, NULL, NULL, NULL,
+					  OPAQUE_TYPE_INTER_AS_LSA, NULL, NULL,
+					  NULL, NULL, NULL, NULL, NULL,
 					  ospf_mpls_te_show_info,
 					  ospf_mpls_te_lsa_inter_as_as,
 					  ospf_mpls_te_lsa_refresh, NULL, NULL);
 	if (rc != 0) {
-		flog_warn(
-			EC_OSPF_OPAQUE_REGISTRATION,
-			"MPLS-TE (%s): Failed to register Inter-AS with AS scope",
-			__func__);
+		flog_warn(EC_OSPF_OPAQUE_REGISTRATION,
+			  "MPLS-TE (%s): Failed to register Inter-AS with AS scope",
+			  __func__);
 		return rc;
 	}
 
@@ -164,8 +158,7 @@ void ospf_mpls_te_term(void)
 				   OPAQUE_TYPE_TRAFFIC_ENGINEERING_LSA);
 	ospf_delete_opaque_functab(OSPF_OPAQUE_AREA_LSA,
 				   OPAQUE_TYPE_INTER_AS_LSA);
-	ospf_delete_opaque_functab(OSPF_OPAQUE_AS_LSA,
-				   OPAQUE_TYPE_INTER_AS_LSA);
+	ospf_delete_opaque_functab(OSPF_OPAQUE_AS_LSA, OPAQUE_TYPE_INTER_AS_LSA);
 
 	OspfMplsTE.enabled = false;
 	OspfMplsTE.inter_as = Off;
@@ -228,9 +221,9 @@ static struct mpls_te_link *lookup_linkparams_by_instance(struct ospf_lsa *lsa)
 	return NULL;
 }
 
-static void ospf_mpls_te_foreach_area(
-	void (*func)(struct mpls_te_link *lp, enum lsa_opcode sched_opcode),
-	enum lsa_opcode sched_opcode)
+static void ospf_mpls_te_foreach_area(void (*func)(struct mpls_te_link *lp,
+						   enum lsa_opcode sched_opcode),
+				      enum lsa_opcode sched_opcode)
 {
 	struct listnode *node, *nnode;
 	struct listnode *node2;
@@ -416,8 +409,7 @@ static void set_linkparams_rmtif_ipaddr(struct mpls_te_link *lp,
 	return;
 }
 
-static void set_linkparams_te_metric(struct mpls_te_link *lp,
-				     uint32_t te_metric)
+static void set_linkparams_te_metric(struct mpls_te_link *lp, uint32_t te_metric)
 {
 	lp->te_metric.header.type = htons(TE_LINK_SUBTLV_TE_METRIC);
 	lp->te_metric.header.length = htons(TE_LINK_SUBTLV_DEF_SIZE);
@@ -605,15 +597,13 @@ static void update_linkparams(struct mpls_te_link *lp)
 
 	/* Get the Interface structure */
 	if ((ifp = lp->ifp) == NULL) {
-		ote_debug(
-			"MPLS-TE (%s): Abort update TE parameters: no interface associated to Link Parameters",
-			__func__);
+		ote_debug("MPLS-TE (%s): Abort update TE parameters: no interface associated to Link Parameters",
+			  __func__);
 		return;
 	}
 	if (!HAS_LINK_PARAMS(ifp)) {
-		ote_debug(
-			"MPLS-TE (%s): Abort update TE parameters: no Link Parameters for interface",
-			__func__);
+		ote_debug("MPLS-TE (%s): Abort update TE parameters: no Link Parameters for interface",
+			  __func__);
 		return;
 	}
 
@@ -685,11 +675,10 @@ static void update_linkparams(struct mpls_te_link *lp)
 	/* RFC5392 */
 	if (IS_PARAM_SET(ifp->link_params, LP_RMT_AS)) {
 		/* Flush LSA if it engaged and was previously a STD_TE one */
-		if (IS_STD_TE(lp->type)
-		    && CHECK_FLAG(lp->flags, LPFLG_LSA_ENGAGED)) {
-			ote_debug(
-				"MPLS-TE (%s): Update IF: Switch from Standard LSA to INTER-AS for %s[%d/%d]",
-				__func__, ifp->name, lp->flags, lp->type);
+		if (IS_STD_TE(lp->type) &&
+		    CHECK_FLAG(lp->flags, LPFLG_LSA_ENGAGED)) {
+			ote_debug("MPLS-TE (%s): Update IF: Switch from Standard LSA to INTER-AS for %s[%d/%d]",
+				  __func__, ifp->name, lp->flags, lp->type);
 
 			ospf_mpls_te_lsa_schedule(lp, FLUSH_THIS_LSA);
 			/* Then, switch it to INTER-AS */
@@ -707,14 +696,13 @@ static void update_linkparams(struct mpls_te_link *lp)
 		set_linkparams_inter_as(lp, ifp->link_params->rmt_ip,
 					ifp->link_params->rmt_as);
 	} else {
-		ote_debug(
-			"MPLS-TE (%s): Update IF: Switch from INTER-AS LSA to Standard for %s[%d/%d]",
-			__func__, ifp->name, lp->flags, lp->type);
+		ote_debug("MPLS-TE (%s): Update IF: Switch from INTER-AS LSA to Standard for %s[%d/%d]",
+			  __func__, ifp->name, lp->flags, lp->type);
 
 		/* reset inter-as TE params */
 		/* Flush LSA if it engaged and was previously an INTER_AS one */
-		if (IS_INTER_AS(lp->type)
-		    && CHECK_FLAG(lp->flags, LPFLG_LSA_ENGAGED)) {
+		if (IS_INTER_AS(lp->type) &&
+		    CHECK_FLAG(lp->flags, LPFLG_LSA_ENGAGED)) {
 			ospf_mpls_te_lsa_schedule(lp, FLUSH_THIS_LSA);
 			/* Then, switch it to Standard TE */
 			lp->flags = STD_TE;
@@ -744,9 +732,8 @@ static void initialize_linkparams(struct mpls_te_link *lp)
 	}
 
 	if ((oi == NULL) || (oi->ifp != ifp)) {
-		ote_debug(
-			"MPLS-TE (%s): Could not find corresponding OSPF Interface for %s",
-			__func__, ifp->name);
+		ote_debug("MPLS-TE (%s): Could not find corresponding OSPF Interface for %s",
+			  __func__, ifp->name);
 		return;
 	}
 
@@ -807,8 +794,7 @@ static int ospf_mpls_te_new_if(struct interface *ifp)
 	struct mpls_te_link *new;
 
 	ote_debug("MPLS-TE (%s): Add new %s interface %s to MPLS-TE list",
-		  __func__, ifp->link_params ? "Active" : "Inactive",
-		  ifp->name);
+		  __func__, ifp->link_params ? "Active" : "Inactive", ifp->name);
 
 	if (lookup_linkparams_by_ifp(ifp) != NULL)
 		return 0;
@@ -872,10 +858,9 @@ void ospf_mpls_te_update_if(struct interface *ifp)
 
 	/* Get Link context from interface */
 	if ((lp = lookup_linkparams_by_ifp(ifp)) == NULL) {
-		flog_warn(
-			EC_OSPF_TE_UNEXPECTED,
-			"MPLS-TE (%s): Did not find Link Parameters context for interface %s",
-			__func__, ifp->name);
+		flog_warn(EC_OSPF_TE_UNEXPECTED,
+			  "MPLS-TE (%s): Did not find Link Parameters context for interface %s",
+			  __func__, ifp->name);
 		return;
 	}
 
@@ -891,11 +876,11 @@ void ospf_mpls_te_update_if(struct interface *ifp)
 		if (OspfMplsTE.enabled)
 			if (lp->area != NULL) {
 				if (CHECK_FLAG(lp->flags, LPFLG_LSA_ENGAGED))
-					ospf_mpls_te_lsa_schedule(
-						lp, REFRESH_THIS_LSA);
+					ospf_mpls_te_lsa_schedule(lp,
+								  REFRESH_THIS_LSA);
 				else
-					ospf_mpls_te_lsa_schedule(
-						lp, REORIGINATE_THIS_LSA);
+					ospf_mpls_te_lsa_schedule(lp,
+								  REORIGINATE_THIS_LSA);
 			}
 	} else {
 		/* If MPLS TE is disable on this interface, flush LSA if it is
@@ -922,18 +907,16 @@ static void ospf_mpls_te_ism_change(struct ospf_interface *oi, int old_state)
 
 	lp = lookup_linkparams_by_ifp(oi->ifp);
 	if (lp == NULL) {
-		flog_warn(
-			EC_OSPF_TE_UNEXPECTED,
-			"MPLS-TE (%s): Cannot get linkparams from OI(%s)?",
-			__func__, IF_NAME(oi));
+		flog_warn(EC_OSPF_TE_UNEXPECTED,
+			  "MPLS-TE (%s): Cannot get linkparams from OI(%s)?",
+			  __func__, IF_NAME(oi));
 		return;
 	}
 
 	if (oi->area == NULL || oi->area->ospf == NULL) {
-		flog_warn(
-			EC_OSPF_TE_UNEXPECTED,
-			"MPLS-TE (%s): Cannot refer to OSPF from OI(%s)?",
-			__func__, IF_NAME(oi));
+		flog_warn(EC_OSPF_TE_UNEXPECTED,
+			  "MPLS-TE (%s): Cannot refer to OSPF from OI(%s)?",
+			  __func__, IF_NAME(oi));
 		return;
 	}
 
@@ -953,9 +936,8 @@ static void ospf_mpls_te_ism_change(struct ospf_interface *oi, int old_state)
 	case ISM_Down:
 		/* Interface goes Down: Flush LSA if engaged */
 		if (CHECK_FLAG(lp->flags, LPFLG_LSA_ENGAGED)) {
-			ote_debug(
-				"MPLS-TE (%s): Interface %s goes down: flush LSA",
-				__func__, IF_NAME(oi));
+			ote_debug("MPLS-TE (%s): Interface %s goes down: flush LSA",
+				  __func__, IF_NAME(oi));
 			ospf_mpls_te_lsa_schedule(lp, FLUSH_THIS_LSA);
 			return;
 		}
@@ -987,28 +969,25 @@ static void ospf_mpls_te_nsm_change(struct ospf_neighbor *nbr, int old_state)
 	/* Get interface information for Traffic Engineering */
 	lp = lookup_linkparams_by_ifp(oi->ifp);
 	if (lp == NULL) {
-		flog_warn(
-			EC_OSPF_TE_UNEXPECTED,
-			"MPLS-TE (%s): Cannot get linkparams from OI(%s)?",
-			__func__, IF_NAME(oi));
+		flog_warn(EC_OSPF_TE_UNEXPECTED,
+			  "MPLS-TE (%s): Cannot get linkparams from OI(%s)?",
+			  __func__, IF_NAME(oi));
 		return;
 	}
 
 	if (oi->area == NULL || oi->area->ospf == NULL) {
-		flog_warn(
-			EC_OSPF_TE_UNEXPECTED,
-			"MPLS-TE (%s): Cannot refer to OSPF from OI(%s)?",
-			__func__, IF_NAME(oi));
+		flog_warn(EC_OSPF_TE_UNEXPECTED,
+			  "MPLS-TE (%s): Cannot refer to OSPF from OI(%s)?",
+			  __func__, IF_NAME(oi));
 		return;
 	}
 
 	/* Flush TE Opaque LSA if Neighbor State goes Down or Deleted */
-	if (OspfMplsTE.enabled
-	    && (nbr->state == NSM_Down || nbr->state == NSM_Deleted)) {
+	if (OspfMplsTE.enabled &&
+	    (nbr->state == NSM_Down || nbr->state == NSM_Deleted)) {
 		if (CHECK_FLAG(lp->flags, EXT_LPFLG_LSA_ENGAGED)) {
-			ote_debug(
-				"MPLS-TE (%s): Interface %s goes down: flush LSA",
-				__func__, IF_NAME(oi));
+			ote_debug("MPLS-TE (%s): Interface %s goes down: flush LSA",
+				  __func__, IF_NAME(oi));
 			ospf_mpls_te_lsa_schedule(lp, FLUSH_THIS_LSA);
 		}
 		return;
@@ -1038,11 +1017,10 @@ static void ospf_mpls_te_nsm_change(struct ospf_neighbor *nbr, int old_state)
 
 	case ISM_Down:
 		/* State goes Down: Flush LSA if engaged */
-		if (OspfMplsTE.enabled
-		    && CHECK_FLAG(lp->flags, LPFLG_LSA_ENGAGED)) {
-			ote_debug(
-				"MPLS-TE (%s): Interface %s goes down: flush LSA",
-				__func__, IF_NAME(oi));
+		if (OspfMplsTE.enabled &&
+		    CHECK_FLAG(lp->flags, LPFLG_LSA_ENGAGED)) {
+			ote_debug("MPLS-TE (%s): Interface %s goes down: flush LSA",
+				  __func__, IF_NAME(oi));
 			ospf_mpls_te_lsa_schedule(lp, FLUSH_THIS_LSA);
 		}
 		return;
@@ -1193,9 +1171,8 @@ static struct ospf_lsa *ospf_mpls_te_lsa_new(struct ospf *ospf,
 			       area->ospf->router_id);
 	}
 
-	ote_debug(
-		"MPLS-TE (%s): LSA[Type%d:%pI4]: Create an Opaque-LSA/MPLS-TE instance",
-		__func__, lsa_type, &lsa_id);
+	ote_debug("MPLS-TE (%s): LSA[Type%d:%pI4]: Create an Opaque-LSA/MPLS-TE instance",
+		  __func__, lsa_type, &lsa_id);
 
 	/* Set opaque-LSA body fields. */
 	ospf_mpls_te_lsa_body_set(s, lp);
@@ -1247,10 +1224,9 @@ static int ospf_mpls_te_lsa_originate1(struct ospf_area *area,
 	/* Flood new LSA through area. */
 	ospf_flood_through_area(area, NULL /*nbr*/, new);
 
-	ote_debug(
-		"MPLS-TE (%s): LSA[Type%d:%pI4]: Originate Opaque-LSA/MPLS-TE: Area(%pI4), Link(%s)",
-		__func__, new->data->type, &new->data->id, &area->area_id,
-		lp->ifp->name);
+	ote_debug("MPLS-TE (%s): LSA[Type%d:%pI4]: Originate Opaque-LSA/MPLS-TE: Area(%pI4), Link(%s)",
+		  __func__, new->data->type, &new->data->id, &area->area_id,
+		  lp->ifp->name);
 	if (IS_DEBUG_OSPF(lsa, LSA_GENERATE))
 		ospf_lsa_header_dump(new->data);
 
@@ -1273,8 +1249,8 @@ static int ospf_mpls_te_lsa_originate_area(void *arg)
 
 	for (ALL_LIST_ELEMENTS(OspfMplsTE.iflist, node, nnode, lp)) {
 		/* Process only enabled LSA with area scope flooding */
-		if (!CHECK_FLAG(lp->flags, LPFLG_LSA_ACTIVE)
-		    || IS_FLOOD_AS(lp->flags))
+		if (!CHECK_FLAG(lp->flags, LPFLG_LSA_ACTIVE) ||
+		    IS_FLOOD_AS(lp->flags))
 			continue;
 
 		if (lp->area == NULL)
@@ -1286,26 +1262,23 @@ static int ospf_mpls_te_lsa_originate_area(void *arg)
 		if (CHECK_FLAG(lp->flags, LPFLG_LSA_ENGAGED)) {
 			if (CHECK_FLAG(lp->flags, LPFLG_LSA_FORCED_REFRESH)) {
 				UNSET_FLAG(lp->flags, LPFLG_LSA_FORCED_REFRESH);
-				ote_debug(
-					"MPLS-TE (%s): Refresh instead of Originate",
-					__func__);
+				ote_debug("MPLS-TE (%s): Refresh instead of Originate",
+					  __func__);
 				ospf_mpls_te_lsa_schedule(lp, REFRESH_THIS_LSA);
 			}
 			continue;
 		}
 
 		if (!is_mandated_params_set(lp)) {
-			ote_debug(
-				"MPLS-TE (%s): Link(%s) lacks some mandated MPLS-TE parameters.",
-				__func__, lp->ifp ? lp->ifp->name : "?");
+			ote_debug("MPLS-TE (%s): Link(%s) lacks some mandated MPLS-TE parameters.",
+				  __func__, lp->ifp ? lp->ifp->name : "?");
 			continue;
 		}
 
 		/* Ok, let's try to originate an LSA for this area and Link. */
-		ote_debug(
-			"MPLS-TE (%s): Let's finally reoriginate the LSA %d through the Area %pI4 for Link %s",
-			__func__, lp->instance, &area->area_id,
-			lp->ifp ? lp->ifp->name : "?");
+		ote_debug("MPLS-TE (%s): Let's finally reoriginate the LSA %d through the Area %pI4 for Link %s",
+			  __func__, lp->instance, &area->area_id,
+			  lp->ifp ? lp->ifp->name : "?");
 		if (ospf_mpls_te_lsa_originate1(area, lp) != 0)
 			return rc;
 	}
@@ -1314,8 +1287,7 @@ static int ospf_mpls_te_lsa_originate_area(void *arg)
 	return rc;
 }
 
-static int ospf_mpls_te_lsa_originate2(struct ospf *top,
-				       struct mpls_te_link *lp)
+static int ospf_mpls_te_lsa_originate2(struct ospf *top, struct mpls_te_link *lp)
 {
 	struct ospf_lsa *new;
 	int rc = -1;
@@ -1345,9 +1317,8 @@ static int ospf_mpls_te_lsa_originate2(struct ospf *top,
 	/* Flood new LSA through AS. */
 	ospf_flood_through_as(top, NULL /*nbr */, new);
 
-	ote_debug(
-		"MPLS-TE (%s): LSA[Type%d:%pI4]: Originate Opaque-LSA/MPLS-TE Inter-AS",
-		__func__, new->data->type, &new->data->id);
+	ote_debug("MPLS-TE (%s): LSA[Type%d:%pI4]: Originate Opaque-LSA/MPLS-TE Inter-AS",
+		  __func__, new->data->type, &new->data->id);
 	if (IS_DEBUG_OSPF(lsa, LSA_GENERATE))
 		ospf_lsa_header_dump(new->data);
 
@@ -1373,9 +1344,9 @@ static int ospf_mpls_te_lsa_originate_as(void *arg)
 
 	for (ALL_LIST_ELEMENTS(OspfMplsTE.iflist, node, nnode, lp)) {
 		/* Process only enabled INTER_AS Links or Pseudo-Links */
-		if (!CHECK_FLAG(lp->flags, LPFLG_LSA_ACTIVE)
-		    || !CHECK_FLAG(lp->flags, LPFLG_LSA_FLOOD_AS)
-		    || !IS_INTER_AS(lp->type))
+		if (!CHECK_FLAG(lp->flags, LPFLG_LSA_ACTIVE) ||
+		    !CHECK_FLAG(lp->flags, LPFLG_LSA_FLOOD_AS) ||
+		    !IS_INTER_AS(lp->type))
 			continue;
 
 		if (CHECK_FLAG(lp->flags, LPFLG_LSA_ENGAGED)) {
@@ -1387,19 +1358,17 @@ static int ospf_mpls_te_lsa_originate_as(void *arg)
 		}
 
 		if (!is_mandated_params_set(lp)) {
-			flog_warn(
-				EC_OSPF_TE_UNEXPECTED,
-				"MPLS-TE (%s): Link(%s) lacks some mandated MPLS-TE parameters.",
-				__func__, lp->ifp ? lp->ifp->name : "?");
+			flog_warn(EC_OSPF_TE_UNEXPECTED,
+				  "MPLS-TE (%s): Link(%s) lacks some mandated MPLS-TE parameters.",
+				  __func__, lp->ifp ? lp->ifp->name : "?");
 			continue;
 		}
 
 		/* Ok, let's try to originate an LSA for this AS and Link. */
-		ote_debug(
-			"MPLS-TE (%s): Let's finally re-originate the Inter-AS LSA %d through the %s for Link %s",
-			__func__, lp->instance,
-			IS_FLOOD_AS(lp->flags) ? "AS" : "Area",
-			lp->ifp ? lp->ifp->name : "Unknown");
+		ote_debug("MPLS-TE (%s): Let's finally re-originate the Inter-AS LSA %d through the %s for Link %s",
+			  __func__, lp->instance,
+			  IS_FLOOD_AS(lp->flags) ? "AS" : "Area",
+			  lp->ifp ? lp->ifp->name : "Unknown");
 
 		if (IS_FLOOD_AS(lp->flags)) {
 			top = (struct ospf *)arg;
@@ -1536,8 +1505,7 @@ void ospf_mpls_te_lsa_schedule(struct mpls_te_link *lp, enum lsa_opcode opcode)
 		return;
 
 	ote_debug("MPLS-TE (%s): Schedule %s%s%s LSA for interface %s",
-		  __func__,
-		  opcode == REORIGINATE_THIS_LSA ? "Re-Originate" : "",
+		  __func__, opcode == REORIGINATE_THIS_LSA ? "Re-Originate" : "",
 		  opcode == REFRESH_THIS_LSA ? "Refresh" : "",
 		  opcode == FLUSH_THIS_LSA ? "Flush" : "",
 		  lp->ifp ? lp->ifp->name : "-");
@@ -1557,27 +1525,25 @@ void ospf_mpls_te_lsa_schedule(struct mpls_te_link *lp, enum lsa_opcode opcode)
 					top, OspfMplsTE.interas_areaid);
 			/* Unable to set the area context. Abort! */
 			if (lp->area == NULL) {
-				flog_warn(
-					EC_OSPF_TE_UNEXPECTED,
-					"MPLS-TE (%s): Area context is null. Abort !",
-					__func__);
+				flog_warn(EC_OSPF_TE_UNEXPECTED,
+					  "MPLS-TE (%s): Area context is null. Abort !",
+					  __func__);
 				return;
 			}
 			tmp = SET_OPAQUE_LSID(OPAQUE_TYPE_INTER_AS_LSA,
 					      lp->instance);
 		} else
-			tmp = SET_OPAQUE_LSID(
-				OPAQUE_TYPE_TRAFFIC_ENGINEERING_LSA,
-				lp->instance);
+			tmp = SET_OPAQUE_LSID(OPAQUE_TYPE_TRAFFIC_ENGINEERING_LSA,
+					      lp->instance);
 		lsah.id.s_addr = htonl(tmp);
 	}
 
 	switch (opcode) {
 	case REORIGINATE_THIS_LSA:
 		if (IS_FLOOD_AS(lp->flags)) {
-			ospf_opaque_lsa_reoriginate_schedule(
-				(void *)top, OSPF_OPAQUE_AS_LSA,
-				OPAQUE_TYPE_INTER_AS_LSA);
+			ospf_opaque_lsa_reoriginate_schedule((void *)top,
+							     OSPF_OPAQUE_AS_LSA,
+							     OPAQUE_TYPE_INTER_AS_LSA);
 		} else {
 			if (IS_INTER_AS(lp->type))
 				ospf_opaque_lsa_reoriginate_schedule(
@@ -1599,8 +1565,7 @@ void ospf_mpls_te_lsa_schedule(struct mpls_te_link *lp, enum lsa_opcode opcode)
 		break;
 	default:
 		flog_warn(EC_OSPF_TE_UNEXPECTED,
-			  "MPLS-TE (%s): Unknown opcode (%u)", __func__,
-			  opcode);
+			  "MPLS-TE (%s): Unknown opcode (%u)", __func__, opcode);
 		break;
 	}
 }
@@ -1749,8 +1714,8 @@ static void ospf_te_update_link(struct ls_ted *ted, struct ls_vertex *vertex,
 		edge->source = vertex;
 
 	/* Check if it is just an LSA refresh */
-	if ((CHECK_FLAG(attr->flags, LS_ATTR_METRIC)
-	     && (attr->metric == metric))) {
+	if ((CHECK_FLAG(attr->flags, LS_ATTR_METRIC) &&
+	     (attr->metric == metric))) {
 		edge->status = SYNC;
 		return;
 	}
@@ -1797,8 +1762,8 @@ static void ospf_te_update_subnet(struct ls_ted *ted, struct ls_vertex *vertex,
 		}
 		/* Check if it is a simple refresh */
 		ls_pref = subnet->ls_pref;
-		if ((CHECK_FLAG(ls_pref->flags, LS_PREF_METRIC))
-		    && (ls_pref->metric == metric)) {
+		if ((CHECK_FLAG(ls_pref->flags, LS_PREF_METRIC)) &&
+		    (ls_pref->metric == metric)) {
 			subnet->status = SYNC;
 			return;
 		}
@@ -2061,7 +2026,7 @@ static void ospf_te_update_remote_asbr(struct ls_ted *ted, struct ls_edge *edge)
 	}
 
 	/* Export Link State Vertex if needed */
-	if (vertex->status == NEW  || vertex->status == UPDATE) {
+	if (vertex->status == NEW || vertex->status == UPDATE) {
 		ote_debug("  |- %s Remote Vertex %pI4 for AS %u",
 			  vertex->status == NEW ? "Add" : "Update",
 			  &lnode->router_id, lnode->as_number);
@@ -2103,7 +2068,7 @@ static void ospf_te_update_remote_asbr(struct ls_ted *ted, struct ls_edge *edge)
 	}
 
 	/* ... and Export it if needed */
-	if (vertex->status == NEW  || vertex->status == UPDATE) {
+	if (vertex->status == NEW || vertex->status == UPDATE) {
 		ospf_te_export(LS_MSG_TYPE_NODE, vertex);
 		vertex->status = SYNC;
 	}
@@ -2297,7 +2262,7 @@ static int ospf_te_parse_te(struct ls_ted *ted, struct ospf_lsa *lsa)
 
 	/* If LSA is an Opaque Inter-AS, Add Node and Subnet */
 	lsa_id = GET_OPAQUE_TYPE(ntohl(lsa->data->id.s_addr));
-	if (lsa_id ==  OPAQUE_TYPE_INTER_AS_LSA)
+	if (lsa_id == OPAQUE_TYPE_INTER_AS_LSA)
 		ospf_te_update_remote_asbr(ted, edge);
 
 	/* Update remote Link if remote IP addr is known */
@@ -2384,7 +2349,7 @@ static int ospf_te_delete_te(struct ls_ted *ted, struct ospf_lsa *lsa)
 
 	/* First, remove Remote ASBR and associated Edge & Subnet if any */
 	lsa_id = GET_OPAQUE_TYPE(ntohl(lsa->data->id.s_addr));
-	if (lsa_id ==  OPAQUE_TYPE_INTER_AS_LSA) {
+	if (lsa_id == OPAQUE_TYPE_INTER_AS_LSA) {
 		ote_debug("  |- Delete remote ASBR, Edge and Subnet");
 
 		if (edge->destination) {
@@ -2413,8 +2378,8 @@ static int ospf_te_delete_te(struct ls_ted *ted, struct ospf_lsa *lsa)
 	ls_attributes_srlg_del(attr);
 
 	/* Export Edge that has been updated */
-	if (CHECK_FLAG(attr->flags, LS_ATTR_ADJ_SID)
-	    || CHECK_FLAG(attr->flags, LS_ATTR_BCK_ADJ_SID)) {
+	if (CHECK_FLAG(attr->flags, LS_ATTR_ADJ_SID) ||
+	    CHECK_FLAG(attr->flags, LS_ATTR_BCK_ADJ_SID)) {
 		edge->status = UPDATE;
 		ospf_te_export(LS_MSG_TYPE_ATTRIBUTES, edge);
 		edge->status = SYNC;
@@ -2467,8 +2432,8 @@ static int ospf_te_parse_ri(struct ls_ted *ted, struct ospf_lsa *lsa)
 			algo = (struct ri_sr_tlv_sr_algorithm *)tlvh;
 
 			for (int i = 0; i < ntohs(algo->header.length); i++) {
-				if (CHECK_FLAG(node->flags, LS_NODE_SR)
-				    && (node->algo[i] == algo->value[i]))
+				if (CHECK_FLAG(node->flags, LS_NODE_SR) &&
+				    (node->algo[i] == algo->value[i]))
 					continue;
 
 				node->algo[i] = algo->value[i];
@@ -2479,8 +2444,8 @@ static int ospf_te_parse_ri(struct ls_ted *ted, struct ospf_lsa *lsa)
 
 			/* Reset other Algorithms */
 			for (int i = ntohs(algo->header.length); i < 2; i++) {
-				if (vertex->status != NEW
-				    && node->algo[i] != SR_ALGORITHM_UNSET)
+				if (vertex->status != NEW &&
+				    node->algo[i] != SR_ALGORITHM_UNSET)
 					vertex->status = UPDATE;
 				node->algo[i] = SR_ALGORITHM_UNSET;
 			}
@@ -2491,9 +2456,9 @@ static int ospf_te_parse_ri(struct ls_ted *ted, struct ospf_lsa *lsa)
 			range = (struct ri_sr_tlv_sid_label_range *)tlvh;
 			size = GET_RANGE_SIZE(ntohl(range->size));
 			lower = GET_LABEL(ntohl(range->lower.value));
-			if ((CHECK_FLAG(node->flags, LS_NODE_SR))
-			    && ((node->srgb.range_size == size)
-				&& (node->srgb.lower_bound == lower)))
+			if ((CHECK_FLAG(node->flags, LS_NODE_SR)) &&
+			    ((node->srgb.range_size == size) &&
+			     (node->srgb.lower_bound == lower)))
 				break;
 
 			node->srgb.range_size = size;
@@ -2508,9 +2473,9 @@ static int ospf_te_parse_ri(struct ls_ted *ted, struct ospf_lsa *lsa)
 			range = (struct ri_sr_tlv_sid_label_range *)tlvh;
 			size = GET_RANGE_SIZE(ntohl(range->size));
 			lower = GET_LABEL(ntohl(range->lower.value));
-			if ((CHECK_FLAG(node->flags, LS_NODE_SRLB))
-			    && ((node->srlb.range_size == size)
-				&& (node->srlb.lower_bound == lower)))
+			if ((CHECK_FLAG(node->flags, LS_NODE_SRLB)) &&
+			    ((node->srlb.range_size == size) &&
+			     (node->srlb.lower_bound == lower)))
 				break;
 
 			node->srlb.range_size = size;
@@ -2523,8 +2488,8 @@ static int ospf_te_parse_ri(struct ls_ted *ted, struct ospf_lsa *lsa)
 
 		case RI_SR_TLV_NODE_MSD:
 			msd = (struct ri_sr_tlv_node_msd *)tlvh;
-			if ((CHECK_FLAG(node->flags, LS_NODE_MSD))
-			    && (node->msd == msd->value))
+			if ((CHECK_FLAG(node->flags, LS_NODE_MSD)) &&
+			    (node->msd == msd->value))
 				break;
 
 			node->msd = msd->value;
@@ -2642,17 +2607,17 @@ static int ospf_te_parse_ext_pref(struct ls_ted *ted, struct ospf_lsa *lsa)
 
 	/* Initialize TLV browsing */
 	ls_pref = subnet->ls_pref;
-	pref_sid = (struct ext_subtlv_prefix_sid *)((char *)(ext) + TLV_HDR_SIZE
-						    + EXT_TLV_PREFIX_SIZE);
+	pref_sid =
+		(struct ext_subtlv_prefix_sid *)((char *)(ext) + TLV_HDR_SIZE +
+						 EXT_TLV_PREFIX_SIZE);
 	label = CHECK_FLAG(pref_sid->flags, EXT_SUBTLV_PREFIX_SID_VFLG)
 			? GET_LABEL(ntohl(pref_sid->value))
 			: ntohl(pref_sid->value);
 
 	/* Check if it is a simple refresh */
-	if (CHECK_FLAG(ls_pref->flags, LS_PREF_SR)
-	    && ls_pref->sr.algo == pref_sid->algorithm
-	    && ls_pref->sr.sid_flag == pref_sid->flags
-	    && ls_pref->sr.sid == label)
+	if (CHECK_FLAG(ls_pref->flags, LS_PREF_SR) &&
+	    ls_pref->sr.algo == pref_sid->algorithm &&
+	    ls_pref->sr.sid_flag == pref_sid->flags && ls_pref->sr.sid == label)
 		return 0;
 
 	/* Fulfill SR information */
@@ -2752,8 +2717,8 @@ static int ospf_te_parse_ext_link(struct ls_ted *ted, struct ospf_lsa *lsa)
 
 	/* Initialize TLV browsing */
 	len = TLV_BODY_SIZE(&ext->header) - EXT_TLV_LINK_SIZE;
-	tlvh = (struct tlv_header *)((char *)(ext) + TLV_HDR_SIZE
-				     + EXT_TLV_LINK_SIZE);
+	tlvh = (struct tlv_header *)((char *)(ext) + TLV_HDR_SIZE +
+				     EXT_TLV_LINK_SIZE);
 	for (; sum < len; tlvh = TLV_HDR_NEXT(tlvh)) {
 		struct ext_subtlv_adj_sid *adj;
 		struct ext_subtlv_lan_adj_sid *ladj;
@@ -2766,13 +2731,14 @@ static int ospf_te_parse_ext_link(struct ls_ted *ted, struct ospf_lsa *lsa)
 					   EXT_SUBTLV_LINK_ADJ_SID_VFLG)
 					? GET_LABEL(ntohl(adj->value))
 					: ntohl(adj->value);
-			i = CHECK_FLAG(adj->flags,
-				       EXT_SUBTLV_LINK_ADJ_SID_BFLG) ? 1 : 0;
-			if (((i && CHECK_FLAG(atr->flags, LS_ATTR_BCK_ADJ_SID))
-			     || (!i && CHECK_FLAG(atr->flags, LS_ATTR_ADJ_SID)))
-			    && atr->adj_sid[i].flags == adj->flags
-			    && atr->adj_sid[i].sid == label
-			    && atr->adj_sid[i].weight == adj->weight)
+			i = CHECK_FLAG(adj->flags, EXT_SUBTLV_LINK_ADJ_SID_BFLG)
+				    ? 1
+				    : 0;
+			if (((i && CHECK_FLAG(atr->flags, LS_ATTR_BCK_ADJ_SID)) ||
+			     (!i && CHECK_FLAG(atr->flags, LS_ATTR_ADJ_SID))) &&
+			    atr->adj_sid[i].flags == adj->flags &&
+			    atr->adj_sid[i].sid == label &&
+			    atr->adj_sid[i].weight == adj->weight)
 				break;
 
 			atr->adj_sid[i].flags = adj->flags;
@@ -2792,15 +2758,16 @@ static int ospf_te_parse_ext_link(struct ls_ted *ted, struct ospf_lsa *lsa)
 					   EXT_SUBTLV_LINK_ADJ_SID_VFLG)
 					? GET_LABEL(ntohl(ladj->value))
 					: ntohl(ladj->value);
-			i = CHECK_FLAG(ladj->flags,
-				       EXT_SUBTLV_LINK_ADJ_SID_BFLG) ? 1 : 0;
-			if (((i && CHECK_FLAG(atr->flags, LS_ATTR_BCK_ADJ_SID))
-			     || (!i && CHECK_FLAG(atr->flags, LS_ATTR_ADJ_SID)))
-			    && atr->adj_sid[i].flags == ladj->flags
-			    && atr->adj_sid[i].sid == label
-			    && atr->adj_sid[i].weight == ladj->weight
-			    && IPV4_ADDR_SAME(&atr->adj_sid[1].neighbor.addr,
-					      &ladj->neighbor_id))
+			i = CHECK_FLAG(ladj->flags, EXT_SUBTLV_LINK_ADJ_SID_BFLG)
+				    ? 1
+				    : 0;
+			if (((i && CHECK_FLAG(atr->flags, LS_ATTR_BCK_ADJ_SID)) ||
+			     (!i && CHECK_FLAG(atr->flags, LS_ATTR_ADJ_SID))) &&
+			    atr->adj_sid[i].flags == ladj->flags &&
+			    atr->adj_sid[i].sid == label &&
+			    atr->adj_sid[i].weight == ladj->weight &&
+			    IPV4_ADDR_SAME(&atr->adj_sid[1].neighbor.addr,
+					   &ladj->neighbor_id))
 				break;
 
 			atr->adj_sid[i].flags = ladj->flags;
@@ -2817,9 +2784,8 @@ static int ospf_te_parse_ext_link(struct ls_ted *ted, struct ospf_lsa *lsa)
 			break;
 		case EXT_SUBTLV_RMT_ITF_ADDR:
 			rmt = (struct ext_subtlv_rmt_itf_addr *)tlvh;
-			if (CHECK_FLAG(atr->flags, LS_ATTR_NEIGH_ADDR)
-			    && IPV4_ADDR_SAME(&atr->standard.remote,
-					      &rmt->value))
+			if (CHECK_FLAG(atr->flags, LS_ATTR_NEIGH_ADDR) &&
+			    IPV4_ADDR_SAME(&atr->standard.remote, &rmt->value))
 				break;
 
 			atr->standard.remote = rmt->value;
@@ -3135,7 +3101,6 @@ static void ospf_te_init_ted(struct ls_ted *ted, struct ospf *ospf)
 		LSDB_LOOP (OPAQUE_AS_LSDB(ospf), rn, lsa)
 			ospf_te_parse_opaque_lsa(ted, lsa);
 	}
-
 }
 
 /*------------------------------------------------------------------------*
@@ -3179,9 +3144,8 @@ static uint16_t show_vty_link_header(struct vty *vty, struct tlv_header *tlvh,
 				"    TLV size %d exceeds buffer size. Abort!",
 				TLV_SIZE(tlvh));
 		else
-			zlog_debug(
-				"    TLV size %d exceeds buffer size. Abort!",
-				TLV_SIZE(tlvh));
+			zlog_debug("    TLV size %d exceeds buffer size. Abort!",
+				   TLV_SIZE(tlvh));
 		return buf_size;
 	}
 
@@ -3216,8 +3180,7 @@ static uint16_t show_vty_link_subtlv_link_type(struct vty *vty,
 	}
 
 	if (vty != NULL)
-		vty_out(vty, "  Link-Type: %s (%u)\n", cp,
-			top->link_type.value);
+		vty_out(vty, "  Link-Type: %s (%u)\n", cp, top->link_type.value);
 	else
 		zlog_debug("    Link-Type: %s (%u)", cp, top->link_type.value);
 
@@ -3253,9 +3216,8 @@ static uint16_t show_vty_link_subtlv_lclif_ipaddr(struct vty *vty,
 				"    TLV size %d exceeds buffer size. Abort!",
 				TLV_SIZE(tlvh));
 		else
-			zlog_debug(
-				"    TLV size %d exceeds buffer size. Abort!",
-				TLV_SIZE(tlvh));
+			zlog_debug("    TLV size %d exceeds buffer size. Abort!",
+				   TLV_SIZE(tlvh));
 		return buf_size;
 	}
 
@@ -3289,9 +3251,8 @@ static uint16_t show_vty_link_subtlv_rmtif_ipaddr(struct vty *vty,
 				"    TLV size %d exceeds buffer size. Abort!",
 				TLV_SIZE(tlvh));
 		else
-			zlog_debug(
-				"    TLV size %d exceeds buffer size. Abort!",
-				TLV_SIZE(tlvh));
+			zlog_debug("    TLV size %d exceeds buffer size. Abort!",
+				   TLV_SIZE(tlvh));
 		return buf_size;
 	}
 
@@ -3383,8 +3344,7 @@ static uint16_t show_vty_link_subtlv_unrsv_bw(struct vty *vty,
 		vty_out(vty,
 			"  Unreserved Bandwidth per Class Type in Byte/s:\n");
 	else
-		zlog_debug(
-			"    Unreserved Bandwidth per Class Type in Byte/s:");
+		zlog_debug("    Unreserved Bandwidth per Class Type in Byte/s:");
 	for (i = 0; i < MAX_CLASS_TYPE; i += 2) {
 		fval1 = ntohf(top->value[i]);
 		fval2 = ntohf(top->value[i + 1]);
@@ -3394,9 +3354,8 @@ static uint16_t show_vty_link_subtlv_unrsv_bw(struct vty *vty,
 				"    [%d]: %g (Bytes/sec),\t[%d]: %g (Bytes/sec)\n",
 				i, fval1, i + 1, fval2);
 		else
-			zlog_debug(
-				"      [%d]: %g (Bytes/sec),  [%d]: %g (Bytes/sec)",
-				i, fval1, i + 1, fval2);
+			zlog_debug("      [%d]: %g (Bytes/sec),  [%d]: %g (Bytes/sec)",
+				   i, fval1, i + 1, fval2);
 	}
 
 	return TLV_SIZE(tlvh);
@@ -3430,15 +3389,11 @@ static uint16_t show_vty_link_subtlv_lrrid(struct vty *vty,
 	top = (struct te_link_subtlv_lrrid *)tlvh;
 
 	if (vty != NULL) {
-		vty_out(vty, "  Local  TE Router ID: %pI4\n",
-			&top->local);
-		vty_out(vty, "  Remote TE Router ID: %pI4\n",
-			&top->remote);
+		vty_out(vty, "  Local  TE Router ID: %pI4\n", &top->local);
+		vty_out(vty, "  Remote TE Router ID: %pI4\n", &top->remote);
 	} else {
-		zlog_debug("    Local  TE Router ID: %pI4",
-			   &top->local);
-		zlog_debug("    Remote TE Router ID: %pI4",
-			   &top->remote);
+		zlog_debug("    Local  TE Router ID: %pI4", &top->local);
+		zlog_debug("    Remote TE Router ID: %pI4", &top->remote);
 	}
 
 	return TLV_SIZE(tlvh);
@@ -3613,9 +3568,8 @@ static uint16_t show_vty_link_subtlv_res_bw(struct vty *vty,
 			"  Unidirectional Residual Bandwidth: %g (Bytes/sec)\n",
 			fval);
 	else
-		zlog_debug(
-			"    Unidirectional Residual Bandwidth: %g (Bytes/sec)",
-			fval);
+		zlog_debug("    Unidirectional Residual Bandwidth: %g (Bytes/sec)",
+			   fval);
 
 	return TLV_SIZE(tlvh);
 }
@@ -3636,9 +3590,8 @@ static uint16_t show_vty_link_subtlv_ava_bw(struct vty *vty,
 			"  Unidirectional Available Bandwidth: %g (Bytes/sec)\n",
 			fval);
 	else
-		zlog_debug(
-			"    Unidirectional Available Bandwidth: %g (Bytes/sec)",
-			fval);
+		zlog_debug("    Unidirectional Available Bandwidth: %g (Bytes/sec)",
+			   fval);
 
 	return TLV_SIZE(tlvh);
 }
@@ -3659,9 +3612,8 @@ static uint16_t show_vty_link_subtlv_use_bw(struct vty *vty,
 			"  Unidirectional Utilized Bandwidth: %g (Bytes/sec)\n",
 			fval);
 	else
-		zlog_debug(
-			"    Unidirectional Utilized Bandwidth: %g (Bytes/sec)",
-			fval);
+		zlog_debug("    Unidirectional Utilized Bandwidth: %g (Bytes/sec)",
+			   fval);
 
 	return TLV_SIZE(tlvh);
 }
@@ -3675,9 +3627,8 @@ static uint16_t show_vty_unknown_tlv(struct vty *vty, struct tlv_header *tlvh,
 				"    TLV size %d exceeds buffer size. Abort!",
 				TLV_SIZE(tlvh));
 		else
-			zlog_debug(
-				"    TLV size %d exceeds buffer size. Abort!",
-				TLV_SIZE(tlvh));
+			zlog_debug("    TLV size %d exceeds buffer size. Abort!",
+				   TLV_SIZE(tlvh));
 		return buf_size;
 	}
 
@@ -3835,11 +3786,8 @@ static void ospf_mpls_te_config_write_router(struct vty *vty)
  * Following are vty command functions.
  *------------------------------------------------------------------------*/
 
-DEFUN (ospf_mpls_te_on,
-       ospf_mpls_te_on_cmd,
-       "mpls-te on",
-       MPLS_TE_STR
-       "Enable the MPLS-TE functionality\n")
+DEFUN(ospf_mpls_te_on, ospf_mpls_te_on_cmd, "mpls-te on",
+      MPLS_TE_STR "Enable the MPLS-TE functionality\n")
 {
 	VTY_DECLVAR_INSTANCE_CONTEXT(ospf, ospf);
 	struct listnode *node;
@@ -3883,12 +3831,8 @@ DEFUN (ospf_mpls_te_on,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_ospf_mpls_te,
-       no_ospf_mpls_te_cmd,
-       "no mpls-te [on]",
-       NO_STR
-       MPLS_TE_STR
-       "Disable the MPLS-TE functionality\n")
+DEFUN(no_ospf_mpls_te, no_ospf_mpls_te_cmd, "no mpls-te [on]",
+      NO_STR MPLS_TE_STR "Disable the MPLS-TE functionality\n")
 {
 	VTY_DECLVAR_INSTANCE_CONTEXT(ospf, ospf);
 	struct listnode *node, *nnode;
@@ -3918,12 +3862,11 @@ DEFUN (no_ospf_mpls_te,
 	return CMD_SUCCESS;
 }
 
-DEFUN (ospf_mpls_te_router_addr,
-       ospf_mpls_te_router_addr_cmd,
-       "mpls-te router-address A.B.C.D",
-       MPLS_TE_STR
-       "Stable IP address of the advertising router\n"
-       "MPLS-TE router address in IPv4 address format\n")
+DEFUN(ospf_mpls_te_router_addr, ospf_mpls_te_router_addr_cmd,
+      "mpls-te router-address A.B.C.D",
+      MPLS_TE_STR
+      "Stable IP address of the advertising router\n"
+      "MPLS-TE router address in IPv4 address format\n")
 {
 	VTY_DECLVAR_INSTANCE_CONTEXT(ospf, ospf);
 	int idx_ipv4 = 2;
@@ -3935,8 +3878,8 @@ DEFUN (ospf_mpls_te_router_addr,
 		return CMD_WARNING;
 	}
 
-	if (ntohs(ra->header.type) == 0
-	    || ntohl(ra->value.s_addr) != ntohl(value.s_addr)) {
+	if (ntohs(ra->header.type) == 0 ||
+	    ntohl(ra->value.s_addr) != ntohl(value.s_addr)) {
 		struct listnode *node, *nnode;
 		struct mpls_te_link *lp;
 		int need_to_reoriginate = 0;
@@ -3997,17 +3940,15 @@ static int set_inter_as_mode(struct vty *vty, const char *mode_name,
 			return CMD_WARNING;
 		}
 
-		ote_debug(
-			"MPLS-TE (%s): Inter-AS enable with %s flooding support",
-			__func__, mode2text[mode]);
+		ote_debug("MPLS-TE (%s): Inter-AS enable with %s flooding support",
+			  __func__, mode2text[mode]);
 
 		/* Enable mode and re-originate LSA if needed */
-		if ((OspfMplsTE.inter_as == Off)
-		    && (mode != OspfMplsTE.inter_as)) {
+		if ((OspfMplsTE.inter_as == Off) &&
+		    (mode != OspfMplsTE.inter_as)) {
 			OspfMplsTE.inter_as = mode;
 			/* Re-originate all InterAS-TEv2 LSA */
-			for (ALL_LIST_ELEMENTS_RO(OspfMplsTE.iflist, node,
-						  lp)) {
+			for (ALL_LIST_ELEMENTS_RO(OspfMplsTE.iflist, node, lp)) {
 				if (IS_INTER_AS(lp->type)) {
 					if (mode == AS)
 						SET_FLAG(lp->flags,
@@ -4015,8 +3956,8 @@ static int set_inter_as_mode(struct vty *vty, const char *mode_name,
 					else
 						UNSET_FLAG(lp->flags,
 							   LPFLG_LSA_FLOOD_AS);
-					ospf_mpls_te_lsa_schedule(
-						lp, REORIGINATE_THIS_LSA);
+					ospf_mpls_te_lsa_schedule(lp,
+								  REORIGINATE_THIS_LSA);
 				}
 			}
 		} else {
@@ -4033,35 +3974,29 @@ static int set_inter_as_mode(struct vty *vty, const char *mode_name,
 }
 
 
-DEFUN (ospf_mpls_te_inter_as_as,
-       ospf_mpls_te_inter_as_cmd,
-       "mpls-te inter-as as",
-       MPLS_TE_STR
-       "Configure MPLS-TE Inter-AS support\n"
-       "AS native mode self originate INTER_AS LSA with Type 11 (as flooding scope)\n")
+DEFUN(ospf_mpls_te_inter_as_as, ospf_mpls_te_inter_as_cmd, "mpls-te inter-as as",
+      MPLS_TE_STR
+      "Configure MPLS-TE Inter-AS support\n"
+      "AS native mode self originate INTER_AS LSA with Type 11 (as flooding scope)\n")
 {
 	return set_inter_as_mode(vty, "as", "");
 }
 
-DEFUN (ospf_mpls_te_inter_as_area,
-       ospf_mpls_te_inter_as_area_cmd,
-       "mpls-te inter-as area <A.B.C.D|(0-4294967295)>",
-       MPLS_TE_STR
-       "Configure MPLS-TE Inter-AS support\n"
-       "AREA native mode self originate INTER_AS LSA with Type 10 (area flooding scope)\n"
-       "OSPF area ID in IP format\n"
-       "OSPF area ID as decimal value\n")
+DEFUN(ospf_mpls_te_inter_as_area, ospf_mpls_te_inter_as_area_cmd,
+      "mpls-te inter-as area <A.B.C.D|(0-4294967295)>",
+      MPLS_TE_STR
+      "Configure MPLS-TE Inter-AS support\n"
+      "AREA native mode self originate INTER_AS LSA with Type 10 (area flooding scope)\n"
+      "OSPF area ID in IP format\n"
+      "OSPF area ID as decimal value\n")
 {
 	int idx_ipv4_number = 3;
 	return set_inter_as_mode(vty, "area", argv[idx_ipv4_number]->arg);
 }
 
-DEFUN (no_ospf_mpls_te_inter_as,
-       no_ospf_mpls_te_inter_as_cmd,
-       "no mpls-te inter-as",
-       NO_STR
-       MPLS_TE_STR
-       "Disable MPLS-TE Inter-AS support\n")
+DEFUN(no_ospf_mpls_te_inter_as, no_ospf_mpls_te_inter_as_cmd,
+      "no mpls-te inter-as",
+      NO_STR MPLS_TE_STR "Disable MPLS-TE Inter-AS support\n")
 {
 
 	struct listnode *node, *nnode;
@@ -4072,8 +4007,8 @@ DEFUN (no_ospf_mpls_te_inter_as,
 	if ((OspfMplsTE.enabled) && (OspfMplsTE.inter_as != Off)) {
 		/* Flush all Inter-AS LSA */
 		for (ALL_LIST_ELEMENTS(OspfMplsTE.iflist, node, nnode, lp))
-			if (IS_INTER_AS(lp->type)
-			    && CHECK_FLAG(lp->flags, LPFLG_LSA_ENGAGED))
+			if (IS_INTER_AS(lp->type) &&
+			    CHECK_FLAG(lp->flags, LPFLG_LSA_ENGAGED))
 				ospf_mpls_te_lsa_schedule(lp, FLUSH_THIS_LSA);
 
 		OspfMplsTE.inter_as = Off;
@@ -4082,11 +4017,8 @@ DEFUN (no_ospf_mpls_te_inter_as,
 	return CMD_SUCCESS;
 }
 
-DEFUN (ospf_mpls_te_export,
-       ospf_mpls_te_export_cmd,
-       "mpls-te export",
-       MPLS_TE_STR
-       "Export the MPLS-TE information as Link State\n")
+DEFUN(ospf_mpls_te_export, ospf_mpls_te_export_cmd, "mpls-te export",
+      MPLS_TE_STR "Export the MPLS-TE information as Link State\n")
 {
 
 	VTY_DECLVAR_INSTANCE_CONTEXT(ospf, ospf);
@@ -4105,12 +4037,9 @@ DEFUN (ospf_mpls_te_export,
 }
 
 
-DEFUN (no_ospf_mpls_te_export,
-       no_ospf_mpls_te_export_cmd,
-       "no mpls-te export",
-       NO_STR
-       MPLS_TE_STR
-       "Stop export of the MPLS-TE information as Link State\n")
+DEFUN(no_ospf_mpls_te_export, no_ospf_mpls_te_export_cmd, "no mpls-te export",
+      NO_STR MPLS_TE_STR
+      "Stop export of the MPLS-TE information as Link State\n")
 {
 
 	VTY_DECLVAR_INSTANCE_CONTEXT(ospf, ospf);
@@ -4125,14 +4054,11 @@ DEFUN (no_ospf_mpls_te_export,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_ip_ospf_mpls_te_router,
-       show_ip_ospf_mpls_te_router_cmd,
-       "show ip ospf mpls-te router",
-       SHOW_STR
-       IP_STR
-       OSPF_STR
-       "MPLS-TE information\n"
-       "MPLS-TE Router parameters\n")
+DEFUN(show_ip_ospf_mpls_te_router, show_ip_ospf_mpls_te_router_cmd,
+      "show ip ospf mpls-te router",
+      SHOW_STR IP_STR OSPF_STR
+      "MPLS-TE information\n"
+      "MPLS-TE Router parameters\n")
 {
 	if (OspfMplsTE.enabled) {
 		vty_out(vty, "--- MPLS-TE router parameters ---\n");
@@ -4152,9 +4078,9 @@ static void show_mpls_te_link_sub(struct vty *vty, struct interface *ifp)
 {
 	struct mpls_te_link *lp;
 
-	if ((OspfMplsTE.enabled) && HAS_LINK_PARAMS(ifp) && !if_is_loopback(ifp)
-	    && if_is_up(ifp)
-	    && ((lp = lookup_linkparams_by_ifp(ifp)) != NULL)) {
+	if ((OspfMplsTE.enabled) && HAS_LINK_PARAMS(ifp) &&
+	    !if_is_loopback(ifp) && if_is_up(ifp) &&
+	    ((lp = lookup_linkparams_by_ifp(ifp)) != NULL)) {
 		/* Continue only if interface is not passive or support Inter-AS
 		 * TEv2 */
 		if (!(ospf_oi_count(ifp) > 0)) {
@@ -4182,13 +4108,15 @@ static void show_mpls_te_link_sub(struct vty *vty, struct interface *ifp)
 		if (TLV_TYPE(lp->link_id) != 0)
 			show_vty_link_subtlv_link_id(vty, &lp->link_id.header);
 		if (TLV_TYPE(lp->lclif_ipaddr) != 0)
-			show_vty_link_subtlv_lclif_ipaddr(
-				vty, &lp->lclif_ipaddr.header,
-				lp->lclif_ipaddr.header.length);
+			show_vty_link_subtlv_lclif_ipaddr(vty,
+							  &lp->lclif_ipaddr.header,
+							  lp->lclif_ipaddr
+								  .header.length);
 		if (TLV_TYPE(lp->rmtif_ipaddr) != 0)
-			show_vty_link_subtlv_rmtif_ipaddr(
-				vty, &lp->rmtif_ipaddr.header,
-				lp->rmtif_ipaddr.header.length);
+			show_vty_link_subtlv_rmtif_ipaddr(vty,
+							  &lp->rmtif_ipaddr.header,
+							  lp->rmtif_ipaddr
+								  .header.length);
 		if (TLV_TYPE(lp->rip) != 0)
 			show_vty_link_subtlv_rip(vty, &lp->rip.header);
 		if (TLV_TYPE(lp->ras) != 0)
@@ -4202,23 +4130,19 @@ static void show_mpls_te_link_sub(struct vty *vty, struct interface *ifp)
 			show_vty_link_subtlv_max_rsv_bw(vty,
 							&lp->max_rsv_bw.header);
 		if (TLV_TYPE(lp->unrsv_bw) != 0)
-			show_vty_link_subtlv_unrsv_bw(vty,
-						      &lp->unrsv_bw.header);
+			show_vty_link_subtlv_unrsv_bw(vty, &lp->unrsv_bw.header);
 		if (TLV_TYPE(lp->rsc_clsclr) != 0)
 			show_vty_link_subtlv_rsc_clsclr(vty,
 							&lp->rsc_clsclr.header);
 		if (TLV_TYPE(lp->av_delay) != 0)
-			show_vty_link_subtlv_av_delay(vty,
-						      &lp->av_delay.header);
+			show_vty_link_subtlv_av_delay(vty, &lp->av_delay.header);
 		if (TLV_TYPE(lp->mm_delay) != 0)
-			show_vty_link_subtlv_mm_delay(vty,
-						      &lp->mm_delay.header);
+			show_vty_link_subtlv_mm_delay(vty, &lp->mm_delay.header);
 		if (TLV_TYPE(lp->delay_var) != 0)
 			show_vty_link_subtlv_delay_var(vty,
 						       &lp->delay_var.header);
 		if (TLV_TYPE(lp->pkt_loss) != 0)
-			show_vty_link_subtlv_pkt_loss(vty,
-						      &lp->pkt_loss.header);
+			show_vty_link_subtlv_pkt_loss(vty, &lp->pkt_loss.header);
 		if (TLV_TYPE(lp->res_bw) != 0)
 			show_vty_link_subtlv_res_bw(vty, &lp->res_bw.header);
 		if (TLV_TYPE(lp->ava_bw) != 0)
@@ -4234,15 +4158,12 @@ static void show_mpls_te_link_sub(struct vty *vty, struct interface *ifp)
 	return;
 }
 
-DEFUN (show_ip_ospf_mpls_te_link,
-       show_ip_ospf_mpls_te_link_cmd,
-       "show ip ospf mpls-te interface [INTERFACE]",
-       SHOW_STR
-       IP_STR
-       OSPF_STR
-       "MPLS-TE information\n"
-       "Interface information\n"
-       "Interface name\n")
+DEFUN(show_ip_ospf_mpls_te_link, show_ip_ospf_mpls_te_link_cmd,
+      "show ip ospf mpls-te interface [INTERFACE]",
+      SHOW_STR IP_STR OSPF_STR
+      "MPLS-TE information\n"
+      "Interface information\n"
+      "Interface name\n")
 {
 	struct vrf *vrf;
 	int idx_interface = 0;
@@ -4275,24 +4196,20 @@ DEFUN (show_ip_ospf_mpls_te_link,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_ip_ospf_mpls_te_db,
-       show_ip_ospf_mpls_te_db_cmd,
-       "show ip ospf mpls-te database [<vertex [<self-originate|adv-router A.B.C.D>]|edge [A.B.C.D]|subnet [A.B.C.D/M]>] [verbose|json]",
-       SHOW_STR
-       IP_STR
-       OSPF_STR
-       "MPLS-TE information\n"
-       "MPLS-TE database\n"
-       "MPLS-TE Vertex\n"
-       "Self-originated MPLS-TE router\n"
-       "Advertised MPLS-TE router\n"
-       "MPLS-TE router ID (as an IP address)\n"
-       "MPLS-TE Edge\n"
-       "MPLS-TE Edge ID (as an IP address)\n"
-       "MPLS-TE Subnet\n"
-       "MPLS-TE Subnet ID (as an IP prefix)\n"
-       "Verbose output\n"
-       JSON_STR)
+DEFUN(show_ip_ospf_mpls_te_db, show_ip_ospf_mpls_te_db_cmd,
+      "show ip ospf mpls-te database [<vertex [<self-originate|adv-router A.B.C.D>]|edge [A.B.C.D]|subnet [A.B.C.D/M]>] [verbose|json]",
+      SHOW_STR IP_STR OSPF_STR
+      "MPLS-TE information\n"
+      "MPLS-TE database\n"
+      "MPLS-TE Vertex\n"
+      "Self-originated MPLS-TE router\n"
+      "Advertised MPLS-TE router\n"
+      "MPLS-TE router ID (as an IP address)\n"
+      "MPLS-TE Edge\n"
+      "MPLS-TE Edge ID (as an IP address)\n"
+      "MPLS-TE Subnet\n"
+      "MPLS-TE Subnet ID (as an IP prefix)\n"
+      "Verbose output\n" JSON_STR)
 {
 	int idx = 0;
 	struct in_addr ip_addr;
@@ -4349,8 +4266,7 @@ DEFUN (show_ip_ospf_mpls_te_db,
 		/* Show Edge */
 		if (argv_find(argv, argc, "A.B.C.D", &idx)) {
 			if (!inet_aton(argv[idx]->arg, &ip_addr)) {
-				vty_out(vty,
-					"Specified Edge ID %s is invalid\n",
+				vty_out(vty, "Specified Edge ID %s is invalid\n",
 					argv[idx]->arg);
 				return CMD_WARNING_CONFIG_FAILED;
 			}

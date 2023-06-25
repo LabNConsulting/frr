@@ -181,8 +181,7 @@ void zebra_tc_qdisc_install(struct zebra_tc_qdisc *qdisc)
 			XFREE(MTYPE_TC_QDISC, old);
 		}
 	} else {
-		new = hash_get(zrouter.qdisc_hash, qdisc,
-			       tc_qdisc_alloc_intern);
+		new = hash_get(zrouter.qdisc_hash, qdisc, tc_qdisc_alloc_intern);
 		(void)dplane_tc_qdisc_install(new);
 	}
 }
@@ -272,12 +271,11 @@ static struct zebra_tc_class *tc_class_release(struct zebra_tc_class *class,
 void zebra_tc_class_add(struct zebra_tc_class *class)
 {
 	if (IS_ZEBRA_DEBUG_TC)
-		zlog_debug(
-			"%s: add tc class ifindex %d handle %04x:%04x kind %s",
-			__func__, class->class.ifindex,
-			(class->class.handle & 0xffff0000u) >> 16,
-			class->class.handle & 0x0000ffffu,
-			tc_qdisc_kind2str(class->class.kind));
+		zlog_debug("%s: add tc class ifindex %d handle %04x:%04x kind %s",
+			   __func__, class->class.ifindex,
+			   (class->class.handle & 0xffff0000u) >> 16,
+			   class->class.handle & 0x0000ffffu,
+			   tc_qdisc_kind2str(class->class.kind));
 
 	struct zebra_tc_class *found;
 	struct zebra_tc_class *new;
@@ -301,12 +299,11 @@ void zebra_tc_class_add(struct zebra_tc_class *class)
 void zebra_tc_class_delete(struct zebra_tc_class *class)
 {
 	if (IS_ZEBRA_DEBUG_TC)
-		zlog_debug(
-			"%s: delete tc class ifindex %d handle %04x:%04x kind %s",
-			__func__, class->class.ifindex,
-			(class->class.handle & 0xffff0000u) >> 16,
-			class->class.handle & 0x0000ffffu,
-			tc_qdisc_kind2str(class->class.kind));
+		zlog_debug("%s: delete tc class ifindex %d handle %04x:%04x kind %s",
+			   __func__, class->class.ifindex,
+			   (class->class.handle & 0xffff0000u) >> 16,
+			   class->class.handle & 0x0000ffffu,
+			   tc_qdisc_kind2str(class->class.kind));
 
 	(void)dplane_tc_class_delete(class);
 
@@ -396,11 +393,10 @@ static void *tc_filter_alloc_intern(void *arg)
 void zebra_tc_filter_add(struct zebra_tc_filter *filter)
 {
 	if (IS_ZEBRA_DEBUG_TC)
-		zlog_debug(
-			"%s: add tc filter ifindex %d priority %u handle %08x kind %s",
-			__func__, filter->filter.ifindex,
-			filter->filter.priority, filter->filter.handle,
-			tc_filter_kind2str(filter->filter.kind));
+		zlog_debug("%s: add tc filter ifindex %d priority %u handle %08x kind %s",
+			   __func__, filter->filter.ifindex,
+			   filter->filter.priority, filter->filter.handle,
+			   tc_filter_kind2str(filter->filter.kind));
 
 	struct zebra_tc_filter *found;
 	struct zebra_tc_filter *new;
@@ -417,11 +413,10 @@ void zebra_tc_filter_add(struct zebra_tc_filter *filter)
 void zebra_tc_filter_delete(struct zebra_tc_filter *filter)
 {
 	if (IS_ZEBRA_DEBUG_PBR)
-		zlog_debug(
-			"%s: delete tc filter ifindex %d priority %u handle %08x kind %s",
-			__func__, filter->filter.ifindex,
-			filter->filter.priority, filter->filter.handle,
-			tc_filter_kind2str(filter->filter.kind));
+		zlog_debug("%s: delete tc filter ifindex %d priority %u handle %08x kind %s",
+			   __func__, filter->filter.ifindex,
+			   filter->filter.priority, filter->filter.handle,
+			   tc_filter_kind2str(filter->filter.kind));
 
 	(void)dplane_tc_filter_delete(filter);
 

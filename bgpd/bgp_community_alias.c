@@ -60,8 +60,8 @@ static void *bgp_community_alias_alloc(void *p)
 void bgp_community_alias_init(void)
 {
 	bgp_ca_community_hash = hash_create(bgp_ca_community_hash_key,
-					       bgp_ca_community_hash_cmp,
-					       "BGP community alias (community)");
+					    bgp_ca_community_hash_cmp,
+					    "BGP community alias (community)");
 	bgp_ca_alias_hash =
 		hash_create(bgp_ca_alias_hash_key, bgp_ca_alias_hash_cmp,
 			    "BGP community alias (alias)");
@@ -203,12 +203,12 @@ static void bgp_community_alias_cmd_completion(vector comps,
 	hash_walk(bgp_ca_alias_hash, bgp_community_alias_vector_walker, &comps);
 }
 
-static const struct cmd_variable_handler community_alias_handlers[] = {
-	{.varname = "alias_name",
-	 .completions = bgp_community_alias_cmd_completion},
-	{.tokenname = "ALIAS_NAME",
-	 .completions = bgp_community_alias_cmd_completion},
-	{.completions = NULL}};
+static const struct cmd_variable_handler community_alias_handlers[] =
+	{{.varname = "alias_name",
+	  .completions = bgp_community_alias_cmd_completion},
+	 {.tokenname = "ALIAS_NAME",
+	  .completions = bgp_community_alias_cmd_completion},
+	 {.completions = NULL}};
 
 void bgp_community_alias_command_completion_setup(void)
 {

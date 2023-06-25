@@ -139,8 +139,8 @@ static struct cmd_node rpki_node = {
 	.config_write = config_write,
 	.node_exit = config_on_exit,
 };
-static const struct route_map_rule_cmd route_match_rpki_cmd = {
-	"rpki", route_match, route_match_compile, route_match_free};
+static const struct route_map_rule_cmd route_match_rpki_cmd =
+	{"rpki", route_match, route_match_compile, route_match_free};
 
 static void *malloc_wrapper(size_t size)
 {
@@ -160,24 +160,20 @@ static void free_wrapper(void *ptr)
 static void init_tr_socket(struct cache *cache)
 {
 	if (cache->type == TCP)
-		tr_tcp_init(cache->tr_config.tcp_config,
-			    cache->tr_socket);
+		tr_tcp_init(cache->tr_config.tcp_config, cache->tr_socket);
 #if defined(FOUND_SSH)
 	else
-		tr_ssh_init(cache->tr_config.ssh_config,
-			    cache->tr_socket);
+		tr_ssh_init(cache->tr_config.ssh_config, cache->tr_socket);
 #endif
 }
 
 static void free_tr_socket(struct cache *cache)
 {
 	if (cache->type == TCP)
-		tr_tcp_init(cache->tr_config.tcp_config,
-			    cache->tr_socket);
+		tr_tcp_init(cache->tr_config.tcp_config, cache->tr_socket);
 #if defined(FOUND_SSH)
 	else
-		tr_ssh_init(cache->tr_config.ssh_config,
-			    cache->tr_socket);
+		tr_ssh_init(cache->tr_config.ssh_config, cache->tr_socket);
 #endif
 }
 
@@ -200,17 +196,16 @@ static void ipv6_addr_to_host_byte_order(const uint32_t *src, uint32_t *dest)
 		dest[i] = ntohl(src[i]);
 }
 
-static enum route_map_cmd_result_t route_match(void *rule,
-					       const struct prefix *prefix,
-					       void *object)
+static enum route_map_cmd_result_t
+route_match(void *rule, const struct prefix *prefix, void *object)
 {
 	int *rpki_status = rule;
 	struct bgp_path_info *path;
 
 	path = object;
 
-	if (rpki_validate_prefix(path->peer, path->attr, prefix)
-	    == *rpki_status) {
+	if (rpki_validate_prefix(path->peer, path->attr, prefix) ==
+	    *rpki_status) {
 		return RMAP_MATCH;
 	}
 
@@ -529,10 +524,10 @@ static void revalidate_all_routes(void)
 				rvp->afi = afi;
 				rvp->safi = safi;
 
-				event_add_event(
-					bm->master, bgp_rpki_revalidate_peer,
-					rvp, 0,
-					&peer->t_revalidate_all[afi][safi]);
+				event_add_event(bm->master,
+						bgp_rpki_revalidate_peer, rvp, 0,
+						&peer->t_revalidate_all[afi]
+								       [safi]);
 			}
 		}
 	}
@@ -588,7 +583,6 @@ static void rpki_init_sync_socket(void)
 err:
 	zlog_err("RPKI: %s", msg);
 	abort();
-
 }
 
 static int bgp_rpki_init(struct event_loop *master)
@@ -849,8 +843,8 @@ static int rpki_validate_prefix(struct peer *peer, struct attr *attr,
 		if (as_segment->type == AS_SEQUENCE) {
 			// Get rightmost asn
 			as_number = as_segment->as[as_segment->length - 1];
-		} else if (as_segment->type == AS_CONFED_SEQUENCE
-			   || as_segment->type == AS_CONFED_SET) {
+		} else if (as_segment->type == AS_CONFED_SEQUENCE ||
+			   as_segment->type == AS_CONFED_SET) {
 			// Set own as number
 			as_number = peer->bgp->as;
 		} else {
@@ -884,24 +878,20 @@ static int rpki_validate_prefix(struct peer *peer, struct attr *attr,
 	// Print Debug output
 	switch (result) {
 	case BGP_PFXV_STATE_VALID:
-		RPKI_DEBUG(
-			"Validating Prefix %pFX from asn %u    Result: VALID",
-			prefix, as_number);
+		RPKI_DEBUG("Validating Prefix %pFX from asn %u    Result: VALID",
+			   prefix, as_number);
 		return RPKI_VALID;
 	case BGP_PFXV_STATE_NOT_FOUND:
-		RPKI_DEBUG(
-			"Validating Prefix %pFX from asn %u    Result: NOT FOUND",
-			prefix, as_number);
+		RPKI_DEBUG("Validating Prefix %pFX from asn %u    Result: NOT FOUND",
+			   prefix, as_number);
 		return RPKI_NOTFOUND;
 	case BGP_PFXV_STATE_INVALID:
-		RPKI_DEBUG(
-			"Validating Prefix %pFX from asn %u    Result: INVALID",
-			prefix, as_number);
+		RPKI_DEBUG("Validating Prefix %pFX from asn %u    Result: INVALID",
+			   prefix, as_number);
 		return RPKI_INVALID;
 	default:
-		RPKI_DEBUG(
-			"Validating Prefix %pFX from asn %u    Result: CANNOT VALIDATE",
-			prefix, as_number);
+		RPKI_DEBUG("Validating Prefix %pFX from asn %u    Result: CANNOT VALIDATE",
+			   prefix, as_number);
 		break;
 	}
 	return RPKI_NOT_BEING_USED;
@@ -1065,8 +1055,7 @@ static int config_write(struct vty *vty)
 			vty_out(vty, " rpki cache %s %s ", tcp_config->host,
 				tcp_config->port);
 			if (tcp_config->bindaddr)
-				vty_out(vty, "source %s ",
-					tcp_config->bindaddr);
+				vty_out(vty, "source %s ", tcp_config->bindaddr);
 			break;
 #if defined(FOUND_SSH)
 		case SSH:
@@ -1079,8 +1068,7 @@ static int config_write(struct vty *vty)
 					? ssh_config->server_hostkey_path
 					: " ");
 			if (ssh_config->bindaddr)
-				vty_out(vty, "source %s ",
-					ssh_config->bindaddr);
+				vty_out(vty, "source %s ", ssh_config->bindaddr);
 			break;
 #endif
 		default:
@@ -1094,31 +1082,23 @@ static int config_write(struct vty *vty)
 	return 1;
 }
 
-DEFUN_NOSH (rpki,
-	    rpki_cmd,
-	    "rpki",
-	    "Enable rpki and enter rpki configuration mode\n")
+DEFUN_NOSH(rpki, rpki_cmd, "rpki",
+	   "Enable rpki and enter rpki configuration mode\n")
 {
 	vty->node = RPKI_NODE;
 	return CMD_SUCCESS;
 }
 
-DEFPY (no_rpki,
-       no_rpki_cmd,
-       "no rpki",
-       NO_STR
-       "Enable rpki and enter rpki configuration mode\n")
+DEFPY(no_rpki, no_rpki_cmd, "no rpki",
+      NO_STR "Enable rpki and enter rpki configuration mode\n")
 {
 	rpki_delete_all_cache_nodes();
 	stop();
 	return CMD_SUCCESS;
 }
 
-DEFUN (bgp_rpki_start,
-       bgp_rpki_start_cmd,
-       "rpki start",
-       RPKI_OUTPUT_STRING
-       "start rpki support\n")
+DEFUN(bgp_rpki_start, bgp_rpki_start_cmd, "rpki start",
+      RPKI_OUTPUT_STRING "start rpki support\n")
 {
 	if (listcount(cache_list) == 0)
 		vty_out(vty,
@@ -1133,11 +1113,8 @@ DEFUN (bgp_rpki_start,
 	return CMD_SUCCESS;
 }
 
-DEFUN (bgp_rpki_stop,
-       bgp_rpki_stop_cmd,
-       "rpki stop",
-       RPKI_OUTPUT_STRING
-       "start rpki support\n")
+DEFUN(bgp_rpki_stop, bgp_rpki_stop_cmd, "rpki stop",
+      RPKI_OUTPUT_STRING "start rpki support\n")
 {
 	if (is_running())
 		stop();
@@ -1145,35 +1122,31 @@ DEFUN (bgp_rpki_stop,
 	return CMD_SUCCESS;
 }
 
-DEFPY (rpki_polling_period,
-       rpki_polling_period_cmd,
-       "rpki polling_period (1-86400)$pp",
-       RPKI_OUTPUT_STRING
-       "Set polling period\n"
-       "Polling period value\n")
+DEFPY(rpki_polling_period, rpki_polling_period_cmd,
+      "rpki polling_period (1-86400)$pp",
+      RPKI_OUTPUT_STRING
+      "Set polling period\n"
+      "Polling period value\n")
 {
 	polling_period = pp;
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_rpki_polling_period,
-       no_rpki_polling_period_cmd,
-       "no rpki polling_period [(1-86400)]",
-       NO_STR
-       RPKI_OUTPUT_STRING
-       "Set polling period back to default\n"
-       "Polling period value\n")
+DEFUN(no_rpki_polling_period, no_rpki_polling_period_cmd,
+      "no rpki polling_period [(1-86400)]",
+      NO_STR RPKI_OUTPUT_STRING
+      "Set polling period back to default\n"
+      "Polling period value\n")
 {
 	polling_period = POLLING_PERIOD_DEFAULT;
 	return CMD_SUCCESS;
 }
 
-DEFPY (rpki_expire_interval,
-       rpki_expire_interval_cmd,
-       "rpki expire_interval (600-172800)$tmp",
-       RPKI_OUTPUT_STRING
-       "Set expire interval\n"
-       "Expire interval value\n")
+DEFPY(rpki_expire_interval, rpki_expire_interval_cmd,
+      "rpki expire_interval (600-172800)$tmp",
+      RPKI_OUTPUT_STRING
+      "Set expire interval\n"
+      "Expire interval value\n")
 {
 	if ((unsigned int)tmp >= polling_period) {
 		expire_interval = tmp;
@@ -1184,36 +1157,31 @@ DEFPY (rpki_expire_interval,
 	return CMD_WARNING_CONFIG_FAILED;
 }
 
-DEFUN (no_rpki_expire_interval,
-       no_rpki_expire_interval_cmd,
-       "no rpki expire_interval [(600-172800)]",
-       NO_STR
-       RPKI_OUTPUT_STRING
-       "Set expire interval back to default\n"
-       "Expire interval value\n")
+DEFUN(no_rpki_expire_interval, no_rpki_expire_interval_cmd,
+      "no rpki expire_interval [(600-172800)]",
+      NO_STR RPKI_OUTPUT_STRING
+      "Set expire interval back to default\n"
+      "Expire interval value\n")
 {
 	expire_interval = polling_period * 2;
 	return CMD_SUCCESS;
 }
 
-DEFPY (rpki_retry_interval,
-       rpki_retry_interval_cmd,
-       "rpki retry_interval (1-7200)$tmp",
-       RPKI_OUTPUT_STRING
-       "Set retry interval\n"
-       "retry interval value\n")
+DEFPY(rpki_retry_interval, rpki_retry_interval_cmd,
+      "rpki retry_interval (1-7200)$tmp",
+      RPKI_OUTPUT_STRING
+      "Set retry interval\n"
+      "retry interval value\n")
 {
 	retry_interval = tmp;
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_rpki_retry_interval,
-       no_rpki_retry_interval_cmd,
-       "no rpki retry_interval [(1-7200)]",
-       NO_STR
-       RPKI_OUTPUT_STRING
-       "Set retry interval back to default\n"
-       "retry interval value\n")
+DEFUN(no_rpki_retry_interval, no_rpki_retry_interval_cmd,
+      "no rpki retry_interval [(1-7200)]",
+      NO_STR RPKI_OUTPUT_STRING
+      "Set retry interval back to default\n"
+      "retry interval value\n")
 {
 	retry_interval = RETRY_INTERVAL_DEFAULT;
 	return CMD_SUCCESS;
@@ -1273,23 +1241,21 @@ DEFPY(rpki_cache, rpki_cache_cmd,
 	return CMD_SUCCESS;
 }
 
-DEFPY (no_rpki_cache,
-       no_rpki_cache_cmd,
-       "no rpki cache <A.B.C.D|WORD> <TCPPORT|(1-65535)$sshport SSH_UNAME SSH_PRIVKEY [SERVER_PUBKEY]> [source <A.B.C.D>$bindaddr] preference (1-255)",
-       NO_STR
-       RPKI_OUTPUT_STRING
-       "Install a cache server to current group\n"
-       "IP address of cache server\n"
-       "Hostname of cache server\n"
-       "TCP port number\n"
-       "SSH port number\n"
-       "SSH user name\n"
-       "Path to own SSH private key\n"
-       "Path to Public key of cache server\n"
-       "Configure source IP address of RPKI connection\n"
-       "Define a Source IP Address\n"
-       "Preference of the cache server\n"
-       "Preference value\n")
+DEFPY(no_rpki_cache, no_rpki_cache_cmd,
+      "no rpki cache <A.B.C.D|WORD> <TCPPORT|(1-65535)$sshport SSH_UNAME SSH_PRIVKEY [SERVER_PUBKEY]> [source <A.B.C.D>$bindaddr] preference (1-255)",
+      NO_STR RPKI_OUTPUT_STRING
+      "Install a cache server to current group\n"
+      "IP address of cache server\n"
+      "Hostname of cache server\n"
+      "TCP port number\n"
+      "SSH port number\n"
+      "SSH user name\n"
+      "Path to own SSH private key\n"
+      "Path to Public key of cache server\n"
+      "Configure source IP address of RPKI connection\n"
+      "Define a Source IP Address\n"
+      "Preference of the cache server\n"
+      "Preference value\n")
 {
 	struct cache *cache_p = find_cache(preference);
 
@@ -1316,13 +1282,10 @@ DEFPY (no_rpki_cache,
 	return CMD_SUCCESS;
 }
 
-DEFPY (show_rpki_prefix_table,
-       show_rpki_prefix_table_cmd,
-       "show rpki prefix-table [json$uj]",
-       SHOW_STR
-       RPKI_OUTPUT_STRING
-       "Show validated prefixes which were received from RPKI Cache\n"
-       JSON_STR)
+DEFPY(show_rpki_prefix_table, show_rpki_prefix_table_cmd,
+      "show rpki prefix-table [json$uj]",
+      SHOW_STR RPKI_OUTPUT_STRING
+      "Show validated prefixes which were received from RPKI Cache\n" JSON_STR)
 {
 	struct json_object *json = NULL;
 
@@ -1339,14 +1302,11 @@ DEFPY (show_rpki_prefix_table,
 	return CMD_SUCCESS;
 }
 
-DEFPY (show_rpki_as_number,
-       show_rpki_as_number_cmd,
-       "show rpki as-number ASNUM$by_asn [json$uj]",
-       SHOW_STR
-       RPKI_OUTPUT_STRING
-       "Lookup by ASN in prefix table\n"
-       "AS Number\n"
-       JSON_STR)
+DEFPY(show_rpki_as_number, show_rpki_as_number_cmd,
+      "show rpki as-number ASNUM$by_asn [json$uj]",
+      SHOW_STR RPKI_OUTPUT_STRING
+      "Lookup by ASN in prefix table\n"
+      "AS Number\n" JSON_STR)
 {
 	struct json_object *json = NULL;
 
@@ -1363,16 +1323,13 @@ DEFPY (show_rpki_as_number,
 	return CMD_SUCCESS;
 }
 
-DEFPY (show_rpki_prefix,
-       show_rpki_prefix_cmd,
-       "show rpki prefix <A.B.C.D/M|X:X::X:X/M> [ASNUM$asn] [json$uj]",
-       SHOW_STR
-       RPKI_OUTPUT_STRING
-       "Lookup IP prefix and optionally ASN in prefix table\n"
-       "IPv4 prefix\n"
-       "IPv6 prefix\n"
-       "AS Number\n"
-       JSON_STR)
+DEFPY(show_rpki_prefix, show_rpki_prefix_cmd,
+      "show rpki prefix <A.B.C.D/M|X:X::X:X/M> [ASNUM$asn] [json$uj]",
+      SHOW_STR RPKI_OUTPUT_STRING
+      "Lookup IP prefix and optionally ASN in prefix table\n"
+      "IPv4 prefix\n"
+      "IPv6 prefix\n"
+      "AS Number\n" JSON_STR)
 {
 	json_object *json = NULL;
 	json_object *json_records = NULL;
@@ -1426,8 +1383,7 @@ DEFPY (show_rpki_prefix,
 
 		if (record->max_len >= prefix->prefixlen &&
 		    ((asn != 0 && (uint32_t)asn == record->asn) || asn == 0)) {
-			print_record(&matches[i], vty, json_records,
-				     asnotation);
+			print_record(&matches[i], vty, json_records, asnotation);
 		}
 	}
 
@@ -1437,13 +1393,9 @@ DEFPY (show_rpki_prefix,
 	return CMD_SUCCESS;
 }
 
-DEFPY (show_rpki_cache_server,
-       show_rpki_cache_server_cmd,
-       "show rpki cache-server [json$uj]",
-       SHOW_STR
-       RPKI_OUTPUT_STRING
-       "Show configured cache server\n"
-       JSON_STR)
+DEFPY(show_rpki_cache_server, show_rpki_cache_server_cmd,
+      "show rpki cache-server [json$uj]",
+      SHOW_STR RPKI_OUTPUT_STRING "Show configured cache server\n" JSON_STR)
 {
 	struct json_object *json = NULL;
 	struct json_object *json_server = NULL;
@@ -1469,16 +1421,15 @@ DEFPY (show_rpki_cache_server,
 				json_server = json_object_new_object();
 				json_object_string_add(json_server, "mode",
 						       "tcp");
-				json_object_string_add(
-					json_server, "host",
-					cache->tr_config.tcp_config->host);
-				json_object_string_add(
-					json_server, "port",
-					cache->tr_config.tcp_config->port);
+				json_object_string_add(json_server, "host",
+						       cache->tr_config
+							       .tcp_config->host);
+				json_object_string_add(json_server, "port",
+						       cache->tr_config
+							       .tcp_config->port);
 				json_object_int_add(json_server, "preference",
 						    cache->preference);
-				json_object_array_add(json_servers,
-						      json_server);
+				json_object_array_add(json_servers, json_server);
 			}
 
 #if defined(FOUND_SSH)
@@ -1498,27 +1449,29 @@ DEFPY (show_rpki_cache_server,
 				json_server = json_object_new_object();
 				json_object_string_add(json_server, "mode",
 						       "ssh");
-				json_object_string_add(
-					json_server, "host",
-					cache->tr_config.ssh_config->host);
-				json_object_int_add(
-					json_server, "port",
-					cache->tr_config.ssh_config->port);
-				json_object_string_add(
-					json_server, "username",
-					cache->tr_config.ssh_config->username);
-				json_object_string_add(
-					json_server, "serverHostkeyPath",
-					cache->tr_config.ssh_config
-						->server_hostkey_path);
-				json_object_string_add(
-					json_server, "clientPrivkeyPath",
-					cache->tr_config.ssh_config
-						->client_privkey_path);
+				json_object_string_add(json_server, "host",
+						       cache->tr_config
+							       .ssh_config->host);
+				json_object_int_add(json_server, "port",
+						    cache->tr_config.ssh_config
+							    ->port);
+				json_object_string_add(json_server, "username",
+						       cache->tr_config
+							       .ssh_config
+							       ->username);
+				json_object_string_add(json_server,
+						       "serverHostkeyPath",
+						       cache->tr_config
+							       .ssh_config
+							       ->server_hostkey_path);
+				json_object_string_add(json_server,
+						       "clientPrivkeyPath",
+						       cache->tr_config
+							       .ssh_config
+							       ->client_privkey_path);
 				json_object_int_add(json_server, "preference",
 						    cache->preference);
-				json_object_array_add(json_servers,
-						      json_server);
+				json_object_array_add(json_servers, json_server);
 			}
 #endif
 		}
@@ -1530,13 +1483,10 @@ DEFPY (show_rpki_cache_server,
 	return CMD_SUCCESS;
 }
 
-DEFPY (show_rpki_cache_connection,
-       show_rpki_cache_connection_cmd,
-       "show rpki cache-connection [json$uj]",
-       SHOW_STR
-       RPKI_OUTPUT_STRING
-       "Show to which RPKI Cache Servers we have a connection\n"
-       JSON_STR)
+DEFPY(show_rpki_cache_connection, show_rpki_cache_connection_cmd,
+      "show rpki cache-connection [json$uj]",
+      SHOW_STR RPKI_OUTPUT_STRING
+      "Show to which RPKI Cache Servers we have a connection\n" JSON_STR)
 {
 	struct json_object *json = NULL;
 	struct json_object *json_conn = NULL;
@@ -1595,20 +1545,18 @@ DEFPY (show_rpki_cache_connection,
 						: "");
 			} else {
 				json_conn = json_object_new_object();
-				json_object_string_add(json_conn, "mode",
-						       "tcp");
+				json_object_string_add(json_conn, "mode", "tcp");
 				json_object_string_add(json_conn, "host",
 						       tcp_config->host);
 				json_object_string_add(json_conn, "port",
 						       tcp_config->port);
 				json_object_int_add(json_conn, "preference",
 						    cache->preference);
-				json_object_string_add(
-					json_conn, "state",
-					cache->rtr_socket->state ==
-							RTR_ESTABLISHED
-						? "connected"
-						: "disconnected");
+				json_object_string_add(json_conn, "state",
+						       cache->rtr_socket->state ==
+								       RTR_ESTABLISHED
+							       ? "connected"
+							       : "disconnected");
 				json_object_array_add(json_conns, json_conn);
 			}
 			break;
@@ -1627,20 +1575,18 @@ DEFPY (show_rpki_cache_connection,
 						: "");
 			} else {
 				json_conn = json_object_new_object();
-				json_object_string_add(json_conn, "mode",
-						       "ssh");
+				json_object_string_add(json_conn, "mode", "ssh");
 				json_object_string_add(json_conn, "host",
 						       ssh_config->host);
 				json_object_int_add(json_conn, "port",
 						    ssh_config->port);
 				json_object_int_add(json_conn, "preference",
 						    cache->preference);
-				json_object_string_add(
-					json_conn, "state",
-					cache->rtr_socket->state ==
-							RTR_ESTABLISHED
-						? "connected"
-						: "disconnected");
+				json_object_string_add(json_conn, "state",
+						       cache->rtr_socket->state ==
+								       RTR_ESTABLISHED
+							       ? "connected"
+							       : "disconnected");
 				json_object_array_add(json_conns, json_conn);
 			}
 			break;
@@ -1662,44 +1608,31 @@ static int config_on_exit(struct vty *vty)
 	return 1;
 }
 
-DEFUN (rpki_reset,
-       rpki_reset_cmd,
-       "rpki reset",
-       RPKI_OUTPUT_STRING
-       "reset rpki\n")
+DEFUN(rpki_reset, rpki_reset_cmd, "rpki reset",
+      RPKI_OUTPUT_STRING "reset rpki\n")
 {
 	return reset(true) == SUCCESS ? CMD_SUCCESS : CMD_WARNING;
 }
 
-DEFUN (debug_rpki,
-       debug_rpki_cmd,
-       "debug rpki",
-       DEBUG_STR
-       "Enable debugging for rpki\n")
+DEFUN(debug_rpki, debug_rpki_cmd, "debug rpki",
+      DEBUG_STR "Enable debugging for rpki\n")
 {
 	rpki_debug = true;
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_debug_rpki,
-       no_debug_rpki_cmd,
-       "no debug rpki",
-       NO_STR
-       DEBUG_STR
-       "Disable debugging for rpki\n")
+DEFUN(no_debug_rpki, no_debug_rpki_cmd, "no debug rpki",
+      NO_STR DEBUG_STR "Disable debugging for rpki\n")
 {
 	rpki_debug = false;
 	return CMD_SUCCESS;
 }
 
-DEFUN_YANG (match_rpki,
-       match_rpki_cmd,
-       "match rpki <valid|invalid|notfound>",
-       MATCH_STR
-       RPKI_OUTPUT_STRING
-       "Valid prefix\n"
-       "Invalid prefix\n"
-       "Prefix not found\n")
+DEFUN_YANG(match_rpki, match_rpki_cmd, "match rpki <valid|invalid|notfound>",
+	   MATCH_STR RPKI_OUTPUT_STRING
+	   "Valid prefix\n"
+	   "Invalid prefix\n"
+	   "Prefix not found\n")
 {
 	const char *xpath =
 		"./match-condition[condition='frr-bgp-route-map:rpki']";
@@ -1713,15 +1646,12 @@ DEFUN_YANG (match_rpki,
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFUN_YANG (no_match_rpki,
-       no_match_rpki_cmd,
-       "no match rpki <valid|invalid|notfound>",
-       NO_STR
-       MATCH_STR
-       RPKI_OUTPUT_STRING
-       "Valid prefix\n"
-       "Invalid prefix\n"
-       "Prefix not found\n")
+DEFUN_YANG(no_match_rpki, no_match_rpki_cmd,
+	   "no match rpki <valid|invalid|notfound>",
+	   NO_STR MATCH_STR RPKI_OUTPUT_STRING
+	   "Valid prefix\n"
+	   "Invalid prefix\n"
+	   "Prefix not found\n")
 {
 	const char *xpath =
 		"./match-condition[condition='frr-bgp-route-map:rpki']";
@@ -1784,5 +1714,4 @@ static void install_cli_commands(void)
 
 FRR_MODULE_SETUP(.name = "bgpd_rpki", .version = "0.3.6",
 		 .description = "Enable RPKI support for FRR.",
-		 .init = bgp_rpki_module_init,
-);
+		 .init = bgp_rpki_module_init, );

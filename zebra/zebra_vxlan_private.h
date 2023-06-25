@@ -33,7 +33,7 @@ struct zebra_l3vni {
 	vrf_id_t vrf_id;
 
 	uint32_t filter;
-#define PREFIX_ROUTES_ONLY	(1 << 0) /* l3-vni used for prefix routes only */
+#define PREFIX_ROUTES_ONLY (1 << 0) /* l3-vni used for prefix routes only */
 
 	/* Corresponding Bridge information */
 	vlanid_t vid;
@@ -157,9 +157,9 @@ static inline const char *zl3vni_sysmac2str(struct zebra_l3vni *zl3vni,
  */
 static inline int is_l3vni_oper_up(struct zebra_l3vni *zl3vni)
 {
-	return (is_evpn_enabled() && zl3vni && (zl3vni->vrf_id != VRF_UNKNOWN)
-		&& zl3vni->vxlan_if && if_is_operative(zl3vni->vxlan_if)
-		&& zl3vni->svi_if && if_is_operative(zl3vni->svi_if));
+	return (is_evpn_enabled() && zl3vni && (zl3vni->vrf_id != VRF_UNKNOWN) &&
+		zl3vni->vxlan_if && if_is_operative(zl3vni->vxlan_if) &&
+		zl3vni->svi_if && if_is_operative(zl3vni->svi_if));
 }
 
 static inline const char *zl3vni_state2str(struct zebra_l3vni *zl3vni)

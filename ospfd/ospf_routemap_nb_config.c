@@ -35,8 +35,8 @@ int lib_route_map_entry_set_action_rmap_set_action_metric_type_modify(
 	rhc->rhc_rule = "metric-type";
 	rhc->rhc_event = RMAP_EVENT_SET_DELETED;
 
-	rv = generic_set_add(rhc->rhc_rmi, "metric-type", type,
-			     args->errmsg, args->errmsg_len);
+	rv = generic_set_add(rhc->rhc_rmi, "metric-type", type, args->errmsg,
+			     args->errmsg_len);
 	if (rv != CMD_SUCCESS) {
 		rhc->rhc_mhook = NULL;
 		return NB_ERR_INCONSISTENCY;

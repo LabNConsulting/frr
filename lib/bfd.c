@@ -166,9 +166,8 @@ static struct interface *bfd_get_peer_info(struct stream *s, struct prefix *dp,
 		ifp = if_lookup_by_index(ifindex, vrf_id);
 		if (ifp == NULL) {
 			if (bsglobal.debugging)
-				zlog_debug(
-					"%s: Can't find interface by ifindex: %d ",
-					__func__, ifindex);
+				zlog_debug("%s: Can't find interface by ifindex: %d ",
+					   __func__, ifindex);
 			return NULL;
 		}
 	}
@@ -253,8 +252,7 @@ static void bfd_last_update(time_t last_update, char *buf, size_t len)
  * bfd_client_sendmsg - Format and send a client register
  *                    command to Zebra to be forwarded to BFD
  */
-void bfd_client_sendmsg(struct zclient *zclient, int command,
-			vrf_id_t vrf_id)
+void bfd_client_sendmsg(struct zclient *zclient, int command, vrf_id_t vrf_id)
 {
 	struct stream *s;
 	enum zclient_send_status ret;
@@ -262,9 +260,8 @@ void bfd_client_sendmsg(struct zclient *zclient, int command,
 	/* Check socket. */
 	if (!zclient || zclient->sock < 0) {
 		if (bsglobal.debugging)
-			zlog_debug(
-				"%s: Can't send BFD client register, Zebra client not established",
-				__func__);
+			zlog_debug("%s: Can't send BFD client register, Zebra client not established",
+				   __func__);
 		return;
 	}
 
@@ -280,9 +277,8 @@ void bfd_client_sendmsg(struct zclient *zclient, int command,
 
 	if (ret == ZCLIENT_SEND_FAILURE) {
 		if (bsglobal.debugging)
-			zlog_debug(
-				"%s:  %ld: zclient_send_message() failed",
-				__func__, (long)getpid());
+			zlog_debug("%s:  %ld: zclient_send_message() failed",
+				   __func__, (long)getpid());
 		return;
 	}
 
@@ -297,9 +293,8 @@ int zclient_bfd_command(struct zclient *zc, struct bfd_session_arg *args)
 	/* Individual reg/dereg messages are suppressed during shutdown. */
 	if (bsglobal.shutting_down) {
 		if (bsglobal.debugging)
-			zlog_debug(
-				"%s: Suppressing BFD peer reg/dereg messages",
-				__func__);
+			zlog_debug("%s: Suppressing BFD peer reg/dereg messages",
+				   __func__);
 		return -1;
 	}
 
@@ -363,7 +358,7 @@ int zclient_bfd_command(struct zclient *zc, struct bfd_session_arg *args)
 	stream_putc(s, args->profilelen);
 	if (args->profilelen)
 		stream_put(s, args->profile, args->profilelen);
-#else /* PTM BFD */
+#else  /* PTM BFD */
 	/* Encode timers if this is a registration message. */
 	if (args->command != ZEBRA_BFD_DEST_DEREGISTER) {
 		stream_putl(s, args->min_rx);
@@ -455,8 +450,7 @@ static bool _bfd_sess_valid(const struct bfd_session_params *bsp)
 	if (memcmp(&bsp->args.dst, &i6a_zero, sizeof(i6a_zero)) == 0) {
 		if (bsglobal.debugging) {
 			if (bsp->args.family == AF_INET)
-				zlog_debug("%s: invalid address: %pI4",
-					   __func__,
+				zlog_debug("%s: invalid address: %pI4", __func__,
 					   (struct in_addr *)&bsp->args.dst);
 			else
 				zlog_debug("%s: invalid address: %pI6",
@@ -466,12 +460,11 @@ static bool _bfd_sess_valid(const struct bfd_session_params *bsp)
 	}
 
 	/* Multi hop requires local address. */
-	if (bsp->args.mhop
-	    && memcmp(&i6a_zero, &bsp->args.src, sizeof(i6a_zero)) == 0) {
+	if (bsp->args.mhop &&
+	    memcmp(&i6a_zero, &bsp->args.src, sizeof(i6a_zero)) == 0) {
 		if (bsglobal.debugging)
-			zlog_debug(
-				"%s: multi hop but no local address provided",
-				__func__);
+			zlog_debug("%s: multi hop but no local address provided",
+				   __func__);
 		return false;
 	}
 
@@ -520,13 +513,12 @@ static void _bfd_sess_send(struct event *t)
 		dst.ipa_type = bsp->args.family;
 		dst.ipaddr_v6 = bsp->args.dst;
 
-		zlog_err(
-			"%s: BFD session %pIA -> %pIA interface %s VRF %s(%u) was not %s",
-			__func__, &src, &dst,
-			bsp->args.ifnamelen ? bsp->args.ifname : "*",
-			vrf_id_to_name(bsp->args.vrf_id), bsp->args.vrf_id,
-			bsp->lastev == BSE_INSTALL ? "installed"
-						   : "uninstalled");
+		zlog_err("%s: BFD session %pIA -> %pIA interface %s VRF %s(%u) was not %s",
+			 __func__, &src, &dst,
+			 bsp->args.ifnamelen ? bsp->args.ifname : "*",
+			 vrf_id_to_name(bsp->args.vrf_id), bsp->args.vrf_id,
+			 bsp->lastev == BSE_INSTALL ? "installed"
+						    : "uninstalled");
 	}
 }
 
@@ -562,8 +554,7 @@ void bfd_sess_free(struct bfd_session_params **bsp)
 }
 
 static bool bfd_sess_address_changed(const struct bfd_session_params *bsp,
-				     uint32_t family,
-				     const struct in6_addr *src,
+				     uint32_t family, const struct in6_addr *src,
 				     const struct in6_addr *dst)
 {
 	size_t addrlen;
@@ -573,9 +564,9 @@ static bool bfd_sess_address_changed(const struct bfd_session_params *bsp,
 
 	addrlen = (family == AF_INET) ? sizeof(struct in_addr)
 				      : sizeof(struct in6_addr);
-	if ((src == NULL && memcmp(&bsp->args.src, &i6a_zero, addrlen))
-	    || (src && memcmp(src, &bsp->args.src, addrlen))
-	    || memcmp(dst, &bsp->args.dst, addrlen))
+	if ((src == NULL && memcmp(&bsp->args.src, &i6a_zero, addrlen)) ||
+	    (src && memcmp(src, &bsp->args.src, addrlen)) ||
+	    memcmp(dst, &bsp->args.dst, addrlen))
 		return true;
 
 	return false;
@@ -640,8 +631,8 @@ void bfd_sess_set_ipv6_addrs(struct bfd_session_params *bsp,
 
 void bfd_sess_set_interface(struct bfd_session_params *bsp, const char *ifname)
 {
-	if ((ifname == NULL && bsp->args.ifnamelen == 0)
-	    || (ifname && strcmp(bsp->args.ifname, ifname) == 0))
+	if ((ifname == NULL && bsp->args.ifnamelen == 0) ||
+	    (ifname && strcmp(bsp->args.ifname, ifname) == 0))
 		return;
 
 	/* If already installed, remove the old setting. */
@@ -653,8 +644,8 @@ void bfd_sess_set_interface(struct bfd_session_params *bsp, const char *ifname)
 		return;
 	}
 
-	if (strlcpy(bsp->args.ifname, ifname, sizeof(bsp->args.ifname))
-	    > sizeof(bsp->args.ifname))
+	if (strlcpy(bsp->args.ifname, ifname, sizeof(bsp->args.ifname)) >
+	    sizeof(bsp->args.ifname))
 		zlog_warn("%s: interface name truncated: %s", __func__, ifname);
 
 	bsp->args.ifnamelen = strlen(bsp->args.ifname);
@@ -668,8 +659,8 @@ void bfd_sess_set_profile(struct bfd_session_params *bsp, const char *profile)
 		return;
 	}
 
-	if (strlcpy(bsp->args.profile, profile, sizeof(bsp->args.profile))
-	    > sizeof(bsp->args.profile))
+	if (strlcpy(bsp->args.profile, profile, sizeof(bsp->args.profile)) >
+	    sizeof(bsp->args.profile))
 		zlog_warn("%s: profile name truncated: %s", __func__, profile);
 
 	bsp->args.profilelen = strlen(bsp->args.profile);
@@ -828,10 +819,8 @@ void bfd_sess_show(struct vty *vty, struct json_object *json,
 	if (json) {
 		json_object_int_add(json_bfd, "detectMultiplier",
 				    bsp->args.detection_multiplier);
-		json_object_int_add(json_bfd, "rxMinInterval",
-				    bsp->args.min_rx);
-		json_object_int_add(json_bfd, "txMinInterval",
-				    bsp->args.min_tx);
+		json_object_int_add(json_bfd, "rxMinInterval", bsp->args.min_rx);
+		json_object_int_add(json_bfd, "txMinInterval", bsp->args.min_tx);
 	} else {
 		vty_out(vty,
 			"  Detect Multiplier: %d, Min Rx interval: %d, Min Tx interval: %d\n",
@@ -973,8 +962,8 @@ int zclient_bfd_session_update(ZAPI_CALLBACK_ARGS)
 		if (bsp->args.family != dp.family)
 			continue;
 		/* Skip different interface. */
-		if (bsp->args.ifnamelen && ifp
-		    && strcmp(bsp->args.ifname, ifp->name) != 0)
+		if (bsp->args.ifnamelen && ifp &&
+		    strcmp(bsp->args.ifname, ifp->name) != 0)
 			continue;
 		/* Skip non matching destination addresses. */
 		if (memcmp(&bsp->args.dst, &dp.u, addrlen) != 0)
@@ -985,9 +974,10 @@ int zclient_bfd_session_update(ZAPI_CALLBACK_ARGS)
 		 * source address and the protocol set a source address in
 		 * the configuration otherwise we'll just skip it.
 		 */
-		if (sp.family && memcmp(&bsp->args.src, &i6a_zero, addrlen) != 0
-		    && memcmp(&sp.u, &i6a_zero, addrlen) != 0
-		    && memcmp(&bsp->args.src, &sp.u, addrlen) != 0)
+		if (sp.family &&
+		    memcmp(&bsp->args.src, &i6a_zero, addrlen) != 0 &&
+		    memcmp(&sp.u, &i6a_zero, addrlen) != 0 &&
+		    memcmp(&bsp->args.src, &sp.u, addrlen) != 0)
 			continue;
 		/* No session state change. */
 		if ((int)bsp->bss.state == state)
@@ -1215,9 +1205,8 @@ static void bfd_source_cache_put(struct bfd_session_params *session)
 }
 
 /** Updates BFD running session if source address has changed. */
-static void
-bfd_source_cache_update_session(const struct bfd_source_cache *source,
-				struct bfd_session_params *session)
+static void bfd_source_cache_update_session(const struct bfd_source_cache *source,
+					    struct bfd_session_params *session)
 {
 	const struct in_addr *address;
 	const struct in6_addr *address_v6;
@@ -1293,8 +1282,7 @@ static bool bfd_source_cache_update(struct bfd_source_cache *source,
 
 		for (ALL_LIST_ELEMENTS_RO(interface->connected, node,
 					  connected)) {
-			if (source->address.family !=
-			    connected->address->family)
+			if (source->address.family != connected->address->family)
 				continue;
 			if (prefix_same(connected->address, &source->source))
 				return false;
@@ -1303,8 +1291,7 @@ static bool bfd_source_cache_update(struct bfd_source_cache *source,
 			 * and in that case no source is specified usually.
 			 */
 			if (source->address.family == AF_INET6 &&
-			    IN6_IS_ADDR_LINKLOCAL(
-				    &connected->address->u.prefix6))
+			    IN6_IS_ADDR_LINKLOCAL(&connected->address->u.prefix6))
 				continue;
 
 			prefix_copy(&source->source, connected->address);

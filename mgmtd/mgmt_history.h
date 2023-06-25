@@ -64,8 +64,8 @@ extern void mgmt_history_init(void);
 #define MGMT_SHORT_TIME_FMT "%Y%m%d%H%M%S"
 #define MGMT_SHORT_TIME_MAX_LEN 24
 
-static inline const char *
-mgmt_time_to_string(struct timespec *tv, bool long_fmt, char *buffer, size_t sz)
+static inline const char *mgmt_time_to_string(struct timespec *tv, bool long_fmt,
+					      char *buffer, size_t sz)
 {
 	struct tm tm;
 	size_t n;

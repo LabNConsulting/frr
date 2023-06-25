@@ -74,8 +74,7 @@ struct bgp_adj_out {
 };
 
 RB_HEAD(bgp_adj_out_rb, bgp_adj_out);
-RB_PROTOTYPE(bgp_adj_out_rb, bgp_adj_out, adj_entry,
-	     bgp_adj_out_compare);
+RB_PROTOTYPE(bgp_adj_out_rb, bgp_adj_out, adj_entry, bgp_adj_out_compare);
 
 /* BGP adjacency in. */
 struct bgp_adj_in {

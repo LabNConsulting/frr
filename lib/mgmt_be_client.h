@@ -33,9 +33,9 @@ enum mgmt_be_client_id {
 	MGMTD_BE_CLIENT_ID_MAX
 };
 
-#define FOREACH_MGMTD_BE_CLIENT_ID(id)			\
-	for ((id) = MGMTD_BE_CLIENT_ID_MIN;		\
-	     (id) < MGMTD_BE_CLIENT_ID_MAX; (id)++)
+#define FOREACH_MGMTD_BE_CLIENT_ID(id)                                         \
+	for ((id) = MGMTD_BE_CLIENT_ID_MIN; (id) < MGMTD_BE_CLIENT_ID_MAX;     \
+	     (id)++)
 
 /***************************************************************
  * Constants
@@ -58,8 +58,8 @@ enum mgmt_be_client_id {
 #define MGMTD_SOCKET_BE_SEND_BUF_SIZE 65535
 #define MGMTD_SOCKET_BE_RECV_BUF_SIZE MGMTD_SOCKET_BE_SEND_BUF_SIZE
 
-#define MGMTD_MAX_CFG_CHANGES_IN_BATCH				\
-	((10 * MGMTD_BE_MSG_MAX_LEN) /				\
+#define MGMTD_MAX_CFG_CHANGES_IN_BATCH                                         \
+	((10 * MGMTD_BE_MSG_MAX_LEN) /                                         \
 	 (MGMTD_MAX_XPATH_LEN + MGMTD_MAX_YANG_VALUE_LEN))
 
 /*
@@ -68,10 +68,10 @@ enum mgmt_be_client_id {
  * that gets added to sent message
  */
 #define MGMTD_BE_CFGDATA_PACKING_EFFICIENCY 0.8
-#define MGMTD_BE_CFGDATA_MAX_MSG_LEN                                        \
+#define MGMTD_BE_CFGDATA_MAX_MSG_LEN                                           \
 	(MGMTD_BE_MSG_MAX_LEN * MGMTD_BE_CFGDATA_PACKING_EFFICIENCY)
 
-#define MGMTD_BE_MAX_BATCH_IDS_IN_REQ                                       \
+#define MGMTD_BE_MAX_BATCH_IDS_IN_REQ                                          \
 	(MGMTD_BE_MSG_MAX_LEN - 128) / sizeof(uint64_t)
 
 #define MGMTD_BE_CONTAINER_NODE_VAL "<<container>>"
@@ -117,8 +117,7 @@ static inline const char *mgmt_be_client_id2name(enum mgmt_be_client_id id)
 	return mgmt_be_client_names[id];
 }
 
-static inline enum mgmt_be_client_id
-mgmt_be_client_name2id(const char *name)
+static inline enum mgmt_be_client_id mgmt_be_client_name2id(const char *name)
 {
 	enum mgmt_be_client_id id;
 

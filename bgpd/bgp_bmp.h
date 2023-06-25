@@ -13,25 +13,25 @@
 #include "qobj.h"
 #include "resolver.h"
 
-#define BMP_VERSION_3	3
+#define BMP_VERSION_3 3
 
-#define BMP_LENGTH_POS  1
+#define BMP_LENGTH_POS 1
 
 /* BMP message types */
-#define BMP_TYPE_ROUTE_MONITORING       0
-#define BMP_TYPE_STATISTICS_REPORT      1
+#define BMP_TYPE_ROUTE_MONITORING 0
+#define BMP_TYPE_STATISTICS_REPORT 1
 #define BMP_TYPE_PEER_DOWN_NOTIFICATION 2
-#define BMP_TYPE_PEER_UP_NOTIFICATION   3
-#define BMP_TYPE_INITIATION             4
-#define BMP_TYPE_TERMINATION            5
-#define BMP_TYPE_ROUTE_MIRRORING        6
+#define BMP_TYPE_PEER_UP_NOTIFICATION 3
+#define BMP_TYPE_INITIATION 4
+#define BMP_TYPE_TERMINATION 5
+#define BMP_TYPE_ROUTE_MIRRORING 6
 
-#define BMP_READ_BUFSIZ	1024
+#define BMP_READ_BUFSIZ 1024
 
 /* bmp->state */
-#define BMP_None        0
-#define BMP_PeerUp      2
-#define BMP_Run         3
+#define BMP_None 0
+#define BMP_PeerUp 2
+#define BMP_Run 3
 
 /* This one is for BMP Route Monitoring messages, i.e. delivering updates
  * in somewhat processed (as opposed to fully raw, see mirroring below) form.
@@ -155,8 +155,8 @@ struct bmp {
 
 PREDECL_SORTLIST_UNIQ(bmp_actives);
 
-#define BMP_DFLT_MINRETRY	30000
-#define BMP_DFLT_MAXRETRY	720000
+#define BMP_DFLT_MINRETRY 30000
+#define BMP_DFLT_MAXRETRY 720000
 
 struct bmp_active {
 	struct bmp_actives_item bai;
@@ -211,7 +211,7 @@ struct bmp_targets {
 
 	char *acl_name;
 	char *acl6_name;
-#define BMP_STAT_DEFAULT_TIMER	60000
+#define BMP_STAT_DEFAULT_TIMER 60000
 	int stat_msec;
 
 	/* only supporting:
@@ -219,8 +219,8 @@ struct bmp_targets {
 	 * - IPv6 / unicast & multicast
 	 * - L2VPN / EVPN
 	 */
-#define BMP_MON_PREPOLICY	(1 << 0)
-#define BMP_MON_POSTPOLICY	(1 << 1)
+#define BMP_MON_PREPOLICY (1 << 0)
+#define BMP_MON_POSTPOLICY (1 << 1)
 	uint8_t afimon[AFI_MAX][SAFI_MAX];
 	bool mirror;
 
@@ -273,29 +273,29 @@ struct bmp_bgp {
 };
 
 enum {
-	BMP_PEERDOWN_LOCAL_NOTIFY       = 1,
-	BMP_PEERDOWN_LOCAL_FSM          = 2,
-	BMP_PEERDOWN_REMOTE_NOTIFY      = 3,
-	BMP_PEERDOWN_REMOTE_CLOSE       = 4,
-	BMP_PEERDOWN_ENDMONITOR         = 5,
+	BMP_PEERDOWN_LOCAL_NOTIFY = 1,
+	BMP_PEERDOWN_LOCAL_FSM = 2,
+	BMP_PEERDOWN_REMOTE_NOTIFY = 3,
+	BMP_PEERDOWN_REMOTE_CLOSE = 4,
+	BMP_PEERDOWN_ENDMONITOR = 5,
 };
 
 enum {
-	BMP_STATS_PFX_REJECTED          = 0,
-	BMP_STATS_PFX_DUP_ADV           = 1,
-	BMP_STATS_PFX_DUP_WITHDRAW      = 2,
-	BMP_STATS_UPD_LOOP_CLUSTER      = 3,
-	BMP_STATS_UPD_LOOP_ASPATH       = 4,
-	BMP_STATS_UPD_LOOP_ORIGINATOR   = 5,
-	BMP_STATS_UPD_LOOP_CONFED       = 6,
-	BMP_STATS_SIZE_ADJ_RIB_IN       = 7,
-	BMP_STATS_SIZE_LOC_RIB          = 8,
-	BMP_STATS_SIZE_ADJ_RIB_IN_SAFI  = 9,
-	BMP_STATS_SIZE_LOC_RIB_IN_SAFI  = 10,
-	BMP_STATS_UPD_7606_WITHDRAW     = 11,
-	BMP_STATS_PFX_7606_WITHDRAW     = 12,
-	BMP_STATS_UPD_DUP               = 13,
-	BMP_STATS_FRR_NH_INVALID        = 65531,
+	BMP_STATS_PFX_REJECTED = 0,
+	BMP_STATS_PFX_DUP_ADV = 1,
+	BMP_STATS_PFX_DUP_WITHDRAW = 2,
+	BMP_STATS_UPD_LOOP_CLUSTER = 3,
+	BMP_STATS_UPD_LOOP_ASPATH = 4,
+	BMP_STATS_UPD_LOOP_ORIGINATOR = 5,
+	BMP_STATS_UPD_LOOP_CONFED = 6,
+	BMP_STATS_SIZE_ADJ_RIB_IN = 7,
+	BMP_STATS_SIZE_LOC_RIB = 8,
+	BMP_STATS_SIZE_ADJ_RIB_IN_SAFI = 9,
+	BMP_STATS_SIZE_LOC_RIB_IN_SAFI = 10,
+	BMP_STATS_UPD_7606_WITHDRAW = 11,
+	BMP_STATS_PFX_7606_WITHDRAW = 12,
+	BMP_STATS_UPD_DUP = 13,
+	BMP_STATS_FRR_NH_INVALID = 65531,
 };
 
 DECLARE_MGROUP(BMP);

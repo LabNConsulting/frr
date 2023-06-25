@@ -124,9 +124,9 @@ int bgp_path_info_nexthop_cmp(struct bgp_path_info *bpi1,
 				break;
 			case BGP_ATTR_NHLEN_IPV6_GLOBAL:
 			case BGP_ATTR_NHLEN_VPNV6_GLOBAL:
-				compare = IPV6_ADDR_CMP(
-					&bpi1->attr->mp_nexthop_global,
-					&bpi2->attr->mp_nexthop_global);
+				compare =
+					IPV6_ADDR_CMP(&bpi1->attr->mp_nexthop_global,
+						      &bpi2->attr->mp_nexthop_global);
 				break;
 			case BGP_ATTR_NHLEN_IPV6_GLOBAL_AND_LL:
 				addr1 = (bpi1->attr->mp_nexthop_prefer_global)
@@ -136,11 +136,11 @@ int bgp_path_info_nexthop_cmp(struct bgp_path_info *bpi1,
 						? bpi2->attr->mp_nexthop_global
 						: bpi2->attr->mp_nexthop_local;
 
-				if (!bpi1->attr->mp_nexthop_prefer_global
-				    && !bpi2->attr->mp_nexthop_prefer_global)
-					compare = !bgp_interface_same(
-						bpi1->peer->ifp,
-						bpi2->peer->ifp);
+				if (!bpi1->attr->mp_nexthop_prefer_global &&
+				    !bpi2->attr->mp_nexthop_prefer_global)
+					compare =
+						!bgp_interface_same(bpi1->peer->ifp,
+								    bpi2->peer->ifp);
 
 				if (!compare)
 					compare = IPV6_ADDR_CMP(&addr1, &addr2);
@@ -152,15 +152,15 @@ int bgp_path_info_nexthop_cmp(struct bgp_path_info *bpi1,
 		 * link-local
 		 * nexthops but another IPv6 peer only sends you global
 		 */
-		else if (bpi1->attr->mp_nexthop_len
-				 == BGP_ATTR_NHLEN_IPV6_GLOBAL
-			 || bpi1->attr->mp_nexthop_len
-				    == BGP_ATTR_NHLEN_IPV6_GLOBAL_AND_LL) {
+		else if (bpi1->attr->mp_nexthop_len ==
+				 BGP_ATTR_NHLEN_IPV6_GLOBAL ||
+			 bpi1->attr->mp_nexthop_len ==
+				 BGP_ATTR_NHLEN_IPV6_GLOBAL_AND_LL) {
 			compare = IPV6_ADDR_CMP(&bpi1->attr->mp_nexthop_global,
 						&bpi2->attr->mp_nexthop_global);
 			if (!compare) {
-				if (bpi1->attr->mp_nexthop_len
-				    < bpi2->attr->mp_nexthop_len)
+				if (bpi1->attr->mp_nexthop_len <
+				    bpi2->attr->mp_nexthop_len)
 					compare = -1;
 				else
 					compare = 1;
@@ -173,10 +173,10 @@ int bgp_path_info_nexthop_cmp(struct bgp_path_info *bpi1,
 	 * if they belong to same VRF
 	 */
 	if (!compare && bpi1->attr->nh_type != NEXTHOP_TYPE_BLACKHOLE) {
-		if (bpi1->extra && bpi1->extra->bgp_orig && bpi2->extra
-		    && bpi2->extra->bgp_orig) {
-			if (bpi1->extra->bgp_orig->vrf_id
-			    != bpi2->extra->bgp_orig->vrf_id) {
+		if (bpi1->extra && bpi1->extra->bgp_orig && bpi2->extra &&
+		    bpi2->extra->bgp_orig) {
+			if (bpi1->extra->bgp_orig->vrf_id !=
+			    bpi2->extra->bgp_orig->vrf_id) {
 				compare = 1;
 			}
 		}
@@ -553,12 +553,11 @@ void bgp_path_info_mpath_update(struct bgp *bgp, struct bgp_dest *dest,
 	}
 
 	if (debug)
-		zlog_debug(
-			"%pRN(%s): starting mpath update, newbest %s num candidates %d old-mpath-count %d old-cum-bw %" PRIu64,
-			bgp_dest_to_rnode(dest), bgp->name_pretty,
-			new_best ? new_best->peer->host : "NONE",
-			mp_list ? listcount(mp_list) : 0, old_mpath_count,
-			old_cum_bw);
+		zlog_debug("%pRN(%s): starting mpath update, newbest %s num candidates %d old-mpath-count %d old-cum-bw %" PRIu64,
+			   bgp_dest_to_rnode(dest), bgp->name_pretty,
+			   new_best ? new_best->peer->host : "NONE",
+			   mp_list ? listcount(mp_list) : 0, old_mpath_count,
+			   old_cum_bw);
 
 	/*
 	 * We perform an ordered walk through both lists in parallel.
@@ -589,11 +588,10 @@ void bgp_path_info_mpath_update(struct bgp *bgp, struct bgp_dest *dest,
 		tmp_info = mp_node ? listgetdata(mp_node) : NULL;
 
 		if (debug)
-			zlog_debug(
-				"%pRN(%s): comparing candidate %s with existing mpath %s",
-				bgp_dest_to_rnode(dest), bgp->name_pretty,
-				tmp_info ? tmp_info->peer->host : "NONE",
-				cur_mpath ? cur_mpath->peer->host : "NONE");
+			zlog_debug("%pRN(%s): comparing candidate %s with existing mpath %s",
+				   bgp_dest_to_rnode(dest), bgp->name_pretty,
+				   tmp_info ? tmp_info->peer->host : "NONE",
+				   cur_mpath ? cur_mpath->peer->host : "NONE");
 
 		/*
 		 * If equal, the path was a multipath and is still a multipath.
@@ -602,18 +600,15 @@ void bgp_path_info_mpath_update(struct bgp *bgp, struct bgp_dest *dest,
 		if (mp_node && (listgetdata(mp_node) == cur_mpath)) {
 			list_delete_node(mp_list, mp_node);
 			bgp_path_info_mpath_dequeue(cur_mpath);
-			if ((mpath_count < maxpaths)
-			    && prev_mpath
-			    && bgp_path_info_nexthop_cmp(prev_mpath,
-							 cur_mpath)) {
+			if ((mpath_count < maxpaths) && prev_mpath &&
+			    bgp_path_info_nexthop_cmp(prev_mpath, cur_mpath)) {
 				bgp_path_info_mpath_enqueue(prev_mpath,
 							    cur_mpath);
 				prev_mpath = cur_mpath;
 				mpath_count++;
-				if (ecommunity_linkbw_present(
-					    bgp_attr_get_ecommunity(
-						    cur_mpath->attr),
-					    &bwval))
+				if (ecommunity_linkbw_present(bgp_attr_get_ecommunity(
+								      cur_mpath->attr),
+							      &bwval))
 					cum_bw += bwval;
 				else
 					all_paths_lb = false;
@@ -621,10 +616,9 @@ void bgp_path_info_mpath_update(struct bgp *bgp, struct bgp_dest *dest,
 					bgp_path_info_path_with_addpath_rx_str(
 						cur_mpath, path_buf,
 						sizeof(path_buf));
-					zlog_debug(
-						"%pRN: %s is still multipath, cur count %d",
-						bgp_dest_to_rnode(dest),
-						path_buf, mpath_count);
+					zlog_debug("%pRN: %s is still multipath, cur count %d",
+						   bgp_dest_to_rnode(dest),
+						   path_buf, mpath_count);
 				}
 			} else {
 				mpath_changed = 1;
@@ -632,12 +626,11 @@ void bgp_path_info_mpath_update(struct bgp *bgp, struct bgp_dest *dest,
 					bgp_path_info_path_with_addpath_rx_str(
 						cur_mpath, path_buf,
 						sizeof(path_buf));
-					zlog_debug(
-						"%pRN: remove mpath %s nexthop %pI4, cur count %d",
-						bgp_dest_to_rnode(dest),
-						path_buf,
-						&cur_mpath->attr->nexthop,
-						mpath_count);
+					zlog_debug("%pRN: remove mpath %s nexthop %pI4, cur count %d",
+						   bgp_dest_to_rnode(dest),
+						   path_buf,
+						   &cur_mpath->attr->nexthop,
+						   mpath_count);
 				}
 			}
 			mp_node = mp_next_node;
@@ -645,11 +638,10 @@ void bgp_path_info_mpath_update(struct bgp *bgp, struct bgp_dest *dest,
 			continue;
 		}
 
-		if (cur_mpath
-		    && (!mp_node
-			|| (bgp_path_info_mpath_cmp(cur_mpath,
-						    listgetdata(mp_node))
-			    < 0))) {
+		if (cur_mpath &&
+		    (!mp_node ||
+		     (bgp_path_info_mpath_cmp(cur_mpath, listgetdata(mp_node)) <
+		      0))) {
 			/*
 			 * If here, we have an old multipath and either the
 			 * mp_list
@@ -660,12 +652,13 @@ void bgp_path_info_mpath_update(struct bgp *bgp, struct bgp_dest *dest,
 			bgp_path_info_mpath_dequeue(cur_mpath);
 			mpath_changed = 1;
 			if (debug) {
-				bgp_path_info_path_with_addpath_rx_str(
-					cur_mpath, path_buf, sizeof(path_buf));
-				zlog_debug(
-					"%pRN: remove mpath %s nexthop %pI4, cur count %d",
-					bgp_dest_to_rnode(dest), path_buf,
-					&cur_mpath->attr->nexthop, mpath_count);
+				bgp_path_info_path_with_addpath_rx_str(cur_mpath,
+								       path_buf,
+								       sizeof(path_buf));
+				zlog_debug("%pRN: remove mpath %s nexthop %pI4, cur count %d",
+					   bgp_dest_to_rnode(dest), path_buf,
+					   &cur_mpath->attr->nexthop,
+					   mpath_count);
 			}
 			cur_mpath = next_mpath;
 		} else {
@@ -691,9 +684,9 @@ void bgp_path_info_mpath_update(struct bgp *bgp, struct bgp_dest *dest,
 			list_delete_node(mp_list, mp_node);
 			assert(new_mpath);
 			assert(prev_mpath);
-			if ((mpath_count < maxpaths) && (new_mpath != new_best)
-			    && bgp_path_info_nexthop_cmp(prev_mpath,
-							 new_mpath)) {
+			if ((mpath_count < maxpaths) &&
+			    (new_mpath != new_best) &&
+			    bgp_path_info_nexthop_cmp(prev_mpath, new_mpath)) {
 				bgp_path_info_mpath_dequeue(new_mpath);
 
 				bgp_path_info_mpath_enqueue(prev_mpath,
@@ -701,10 +694,9 @@ void bgp_path_info_mpath_update(struct bgp *bgp, struct bgp_dest *dest,
 				prev_mpath = new_mpath;
 				mpath_changed = 1;
 				mpath_count++;
-				if (ecommunity_linkbw_present(
-					    bgp_attr_get_ecommunity(
-						    new_mpath->attr),
-					    &bwval))
+				if (ecommunity_linkbw_present(bgp_attr_get_ecommunity(
+								      new_mpath->attr),
+							      &bwval))
 					cum_bw += bwval;
 				else
 					all_paths_lb = false;
@@ -712,12 +704,11 @@ void bgp_path_info_mpath_update(struct bgp *bgp, struct bgp_dest *dest,
 					bgp_path_info_path_with_addpath_rx_str(
 						new_mpath, path_buf,
 						sizeof(path_buf));
-					zlog_debug(
-						"%pRN: add mpath %s nexthop %pI4, cur count %d",
-						bgp_dest_to_rnode(dest),
-						path_buf,
-						&new_mpath->attr->nexthop,
-						mpath_count);
+					zlog_debug("%pRN: add mpath %s nexthop %pI4, cur count %d",
+						   bgp_dest_to_rnode(dest),
+						   path_buf,
+						   &new_mpath->attr->nexthop,
+						   mpath_count);
 				}
 			}
 			mp_node = mp_next_node;
@@ -727,26 +718,25 @@ void bgp_path_info_mpath_update(struct bgp *bgp, struct bgp_dest *dest,
 	if (new_best) {
 		bgp_path_info_mpath_count_set(new_best, mpath_count - 1);
 		if (mpath_count <= 1 ||
-		    !ecommunity_linkbw_present(
-			    bgp_attr_get_ecommunity(new_best->attr), &bwval))
+		    !ecommunity_linkbw_present(bgp_attr_get_ecommunity(
+						       new_best->attr),
+					       &bwval))
 			all_paths_lb = false;
 		else
 			cum_bw += bwval;
-		bgp_path_info_mpath_lb_update(new_best, true,
-					      all_paths_lb, cum_bw);
+		bgp_path_info_mpath_lb_update(new_best, true, all_paths_lb,
+					      cum_bw);
 
 		if (debug)
-			zlog_debug(
-				"%pRN(%s): New mpath count (incl newbest) %d mpath-change %s all_paths_lb %d cum_bw %" PRIu64,
-				bgp_dest_to_rnode(dest), bgp->name_pretty,
-				mpath_count, mpath_changed ? "YES" : "NO",
-				all_paths_lb, cum_bw);
+			zlog_debug("%pRN(%s): New mpath count (incl newbest) %d mpath-change %s all_paths_lb %d cum_bw %" PRIu64,
+				   bgp_dest_to_rnode(dest), bgp->name_pretty,
+				   mpath_count, mpath_changed ? "YES" : "NO",
+				   all_paths_lb, cum_bw);
 
-		if (mpath_changed
-		    || (bgp_path_info_mpath_count(new_best) != old_mpath_count))
+		if (mpath_changed ||
+		    (bgp_path_info_mpath_count(new_best) != old_mpath_count))
 			SET_FLAG(new_best->flags, BGP_PATH_MULTIPATH_CHG);
-		if ((mpath_count - 1) != old_mpath_count ||
-		    old_cum_bw != cum_bw)
+		if ((mpath_count - 1) != old_mpath_count || old_cum_bw != cum_bw)
 			SET_FLAG(new_best->flags, BGP_PATH_LINK_BW_CHG);
 	}
 }
@@ -801,8 +791,8 @@ void bgp_path_info_mpath_aggregate_update(struct bgp_path_info *new_best,
 	struct lcommunity *lcomm, *lcommerge;
 	struct attr attr = {0};
 
-	if (old_best && (old_best != new_best)
-	    && (old_attr = bgp_path_info_mpath_attr(old_best))) {
+	if (old_best && (old_best != new_best) &&
+	    (old_attr = bgp_path_info_mpath_attr(old_best))) {
 		bgp_attr_unintern(&old_attr);
 		bgp_path_info_mpath_attr_set(old_best, NULL);
 	}
@@ -821,9 +811,8 @@ void bgp_path_info_mpath_aggregate_update(struct bgp_path_info *new_best,
 
 	attr = *new_best->attr;
 
-	if (new_best->peer
-	    && CHECK_FLAG(new_best->peer->bgp->flags,
-			  BGP_FLAG_MULTIPATH_RELAX_AS_SET)) {
+	if (new_best->peer && CHECK_FLAG(new_best->peer->bgp->flags,
+					 BGP_FLAG_MULTIPATH_RELAX_AS_SET)) {
 
 		/* aggregate attribute from multipath constituents */
 		aspath = aspath_dup(attr.aspath);
@@ -841,8 +830,7 @@ void bgp_path_info_mpath_aggregate_update(struct bgp_path_info *new_best,
 
 		for (mpinfo = bgp_path_info_mpath_first(new_best); mpinfo;
 		     mpinfo = bgp_path_info_mpath_next(mpinfo)) {
-			asmerge =
-				aspath_aggregate(aspath, mpinfo->attr->aspath);
+			asmerge = aspath_aggregate(aspath, mpinfo->attr->aspath);
 			aspath_free(aspath);
 			aspath = asmerge;
 

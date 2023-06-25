@@ -18,11 +18,7 @@ extern "C" {
 #define MLAG_MSG_NO_BATCH 1
 #define MLAG_BUF_LIMIT 2048
 
-enum mlag_role {
-	MLAG_ROLE_NONE,
-	MLAG_ROLE_PRIMARY,
-	MLAG_ROLE_SECONDARY
-};
+enum mlag_role { MLAG_ROLE_NONE, MLAG_ROLE_PRIMARY, MLAG_ROLE_SECONDARY };
 
 enum mlag_state {
 	MLAG_STATE_DOWN,

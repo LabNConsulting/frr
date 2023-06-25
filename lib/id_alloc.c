@@ -22,8 +22,7 @@ DEFINE_MTYPE_STATIC(LIB, IDALLOC_DIRECTORY, "ID Number Allocator Directory");
 DEFINE_MTYPE_STATIC(LIB, IDALLOC_SUBDIRECTORY,
 		    "ID Number Allocator Subdirectory");
 DEFINE_MTYPE_STATIC(LIB, IDALLOC_PAGE, "ID Number Allocator Page");
-DEFINE_MTYPE_STATIC(LIB, IDALLOC_POOL,
-		    "ID Number temporary holding pool entry");
+DEFINE_MTYPE_STATIC(LIB, IDALLOC_POOL, "ID Number temporary holding pool entry");
 
 #if UINT_MAX >= UINT32_MAX
 #define FFS32(x) ffs(x)
@@ -32,24 +31,25 @@ DEFINE_MTYPE_STATIC(LIB, IDALLOC_POOL,
 #define FFS32(x) ffsl(x)
 #endif
 
-#define DIR_MASK    ((1<<IDALLOC_DIR_BITS)-1)
-#define SUBDIR_MASK ((1<<IDALLOC_SUBDIR_BITS)-1)
-#define FRR_ID_PAGE_MASK ((1<<IDALLOC_PAGE_BITS)-1)
-#define WORD_MASK   ((1<<IDALLOC_WORD_BITS)-1)
-#define OFFSET_MASK ((1<<IDALLOC_OFFSET_BITS)-1)
+#define DIR_MASK ((1 << IDALLOC_DIR_BITS) - 1)
+#define SUBDIR_MASK ((1 << IDALLOC_SUBDIR_BITS) - 1)
+#define FRR_ID_PAGE_MASK ((1 << IDALLOC_PAGE_BITS) - 1)
+#define WORD_MASK ((1 << IDALLOC_WORD_BITS) - 1)
+#define OFFSET_MASK ((1 << IDALLOC_OFFSET_BITS) - 1)
 
-#define DIR_SHIFT    (IDALLOC_OFFSET_BITS + IDALLOC_WORD_BITS + \
-		      IDALLOC_PAGE_BITS + IDALLOC_SUBDIR_BITS)
-#define SUBDIR_SHIFT (IDALLOC_OFFSET_BITS + IDALLOC_WORD_BITS + \
-		      IDALLOC_PAGE_BITS)
+#define DIR_SHIFT                                                              \
+	(IDALLOC_OFFSET_BITS + IDALLOC_WORD_BITS + IDALLOC_PAGE_BITS +         \
+	 IDALLOC_SUBDIR_BITS)
+#define SUBDIR_SHIFT                                                           \
+	(IDALLOC_OFFSET_BITS + IDALLOC_WORD_BITS + IDALLOC_PAGE_BITS)
 #define FRR_ID_PAGE_SHIFT (IDALLOC_OFFSET_BITS + IDALLOC_WORD_BITS)
-#define WORD_SHIFT   (IDALLOC_OFFSET_BITS)
+#define WORD_SHIFT (IDALLOC_OFFSET_BITS)
 #define OFFSET_SHIFT (0)
 
-#define ID_DIR(id)    ((id >> DIR_SHIFT)    & DIR_MASK)
+#define ID_DIR(id) ((id >> DIR_SHIFT) & DIR_MASK)
 #define ID_SUBDIR(id) ((id >> SUBDIR_SHIFT) & SUBDIR_MASK)
-#define ID_PAGE(id)   ((id >> FRR_ID_PAGE_SHIFT) & FRR_ID_PAGE_MASK)
-#define ID_WORD(id)   ((id >> WORD_SHIFT)   & WORD_MASK)
+#define ID_PAGE(id) ((id >> FRR_ID_PAGE_SHIFT) & FRR_ID_PAGE_MASK)
+#define ID_WORD(id) ((id >> WORD_SHIFT) & WORD_MASK)
 #define ID_OFFSET(id) ((id >> OFFSET_SHIFT) & OFFSET_MASK)
 
 /*
@@ -94,10 +94,9 @@ static struct id_alloc_page *find_or_create_page(struct id_alloc *alloc,
 		page->next_has_free = alloc->has_free;
 		alloc->has_free = page;
 	} else if (page != NULL && create) {
-		flog_err(
-			EC_LIB_ID_CONSISTENCY,
-			"ID Allocator %s attempt to re-create page at %u",
-			alloc->name, id);
+		flog_err(EC_LIB_ID_CONSISTENCY,
+			 "ID Allocator %s attempt to re-create page at %u",
+			 alloc->name, id);
 	}
 
 	return page;
@@ -119,8 +118,8 @@ void idalloc_free(struct id_alloc *alloc, uint32_t id)
 	page = find_or_create_page(alloc, id, 0);
 	if (!page) {
 		flog_err(EC_LIB_ID_CONSISTENCY,
-			"ID Allocator %s cannot free #%u. ID Block does not exist.",
-			alloc->name, id);
+			 "ID Allocator %s cannot free #%u. ID Block does not exist.",
+			 alloc->name, id);
 		return;
 	}
 
@@ -129,8 +128,8 @@ void idalloc_free(struct id_alloc *alloc, uint32_t id)
 
 	if ((page->allocated_mask[word] & (1 << offset)) == 0) {
 		flog_err(EC_LIB_ID_CONSISTENCY,
-			"ID Allocator %s cannot free #%u. ID was not allocated at the time of free.",
-			alloc->name, id);
+			 "ID Allocator %s cannot free #%u. ID was not allocated at the time of free.",
+			 alloc->name, id);
 		return;
 	}
 
@@ -222,7 +221,7 @@ uint32_t idalloc_allocate(struct id_alloc *alloc)
 
 	if (alloc->has_free == NULL) {
 		flog_err(EC_LIB_ID_EXHAUST,
-			"ID Allocator %s has run out of IDs.", alloc->name);
+			 "ID Allocator %s has run out of IDs.", alloc->name);
 		return IDALLOC_INVALID;
 	}
 
@@ -231,16 +230,16 @@ uint32_t idalloc_allocate(struct id_alloc *alloc)
 
 	if (word < 0 || word >= 32) {
 		flog_err(EC_LIB_ID_CONSISTENCY,
-			"ID Allocator %s internal error. Page starting at %d is inconsistent.",
-			alloc->name, page->base_value);
+			 "ID Allocator %s internal error. Page starting at %d is inconsistent.",
+			 alloc->name, page->base_value);
 		return IDALLOC_INVALID;
 	}
 
 	offset = FFS32(~(page->allocated_mask[word])) - 1;
 	if (offset < 0 || offset >= 32) {
 		flog_err(EC_LIB_ID_CONSISTENCY,
-			"ID Allocator %s internal error. Page starting at %d is inconsistent on word %d",
-			alloc->name, page->base_value, word);
+			 "ID Allocator %s internal error. Page starting at %d is inconsistent on word %d",
+			 alloc->name, page->base_value, word);
 		return IDALLOC_INVALID;
 	}
 	return_value = page->base_value + word * 32 + offset;
@@ -271,8 +270,8 @@ uint32_t idalloc_reserve(struct id_alloc *alloc, uint32_t id)
 
 	if (page->allocated_mask[word] & (((uint32_t)1) << offset)) {
 		flog_err(EC_LIB_ID_CONSISTENCY,
-			"ID Allocator %s could not reserve %u because it is already allocated.",
-			alloc->name, id);
+			 "ID Allocator %s could not reserve %u because it is already allocated.",
+			 alloc->name, id);
 		return IDALLOC_INVALID;
 	}
 

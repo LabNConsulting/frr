@@ -56,7 +56,7 @@ static struct community_entry *bgp_clist_seq_check(struct community_list *list,
 
 static uint32_t bgp_clist_hash_key_community_list(const void *data)
 {
-	struct community_list *cl = (struct community_list *) data;
+	struct community_list *cl = (struct community_list *)data;
 
 	if (cl->name_hash)
 		return cl->name_hash;
@@ -240,8 +240,7 @@ community_list_insert(struct community_list_handler *ch, const char *name,
 
 struct community_list *community_list_lookup(struct community_list_handler *ch,
 					     const char *name,
-					     uint32_t name_hash,
-					     int master)
+					     uint32_t name_hash, int master)
 {
 	struct community_list lookup;
 	struct community_list_master *cm;
@@ -410,25 +409,25 @@ community_list_entry_lookup(struct community_list *list, const void *arg,
 	for (entry = list->head; entry; entry = entry->next) {
 		switch (entry->style) {
 		case COMMUNITY_LIST_STANDARD:
-			if (entry->direct == direct
-			    && community_cmp(entry->u.com, arg))
+			if (entry->direct == direct &&
+			    community_cmp(entry->u.com, arg))
 				return entry;
 			break;
 		case EXTCOMMUNITY_LIST_STANDARD:
-			if (entry->direct == direct
-			    && ecommunity_cmp(entry->u.ecom, arg))
+			if (entry->direct == direct &&
+			    ecommunity_cmp(entry->u.ecom, arg))
 				return entry;
 			break;
 		case LARGE_COMMUNITY_LIST_STANDARD:
-			if (entry->direct == direct
-			    && lcommunity_cmp(entry->u.lcom, arg))
+			if (entry->direct == direct &&
+			    lcommunity_cmp(entry->u.lcom, arg))
 				return entry;
 			break;
 		case COMMUNITY_LIST_EXPANDED:
 		case EXTCOMMUNITY_LIST_EXPANDED:
 		case LARGE_COMMUNITY_LIST_EXPANDED:
-			if (entry->direct == direct
-			    && strcmp(entry->config, arg) == 0)
+			if (entry->direct == direct &&
+			    strcmp(entry->config, arg) == 0)
 				return entry;
 			break;
 		default:
@@ -450,7 +449,7 @@ static char *community_str_get(struct community *com, int i)
 
 	switch (comval) {
 #if CONFDATE > 20230801
-CPP_NOTICE("Deprecate COMMUNITY_INTERNET BGP community")
+		CPP_NOTICE("Deprecate COMMUNITY_INTERNET BGP community")
 #endif
 	case COMMUNITY_INTERNET:
 		str = XSTRDUP(MTYPE_COMMUNITY_STR, "internet");
@@ -463,15 +462,13 @@ CPP_NOTICE("Deprecate COMMUNITY_INTERNET BGP community")
 		str = XSTRDUP(MTYPE_COMMUNITY_STR, "accept-own");
 		break;
 	case COMMUNITY_ROUTE_FILTER_TRANSLATED_v4:
-		str = XSTRDUP(MTYPE_COMMUNITY_STR,
-			      "route-filter-translated-v4");
+		str = XSTRDUP(MTYPE_COMMUNITY_STR, "route-filter-translated-v4");
 		break;
 	case COMMUNITY_ROUTE_FILTER_v4:
 		str = XSTRDUP(MTYPE_COMMUNITY_STR, "route-filter-v4");
 		break;
 	case COMMUNITY_ROUTE_FILTER_TRANSLATED_v6:
-		str = XSTRDUP(MTYPE_COMMUNITY_STR,
-			      "route-filter-translated-v6");
+		str = XSTRDUP(MTYPE_COMMUNITY_STR, "route-filter-translated-v6");
 		break;
 	case COMMUNITY_ROUTE_FILTER_v6:
 		str = XSTRDUP(MTYPE_COMMUNITY_STR, "route-filter-v6");
@@ -767,8 +764,7 @@ struct community *community_list_match_delete(struct community *com,
 
 		for (entry = list->head; entry; entry = entry->next) {
 			if ((entry->style == COMMUNITY_LIST_STANDARD) &&
-			    (community_include(entry->u.com,
-					       COMMUNITY_INTERNET) ||
+			    (community_include(entry->u.com, COMMUNITY_INTERNET) ||
 			     community_include(entry->u.com, val))) {
 				if (entry->direct == COMMUNITY_PERMIT) {
 					com_index_to_delete[delete_index] = i;
@@ -776,8 +772,7 @@ struct community *community_list_match_delete(struct community *com,
 				}
 				break;
 			} else if ((entry->style == COMMUNITY_LIST_EXPANDED) &&
-				   community_regexp_include(entry->reg, com,
-							    i)) {
+				   community_regexp_include(entry->reg, com, i)) {
 				if (entry->direct == COMMUNITY_PERMIT) {
 					com_index_to_delete[delete_index] = i;
 					delete_index++;
@@ -889,8 +884,7 @@ int community_list_set(struct community_list_handler *ch, const char *name,
 	if (community_list_dup_check(list, entry))
 		community_entry_free(entry);
 	else {
-		community_list_entry_add(list, entry, ch,
-					 COMMUNITY_LIST_MASTER);
+		community_list_entry_add(list, entry, ch, COMMUNITY_LIST_MASTER);
 		route_map_notify_dependencies(name, RMAP_EVENT_CLIST_ADDED);
 	}
 
@@ -899,8 +893,7 @@ int community_list_set(struct community_list_handler *ch, const char *name,
 
 /* Unset community-list */
 int community_list_unset(struct community_list_handler *ch, const char *name,
-			 const char *str, const char *seq, int direct,
-			 int style)
+			 const char *str, const char *seq, int direct, int style)
 {
 	struct community_list_master *cm = NULL;
 	struct community_entry *entry = NULL;
@@ -966,8 +959,7 @@ struct lcommunity *lcommunity_list_match_delete(struct lcommunity *lcom,
 
 			else if ((entry->style ==
 				  LARGE_COMMUNITY_LIST_EXPANDED) &&
-				 lcommunity_regexp_include(entry->reg, lcom,
-							   i)) {
+				 lcommunity_regexp_include(entry->reg, lcom, i)) {
 				if (entry->direct == COMMUNITY_PERMIT) {
 					com_index_to_delete[delete_index] = i;
 					delete_index++;
@@ -1011,8 +1003,8 @@ bool lcommunity_list_valid(const char *community, int style)
 				if (*splits[i] == '-')
 					/* Must not be negative */
 					invalid++;
-				else if (strtoul(splits[i], &endptr, 10)
-					 > UINT_MAX)
+				else if (strtoul(splits[i], &endptr, 10) >
+					 UINT_MAX)
 					/* Larger than 4 octets */
 					invalid++;
 				else if (*endptr)
@@ -1207,8 +1199,9 @@ int extcommunity_list_set(struct community_list_handler *ch, const char *name,
 	entry->direct = direct;
 	entry->style = style;
 	if (ecom)
-		entry->config = ecommunity_ecom2str(
-			ecom, ECOMMUNITY_FORMAT_COMMUNITY_LIST, 0);
+		entry->config =
+			ecommunity_ecom2str(ecom,
+					    ECOMMUNITY_FORMAT_COMMUNITY_LIST, 0);
 	else if (regex)
 		entry->config = XSTRDUP(MTYPE_COMMUNITY_LIST_CONFIG, str);
 
@@ -1370,20 +1363,20 @@ static void bgp_extcommunity_list_cmd_completion(vector comps,
 	hash_walk(cm->hash, bgp_community_list_vector_walker, &comps);
 }
 
-static const struct cmd_variable_handler community_list_handlers[] = {
-	{.tokenname = "COMMUNITY_LIST_NAME",
-	 .completions = bgp_community_list_cmd_completion},
-	{.completions = NULL}};
+static const struct cmd_variable_handler community_list_handlers[] =
+	{{.tokenname = "COMMUNITY_LIST_NAME",
+	  .completions = bgp_community_list_cmd_completion},
+	 {.completions = NULL}};
 
-static const struct cmd_variable_handler lcommunity_list_handlers[] = {
-	{.tokenname = "LCOMMUNITY_LIST_NAME",
-	 .completions = bgp_lcommunity_list_cmd_completion},
-	{.completions = NULL}};
+static const struct cmd_variable_handler lcommunity_list_handlers[] =
+	{{.tokenname = "LCOMMUNITY_LIST_NAME",
+	  .completions = bgp_lcommunity_list_cmd_completion},
+	 {.completions = NULL}};
 
-static const struct cmd_variable_handler extcommunity_list_handlers[] = {
-	{.tokenname = "EXTCOMMUNITY_LIST_NAME",
-	 .completions = bgp_extcommunity_list_cmd_completion},
-	{.completions = NULL}};
+static const struct cmd_variable_handler extcommunity_list_handlers[] =
+	{{.tokenname = "EXTCOMMUNITY_LIST_NAME",
+	  .completions = bgp_extcommunity_list_cmd_completion},
+	 {.completions = NULL}};
 
 void bgp_community_list_command_completion_setup(void)
 {

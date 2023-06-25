@@ -26,9 +26,9 @@ DECLARE_MTYPE(WORK_QUEUE);
 /* action value, for use by item processor and item error handlers */
 typedef enum {
 	WQ_SUCCESS = 0,
-	WQ_RETRY_NOW,     /* retry immediately */
-	WQ_RETRY_LATER,   /* retry later, cease processing work queue */
-	WQ_REQUEUE,       /* requeue item, continue processing work queue */
+	WQ_RETRY_NOW,	  /* retry immediately */
+	WQ_RETRY_LATER,	  /* retry later, cease processing work queue */
+	WQ_REQUEUE,	  /* requeue item, continue processing work queue */
 	WQ_QUEUE_BLOCKED, /* Queue cant be processed at this time.
 			   * Similar to WQ_RETRY_LATER, but doesn't penalise
 			   * the particular item.. */
@@ -37,19 +37,19 @@ typedef enum {
 /* A single work queue item, unsurprisingly */
 struct work_queue_item {
 	STAILQ_ENTRY(work_queue_item) wq;
-	void *data;	 /* opaque data */
+	void *data;	    /* opaque data */
 	unsigned short ran; /* # of times item has been run */
 };
 
-#define WQ_UNPLUGGED	(1 << 0) /* available for draining */
+#define WQ_UNPLUGGED (1 << 0) /* available for draining */
 
 struct work_queue {
 	/* Everything but the specification struct is private
 	 * the following may be read
 	 */
-	struct event_loop *master;    /* thread master */
-	struct event *thread;	      /* thread, if one is active */
-	char *name;		      /* work queue name */
+	struct event_loop *master; /* thread master */
+	struct event *thread;	   /* thread, if one is active */
+	char *name;		   /* work queue name */
 
 	/* Specification for this work queue.
 	 * Public, must be set before use by caller. May be modified at will.
@@ -76,8 +76,7 @@ struct work_queue {
 
 		unsigned int hold; /* hold time for first run, in ms */
 
-		unsigned long
-			yield; /* yield time in us for associated thread */
+		unsigned long yield; /* yield time in us for associated thread */
 
 		uint32_t retry; /* Optional retry timeout if queue is blocked */
 	} spec;
@@ -85,7 +84,7 @@ struct work_queue {
 	/* remaining fields should be opaque to users */
 	STAILQ_HEAD(work_queue_items, work_queue_item)
 	items;		      /* queue item list */
-	int item_count;       /* queued items */
+	int item_count;	      /* queued items */
 	unsigned long runs;   /* runs count */
 	unsigned long yields; /* yields count */
 
@@ -111,8 +110,7 @@ static inline bool work_queue_empty(struct work_queue *wq)
 	return (wq->item_count == 0) ? true : false;
 }
 
-static inline struct work_queue_item *
-work_queue_last_item(struct work_queue *wq)
+static inline struct work_queue_item *work_queue_last_item(struct work_queue *wq)
 {
 	return STAILQ_LAST(&wq->items, work_queue_item, wq);
 }

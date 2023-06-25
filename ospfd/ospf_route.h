@@ -7,16 +7,16 @@
 #ifndef _ZEBRA_OSPF_ROUTE_H
 #define _ZEBRA_OSPF_ROUTE_H
 
-#define OSPF_DESTINATION_ROUTER		1
-#define OSPF_DESTINATION_NETWORK	2
-#define OSPF_DESTINATION_DISCARD	3
+#define OSPF_DESTINATION_ROUTER 1
+#define OSPF_DESTINATION_NETWORK 2
+#define OSPF_DESTINATION_DISCARD 3
 
-#define OSPF_PATH_MIN			0
-#define OSPF_PATH_INTRA_AREA		1
-#define OSPF_PATH_INTER_AREA		2
-#define OSPF_PATH_TYPE1_EXTERNAL	3
-#define OSPF_PATH_TYPE2_EXTERNAL	4
-#define OSPF_PATH_MAX			5
+#define OSPF_PATH_MIN 0
+#define OSPF_PATH_INTRA_AREA 1
+#define OSPF_PATH_INTER_AREA 2
+#define OSPF_PATH_TYPE1_EXTERNAL 3
+#define OSPF_PATH_TYPE2_EXTERNAL 4
+#define OSPF_PATH_MAX 5
 
 /* Segment Routing information to complement ospf_path structure */
 struct sr_nexthop_info {

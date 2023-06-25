@@ -11,18 +11,18 @@ extern "C" {
 #endif
 
 #ifdef __cplusplus
-# if __cplusplus < 201103L
-#  error FRRouting headers must be compiled in C++11 mode or newer
-# endif
+#if __cplusplus < 201103L
+#error FRRouting headers must be compiled in C++11 mode or newer
+#endif
 /* C++ defines static_assert(), but not _Static_assert().  C defines
  * _Static_assert() and has static_assert() in <assert.h>.  However, we mess
  * with assert() in zassert.h so let's not include <assert.h> here.
  */
-# define _Static_assert static_assert
+#define _Static_assert static_assert
 #else
-# if !defined(__STDC_VERSION__) || __STDC_VERSION__ < 201112L
-#  error FRRouting must be compiled with min. -std=gnu11 (GNU ISO C11 dialect)
-# endif
+#if !defined(__STDC_VERSION__) || __STDC_VERSION__ < 201112L
+#error FRRouting must be compiled with min. -std=gnu11 (GNU ISO C11 dialect)
+#endif
 #endif
 
 /* function attributes, use like
@@ -30,34 +30,38 @@ extern "C" {
  */
 #if defined(__clang__)
 #if __clang_major__ > 3 || (__clang_major__ == 3 && __clang_minor__ >= 5)
-#  define _RET_NONNULL    , returns_nonnull
+#define _RET_NONNULL , returns_nonnull
 #endif
 #if __has_attribute(fallthrough)
-#  define _FALLTHROUGH __attribute__((fallthrough));
+#define _FALLTHROUGH __attribute__((fallthrough));
 #endif
-# define _CONSTRUCTOR(x)  constructor(x)
-# define _DEPRECATED(x) deprecated(x)
-# if __has_builtin(assume)
-#  define assume(x) __builtin_assume(x)
-# endif
+#define _CONSTRUCTOR(x) constructor(x)
+#define _DEPRECATED(x) deprecated(x)
+#if __has_builtin(assume)
+#define assume(x) __builtin_assume(x)
+#endif
 #elif defined(__GNUC__)
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)
-#  define _RET_NONNULL    , returns_nonnull
+#define _RET_NONNULL , returns_nonnull
 #endif
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)
-#  define _CONSTRUCTOR(x) constructor(x)
-#  define _DESTRUCTOR(x)  destructor(x)
-#  define _ALLOC_SIZE(x)  alloc_size(x)
+#define _CONSTRUCTOR(x) constructor(x)
+#define _DESTRUCTOR(x) destructor(x)
+#define _ALLOC_SIZE(x) alloc_size(x)
 #endif
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
-#  define _DEPRECATED(x) deprecated(x)
-#  define assume(x) do { if (!(x)) __builtin_unreachable(); } while (0)
+#define _DEPRECATED(x) deprecated(x)
+#define assume(x)                                                              \
+	do {                                                                   \
+		if (!(x))                                                      \
+			__builtin_unreachable();                               \
+	} while (0)
 #endif
 #if __GNUC__ < 5
-#  define __has_attribute(x) 0
+#define __has_attribute(x) 0
 #endif
 #if __GNUC__ >= 7
-#  define _FALLTHROUGH __attribute__((fallthrough));
+#define _FALLTHROUGH __attribute__((fallthrough));
 #endif
 #endif
 
@@ -72,14 +76,14 @@ extern "C" {
 #endif /* __INTELISENSE__ */
 
 #if __has_attribute(hot)
-#  define _OPTIMIZE_HOT __attribute__((hot))
+#define _OPTIMIZE_HOT __attribute__((hot))
 #else
-#  define _OPTIMIZE_HOT
+#define _OPTIMIZE_HOT
 #endif
 #if __has_attribute(optimize)
-#  define _OPTIMIZE_O3 __attribute__((optimize("3")))
+#define _OPTIMIZE_O3 __attribute__((optimize("3")))
 #else
-#  define _OPTIMIZE_O3
+#define _OPTIMIZE_O3
 #endif
 #define OPTIMIZE _OPTIMIZE_O3 _OPTIMIZE_HOT
 
@@ -88,9 +92,9 @@ extern "C" {
 #elif __GNUC__ < 4
 #error module code needs GCC visibility extensions
 #else
-# define DSO_PUBLIC __attribute__ ((visibility ("default")))
-# define DSO_SELF   __attribute__ ((visibility ("protected")))
-# define DSO_LOCAL  __attribute__ ((visibility ("hidden")))
+#define DSO_PUBLIC __attribute__((visibility("default")))
+#define DSO_SELF __attribute__((visibility("protected")))
+#define DSO_LOCAL __attribute__((visibility("hidden")))
 #endif
 
 #ifdef __sun
@@ -101,16 +105,16 @@ extern "C" {
 
 /* fallback versions */
 #ifndef _RET_NONNULL
-# define _RET_NONNULL
+#define _RET_NONNULL
 #endif
 #ifndef _CONSTRUCTOR
-# define _CONSTRUCTOR(x) constructor
+#define _CONSTRUCTOR(x) constructor
 #endif
 #ifndef _DESTRUCTOR
-# define _DESTRUCTOR(x) destructor
+#define _DESTRUCTOR(x) destructor
 #endif
 #ifndef _ALLOC_SIZE
-# define _ALLOC_SIZE(x)
+#define _ALLOC_SIZE(x)
 #endif
 #ifndef _FALLTHROUGH
 #define _FALLTHROUGH
@@ -123,11 +127,11 @@ extern "C" {
 #endif
 
 /* for helper functions defined inside macros */
-#define macro_inline	static inline __attribute__((unused))
-#define macro_pure	static inline __attribute__((unused, pure))
+#define macro_inline static inline __attribute__((unused))
+#define macro_pure static inline __attribute__((unused, pure))
 
 /* if the macro ends with a function definition */
-#define MACRO_REQUIRE_SEMICOLON() \
+#define MACRO_REQUIRE_SEMICOLON()                                              \
 	_Static_assert(1, "please add a semicolon after this macro")
 
 /* variadic macros, use like:
@@ -135,14 +139,14 @@ extern "C" {
  * #define V_1(x) ...
  * #define V(...) MACRO_VARIANT(V, ##__VA_ARGS__)(__VA_ARGS__)
  */
-#define _MACRO_VARIANT(A0,A1,A2,A3,A4,A5,A6,A7,A8,A9,A10, N, ...) N
+#define _MACRO_VARIANT(A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, N, ...) N
 
-#define _CONCAT2(a, b) a ## b
-#define _CONCAT(a, b) _CONCAT2(a,b)
+#define _CONCAT2(a, b) a##b
+#define _CONCAT(a, b) _CONCAT2(a, b)
 
-#define MACRO_VARIANT(NAME, ...) \
-	_CONCAT(NAME, _MACRO_VARIANT(0, ##__VA_ARGS__, \
-			_10, _9, _8, _7, _6, _5, _4, _3, _2, _1, _0))
+#define MACRO_VARIANT(NAME, ...)                                               \
+	_CONCAT(NAME, _MACRO_VARIANT(0, ##__VA_ARGS__, _10, _9, _8, _7, _6,    \
+				     _5, _4, _3, _2, _1, _0))
 
 #define NAMECTR(name) _CONCAT(name, __COUNTER__)
 
@@ -152,24 +156,21 @@ extern "C" {
  */
 
 #define _MACRO_REPEAT_0(NAME)
-#define _MACRO_REPEAT_1(NAME, A1) \
-	NAME(A1)
-#define _MACRO_REPEAT_2(NAME, A1, A2) \
-	NAME(A1) NAME(A2)
-#define _MACRO_REPEAT_3(NAME, A1, A2, A3) \
-	NAME(A1) NAME(A2) NAME(A3)
-#define _MACRO_REPEAT_4(NAME, A1, A2, A3, A4) \
+#define _MACRO_REPEAT_1(NAME, A1) NAME(A1)
+#define _MACRO_REPEAT_2(NAME, A1, A2) NAME(A1) NAME(A2)
+#define _MACRO_REPEAT_3(NAME, A1, A2, A3) NAME(A1) NAME(A2) NAME(A3)
+#define _MACRO_REPEAT_4(NAME, A1, A2, A3, A4)                                  \
 	NAME(A1) NAME(A2) NAME(A3) NAME(A4)
-#define _MACRO_REPEAT_5(NAME, A1, A2, A3, A4, A5) \
+#define _MACRO_REPEAT_5(NAME, A1, A2, A3, A4, A5)                              \
 	NAME(A1) NAME(A2) NAME(A3) NAME(A4) NAME(A5)
-#define _MACRO_REPEAT_6(NAME, A1, A2, A3, A4, A5, A6) \
+#define _MACRO_REPEAT_6(NAME, A1, A2, A3, A4, A5, A6)                          \
 	NAME(A1) NAME(A2) NAME(A3) NAME(A4) NAME(A5) NAME(A6)
-#define _MACRO_REPEAT_7(NAME, A1, A2, A3, A4, A5, A6, A7) \
+#define _MACRO_REPEAT_7(NAME, A1, A2, A3, A4, A5, A6, A7)                      \
 	NAME(A1) NAME(A2) NAME(A3) NAME(A4) NAME(A5) NAME(A6) NAME(A7)
-#define _MACRO_REPEAT_8(NAME, A1, A2, A3, A4, A5, A6, A7, A8) \
+#define _MACRO_REPEAT_8(NAME, A1, A2, A3, A4, A5, A6, A7, A8)                  \
 	NAME(A1) NAME(A2) NAME(A3) NAME(A4) NAME(A5) NAME(A6) NAME(A7) NAME(A8)
 
-#define MACRO_REPEAT(NAME, ...) \
+#define MACRO_REPEAT(NAME, ...)                                                \
 	MACRO_VARIANT(_MACRO_REPEAT, ##__VA_ARGS__)(NAME, ##__VA_ARGS__)
 
 /* per-arglist repeat macro, use like this:
@@ -205,11 +206,11 @@ extern "C" {
 #define CPP_NOTICE(text) _Pragma(CPP_STR(message __FILE__ ": " text))
 #define CPP_WARN(text) CPP_NOTICE(text)
 
-#elif (defined(__GNUC__)                                                       \
-       && (__GNUC__ >= 5 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)))           \
-	|| (defined(__clang__)                                                 \
-	    && (__clang_major__ >= 4                                           \
-		|| (__clang_major__ == 3 && __clang_minor__ >= 5)))
+#elif (defined(__GNUC__) &&                                                    \
+       (__GNUC__ >= 5 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8))) ||           \
+	(defined(__clang__) &&                                                 \
+	 (__clang_major__ >= 4 ||                                              \
+	  (__clang_major__ == 3 && __clang_minor__ >= 5)))
 #define CPP_WARN(text) _Pragma(CPP_STR(GCC warning text))
 #define CPP_NOTICE(text) _Pragma(CPP_STR(message text))
 
@@ -248,9 +249,9 @@ extern "C" {
 
 #ifndef offsetof
 #ifdef __compiler_offsetof
-#define offsetof(TYPE, MEMBER) __compiler_offsetof(TYPE,MEMBER)
+#define offsetof(TYPE, MEMBER) __compiler_offsetof(TYPE, MEMBER)
 #else
-#define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
+#define offsetof(TYPE, MEMBER) ((size_t) & ((TYPE *)0)->MEMBER)
 #endif
 #endif
 
@@ -280,8 +281,8 @@ extern "C" {
 #define container_of(ptr, type, member)                                        \
 	(__builtin_choose_expr(                                                \
 		__builtin_types_compatible_p(typeof(&((type *)0)->member),     \
-			typeof(ptr))                                           \
-		    ||  __builtin_types_compatible_p(void *, typeof(ptr)),     \
+					     typeof(ptr)) ||                   \
+			__builtin_types_compatible_p(void *, typeof(ptr)),     \
 		({                                                             \
 			typeof(((type *)0)->member) *__mptr = (void *)(ptr);   \
 			(type *)((char *)__mptr - offsetof(type, member));     \
@@ -289,17 +290,16 @@ extern "C" {
 		({                                                             \
 			typeof(((const type *)0)->member) *__mptr = (ptr);     \
 			(const type *)((const char *)__mptr -                  \
-					offsetof(type, member));               \
-		})                                                             \
-	))
+				       offsetof(type, member));                \
+		})))
 #else
 /* current C++ compilers don't have the builtins used above; so this version
  * of the macro doesn't do the const check. */
 #define container_of(ptr, type, member)                                        \
-		({                                                             \
-			const typeof(((type *)0)->member) *__mptr = (ptr);     \
-			(type *)((char *)__mptr - offsetof(type, member));     \
-		})
+	({                                                                     \
+		const typeof(((type *)0)->member) *__mptr = (ptr);             \
+		(type *)((char *)__mptr - offsetof(type, member));             \
+	})
 #endif
 
 #define container_of_null(ptr, type, member)                                   \
@@ -311,26 +311,22 @@ extern "C" {
 #define array_size(ar) (sizeof(ar) / sizeof(ar[0]))
 
 /* Some insane macros to count number of varargs to a functionlike macro */
-#define PP_ARG_N( \
-          _1,  _2,  _3,  _4,  _5,  _6,  _7,  _8,  _9, _10, \
-         _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, \
-         _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, \
-         _31, _32, _33, _34, _35, _36, _37, _38, _39, _40, \
-         _41, _42, _43, _44, _45, _46, _47, _48, _49, _50, \
-         _51, _52, _53, _54, _55, _56, _57, _58, _59, _60, \
-         _61, _62, _63, N, ...) N
+#define PP_ARG_N(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14,  \
+		 _15, _16, _17, _18, _19, _20, _21, _22, _23, _24, _25, _26,   \
+		 _27, _28, _29, _30, _31, _32, _33, _34, _35, _36, _37, _38,   \
+		 _39, _40, _41, _42, _43, _44, _45, _46, _47, _48, _49, _50,   \
+		 _51, _52, _53, _54, _55, _56, _57, _58, _59, _60, _61, _62,   \
+		 _63, N, ...)                                                  \
+	N
 
-#define PP_RSEQ_N()                                        \
-         62, 61, 60,                                       \
-         59, 58, 57, 56, 55, 54, 53, 52, 51, 50,           \
-         49, 48, 47, 46, 45, 44, 43, 42, 41, 40,           \
-         39, 38, 37, 36, 35, 34, 33, 32, 31, 30,           \
-         29, 28, 27, 26, 25, 24, 23, 22, 21, 20,           \
-         19, 18, 17, 16, 15, 14, 13, 12, 11, 10,           \
-          9,  8,  7,  6,  5,  4,  3,  2,  1,  0
+#define PP_RSEQ_N()                                                            \
+	62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48, 47, 46,    \
+		45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31,    \
+		30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16,    \
+		15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
 
 #define PP_NARG_(...) PP_ARG_N(__VA_ARGS__)
-#define PP_NARG(...)     PP_NARG_(_, ##__VA_ARGS__, PP_RSEQ_N())
+#define PP_NARG(...) PP_NARG_(_, ##__VA_ARGS__, PP_RSEQ_N())
 
 
 /* sigh. this is so ugly, it overflows and wraps to being nice again.

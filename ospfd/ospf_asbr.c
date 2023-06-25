@@ -42,8 +42,9 @@ void ospf_external_route_remove(struct ospf *ospf, struct prefix_ipv4 *p)
 
 			/* Remove route from zebra. */
 			if (or->type == OSPF_DESTINATION_NETWORK)
-				ospf_zebra_delete(
-					ospf, (struct prefix_ipv4 *)&rn->p, or);
+				ospf_zebra_delete(ospf,
+						  (struct prefix_ipv4 *)&rn->p,
+						  or);
 
 			ospf_route_free(or);
 			rn->info = NULL;
@@ -86,8 +87,8 @@ void ospf_reset_route_map_set_values(struct route_map_set_values *values)
 int ospf_route_map_set_compare(struct route_map_set_values *values1,
 			       struct route_map_set_values *values2)
 {
-	return values1->metric == values2->metric
-	       && values1->metric_type == values2->metric_type;
+	return values1->metric == values2->metric &&
+	       values1->metric_type == values2->metric_type;
 }
 
 /* Add an External info for AS-external-LSA. */
@@ -108,18 +109,17 @@ ospf_external_info_add(struct ospf *ospf, uint8_t type, unsigned short instance,
 	/* If old info exists, -- discard new one or overwrite with new one? */
 	if (rn && rn->info) {
 		new = rn->info;
-		if ((new->ifindex == ifindex)
-		    && (new->nexthop.s_addr == nexthop.s_addr)
-		    && (new->tag == tag)) {
+		if ((new->ifindex == ifindex) &&
+		    (new->nexthop.s_addr == nexthop.s_addr) &&
+		    (new->tag == tag)) {
 			route_unlock_node(rn);
 			return NULL; /* NULL => no LSA to refresh */
 		}
 
 		if (IS_DEBUG_OSPF(lsa, LSA_GENERATE))
-			zlog_debug(
-				"Redistribute[%s][%d][%u]: %pFX discarding old info with NH %pI4.",
-				ospf_redist_string(type), instance,
-				ospf->vrf_id, &p, &nexthop.s_addr);
+			zlog_debug("Redistribute[%s][%d][%u]: %pFX discarding old info with NH %pI4.",
+				   ospf_redist_string(type), instance,
+				   ospf->vrf_id, &p, &nexthop.s_addr);
 		XFREE(MTYPE_OSPF_EXTERNAL_INFO, rn->info);
 	}
 
@@ -140,10 +140,9 @@ ospf_external_info_add(struct ospf *ospf, uint8_t type, unsigned short instance,
 		rn->info = new;
 
 	if (IS_DEBUG_OSPF(lsa, LSA_GENERATE)) {
-		zlog_debug(
-			"Redistribute[%s][%u]: %pFX external info created, with NH %pI4, metric:%u",
-			ospf_redist_string(type), ospf->vrf_id, &p,
-			&nexthop.s_addr, metric);
+		zlog_debug("Redistribute[%s][%u]: %pFX external info created, with NH %pI4, metric:%u",
+			   ospf_redist_string(type), ospf->vrf_id, &p,
+			   &nexthop.s_addr, metric);
 	}
 	return new;
 }
@@ -237,8 +236,7 @@ struct ospf_lsa *ospf_external_info_find_lsa(struct ospf *ospf,
 /* Update ASBR status. */
 void ospf_asbr_status_update(struct ospf *ospf, uint8_t status)
 {
-	zlog_info("ASBR[%s:Status:%d]: Update",
-		  ospf_get_name(ospf), status);
+	zlog_info("ASBR[%s:Status:%d]: Update", ospf_get_name(ospf), status);
 
 	/* ASBR on. */
 	if (status) {
@@ -287,8 +285,7 @@ static void ospf_asbr_nssa_redist_update_timer(struct event *thread)
 			continue;
 
 		for (ALL_LIST_ELEMENTS_RO(red_list, node, red))
-			ospf_external_lsa_refresh_type(ospf, type,
-						       red->instance,
+			ospf_external_lsa_refresh_type(ospf, type, red->instance,
 						       LSA_REFRESH_FORCE);
 	}
 
@@ -328,8 +325,8 @@ void ospf_redistribute_withdraw(struct ospf *ospf, uint8_t type,
 
 		struct ospf_external_aggr_rt *aggr;
 
-		if (is_default_prefix4(&ei->p)
-		    && ospf->default_originate != DEFAULT_ORIGINATE_NONE)
+		if (is_default_prefix4(&ei->p) &&
+		    ospf->default_originate != DEFAULT_ORIGINATE_NONE)
 			continue;
 
 		aggr = ei->aggr_route;
@@ -393,9 +390,9 @@ ospf_external_aggregator_new(struct prefix_ipv4 *p)
 {
 	struct ospf_external_aggr_rt *aggr;
 
-	aggr = (struct ospf_external_aggr_rt *)XCALLOC(
-		MTYPE_OSPF_EXTERNAL_RT_AGGR,
-		sizeof(struct ospf_external_aggr_rt));
+	aggr = (struct ospf_external_aggr_rt *)
+		XCALLOC(MTYPE_OSPF_EXTERNAL_RT_AGGR,
+			sizeof(struct ospf_external_aggr_rt));
 
 	if (!aggr)
 		return NULL;
@@ -490,8 +487,7 @@ static void ospf_external_aggr_delete(struct ospf *ospf, struct route_node *rn)
 	if (CHECK_FLAG(aggr->flags, OSPF_EXTERNAL_AGGRT_ORIGINATED)) {
 		if (IS_DEBUG_OSPF(lsa, EXTNL_LSA_AGGR))
 			zlog_debug("%s: Flushing Aggregate route (%pI4/%d)",
-				   __func__, &aggr->p.prefix,
-				   aggr->p.prefixlen);
+				   __func__, &aggr->p.prefix, aggr->p.prefixlen);
 		ospf_external_lsa_flush(ospf, 0, &aggr->p, 0);
 	}
 
@@ -527,10 +523,9 @@ struct ospf_external_aggr_rt *ospf_external_aggr_match(struct ospf *ospf,
 			if (node->info) {
 				struct ospf_external_aggr_rt *ag = node->info;
 
-				zlog_debug(
-					"%s: Matching aggregator found.prefix:%pI4/%d Aggregator %pI4/%d",
-					__func__, &p->prefix, p->prefixlen,
-					&ag->p.prefix, ag->p.prefixlen);
+				zlog_debug("%s: Matching aggregator found.prefix:%pI4/%d Aggregator %pI4/%d",
+					   __func__, &p->prefix, p->prefixlen,
+					   &ag->p.prefix, ag->p.prefixlen);
 			}
 
 		summary_rt = node->info;
@@ -545,24 +540,22 @@ void ospf_unlink_ei_from_aggr(struct ospf *ospf,
 			      struct external_info *ei)
 {
 	if (IS_DEBUG_OSPF(lsa, EXTNL_LSA_AGGR))
-		zlog_debug(
-			"%s: Unlinking extrenal route(%pI4/%d) from aggregator(%pI4/%d), external route count:%ld",
-			__func__, &ei->p.prefix, ei->p.prefixlen,
-			&aggr->p.prefix, aggr->p.prefixlen,
-			OSPF_EXTERNAL_RT_COUNT(aggr));
+		zlog_debug("%s: Unlinking extrenal route(%pI4/%d) from aggregator(%pI4/%d), external route count:%ld",
+			   __func__, &ei->p.prefix, ei->p.prefixlen,
+			   &aggr->p.prefix, aggr->p.prefixlen,
+			   OSPF_EXTERNAL_RT_COUNT(aggr));
 	hash_release(aggr->match_extnl_hash, ei);
 	ei->aggr_route = NULL;
 
 	/* Flush the aggreagte route if matching
 	 * external route count becomes zero.
 	 */
-	if (!OSPF_EXTERNAL_RT_COUNT(aggr)
-	    && CHECK_FLAG(aggr->flags, OSPF_EXTERNAL_AGGRT_ORIGINATED)) {
+	if (!OSPF_EXTERNAL_RT_COUNT(aggr) &&
+	    CHECK_FLAG(aggr->flags, OSPF_EXTERNAL_AGGRT_ORIGINATED)) {
 
 		if (IS_DEBUG_OSPF(lsa, EXTNL_LSA_AGGR))
 			zlog_debug("%s: Flushing the aggreagte route (%pI4/%d)",
-				   __func__, &aggr->p.prefix,
-				   aggr->p.prefixlen);
+				   __func__, &aggr->p.prefix, aggr->p.prefixlen);
 
 		/* Flush the aggregate LSA */
 		ospf_external_lsa_flush(ospf, 0, &aggr->p, 0);
@@ -576,10 +569,9 @@ static void ospf_link_ei_to_aggr(struct ospf_external_aggr_rt *aggr,
 				 struct external_info *ei)
 {
 	if (IS_DEBUG_OSPF(lsa, EXTNL_LSA_AGGR))
-		zlog_debug(
-			"%s: Linking extrenal route(%pI4/%d) to aggregator(%pI4/%d)",
-			__func__, &ei->p.prefix, ei->p.prefixlen,
-			&aggr->p.prefix, aggr->p.prefixlen);
+		zlog_debug("%s: Linking extrenal route(%pI4/%d) to aggregator(%pI4/%d)",
+			   __func__, &ei->p.prefix, ei->p.prefixlen,
+			   &aggr->p.prefix, aggr->p.prefixlen);
 	(void)hash_get(aggr->match_extnl_hash, ei, hash_alloc_intern);
 	ei->aggr_route = aggr;
 }
@@ -626,9 +618,8 @@ struct ospf_lsa *ospf_originate_summary_lsa(struct ospf *ospf,
 		UNSET_FLAG(aggr->flags, OSPF_EXTERNAL_AGGRT_ORIGINATED);
 
 		if (IS_DEBUG_OSPF(lsa, EXTNL_LSA_AGGR))
-			zlog_debug(
-				"%s: Don't originate the summary address,It is configured to not-advertise.",
-				__func__);
+			zlog_debug("%s: Don't originate the summary address,It is configured to not-advertise.",
+				   __func__);
 		return NULL;
 	}
 
@@ -660,10 +651,9 @@ struct ospf_lsa *ospf_originate_summary_lsa(struct ospf *ospf,
 		 */
 		if (tag != ei_aggr.tag) {
 			if (IS_DEBUG_OSPF(lsa, EXTNL_LSA_AGGR))
-				zlog_debug(
-					"%s: Route tag changed(old:%d new:%d,So refresh the summary route.(%pI4/%d)",
-					__func__, tag, ei_aggr.tag,
-					&aggr->p.prefix, aggr->p.prefixlen);
+				zlog_debug("%s: Route tag changed(old:%d new:%d,So refresh the summary route.(%pI4/%d)",
+					   __func__, tag, ei_aggr.tag,
+					   &aggr->p.prefix, aggr->p.prefixlen);
 
 			ospf_external_lsa_refresh(ospf, lsa, &ei_aggr,
 						  LSA_REFRESH_FORCE, 1);
@@ -678,9 +668,8 @@ struct ospf_lsa *ospf_originate_summary_lsa(struct ospf *ospf,
 		 * it need to be refreshed.
 		 */
 		if (IS_DEBUG_OSPF(lsa, EXTNL_LSA_AGGR))
-			zlog_debug(
-				"%s: LSA is in MAX-AGE so refreshing LSA(%pI4/%d)",
-				__func__, &aggr->p.prefix, aggr->p.prefixlen);
+			zlog_debug("%s: LSA is in MAX-AGE so refreshing LSA(%pI4/%d)",
+				   __func__, &aggr->p.prefix, aggr->p.prefixlen);
 
 		ospf_external_lsa_refresh(ospf, lsa, &ei_aggr,
 					  LSA_REFRESH_FORCE, 1);
@@ -693,12 +682,11 @@ struct ospf_lsa *ospf_originate_summary_lsa(struct ospf *ospf,
 	 * then it need to be refreshed and originate bit should
 	 * be set.
 	 */
-	if (lsa && prefix_same((struct prefix *)&ei_aggr.p,
-			       (struct prefix *)&ei->p)) {
+	if (lsa &&
+	    prefix_same((struct prefix *)&ei_aggr.p, (struct prefix *)&ei->p)) {
 		if (IS_DEBUG_OSPF(lsa, EXTNL_LSA_AGGR))
-			zlog_debug(
-				"%s: External route prefix is same as aggr so refreshing LSA(%pI4/%d)",
-				__func__, &aggr->p.prefix, aggr->p.prefixlen);
+			zlog_debug("%s: External route prefix is same as aggr so refreshing LSA(%pI4/%d)",
+				   __func__, &aggr->p.prefix, aggr->p.prefixlen);
 		ospf_external_lsa_refresh(ospf, lsa, &ei_aggr,
 					  LSA_REFRESH_FORCE, 1);
 		SET_FLAG(aggr->flags, OSPF_EXTERNAL_AGGRT_ORIGINATED);
@@ -774,9 +762,8 @@ static void ospf_handle_aggregated_exnl_rt(struct ospf *ospf,
 	 */
 	if (prefix_same((struct prefix *)&aggr->p, (struct prefix *)&ei->p)) {
 		if (IS_DEBUG_OSPF(lsa, EXTNL_LSA_AGGR))
-			zlog_debug(
-				"%s: External Route prefix same as Aggregator(%pI4/%d), so don't flush.",
-				__func__, &ei->p.prefix, ei->p.prefixlen);
+			zlog_debug("%s: External Route prefix same as Aggregator(%pI4/%d), so don't flush.",
+				   __func__, &ei->p.prefix, ei->p.prefixlen);
 		return;
 	}
 
@@ -877,8 +864,8 @@ static void ospf_handle_external_aggr_add(struct ospf *ospf)
 					/* All aggregated external rts
 					 * are handled here.
 					 */
-					ospf_handle_aggregated_exnl_rt(
-						ospf, aggr, ei);
+					ospf_handle_aggregated_exnl_rt(ospf,
+								       aggr, ei);
 					continue;
 				}
 
@@ -891,10 +878,9 @@ static void ospf_handle_external_aggr_add(struct ospf *ospf)
 	}
 }
 
-static void
-ospf_aggr_handle_advertise_change(struct ospf *ospf,
-				  struct ospf_external_aggr_rt *aggr,
-				  struct external_info *ei_aggr)
+static void ospf_aggr_handle_advertise_change(struct ospf *ospf,
+					      struct ospf_external_aggr_rt *aggr,
+					      struct external_info *ei_aggr)
 {
 	struct ospf_lsa *lsa;
 
@@ -902,17 +888,15 @@ ospf_aggr_handle_advertise_change(struct ospf *ospf,
 	if (CHECK_FLAG(aggr->flags, OSPF_EXTERNAL_AGGRT_NO_ADVERTISE)) {
 
 		if (IS_DEBUG_OSPF(lsa, EXTNL_LSA_AGGR))
-			zlog_debug(
-				"%s: Don't originate the summary address,It is configured to not-advertise.",
-				__func__);
+			zlog_debug("%s: Don't originate the summary address,It is configured to not-advertise.",
+				   __func__);
 
 		if (CHECK_FLAG(aggr->flags, OSPF_EXTERNAL_AGGRT_ORIGINATED)) {
 
 			if (IS_DEBUG_OSPF(lsa, EXTNL_LSA_AGGR))
-				zlog_debug(
-					"%s: No-advertise,So Flush the Aggregate route(%pI4/%d)",
-					__func__, &aggr->p.prefix,
-					aggr->p.prefixlen);
+				zlog_debug("%s: No-advertise,So Flush the Aggregate route(%pI4/%d)",
+					   __func__, &aggr->p.prefix,
+					   aggr->p.prefixlen);
 
 			ospf_external_lsa_flush(ospf, 0, &aggr->p, 0);
 
@@ -933,10 +917,9 @@ ospf_aggr_handle_advertise_change(struct ospf *ospf,
 			 * it need to be refreshed.
 			 */
 			if (IS_DEBUG_OSPF(lsa, EXTNL_LSA_AGGR))
-				zlog_debug(
-					"%s: It is already with Maxage, So refresh it (%pI4/%d)",
-					__func__, &aggr->p.prefix,
-					aggr->p.prefixlen);
+				zlog_debug("%s: It is already with Maxage, So refresh it (%pI4/%d)",
+					   __func__, &aggr->p.prefix,
+					   aggr->p.prefixlen);
 
 			ospf_external_lsa_refresh(ospf, lsa, ei_aggr,
 						  LSA_REFRESH_FORCE, 1);
@@ -946,10 +929,9 @@ ospf_aggr_handle_advertise_change(struct ospf *ospf,
 		} else {
 
 			if (IS_DEBUG_OSPF(lsa, EXTNL_LSA_AGGR))
-				zlog_debug(
-					"%s: Originate Aggregate LSA (%pI4/%d)",
-					__func__, &aggr->p.prefix,
-					aggr->p.prefixlen);
+				zlog_debug("%s: Originate Aggregate LSA (%pI4/%d)",
+					   __func__, &aggr->p.prefix,
+					   aggr->p.prefixlen);
 
 			/* Originate summary LSA */
 			lsa = ospf_external_lsa_originate(ospf, ei_aggr);
@@ -983,9 +965,8 @@ static void ospf_handle_external_aggr_update(struct ospf *ospf)
 			aggr->action = OSPF_ROUTE_AGGR_NONE;
 			ospf_external_aggr_delete(ospf, rn);
 
-			hash_clean_and_free(
-				&aggr->match_extnl_hash,
-				(void *)ospf_aggr_handle_external_info);
+			hash_clean_and_free(&aggr->match_extnl_hash,
+					    (void *)ospf_aggr_handle_external_info);
 
 		} else if (aggr->action == OSPF_ROUTE_AGGR_MODIFY) {
 
@@ -1014,24 +995,23 @@ static void ospf_handle_external_aggr_update(struct ospf *ospf)
 				}
 
 				asel = (struct as_external_lsa *)lsa->data;
-				tag = (unsigned long)ntohl(
-					asel->e[0].route_tag);
+				tag = (unsigned long)ntohl(asel->e[0].route_tag);
 
 				/* If tag modified , then re-originate the
 				 * route with modified tag details.
 				 */
 				if (tag != ei_aggr.tag) {
 					if (IS_DEBUG_OSPF(lsa, EXTNL_LSA_AGGR))
-						zlog_debug(
-							"%s: Route tag changed(old:%d new:%d,So refresh the summary route.(%pI4/%d)",
-							__func__, tag,
-							ei_aggr.tag,
-							&aggr->p.prefix,
-							aggr->p.prefixlen);
+						zlog_debug("%s: Route tag changed(old:%d new:%d,So refresh the summary route.(%pI4/%d)",
+							   __func__, tag,
+							   ei_aggr.tag,
+							   &aggr->p.prefix,
+							   aggr->p.prefixlen);
 
-					ospf_external_lsa_refresh(
-						ospf, lsa, &ei_aggr,
-						LSA_REFRESH_FORCE, 1);
+					ospf_external_lsa_refresh(ospf, lsa,
+								  &ei_aggr,
+								  LSA_REFRESH_FORCE,
+								  1);
 				}
 			}
 
@@ -1076,17 +1056,15 @@ static void ospf_external_aggr_timer(struct ospf *ospf,
 		if (ospf->aggr_action == OSPF_ROUTE_AGGR_ADD) {
 
 			if (IS_DEBUG_OSPF(lsa, EXTNL_LSA_AGGR))
-				zlog_debug(
-					"%s: Not required to retsart timer,set is already added.",
-					__func__);
+				zlog_debug("%s: Not required to retsart timer,set is already added.",
+					   __func__);
 			return;
 		}
 
 		if (operation == OSPF_ROUTE_AGGR_ADD) {
 			if (IS_DEBUG_OSPF(lsa, EXTNL_LSA_AGGR))
-				zlog_debug(
-					"%s, Restarting Aggregator delay timer.",
-					__func__);
+				zlog_debug("%s, Restarting Aggregator delay timer.",
+					   __func__);
 			EVENT_OFF(ospf->t_external_aggr);
 		}
 	}

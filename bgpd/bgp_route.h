@@ -63,11 +63,14 @@ enum bgp_show_adj_route_type {
 	"               i internal, r RIB-failure, S Stale, R Removed\n"
 #define BGP_SHOW_OCODE_HEADER                                                  \
 	"Origin codes:  i - IGP, e - EGP, ? - incomplete\n"
-#define BGP_SHOW_NCODE_HEADER "Nexthop codes: @NNN nexthop's vrf id, < announce-nh-self\n"
+#define BGP_SHOW_NCODE_HEADER                                                  \
+	"Nexthop codes: @NNN nexthop's vrf id, < announce-nh-self\n"
 #define BGP_SHOW_RPKI_HEADER                                                   \
 	"RPKI validation codes: V valid, I invalid, N Not found\n\n"
-#define BGP_SHOW_HEADER "    Network          Next Hop            Metric LocPrf Weight Path\n"
-#define BGP_SHOW_HEADER_WIDE "    Network                                      Next Hop                                  Metric LocPrf Weight Path\n"
+#define BGP_SHOW_HEADER                                                        \
+	"    Network          Next Hop            Metric LocPrf Weight Path\n"
+#define BGP_SHOW_HEADER_WIDE                                                   \
+	"    Network                                      Next Hop                                  Metric LocPrf Weight Path\n"
 
 /* Maximum number of labels we can process or send with a prefix. We
  * really do only 1 for MPLS (BGP-LU) but we can do 2 for EVPN-VxLAN.
@@ -203,7 +206,7 @@ struct bgp_path_info_extra {
 	/*
 	 * For imported routes into a VNI (or VRF)
 	 */
-	void *parent;	    /* parent from global table */
+	void *parent; /* parent from global table */
 	union {
 		struct ethaddr mac; /* MAC set here for VNI IP table */
 		struct ipaddr ip;   /* IP set here for VNI MAC table */
@@ -323,14 +326,14 @@ struct bgp_path_info {
 	/* When above type is BGP.  This sub type specify BGP sub type
 	   information.  */
 	uint8_t sub_type;
-#define BGP_ROUTE_NORMAL       0
-#define BGP_ROUTE_STATIC       1
-#define BGP_ROUTE_AGGREGATE    2
+#define BGP_ROUTE_NORMAL 0
+#define BGP_ROUTE_STATIC 1
+#define BGP_ROUTE_AGGREGATE 2
 #define BGP_ROUTE_REDISTRIBUTE 3
 #ifdef ENABLE_BGP_VNC
-# define BGP_ROUTE_RFP          4
+#define BGP_ROUTE_RFP 4
 #endif
-#define BGP_ROUTE_IMPORTED     5        /* from another bgp instance/safi */
+#define BGP_ROUTE_IMPORTED 5 /* from another bgp instance/safi */
 
 	unsigned short instance;
 
@@ -357,7 +360,7 @@ struct bgp_static {
 
 	/* Label index configuration; applies to LU prefixes. */
 	uint32_t label_index;
-#define BGP_INVALID_LABEL_INDEX   0xFFFFFFFF
+#define BGP_INVALID_LABEL_INDEX 0xFFFFFFFF
 
 	/* Import check status.  */
 	uint8_t valid;
@@ -477,8 +480,8 @@ struct bgp_aggregate {
 	 * matching is disabled.
 	 */
 #define AGGREGATE_MED_VALID(aggregate)                                         \
-	(((aggregate)->match_med && !(aggregate)->med_mismatched)              \
-	 || !(aggregate)->match_med)
+	(((aggregate)->match_med && !(aggregate)->med_mismatched) ||           \
+	 !(aggregate)->match_med)
 
 	/** Suppress map route map name (`NULL` when disabled). */
 	char *suppress_map_name;
@@ -502,8 +505,8 @@ struct bgp_aggregate {
 	 BGP_ATTR_MP_NEXTHOP_LEN_IP6(attr))
 
 #define BGP_PATH_COUNTABLE(BI)                                                 \
-	(!CHECK_FLAG((BI)->flags, BGP_PATH_HISTORY)                            \
-	 && !CHECK_FLAG((BI)->flags, BGP_PATH_REMOVED))
+	(!CHECK_FLAG((BI)->flags, BGP_PATH_HISTORY) &&                         \
+	 !CHECK_FLAG((BI)->flags, BGP_PATH_REMOVED))
 
 /* Flags which indicate a route is unuseable in some form */
 #define BGP_PATH_UNUSEABLE                                                     \
@@ -513,39 +516,39 @@ struct bgp_aggregate {
  * sense of the additional VALID flag.
  */
 #define BGP_PATH_HOLDDOWN(BI)                                                  \
-	(!CHECK_FLAG((BI)->flags, BGP_PATH_VALID)                              \
-	 || CHECK_FLAG((BI)->flags, BGP_PATH_UNUSEABLE))
+	(!CHECK_FLAG((BI)->flags, BGP_PATH_VALID) ||                           \
+	 CHECK_FLAG((BI)->flags, BGP_PATH_UNUSEABLE))
 
-#define DISTRIBUTE_IN_NAME(F)   ((F)->dlist[FILTER_IN].name)
-#define DISTRIBUTE_IN(F)        ((F)->dlist[FILTER_IN].alist)
-#define DISTRIBUTE_OUT_NAME(F)  ((F)->dlist[FILTER_OUT].name)
-#define DISTRIBUTE_OUT(F)       ((F)->dlist[FILTER_OUT].alist)
+#define DISTRIBUTE_IN_NAME(F) ((F)->dlist[FILTER_IN].name)
+#define DISTRIBUTE_IN(F) ((F)->dlist[FILTER_IN].alist)
+#define DISTRIBUTE_OUT_NAME(F) ((F)->dlist[FILTER_OUT].name)
+#define DISTRIBUTE_OUT(F) ((F)->dlist[FILTER_OUT].alist)
 
-#define PREFIX_LIST_IN_NAME(F)  ((F)->plist[FILTER_IN].name)
-#define PREFIX_LIST_IN(F)       ((F)->plist[FILTER_IN].plist)
+#define PREFIX_LIST_IN_NAME(F) ((F)->plist[FILTER_IN].name)
+#define PREFIX_LIST_IN(F) ((F)->plist[FILTER_IN].plist)
 #define PREFIX_LIST_OUT_NAME(F) ((F)->plist[FILTER_OUT].name)
-#define PREFIX_LIST_OUT(F)      ((F)->plist[FILTER_OUT].plist)
+#define PREFIX_LIST_OUT(F) ((F)->plist[FILTER_OUT].plist)
 
-#define FILTER_LIST_IN_NAME(F)  ((F)->aslist[FILTER_IN].name)
-#define FILTER_LIST_IN(F)       ((F)->aslist[FILTER_IN].aslist)
+#define FILTER_LIST_IN_NAME(F) ((F)->aslist[FILTER_IN].name)
+#define FILTER_LIST_IN(F) ((F)->aslist[FILTER_IN].aslist)
 #define FILTER_LIST_OUT_NAME(F) ((F)->aslist[FILTER_OUT].name)
-#define FILTER_LIST_OUT(F)      ((F)->aslist[FILTER_OUT].aslist)
+#define FILTER_LIST_OUT(F) ((F)->aslist[FILTER_OUT].aslist)
 
-#define ROUTE_MAP_IN_NAME(F)    ((F)->map[RMAP_IN].name)
-#define ROUTE_MAP_IN(F)         ((F)->map[RMAP_IN].map)
-#define ROUTE_MAP_OUT_NAME(F)   ((F)->map[RMAP_OUT].name)
-#define ROUTE_MAP_OUT(F)        ((F)->map[RMAP_OUT].map)
+#define ROUTE_MAP_IN_NAME(F) ((F)->map[RMAP_IN].name)
+#define ROUTE_MAP_IN(F) ((F)->map[RMAP_IN].map)
+#define ROUTE_MAP_OUT_NAME(F) ((F)->map[RMAP_OUT].name)
+#define ROUTE_MAP_OUT(F) ((F)->map[RMAP_OUT].map)
 
-#define UNSUPPRESS_MAP_NAME(F)  ((F)->usmap.name)
-#define UNSUPPRESS_MAP(F)       ((F)->usmap.map)
+#define UNSUPPRESS_MAP_NAME(F) ((F)->usmap.name)
+#define UNSUPPRESS_MAP(F) ((F)->usmap.map)
 
-#define ADVERTISE_MAP_NAME(F)	((F)->advmap.aname)
-#define ADVERTISE_MAP(F)	((F)->advmap.amap)
+#define ADVERTISE_MAP_NAME(F) ((F)->advmap.aname)
+#define ADVERTISE_MAP(F) ((F)->advmap.amap)
 
-#define ADVERTISE_CONDITION(F)	((F)->advmap.condition)
+#define ADVERTISE_CONDITION(F) ((F)->advmap.condition)
 
-#define CONDITION_MAP_NAME(F)	((F)->advmap.cname)
-#define CONDITION_MAP(F)	((F)->advmap.cmap)
+#define CONDITION_MAP_NAME(F) ((F)->advmap.cname)
+#define CONDITION_MAP(F) ((F)->advmap.cmap)
 
 /* path PREFIX (addpath rxid NUMBER) */
 #define PATH_ADDPATH_STR_BUFFER PREFIX2STR_BUFFER + 32
@@ -563,16 +566,15 @@ static inline void bgp_bump_version(struct bgp_dest *dest)
 
 static inline int bgp_fibupd_safi(safi_t safi)
 {
-	if (safi == SAFI_UNICAST || safi == SAFI_MULTICAST
-	    || safi == SAFI_LABELED_UNICAST
-	    || safi == SAFI_FLOWSPEC)
+	if (safi == SAFI_UNICAST || safi == SAFI_MULTICAST ||
+	    safi == SAFI_LABELED_UNICAST || safi == SAFI_FLOWSPEC)
 		return 1;
 	return 0;
 }
 
 /* Flag if the route path's family matches params. */
-static inline bool is_pi_family_matching(struct bgp_path_info *pi,
-					 afi_t afi, safi_t safi)
+static inline bool is_pi_family_matching(struct bgp_path_info *pi, afi_t afi,
+					 safi_t safi)
 {
 	struct bgp_table *table;
 	struct bgp_dest *dest;
@@ -581,9 +583,7 @@ static inline bool is_pi_family_matching(struct bgp_path_info *pi,
 	if (!dest)
 		return false;
 	table = bgp_dest_table(dest);
-	if (table &&
-	    table->afi == afi &&
-	    table->safi == safi)
+	if (table && table->afi == afi && table->safi == safi)
 		return true;
 	return false;
 }
@@ -617,7 +617,7 @@ static inline bool bgp_check_advertise(struct bgp *bgp, struct bgp_dest *dest,
 
 	return (!(BGP_SUPPRESS_FIB_ENABLED(bgp) &&
 		  CHECK_FLAG(dest->flags, BGP_NODE_FIB_INSTALL_PENDING) &&
-		 (!bgp_option_check(BGP_OPT_NO_FIB))));
+		  (!bgp_option_check(BGP_OPT_NO_FIB))));
 }
 
 /*
@@ -791,8 +791,7 @@ extern void bgp_add_eoiu_mark(struct bgp *);
 extern void bgp_config_write_table_map(struct vty *, struct bgp *, afi_t,
 				       safi_t);
 extern void bgp_config_write_network(struct vty *, struct bgp *, afi_t, safi_t);
-extern void bgp_config_write_distance(struct vty *, struct bgp *, afi_t,
-				      safi_t);
+extern void bgp_config_write_distance(struct vty *, struct bgp *, afi_t, safi_t);
 
 extern void bgp_aggregate_delete(struct bgp *bgp, const struct prefix *p,
 				 afi_t afi, safi_t safi,
@@ -852,8 +851,7 @@ extern void bgp_process_queues_drain_immediate(void);
 
 /* for encap/vpn */
 extern struct bgp_dest *bgp_safi_node_lookup(struct bgp_table *table,
-					     safi_t safi,
-					     const struct prefix *p,
+					     safi_t safi, const struct prefix *p,
 					     struct prefix_rd *prd);
 extern void bgp_path_info_restore(struct bgp_dest *dest,
 				  struct bgp_path_info *path);
@@ -893,14 +891,13 @@ extern bool bgp_update_martian_nexthop(struct bgp *bgp, afi_t afi, safi_t safi,
 				       uint8_t type, uint8_t stype,
 				       struct attr *attr, struct bgp_dest *dest);
 extern int bgp_evpn_path_info_cmp(struct bgp *bgp, struct bgp_path_info *new,
-			     struct bgp_path_info *exist, int *paths_eq);
+				  struct bgp_path_info *exist, int *paths_eq);
 extern void bgp_aggregate_toggle_suppressed(struct bgp_aggregate *aggregate,
 					    struct bgp *bgp,
 					    const struct prefix *p, afi_t afi,
 					    safi_t safi, bool suppress);
 extern void subgroup_announce_reset_nhop(uint8_t family, struct attr *attr);
-const char *
-bgp_path_selection_reason2str(enum bgp_path_selection_reason reason);
+const char *bgp_path_selection_reason2str(enum bgp_path_selection_reason reason);
 extern bool bgp_addpath_encode_rx(struct peer *peer, afi_t afi, safi_t safi);
 extern const struct prefix_rd *bgp_rd_from_dest(const struct bgp_dest *dest,
 						safi_t safi);

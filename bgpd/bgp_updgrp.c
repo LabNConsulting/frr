@@ -93,8 +93,8 @@ static void sync_init(struct update_subgroup *subgrp,
 	 * bounds
 	 * checking for every single attribute as we construct an UPDATE.
 	 */
-	subgrp->work = stream_new(peer->max_packet_size
-				  + BGP_MAX_PACKET_SIZE_OVERFLOW);
+	subgrp->work =
+		stream_new(peer->max_packet_size + BGP_MAX_PACKET_SIZE_OVERFLOW);
 	subgrp->scratch = stream_new(peer->max_packet_size);
 }
 
@@ -117,8 +117,7 @@ static void sync_delete(struct update_subgroup *subgrp)
  *
  * copy only those fields that are relevant to update group match
  */
-static void conf_copy(struct peer *dst, struct peer *src, afi_t afi,
-		      safi_t safi)
+static void conf_copy(struct peer *dst, struct peer *src, afi_t afi, safi_t safi)
 {
 	struct bgp_filter *srcfilter;
 	struct bgp_filter *dstfilter;
@@ -168,45 +167,52 @@ static void conf_copy(struct peer *dst, struct peer *src, afi_t afi,
 	}
 
 	if (DISTRIBUTE_OUT_NAME(srcfilter)) {
-		DISTRIBUTE_OUT_NAME(dstfilter) = XSTRDUP(
-			MTYPE_BGP_FILTER_NAME, DISTRIBUTE_OUT_NAME(srcfilter));
+		DISTRIBUTE_OUT_NAME(dstfilter) =
+			XSTRDUP(MTYPE_BGP_FILTER_NAME,
+				DISTRIBUTE_OUT_NAME(srcfilter));
 		DISTRIBUTE_OUT(dstfilter) = DISTRIBUTE_OUT(srcfilter);
 	}
 
 	if (PREFIX_LIST_OUT_NAME(srcfilter)) {
-		PREFIX_LIST_OUT_NAME(dstfilter) = XSTRDUP(
-			MTYPE_BGP_FILTER_NAME, PREFIX_LIST_OUT_NAME(srcfilter));
+		PREFIX_LIST_OUT_NAME(dstfilter) =
+			XSTRDUP(MTYPE_BGP_FILTER_NAME,
+				PREFIX_LIST_OUT_NAME(srcfilter));
 		PREFIX_LIST_OUT(dstfilter) = PREFIX_LIST_OUT(srcfilter);
 	}
 
 	if (FILTER_LIST_OUT_NAME(srcfilter)) {
-		FILTER_LIST_OUT_NAME(dstfilter) = XSTRDUP(
-			MTYPE_BGP_FILTER_NAME, FILTER_LIST_OUT_NAME(srcfilter));
+		FILTER_LIST_OUT_NAME(dstfilter) =
+			XSTRDUP(MTYPE_BGP_FILTER_NAME,
+				FILTER_LIST_OUT_NAME(srcfilter));
 		FILTER_LIST_OUT(dstfilter) = FILTER_LIST_OUT(srcfilter);
 	}
 
 	if (ROUTE_MAP_OUT_NAME(srcfilter)) {
-		ROUTE_MAP_OUT_NAME(dstfilter) = XSTRDUP(
-			MTYPE_BGP_FILTER_NAME, ROUTE_MAP_OUT_NAME(srcfilter));
+		ROUTE_MAP_OUT_NAME(dstfilter) =
+			XSTRDUP(MTYPE_BGP_FILTER_NAME,
+				ROUTE_MAP_OUT_NAME(srcfilter));
 		ROUTE_MAP_OUT(dstfilter) = ROUTE_MAP_OUT(srcfilter);
 	}
 
 	if (UNSUPPRESS_MAP_NAME(srcfilter)) {
-		UNSUPPRESS_MAP_NAME(dstfilter) = XSTRDUP(
-			MTYPE_BGP_FILTER_NAME, UNSUPPRESS_MAP_NAME(srcfilter));
+		UNSUPPRESS_MAP_NAME(dstfilter) =
+			XSTRDUP(MTYPE_BGP_FILTER_NAME,
+				UNSUPPRESS_MAP_NAME(srcfilter));
 		UNSUPPRESS_MAP(dstfilter) = UNSUPPRESS_MAP(srcfilter);
 	}
 
 	if (ADVERTISE_MAP_NAME(srcfilter)) {
-		ADVERTISE_MAP_NAME(dstfilter) = XSTRDUP(
-			MTYPE_BGP_FILTER_NAME, ADVERTISE_MAP_NAME(srcfilter));
+		ADVERTISE_MAP_NAME(dstfilter) =
+			XSTRDUP(MTYPE_BGP_FILTER_NAME,
+				ADVERTISE_MAP_NAME(srcfilter));
 		ADVERTISE_MAP(dstfilter) = ADVERTISE_MAP(srcfilter);
 		ADVERTISE_CONDITION(dstfilter) = ADVERTISE_CONDITION(srcfilter);
 	}
 
 	if (CONDITION_MAP_NAME(srcfilter)) {
-		CONDITION_MAP_NAME(dstfilter) = XSTRDUP(
-			MTYPE_BGP_FILTER_NAME, CONDITION_MAP_NAME(srcfilter));
+		CONDITION_MAP_NAME(dstfilter) =
+			XSTRDUP(MTYPE_BGP_FILTER_NAME,
+				CONDITION_MAP_NAME(srcfilter));
 		CONDITION_MAP(dstfilter) = CONDITION_MAP(srcfilter);
 	}
 
@@ -398,31 +404,29 @@ static unsigned int updgrp_hash_key_make(const void *p)
 		key = jhash_1word(filter->advmap.update_type, key);
 
 	if (peer->default_rmap[afi][safi].name)
-		key = jhash_1word(
-			jhash(peer->default_rmap[afi][safi].name,
-			      strlen(peer->default_rmap[afi][safi].name),
-			      SEED1),
-			key);
+		key = jhash_1word(jhash(peer->default_rmap[afi][safi].name,
+					strlen(peer->default_rmap[afi][safi].name),
+					SEED1),
+				  key);
 
 	/* If peer is on a shared network and is exchanging IPv6 prefixes,
 	 * it needs to include link-local address. That's different from
 	 * non-shared-network peers (nexthop encoded with 32 bytes vs 16
 	 * bytes). We create different update groups to take care of that.
 	 */
-	key = jhash_1word(
-		(peer->shared_network && peer_afi_active_nego(peer, AFI_IP6)),
-		key);
+	key = jhash_1word((peer->shared_network &&
+			   peer_afi_active_nego(peer, AFI_IP6)),
+			  key);
 	/*
 	 * There are certain peers that must get their own update-group:
 	 * - lonesoul peers
 	 * - peers that negotiated ORF
 	 * - maximum-prefix-out is set
 	 */
-	if (CHECK_FLAG(peer->flags, PEER_FLAG_LONESOUL)
-	    || CHECK_FLAG(peer->af_cap[afi][safi], PEER_CAP_ORF_PREFIX_SM_RCV)
-	    || CHECK_FLAG(peer->af_cap[afi][safi],
-			  PEER_CAP_ORF_PREFIX_SM_OLD_RCV)
-	    || CHECK_FLAG(peer->af_flags[afi][safi], PEER_FLAG_MAX_PREFIX_OUT))
+	if (CHECK_FLAG(peer->flags, PEER_FLAG_LONESOUL) ||
+	    CHECK_FLAG(peer->af_cap[afi][safi], PEER_CAP_ORF_PREFIX_SM_RCV) ||
+	    CHECK_FLAG(peer->af_cap[afi][safi], PEER_CAP_ORF_PREFIX_SM_OLD_RCV) ||
+	    CHECK_FLAG(peer->af_flags[afi][safi], PEER_FLAG_MAX_PREFIX_OUT))
 		key = jhash_1word(jhash(peer->host, strlen(peer->host), SEED2),
 				  key);
 	/*
@@ -447,67 +451,63 @@ static unsigned int updgrp_hash_key_make(const void *p)
 	 * STATEMENT STAYS UP TO DATE
 	 */
 	if (bgp_debug_neighbor_events(peer)) {
-		zlog_debug(
-			"%pBP Update Group Hash: sort: %d UpdGrpFlags: %ju UpdGrpAFFlags: %ju",
-			peer, peer->sort,
-			(intmax_t)CHECK_FLAG(peer->flags, PEER_UPDGRP_FLAGS),
-			(intmax_t)CHECK_FLAG(flags, PEER_UPDGRP_AF_FLAGS));
-		zlog_debug(
-			"%pBP Update Group Hash: addpath: %u UpdGrpCapFlag: %u UpdGrpCapAFFlag: %u route_adv: %u change local as: %u, as_path_loop_detection: %d",
-			peer, (uint32_t)peer->addpath_type[afi][safi],
-			CHECK_FLAG(peer->cap, PEER_UPDGRP_CAP_FLAGS),
-			CHECK_FLAG(peer->af_cap[afi][safi],
-				   PEER_UPDGRP_AF_CAP_FLAGS),
-			peer->v_routeadv, peer->change_local_as,
-			peer->as_path_loop_detection);
-		zlog_debug(
-			"%pBP Update Group Hash: max packet size: %u pmax_out: %u Peer Group: %s rmap out: %s",
-			peer, peer->max_packet_size, peer->pmax_out[afi][safi],
-			peer->group ? peer->group->name : "(NONE)",
-			ROUTE_MAP_OUT_NAME(filter) ? ROUTE_MAP_OUT_NAME(filter)
-						   : "(NONE)");
-		zlog_debug(
-			"%pBP Update Group Hash: dlist out: %s plist out: %s aslist out: %s usmap out: %s advmap: %s %d",
-			peer,
-			DISTRIBUTE_OUT_NAME(filter)
-				? DISTRIBUTE_OUT_NAME(filter)
-				: "(NONE)",
-			PREFIX_LIST_OUT_NAME(filter)
-				? PREFIX_LIST_OUT_NAME(filter)
-				: "(NONE)",
-			FILTER_LIST_OUT_NAME(filter)
-				? FILTER_LIST_OUT_NAME(filter)
-				: "(NONE)",
-			UNSUPPRESS_MAP_NAME(filter)
-				? UNSUPPRESS_MAP_NAME(filter)
-				: "(NONE)",
-			ADVERTISE_MAP_NAME(filter) ? ADVERTISE_MAP_NAME(filter)
-						   : "(NONE)",
-			filter->advmap.update_type);
-		zlog_debug(
-			"%pBP Update Group Hash: default rmap: %s shared network and afi active network: %d",
-			peer,
-			peer->default_rmap[afi][safi].name
-				? peer->default_rmap[afi][safi].name
-				: "(NONE)",
-			peer->shared_network &&
-				peer_afi_active_nego(peer, AFI_IP6));
-		zlog_debug(
-			"%pBP Update Group Hash: Lonesoul: %d ORF prefix: %u ORF old: %u max prefix out: %ju",
-			peer, !!CHECK_FLAG(peer->flags, PEER_FLAG_LONESOUL),
-			CHECK_FLAG(peer->af_cap[afi][safi],
-				   PEER_CAP_ORF_PREFIX_SM_RCV),
-			CHECK_FLAG(peer->af_cap[afi][safi],
-				   PEER_CAP_ORF_PREFIX_SM_OLD_RCV),
-			(intmax_t)CHECK_FLAG(peer->af_flags[afi][safi],
-					     PEER_FLAG_MAX_PREFIX_OUT));
-		zlog_debug(
-			"%pBP Update Group Hash: local role: %u AIGP: %d SOO: %s",
-			peer, peer->local_role,
-			!!CHECK_FLAG(peer->flags, PEER_FLAG_AIGP),
-			peer->soo[afi][safi]
-				? ecommunity_str(peer->soo[afi][safi])
-				: "(NONE)");
+		zlog_debug("%pBP Update Group Hash: sort: %d UpdGrpFlags: %ju UpdGrpAFFlags: %ju",
+			   peer, peer->sort,
+			   (intmax_t)CHECK_FLAG(peer->flags, PEER_UPDGRP_FLAGS),
+			   (intmax_t)CHECK_FLAG(flags, PEER_UPDGRP_AF_FLAGS));
+		zlog_debug("%pBP Update Group Hash: addpath: %u UpdGrpCapFlag: %u UpdGrpCapAFFlag: %u route_adv: %u change local as: %u, as_path_loop_detection: %d",
+			   peer, (uint32_t)peer->addpath_type[afi][safi],
+			   CHECK_FLAG(peer->cap, PEER_UPDGRP_CAP_FLAGS),
+			   CHECK_FLAG(peer->af_cap[afi][safi],
+				      PEER_UPDGRP_AF_CAP_FLAGS),
+			   peer->v_routeadv, peer->change_local_as,
+			   peer->as_path_loop_detection);
+		zlog_debug("%pBP Update Group Hash: max packet size: %u pmax_out: %u Peer Group: %s rmap out: %s",
+			   peer, peer->max_packet_size,
+			   peer->pmax_out[afi][safi],
+			   peer->group ? peer->group->name : "(NONE)",
+			   ROUTE_MAP_OUT_NAME(filter)
+				   ? ROUTE_MAP_OUT_NAME(filter)
+				   : "(NONE)");
+		zlog_debug("%pBP Update Group Hash: dlist out: %s plist out: %s aslist out: %s usmap out: %s advmap: %s %d",
+			   peer,
+			   DISTRIBUTE_OUT_NAME(filter)
+				   ? DISTRIBUTE_OUT_NAME(filter)
+				   : "(NONE)",
+			   PREFIX_LIST_OUT_NAME(filter)
+				   ? PREFIX_LIST_OUT_NAME(filter)
+				   : "(NONE)",
+			   FILTER_LIST_OUT_NAME(filter)
+				   ? FILTER_LIST_OUT_NAME(filter)
+				   : "(NONE)",
+			   UNSUPPRESS_MAP_NAME(filter)
+				   ? UNSUPPRESS_MAP_NAME(filter)
+				   : "(NONE)",
+			   ADVERTISE_MAP_NAME(filter)
+				   ? ADVERTISE_MAP_NAME(filter)
+				   : "(NONE)",
+			   filter->advmap.update_type);
+		zlog_debug("%pBP Update Group Hash: default rmap: %s shared network and afi active network: %d",
+			   peer,
+			   peer->default_rmap[afi][safi].name
+				   ? peer->default_rmap[afi][safi].name
+				   : "(NONE)",
+			   peer->shared_network &&
+				   peer_afi_active_nego(peer, AFI_IP6));
+		zlog_debug("%pBP Update Group Hash: Lonesoul: %d ORF prefix: %u ORF old: %u max prefix out: %ju",
+			   peer, !!CHECK_FLAG(peer->flags, PEER_FLAG_LONESOUL),
+			   CHECK_FLAG(peer->af_cap[afi][safi],
+				      PEER_CAP_ORF_PREFIX_SM_RCV),
+			   CHECK_FLAG(peer->af_cap[afi][safi],
+				      PEER_CAP_ORF_PREFIX_SM_OLD_RCV),
+			   (intmax_t)CHECK_FLAG(peer->af_flags[afi][safi],
+						PEER_FLAG_MAX_PREFIX_OUT));
+		zlog_debug("%pBP Update Group Hash: local role: %u AIGP: %d SOO: %s",
+			   peer, peer->local_role,
+			   !!CHECK_FLAG(peer->flags, PEER_FLAG_AIGP),
+			   peer->soo[afi][safi]
+				   ? ecommunity_str(peer->soo[afi][safi])
+				   : "(NONE)");
 		zlog_debug("%pBP Update Group Hash key: %u", peer, key);
 	}
 	return key;
@@ -545,8 +545,7 @@ static bool updgrp_hash_cmp(const void *p1, const void *p2)
 		return false;
 
 	/* check peer flags */
-	if ((pe1->flags & PEER_UPDGRP_FLAGS)
-	    != (pe2->flags & PEER_UPDGRP_FLAGS))
+	if ((pe1->flags & PEER_UPDGRP_FLAGS) != (pe2->flags & PEER_UPDGRP_FLAGS))
 		return false;
 
 	/* If there is 'local-as' configured, it should match. */
@@ -563,12 +562,12 @@ static bool updgrp_hash_cmp(const void *p1, const void *p2)
 	if (pe1->addpath_type[afi][safi] != pe2->addpath_type[afi][safi])
 		return false;
 
-	if ((pe1->cap & PEER_UPDGRP_CAP_FLAGS)
-	    != (pe2->cap & PEER_UPDGRP_CAP_FLAGS))
+	if ((pe1->cap & PEER_UPDGRP_CAP_FLAGS) !=
+	    (pe2->cap & PEER_UPDGRP_CAP_FLAGS))
 		return false;
 
-	if ((pe1->af_cap[afi][safi] & PEER_UPDGRP_AF_CAP_FLAGS)
-	    != (pe2->af_cap[afi][safi] & PEER_UPDGRP_AF_CAP_FLAGS))
+	if ((pe1->af_cap[afi][safi] & PEER_UPDGRP_AF_CAP_FLAGS) !=
+	    (pe2->af_cap[afi][safi] & PEER_UPDGRP_AF_CAP_FLAGS))
 		return false;
 
 	if (pe1->v_routeadv != pe2->v_routeadv)
@@ -582,66 +581,62 @@ static bool updgrp_hash_cmp(const void *p1, const void *p2)
 		return false;
 
 	/* route-map names should be the same */
-	if ((fl1->map[RMAP_OUT].name && !fl2->map[RMAP_OUT].name)
-	    || (!fl1->map[RMAP_OUT].name && fl2->map[RMAP_OUT].name)
-	    || (fl1->map[RMAP_OUT].name && fl2->map[RMAP_OUT].name
-		&& strcmp(fl1->map[RMAP_OUT].name, fl2->map[RMAP_OUT].name)))
+	if ((fl1->map[RMAP_OUT].name && !fl2->map[RMAP_OUT].name) ||
+	    (!fl1->map[RMAP_OUT].name && fl2->map[RMAP_OUT].name) ||
+	    (fl1->map[RMAP_OUT].name && fl2->map[RMAP_OUT].name &&
+	     strcmp(fl1->map[RMAP_OUT].name, fl2->map[RMAP_OUT].name)))
 		return false;
 
-	if ((fl1->dlist[FILTER_OUT].name && !fl2->dlist[FILTER_OUT].name)
-	    || (!fl1->dlist[FILTER_OUT].name && fl2->dlist[FILTER_OUT].name)
-	    || (fl1->dlist[FILTER_OUT].name && fl2->dlist[FILTER_OUT].name
-		&& strcmp(fl1->dlist[FILTER_OUT].name,
-			  fl2->dlist[FILTER_OUT].name)))
+	if ((fl1->dlist[FILTER_OUT].name && !fl2->dlist[FILTER_OUT].name) ||
+	    (!fl1->dlist[FILTER_OUT].name && fl2->dlist[FILTER_OUT].name) ||
+	    (fl1->dlist[FILTER_OUT].name && fl2->dlist[FILTER_OUT].name &&
+	     strcmp(fl1->dlist[FILTER_OUT].name, fl2->dlist[FILTER_OUT].name)))
 		return false;
 
-	if ((fl1->plist[FILTER_OUT].name && !fl2->plist[FILTER_OUT].name)
-	    || (!fl1->plist[FILTER_OUT].name && fl2->plist[FILTER_OUT].name)
-	    || (fl1->plist[FILTER_OUT].name && fl2->plist[FILTER_OUT].name
-		&& strcmp(fl1->plist[FILTER_OUT].name,
-			  fl2->plist[FILTER_OUT].name)))
+	if ((fl1->plist[FILTER_OUT].name && !fl2->plist[FILTER_OUT].name) ||
+	    (!fl1->plist[FILTER_OUT].name && fl2->plist[FILTER_OUT].name) ||
+	    (fl1->plist[FILTER_OUT].name && fl2->plist[FILTER_OUT].name &&
+	     strcmp(fl1->plist[FILTER_OUT].name, fl2->plist[FILTER_OUT].name)))
 		return false;
 
-	if ((fl1->aslist[FILTER_OUT].name && !fl2->aslist[FILTER_OUT].name)
-	    || (!fl1->aslist[FILTER_OUT].name && fl2->aslist[FILTER_OUT].name)
-	    || (fl1->aslist[FILTER_OUT].name && fl2->aslist[FILTER_OUT].name
-		&& strcmp(fl1->aslist[FILTER_OUT].name,
-			  fl2->aslist[FILTER_OUT].name)))
+	if ((fl1->aslist[FILTER_OUT].name && !fl2->aslist[FILTER_OUT].name) ||
+	    (!fl1->aslist[FILTER_OUT].name && fl2->aslist[FILTER_OUT].name) ||
+	    (fl1->aslist[FILTER_OUT].name && fl2->aslist[FILTER_OUT].name &&
+	     strcmp(fl1->aslist[FILTER_OUT].name, fl2->aslist[FILTER_OUT].name)))
 		return false;
 
-	if ((fl1->usmap.name && !fl2->usmap.name)
-	    || (!fl1->usmap.name && fl2->usmap.name)
-	    || (fl1->usmap.name && fl2->usmap.name
-		&& strcmp(fl1->usmap.name, fl2->usmap.name)))
+	if ((fl1->usmap.name && !fl2->usmap.name) ||
+	    (!fl1->usmap.name && fl2->usmap.name) ||
+	    (fl1->usmap.name && fl2->usmap.name &&
+	     strcmp(fl1->usmap.name, fl2->usmap.name)))
 		return false;
 
-	if ((fl1->advmap.aname && !fl2->advmap.aname)
-	    || (!fl1->advmap.aname && fl2->advmap.aname)
-	    || (fl1->advmap.aname && fl2->advmap.aname
-		&& strcmp(fl1->advmap.aname, fl2->advmap.aname)))
+	if ((fl1->advmap.aname && !fl2->advmap.aname) ||
+	    (!fl1->advmap.aname && fl2->advmap.aname) ||
+	    (fl1->advmap.aname && fl2->advmap.aname &&
+	     strcmp(fl1->advmap.aname, fl2->advmap.aname)))
 		return false;
 
 	if (fl1->advmap.update_type != fl2->advmap.update_type)
 		return false;
 
-	if ((pe1->default_rmap[afi][safi].name
-	     && !pe2->default_rmap[afi][safi].name)
-	    || (!pe1->default_rmap[afi][safi].name
-		&& pe2->default_rmap[afi][safi].name)
-	    || (pe1->default_rmap[afi][safi].name
-		&& pe2->default_rmap[afi][safi].name
-		&& strcmp(pe1->default_rmap[afi][safi].name,
-			  pe2->default_rmap[afi][safi].name)))
+	if ((pe1->default_rmap[afi][safi].name &&
+	     !pe2->default_rmap[afi][safi].name) ||
+	    (!pe1->default_rmap[afi][safi].name &&
+	     pe2->default_rmap[afi][safi].name) ||
+	    (pe1->default_rmap[afi][safi].name &&
+	     pe2->default_rmap[afi][safi].name &&
+	     strcmp(pe1->default_rmap[afi][safi].name,
+		    pe2->default_rmap[afi][safi].name)))
 		return false;
 
 	if ((afi == AFI_IP6) && (pe1->shared_network != pe2->shared_network))
 		return false;
 
-	if ((CHECK_FLAG(pe1->flags, PEER_FLAG_LONESOUL)
-	     || CHECK_FLAG(pe1->af_cap[afi][safi], PEER_CAP_ORF_PREFIX_SM_RCV)
-	     || CHECK_FLAG(pe1->af_cap[afi][safi],
-			   PEER_CAP_ORF_PREFIX_SM_OLD_RCV))
-	    && !sockunion_same(&pe1->su, &pe2->su))
+	if ((CHECK_FLAG(pe1->flags, PEER_FLAG_LONESOUL) ||
+	     CHECK_FLAG(pe1->af_cap[afi][safi], PEER_CAP_ORF_PREFIX_SM_RCV) ||
+	     CHECK_FLAG(pe1->af_cap[afi][safi], PEER_CAP_ORF_PREFIX_SM_OLD_RCV)) &&
+	    !sockunion_same(&pe1->su, &pe2->su))
 		return false;
 
 	return true;
@@ -732,8 +727,7 @@ static int update_group_show_walkcb(struct update_group *updgrp, void *arg)
 				       ctime(&epoch_tbuf));
 		json_object_object_add(json_updgrp, "groupCreateTime",
 				       json_time);
-		json_object_string_add(json_updgrp, "afi",
-				       afi2str(updgrp->afi));
+		json_object_string_add(json_updgrp, "afi", afi2str(updgrp->afi));
 		json_object_string_add(json_updgrp, "safi",
 				       safi2str(updgrp->safi));
 	} else {
@@ -810,19 +804,19 @@ static int update_group_show_walkcb(struct update_group *updgrp, void *arg)
 				timestamp_string(subgrp->uptime));
 		}
 
-		if (subgrp->split_from.update_group_id
-		    || subgrp->split_from.subgroup_id) {
+		if (subgrp->split_from.update_group_id ||
+		    subgrp->split_from.subgroup_id) {
 			if (ctx->uj) {
-				json_object_int_add(
-					json_subgrp, "splitGroupId",
-					subgrp->split_from.update_group_id);
-				json_object_int_add(
-					json_subgrp, "splitSubGroupId",
-					subgrp->split_from.subgroup_id);
+				json_object_int_add(json_subgrp, "splitGroupId",
+						    subgrp->split_from
+							    .update_group_id);
+				json_object_int_add(json_subgrp,
+						    "splitSubGroupId",
+						    subgrp->split_from
+							    .subgroup_id);
 			} else {
 				vty_out(vty,
-					"    Split from group id: %" PRIu64
-					"\n",
+					"    Split from group id: %" PRIu64 "\n",
 					subgrp->split_from.update_group_id);
 				vty_out(vty,
 					"    Split from subgroup id: %" PRIu64
@@ -857,26 +851,25 @@ static int update_group_show_walkcb(struct update_group *updgrp, void *arg)
 			json_object_int_add(json_subgrp, "version",
 					    subgrp->version);
 			json_pkt_info = json_object_new_object();
-			json_object_int_add(
-				json_pkt_info, "qeueueLen",
-				bpacket_queue_length(SUBGRP_PKTQ(subgrp)));
-			json_object_int_add(
-				json_pkt_info, "queuedTotal",
-				subgroup_total_packets_enqueued(subgrp));
-			json_object_int_add(
-				json_pkt_info, "queueHwmLen",
-				bpacket_queue_hwm_length(SUBGRP_PKTQ(subgrp)));
-			json_object_int_add(
-				json_pkt_info, "totalEnqueued",
-				subgroup_total_packets_enqueued(subgrp));
+			json_object_int_add(json_pkt_info, "qeueueLen",
+					    bpacket_queue_length(
+						    SUBGRP_PKTQ(subgrp)));
+			json_object_int_add(json_pkt_info, "queuedTotal",
+					    subgroup_total_packets_enqueued(
+						    subgrp));
+			json_object_int_add(json_pkt_info, "queueHwmLen",
+					    bpacket_queue_hwm_length(
+						    SUBGRP_PKTQ(subgrp)));
+			json_object_int_add(json_pkt_info, "totalEnqueued",
+					    subgroup_total_packets_enqueued(
+						    subgrp));
 			json_object_object_add(json_subgrp, "packetQueueInfo",
 					       json_pkt_info);
 			json_object_int_add(json_subgrp, "adjListCount",
 					    subgrp->adj_count);
-			json_object_boolean_add(
-				json_subgrp, "needsRefresh",
-				CHECK_FLAG(subgrp->flags,
-					   SUBGRP_FLAG_NEEDS_REFRESH));
+			json_object_boolean_add(json_subgrp, "needsRefresh",
+						CHECK_FLAG(subgrp->flags,
+							   SUBGRP_FLAG_NEEDS_REFRESH));
 		} else {
 			vty_out(vty, "    Join events: %u\n",
 				subgrp->join_events);
@@ -893,8 +886,7 @@ static int update_group_show_walkcb(struct update_group *updgrp, void *arg)
 			vty_out(vty, "    Merge checks triggered: %u\n",
 				subgrp->merge_checks_triggered);
 			vty_out(vty, "    Coalesce Time: %u%s\n",
-				(UPDGRP_INST(subgrp->update_group))
-					->coalesce_time,
+				(UPDGRP_INST(subgrp->update_group))->coalesce_time,
 				subgrp->t_coalesce ? "(Running)" : "");
 			vty_out(vty, "    Version: %" PRIu64 "\n",
 				subgrp->version);
@@ -1072,8 +1064,7 @@ static void update_group_remove_subgroup(struct update_group *updgrp,
 		update_group_delete(updgrp);
 }
 
-static struct update_subgroup *
-update_subgroup_create(struct update_group *updgrp)
+static struct update_subgroup *update_subgroup_create(struct update_group *updgrp)
 {
 	struct update_subgroup *subgrp;
 
@@ -1156,8 +1147,7 @@ static bool update_subgroup_check_delete(struct update_subgroup *subgrp)
  *                              also be sent to the peer.
  */
 static void update_subgroup_add_peer(struct update_subgroup *subgrp,
-				     struct peer_af *paf,
-				     int send_enqueued_pkts)
+				     struct peer_af *paf, int send_enqueued_pkts)
 {
 	struct bpacket *pkt;
 
@@ -1191,7 +1181,7 @@ static void update_subgroup_add_peer(struct update_subgroup *subgrp,
 
 	if (BGP_DEBUG(update_groups, UPDATE_GROUPS))
 		zlog_debug("peer %s added to subgroup s%" PRIu64,
-				paf->peer->host, subgrp->id);
+			   paf->peer->host, subgrp->id);
 }
 
 /*
@@ -1218,8 +1208,8 @@ static void update_subgroup_remove_peer_internal(struct update_subgroup *subgrp,
 	subgrp->peer_count--;
 
 	if (BGP_DEBUG(update_groups, UPDATE_GROUPS))
-		zlog_debug("peer %s deleted from subgroup s%"
-			   PRIu64 " peer cnt %d",
+		zlog_debug("peer %s deleted from subgroup s%" PRIu64
+			   " peer cnt %d",
 			   paf->peer->host, subgrp->id, subgrp->peer_count);
 	SUBGRP_INCR_STAT(subgrp, prune_events);
 }
@@ -1262,9 +1252,8 @@ static struct update_subgroup *update_subgroup_find(struct update_group *updgrp,
 		return NULL;
 
 	UPDGRP_FOREACH_SUBGRP (updgrp, subgrp) {
-		if (subgrp->version != version
-		    || CHECK_FLAG(subgrp->sflags,
-				  SUBGRP_STATUS_DEFAULT_ORIGINATE))
+		if (subgrp->version != version ||
+		    CHECK_FLAG(subgrp->sflags, SUBGRP_STATUS_DEFAULT_ORIGINATE))
 			continue;
 
 		/*
@@ -1333,8 +1322,8 @@ static int update_subgroup_can_merge_into(struct update_subgroup *subgrp,
 	if (subgrp->version != target->version)
 		return 0;
 
-	if (CHECK_FLAG(subgrp->sflags, SUBGRP_STATUS_DEFAULT_ORIGINATE)
-	    != CHECK_FLAG(target->sflags, SUBGRP_STATUS_DEFAULT_ORIGINATE))
+	if (CHECK_FLAG(subgrp->sflags, SUBGRP_STATUS_DEFAULT_ORIGINATE) !=
+	    CHECK_FLAG(target->sflags, SUBGRP_STATUS_DEFAULT_ORIGINATE))
 		return 0;
 
 	if (subgrp->adj_count != target->adj_count)
@@ -1379,7 +1368,9 @@ static void update_subgroup_merge(struct update_subgroup *subgrp,
 	SUBGRP_INCR_STAT(target, merge_events);
 
 	if (BGP_DEBUG(update_groups, UPDATE_GROUPS))
-		zlog_debug("u%" PRIu64 ":s%" PRIu64" (%d peers) merged into u%" PRIu64 ":s%" PRIu64", trigger: %s",
+		zlog_debug("u%" PRIu64 ":s%" PRIu64
+			   " (%d peers) merged into u%" PRIu64 ":s%" PRIu64
+			   ", trigger: %s",
 			   subgrp->update_group->id, subgrp->id, peer_count,
 			   target->update_group->id, target->id,
 			   reason ? reason : "unknown");
@@ -1420,8 +1411,8 @@ bool update_subgroup_check_merge(struct update_subgroup *subgrp,
 }
 
 /*
-* update_subgroup_merge_check_thread_cb
-*/
+ * update_subgroup_merge_check_thread_cb
+ */
 static void update_subgroup_merge_check_thread_cb(struct event *thread)
 {
 	struct update_subgroup *subgrp;
@@ -1519,10 +1510,11 @@ static bool updgrp_prefix_list_update(struct update_group *updgrp,
 	peer = UPDGRP_PEER(updgrp);
 	filter = &peer->filter[UPDGRP_AFI(updgrp)][UPDGRP_SAFI(updgrp)];
 
-	if (PREFIX_LIST_OUT_NAME(filter)
-	    && (strcmp(name, PREFIX_LIST_OUT_NAME(filter)) == 0)) {
-		PREFIX_LIST_OUT(filter) = prefix_list_lookup(
-			UPDGRP_AFI(updgrp), PREFIX_LIST_OUT_NAME(filter));
+	if (PREFIX_LIST_OUT_NAME(filter) &&
+	    (strcmp(name, PREFIX_LIST_OUT_NAME(filter)) == 0)) {
+		PREFIX_LIST_OUT(filter) =
+			prefix_list_lookup(UPDGRP_AFI(updgrp),
+					   PREFIX_LIST_OUT_NAME(filter));
 		return true;
 	}
 	return false;
@@ -1537,8 +1529,8 @@ static bool updgrp_filter_list_update(struct update_group *updgrp,
 	peer = UPDGRP_PEER(updgrp);
 	filter = &peer->filter[UPDGRP_AFI(updgrp)][UPDGRP_SAFI(updgrp)];
 
-	if (FILTER_LIST_OUT_NAME(filter)
-	    && (strcmp(name, FILTER_LIST_OUT_NAME(filter)) == 0)) {
+	if (FILTER_LIST_OUT_NAME(filter) &&
+	    (strcmp(name, FILTER_LIST_OUT_NAME(filter)) == 0)) {
 		FILTER_LIST_OUT(filter) =
 			as_list_lookup(FILTER_LIST_OUT_NAME(filter));
 		return true;
@@ -1555,10 +1547,11 @@ static bool updgrp_distribute_list_update(struct update_group *updgrp,
 	peer = UPDGRP_PEER(updgrp);
 	filter = &peer->filter[UPDGRP_AFI(updgrp)][UPDGRP_SAFI(updgrp)];
 
-	if (DISTRIBUTE_OUT_NAME(filter)
-	    && (strcmp(name, DISTRIBUTE_OUT_NAME(filter)) == 0)) {
-		DISTRIBUTE_OUT(filter) = access_list_lookup(
-			UPDGRP_AFI(updgrp), DISTRIBUTE_OUT_NAME(filter));
+	if (DISTRIBUTE_OUT_NAME(filter) &&
+	    (strcmp(name, DISTRIBUTE_OUT_NAME(filter)) == 0)) {
+		DISTRIBUTE_OUT(filter) =
+			access_list_lookup(UPDGRP_AFI(updgrp),
+					   DISTRIBUTE_OUT_NAME(filter));
 		return true;
 	}
 	return false;
@@ -1578,22 +1571,22 @@ static int updgrp_route_map_update(struct update_group *updgrp,
 	safi = UPDGRP_SAFI(updgrp);
 	filter = &peer->filter[afi][safi];
 
-	if (ROUTE_MAP_OUT_NAME(filter)
-	    && (strcmp(name, ROUTE_MAP_OUT_NAME(filter)) == 0)) {
+	if (ROUTE_MAP_OUT_NAME(filter) &&
+	    (strcmp(name, ROUTE_MAP_OUT_NAME(filter)) == 0)) {
 		ROUTE_MAP_OUT(filter) = route_map_lookup_by_name(name);
 
 		changed = 1;
 	}
 
-	if (UNSUPPRESS_MAP_NAME(filter)
-	    && (strcmp(name, UNSUPPRESS_MAP_NAME(filter)) == 0)) {
+	if (UNSUPPRESS_MAP_NAME(filter) &&
+	    (strcmp(name, UNSUPPRESS_MAP_NAME(filter)) == 0)) {
 		UNSUPPRESS_MAP(filter) = route_map_lookup_by_name(name);
 		changed = 1;
 	}
 
 	/* process default-originate route-map */
-	if (peer->default_rmap[afi][safi].name
-	    && (strcmp(name, peer->default_rmap[afi][safi].name) == 0)) {
+	if (peer->default_rmap[afi][safi].name &&
+	    (strcmp(name, peer->default_rmap[afi][safi].name) == 0)) {
 		peer->default_rmap[afi][safi].map =
 			route_map_lookup_by_name(name);
 		if (def_rmap_changed)
@@ -1670,18 +1663,18 @@ static int updgrp_policy_update_walkcb(struct update_group *updgrp, void *arg)
 
 		if (changed) {
 			if (bgp_debug_update(NULL, NULL, updgrp, 0))
-				zlog_debug(
-					"u%" PRIu64 ":s%" PRIu64" announcing routes upon policy %s (type %d) change",
-					updgrp->id, subgrp->id,
-					ctx->policy_name, ctx->policy_type);
+				zlog_debug("u%" PRIu64 ":s%" PRIu64
+					   " announcing routes upon policy %s (type %d) change",
+					   updgrp->id, subgrp->id,
+					   ctx->policy_name, ctx->policy_type);
 			subgroup_announce_route(subgrp);
 		}
 		if (def_changed) {
 			if (bgp_debug_update(NULL, NULL, updgrp, 0))
-				zlog_debug(
-					"u%" PRIu64 ":s%" PRIu64" announcing default upon default routemap %s change",
-					updgrp->id, subgrp->id,
-					ctx->policy_name);
+				zlog_debug("u%" PRIu64 ":s%" PRIu64
+					   " announcing default upon default routemap %s change",
+					   updgrp->id, subgrp->id,
+					   ctx->policy_name);
 			if (route_map_lookup_by_name(ctx->policy_name)) {
 				/*
 				 * When there is change in routemap, this flow
@@ -1767,8 +1760,7 @@ void update_group_policy_update(struct bgp *bgp, enum bgp_policy_type ptype,
  * Ensure that the given peer is in a subgroup of its own in the
  * specified update group.
  */
-void update_subgroup_split_peer(struct peer_af *paf,
-				struct update_group *updgrp)
+void update_subgroup_split_peer(struct peer_af *paf, struct update_group *updgrp)
 {
 	struct update_subgroup *old_subgrp, *subgrp;
 	uint64_t old_id;
@@ -1802,7 +1794,8 @@ void update_subgroup_split_peer(struct peer_af *paf,
 			UPDGRP_PEER_DBG_EN(updgrp);
 		}
 		if (BGP_DEBUG(update_groups, UPDATE_GROUPS))
-			zlog_debug("u%" PRIu64 ":s%" PRIu64" peer %s moved to u%" PRIu64 ":s%" PRIu64,
+			zlog_debug("u%" PRIu64 ":s%" PRIu64
+				   " peer %s moved to u%" PRIu64 ":s%" PRIu64,
 				   old_id, subgrp->id, paf->peer->host,
 				   updgrp->id, subgrp->id);
 
@@ -1836,7 +1829,9 @@ void update_subgroup_split_peer(struct peer_af *paf,
 	update_subgroup_copy_packets(subgrp, paf->next_pkt_to_send);
 
 	if (BGP_DEBUG(update_groups, UPDATE_GROUPS))
-		zlog_debug("u%" PRIu64 ":s%" PRIu64" peer %s split and moved into u%" PRIu64":s%" PRIu64,
+		zlog_debug("u%" PRIu64 ":s%" PRIu64
+			   " peer %s split and moved into u%" PRIu64
+			   ":s%" PRIu64,
 			   paf->subgroup->update_group->id, paf->subgroup->id,
 			   paf->peer->host, updgrp->id, subgrp->id);
 
@@ -1903,8 +1898,7 @@ void update_group_show(struct bgp *bgp, afi_t afi, safi_t safi, struct vty *vty,
 			vname = VRF_DEFAULT_NAME;
 		else
 			vname = bgp->name;
-		json_object_object_add(json_vrf_obj, vname,
-				       ctx.json_updategrps);
+		json_object_object_add(json_vrf_obj, vname, ctx.json_updategrps);
 		vty_json(vty, json_vrf_obj);
 	}
 }
@@ -1925,12 +1919,9 @@ void update_group_show_stats(struct bgp *bgp, struct vty *vty)
 	vty_out(vty, "Update subgroups deleted: %u\n",
 		bgp->update_group_stats.subgrps_deleted);
 	vty_out(vty, "Join events: %u\n", bgp->update_group_stats.join_events);
-	vty_out(vty, "Prune events: %u\n",
-		bgp->update_group_stats.prune_events);
-	vty_out(vty, "Merge events: %u\n",
-		bgp->update_group_stats.merge_events);
-	vty_out(vty, "Split events: %u\n",
-		bgp->update_group_stats.split_events);
+	vty_out(vty, "Prune events: %u\n", bgp->update_group_stats.prune_events);
+	vty_out(vty, "Merge events: %u\n", bgp->update_group_stats.merge_events);
+	vty_out(vty, "Split events: %u\n", bgp->update_group_stats.split_events);
 	vty_out(vty, "Update group switch events: %u\n",
 		bgp->update_group_stats.updgrp_switch_events);
 	vty_out(vty, "Peer route refreshes combined: %u\n",
@@ -2166,7 +2157,8 @@ void peer_af_announce_route(struct peer_af *paf, int combine)
 
 		assert(subgrp && subgrp->update_group);
 		if (bgp_debug_update(paf->peer, NULL, subgrp->update_group, 0))
-			zlog_debug("u%" PRIu64 ":s%" PRIu64" %s announcing routes",
+			zlog_debug("u%" PRIu64 ":s%" PRIu64
+				   " %s announcing routes",
 				   subgrp->update_group->id, subgrp->id,
 				   paf->peer->host);
 
@@ -2187,7 +2179,8 @@ void peer_af_announce_route(struct peer_af *paf, int combine)
 	}
 
 	if (bgp_debug_update(paf->peer, NULL, subgrp->update_group, 0))
-		zlog_debug("u%" PRIu64 ":s%" PRIu64" announcing routes to %s, combined into %d peers",
+		zlog_debug("u%" PRIu64 ":s%" PRIu64
+			   " announcing routes to %s, combined into %d peers",
 			   subgrp->update_group->id, subgrp->id,
 			   paf->peer->host, subgrp->peer_count);
 
@@ -2208,10 +2201,10 @@ void subgroup_trigger_write(struct update_subgroup *subgrp)
 	 */
 	SUBGRP_FOREACH_PEER (subgrp, paf)
 		if (peer_established(paf->peer))
-			event_add_timer_msec(
-				bm->master, bgp_generate_updgrp_packets,
-				paf->peer, 0,
-				&paf->peer->t_generate_updgrp_packets);
+			event_add_timer_msec(bm->master,
+					     bgp_generate_updgrp_packets,
+					     paf->peer, 0,
+					     &paf->peer->t_generate_updgrp_packets);
 }
 
 int update_group_clear_update_dbg(struct update_group *updgrp, void *arg)
@@ -2223,9 +2216,8 @@ int update_group_clear_update_dbg(struct update_group *updgrp, void *arg)
 /* Return true if we should addpath encode NLRI to this peer */
 bool bgp_addpath_encode_tx(struct peer *peer, afi_t afi, safi_t safi)
 {
-	return (CHECK_FLAG(peer->af_cap[afi][safi], PEER_CAP_ADDPATH_AF_TX_ADV)
-		&& CHECK_FLAG(peer->af_cap[afi][safi],
-			      PEER_CAP_ADDPATH_AF_RX_RCV));
+	return (CHECK_FLAG(peer->af_cap[afi][safi], PEER_CAP_ADDPATH_AF_TX_ADV) &&
+		CHECK_FLAG(peer->af_cap[afi][safi], PEER_CAP_ADDPATH_AF_RX_RCV));
 }
 
 bool bgp_addpath_capable(struct bgp_path_info *bpi, struct peer *peer,

@@ -79,13 +79,13 @@ enum yang_path_type {
 
 enum yang_iter_flags {
 	/* Filter non-presence containers. */
-	YANG_ITER_FILTER_NPCONTAINERS = (1<<0),
+	YANG_ITER_FILTER_NPCONTAINERS = (1 << 0),
 
 	/* Filter list keys (leafs). */
-	YANG_ITER_FILTER_LIST_KEYS = (1<<1),
+	YANG_ITER_FILTER_LIST_KEYS = (1 << 1),
 
 	/* Filter RPC input/output nodes. */
-	YANG_ITER_FILTER_INPUT_OUTPUT = (1<<2),
+	YANG_ITER_FILTER_INPUT_OUTPUT = (1 << 2),
 };
 
 /* Callback used by the yang_snodes_iterate_*() family of functions. */
@@ -288,8 +288,7 @@ extern const char *yang_snode_get_default(const struct lysc_node *snode);
  *    The found type if the schema node represents a leaf or a leaf-list, NULL
  *    otherwise.
  */
-extern const struct lysc_type *
-yang_snode_get_type(const struct lysc_node *snode);
+extern const struct lysc_type *yang_snode_get_type(const struct lysc_node *snode);
 
 /*
  * Get the number of key nodes for the given list.
@@ -653,8 +652,8 @@ extern void yang_terminate(void);
  *
  * Returns The dnode matched with the given name
  */
-extern const struct lyd_node *
-yang_dnode_get_parent(const struct lyd_node *dnode, const char *name);
+extern const struct lyd_node *yang_dnode_get_parent(const struct lyd_node *dnode,
+						    const char *name);
 
 
 /*

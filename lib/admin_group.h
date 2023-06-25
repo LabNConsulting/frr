@@ -43,8 +43,7 @@ bool admin_group_cmp(const struct admin_group *ag1,
 void admin_group_copy(struct admin_group *dst, const struct admin_group *src);
 void admin_group_init(struct admin_group *ag);
 void admin_group_term(struct admin_group *ag);
-uint32_t admin_group_get_offset(const struct admin_group *ag,
-				size_t oct_offset);
+uint32_t admin_group_get_offset(const struct admin_group *ag, size_t oct_offset);
 void admin_group_set(struct admin_group *ag, size_t pos);
 void admin_group_unset(struct admin_group *ag, size_t pos);
 int admin_group_get(const struct admin_group *ag, size_t pos);

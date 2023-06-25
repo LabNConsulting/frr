@@ -116,8 +116,8 @@ extern struct xrefdata_uid_head xrefdata_uid;
 
 struct xref_block {
 	struct xref_block *next;
-	const struct xref * const *start;
-	const struct xref * const *stop;
+	const struct xref *const *start;
+	const struct xref *const *stop;
 };
 
 extern struct xref_block *xref_blocks;
@@ -129,7 +129,7 @@ extern void xref_gcc_workaround(const struct xref *xref);
  * work we end up on Solaris ld which doesn't support the section start/end
  * symbols.
  */
-#define XREF_SETUP() \
+#define XREF_SETUP()                                                           \
 	CPP_NOTICE("Missing linker support for section arrays.  Solaris ld?")
 #else
 /* the actual symbols that the linker provides for us.  Note these are
@@ -137,8 +137,8 @@ extern void xref_gcc_workaround(const struct xref *xref);
  * much NOT _pointers_, rather the symbol *value* is the pointer.  Declaring
  * them as size-1 arrays is the "best" / "right" thing.
  */
-extern const struct xref * const __start_xref_array[1] DSO_LOCAL;
-extern const struct xref * const __stop_xref_array[1] DSO_LOCAL;
+extern const struct xref *const __start_xref_array[1] DSO_LOCAL;
+extern const struct xref *const __stop_xref_array[1] DSO_LOCAL;
 
 #if defined(__has_feature)
 #if __has_feature(address_sanitizer)
@@ -160,16 +160,16 @@ extern const struct xref * const __stop_xref_array[1] DSO_LOCAL;
  */
 #define XREF_SETUP()                                                           \
 	static const struct xref _dummy_xref = {                               \
-			/* .xrefdata = */ NULL,                                \
-			/* .type = */ XREFT_NONE,                              \
-			/* .line = */ __LINE__,                                \
-			/* .file = */ __FILE__,                                \
-			/* .func = */ "dummy",                                 \
+		/* .xrefdata = */ NULL,                                        \
+		/* .type = */ XREFT_NONE,                                      \
+		/* .line = */ __LINE__,                                        \
+		/* .file = */ __FILE__,                                        \
+		/* .func = */ "dummy",                                         \
 	};                                                                     \
-	static const struct xref * const _dummy_xref_p                         \
-			__attribute__((xref_array_attr)) = &_dummy_xref;       \
-	static void __attribute__((used, _CONSTRUCTOR(1100)))                  \
-			_xref_init(void) {                                     \
+	static const struct xref *const _dummy_xref_p                          \
+		__attribute__((xref_array_attr)) = &_dummy_xref;               \
+	static void __attribute__((used, _CONSTRUCTOR(1100))) _xref_init(void) \
+	{                                                                      \
 		static struct xref_block _xref_block = {                       \
 			.next = NULL,                                          \
 			.start = __start_xref_array,                           \
@@ -213,37 +213,54 @@ extern const struct xref * const __stop_xref_array[1] DSO_LOCAL;
 #else
 
 #if __SIZEOF_POINTER__ == 4
-#define _NOTE_2PTRSIZE	"8"
-#define _NOTE_PTR	".long"
+#define _NOTE_2PTRSIZE "8"
+#define _NOTE_PTR ".long"
 #elif __SIZEOF_POINTER__ == 8
-#define _NOTE_2PTRSIZE	"16"
-#define _NOTE_PTR	".quad"
+#define _NOTE_2PTRSIZE "16"
+#define _NOTE_PTR ".quad"
 #else
 #error unsupported pointer size
 #endif
 
 #ifdef __arm__
-# define asmspecial "%"
+#define asmspecial "%"
 #else
-# define asmspecial "@"
+#define asmspecial "@"
 #endif
 
 #define XREF_NOTE                                                              \
-	""                                                                 "\n"\
-	"	.type _frr_xref_note," asmspecial "object"                 "\n"\
-	"	.pushsection .note.FRR,\"a\"," asmspecial "note"           "\n"\
-	"	.p2align 2"                                                "\n"\
-	"_frr_xref_note:"                                                  "\n"\
-	"	.long	9"                                                 "\n"\
-	"	.long	" _NOTE_2PTRSIZE                                   "\n"\
-	"	.ascii	\"XREF\""                                          "\n"\
-	"	.ascii	\"FRRouting\\0\\0\\0\""                            "\n"\
-	"	" _NOTE_PTR "	__start_xref_array-."                      "\n"\
-	"	" _NOTE_PTR "	__stop_xref_array-."                       "\n"\
-	"	.size _frr_xref_note, .-_frr_xref_note"                    "\n"\
-	"	.popsection"                                               "\n"\
-	""                                                                 "\n"\
-	/* end */
+	""                                                                     \
+	"\n"                                                                   \
+	"	.type _frr_xref_note," asmspecial                              \
+	"object"                                                               \
+	"\n"                                                                   \
+	"	.pushsection .note.FRR,\"a\"," asmspecial                      \
+	"note"                                                                 \
+	"\n"                                                                   \
+	"	.p2align 2"                                                          \
+	"\n"                                                                   \
+	"_frr_xref_note:"                                                      \
+	"\n"                                                                   \
+	"	.long	9"                                                             \
+	"\n"                                                                   \
+	"	.long	" _NOTE_2PTRSIZE                                       \
+	"\n"                                                                   \
+	"	.ascii	\"XREF\""                                                     \
+	"\n"                                                                   \
+	"	.ascii	\"FRRouting\\0\\0\\0\""                                       \
+	"\n"                                                                   \
+	"	" _NOTE_PTR                                                    \
+	"	__start_xref_array-."                                                \
+	"\n"                                                                   \
+	"	" _NOTE_PTR                                                    \
+	"	__stop_xref_array-."                                                 \
+	"\n"                                                                   \
+	"	.size _frr_xref_note, .-_frr_xref_note"                              \
+	"\n"                                                                   \
+	"	.popsection"                                                         \
+	"\n"                                                                   \
+	""                                                                     \
+	"\n" /* end */
 #endif
 
 #endif /* HAVE_SECTION_SYMS */
@@ -251,10 +268,8 @@ extern const struct xref * const __stop_xref_array[1] DSO_LOCAL;
 /* emit the array entry / pointer to xref */
 #if defined(__clang__) || !defined(__cplusplus)
 #define XREF_LINK(dst)                                                         \
-	static const struct xref * const NAMECTR(xref_p_)                      \
-			__attribute__((xref_array_attr))                       \
-		= &(dst)                                                       \
-	/* end */
+	static const struct xref *const NAMECTR(xref_p_)                       \
+		__attribute__((xref_array_attr)) = &(dst) /* end */
 
 #else /* GCC && C++ */
 /* workaround for GCC bug 41091 (dated 2009), added in 2021...
@@ -264,7 +279,7 @@ extern const struct xref * const __stop_xref_array[1] DSO_LOCAL;
  * the proper list of xrefs from C++ code, build with clang...
  */
 struct _xref_p {
-	const struct xref * const ptr;
+	const struct xref *const ptr;
 
 	_xref_p(const struct xref *_ptr) : ptr(_ptr)
 	{
@@ -274,23 +289,20 @@ struct _xref_p {
 
 #define XREF_LINK(dst)                                                         \
 	static const struct _xref_p __attribute__((used))                      \
-			NAMECTR(xref_p_)(&(dst))                               \
-	/* end */
+	NAMECTR(xref_p_)(&(dst)) /* end */
 #endif
 
 /* initializer for a "struct xref" */
 #define XREF_INIT(type_, xrefdata_, func_)                                     \
 	{                                                                      \
-		/* .xrefdata = */ (xrefdata_),                                 \
-		/* .type = */ (type_),                                         \
-		/* .line = */ __LINE__,                                        \
-		/* .file = */ __FILE__,                                        \
-		/* .func = */ func_,                                           \
+		/* .xrefdata = */ (xrefdata_), /* .type = */ (type_),          \
+			/* .line = */ __LINE__, /* .file = */ __FILE__,        \
+			/* .func = */ func_,                                   \
 	}                                                                      \
 	/* end */
 
 /* use with XREF_INIT when outside of a function, i.e. no __func__ */
-#define XREF_NO_FUNC	"<global>"
+#define XREF_NO_FUNC "<global>"
 
 #ifdef __cplusplus
 }

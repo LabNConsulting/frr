@@ -122,46 +122,60 @@ const char *ospf_api_typename(int msgtype)
 {
 	struct nametab NameTab[] = {
 		{
-			MSG_REGISTER_OPAQUETYPE, "Register opaque-type",
+			MSG_REGISTER_OPAQUETYPE,
+			"Register opaque-type",
 		},
 		{
-			MSG_UNREGISTER_OPAQUETYPE, "Unregister opaque-type",
+			MSG_UNREGISTER_OPAQUETYPE,
+			"Unregister opaque-type",
 		},
 		{
-			MSG_REGISTER_EVENT, "Register event",
+			MSG_REGISTER_EVENT,
+			"Register event",
 		},
 		{
-			MSG_SYNC_LSDB, "Sync LSDB",
+			MSG_SYNC_LSDB,
+			"Sync LSDB",
 		},
 		{
-			MSG_ORIGINATE_REQUEST, "Originate request",
+			MSG_ORIGINATE_REQUEST,
+			"Originate request",
 		},
 		{
-			MSG_DELETE_REQUEST, "Delete request",
+			MSG_DELETE_REQUEST,
+			"Delete request",
 		},
 		{
-			MSG_REPLY, "Reply",
+			MSG_REPLY,
+			"Reply",
 		},
 		{
-			MSG_READY_NOTIFY, "Ready notify",
+			MSG_READY_NOTIFY,
+			"Ready notify",
 		},
 		{
-			MSG_LSA_UPDATE_NOTIFY, "LSA update notify",
+			MSG_LSA_UPDATE_NOTIFY,
+			"LSA update notify",
 		},
 		{
-			MSG_LSA_DELETE_NOTIFY, "LSA delete notify",
+			MSG_LSA_DELETE_NOTIFY,
+			"LSA delete notify",
 		},
 		{
-			MSG_NEW_IF, "New interface",
+			MSG_NEW_IF,
+			"New interface",
 		},
 		{
-			MSG_DEL_IF, "Del interface",
+			MSG_DEL_IF,
+			"Del interface",
 		},
 		{
-			MSG_ISM_CHANGE, "ISM change",
+			MSG_ISM_CHANGE,
+			"ISM change",
 		},
 		{
-			MSG_NSM_CHANGE, "NSM change",
+			MSG_NSM_CHANGE,
+			"NSM change",
 		},
 		{
 			MSG_REACHABLE_CHANGE,
@@ -186,38 +200,48 @@ const char *ospf_api_errname(int errcode)
 {
 	struct nametab NameTab[] = {
 		{
-			OSPF_API_OK, "OK",
+			OSPF_API_OK,
+			"OK",
 		},
 		{
-			OSPF_API_NOSUCHINTERFACE, "No such interface",
+			OSPF_API_NOSUCHINTERFACE,
+			"No such interface",
 		},
 		{
-			OSPF_API_NOSUCHAREA, "No such area",
+			OSPF_API_NOSUCHAREA,
+			"No such area",
 		},
 		{
-			OSPF_API_NOSUCHLSA, "No such LSA",
+			OSPF_API_NOSUCHLSA,
+			"No such LSA",
 		},
 		{
-			OSPF_API_ILLEGALLSATYPE, "Illegal LSA type",
+			OSPF_API_ILLEGALLSATYPE,
+			"Illegal LSA type",
 		},
 		{
-			OSPF_API_OPAQUETYPEINUSE, "Opaque type in use",
+			OSPF_API_OPAQUETYPEINUSE,
+			"Opaque type in use",
 		},
 		{
 			OSPF_API_OPAQUETYPENOTREGISTERED,
 			"Opaque type not registered",
 		},
 		{
-			OSPF_API_NOTREADY, "Not ready",
+			OSPF_API_NOTREADY,
+			"Not ready",
 		},
 		{
-			OSPF_API_NOMEMORY, "No memory",
+			OSPF_API_NOMEMORY,
+			"No memory",
 		},
 		{
-			OSPF_API_ERROR, "Other error",
+			OSPF_API_ERROR,
+			"Other error",
 		},
 		{
-			OSPF_API_UNDEF, "Undefined",
+			OSPF_API_UNDEF,
+			"Undefined",
 		},
 	};
 
@@ -244,9 +268,8 @@ void msg_print(struct msg *msg)
 	/* API message common header part. */
 	zlog_debug("API-msg [%s]: type(%d),len(%d),seq(%lu),data(%p),size(%zd)",
 		   ospf_api_typename(msg->hdr.msgtype), msg->hdr.msgtype,
-		   ntohs(msg->hdr.msglen),
-		   (unsigned long)ntohl(msg->hdr.msgseq), STREAM_DATA(msg->s),
-		   STREAM_SIZE(msg->s));
+		   ntohs(msg->hdr.msglen), (unsigned long)ntohl(msg->hdr.msgseq),
+		   STREAM_DATA(msg->s), STREAM_SIZE(msg->s));
 
 	return;
 }
@@ -462,8 +485,8 @@ struct msg *new_msg_register_event(uint32_t seqnum,
 	unsigned int len;
 
 	emsg = (struct msg_register_event *)buf;
-	len = sizeof(struct msg_register_event)
-	      + filter->num_areas * sizeof(struct in_addr);
+	len = sizeof(struct msg_register_event) +
+	      filter->num_areas * sizeof(struct in_addr);
 	emsg->filter.typemask = htons(filter->typemask);
 	emsg->filter.origin = filter->origin;
 	emsg->filter.num_areas = filter->num_areas;
@@ -480,8 +503,8 @@ struct msg *new_msg_sync_lsdb(uint32_t seqnum, struct lsa_filter_type *filter)
 	unsigned int len;
 
 	smsg = (struct msg_sync_lsdb *)buf;
-	len = sizeof(struct msg_sync_lsdb)
-	      + filter->num_areas * sizeof(struct in_addr);
+	len = sizeof(struct msg_sync_lsdb) +
+	      filter->num_areas * sizeof(struct in_addr);
 	smsg->filter.typemask = htons(filter->typemask);
 	smsg->filter.origin = filter->origin;
 	smsg->filter.num_areas = filter->num_areas;
@@ -511,8 +534,8 @@ struct msg *new_msg_originate_request(uint32_t seqnum, struct in_addr ifaddr,
 	if (omsglen > data_maxs)
 		omsglen = data_maxs;
 	memcpy(omsg_data, data, omsglen);
-	omsglen += sizeof(struct msg_originate_request)
-		   - sizeof(struct lsa_header);
+	omsglen += sizeof(struct msg_originate_request) -
+		   sizeof(struct lsa_header);
 
 	return msg_new(MSG_ORIGINATE_REQUEST, omsg, seqnum, omsglen);
 }

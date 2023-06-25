@@ -178,7 +178,7 @@ int zebra_ns_init(void)
 	ns_id_t ns_id_external;
 	struct ns *ns;
 
-	frr_with_privs(&zserv_privs) {
+	frr_with_privs (&zserv_privs) {
 		ns_id = zebra_ns_id_get_default();
 	}
 	ns_id_external = ns_map_nsid_with_external(ns_id, true);

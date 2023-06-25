@@ -9,8 +9,8 @@
 #define _QUAGGA_BGP_BFD_H
 
 #define PEER_IS_MULTIHOP(peer)                                                 \
-	((((peer)->sort == BGP_PEER_IBGP) && !(peer)->shared_network)          \
-	 || is_ebgp_multihop_configured((peer)))
+	((((peer)->sort == BGP_PEER_IBGP) && !(peer)->shared_network) ||       \
+	 is_ebgp_multihop_configured((peer)))
 
 extern void bgp_bfd_init(struct event_loop *tm);
 

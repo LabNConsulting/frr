@@ -15,15 +15,15 @@
 #include <zebra.h>
 #include "ospf_lsa.h"
 
-#define OSPF_API_VERSION           1
+#define OSPF_API_VERSION 1
 
 /* MTYPE definition is not reflected to "memory.h". */
-#define MTYPE_OSPF_API_MSG      MTYPE_TMP
-#define MTYPE_OSPF_API_FIFO     MTYPE_TMP
+#define MTYPE_OSPF_API_MSG MTYPE_TMP
+#define MTYPE_OSPF_API_FIFO MTYPE_TMP
 
 /* Default API server port to accept connection request from client-side. */
 /* This value could be overridden by "ospfapi" entry in "/etc/services". */
-#define OSPF_API_SYNC_PORT      2607
+#define OSPF_API_SYNC_PORT 2607
 
 /* -----------------------------------------------------------
  * Generic messages
@@ -62,7 +62,7 @@ extern int msg_write(int fd, struct msg *msg);
 /* For requests, the message sequence number is between MIN_SEQ and
    MAX_SEQ. For notifications, the sequence number is 0. */
 
-#define MIN_SEQ          1
+#define MIN_SEQ 1
 #define MAX_SEQ 2147483647
 
 extern void msg_set_seq(struct msg *msg, uint32_t seqnr);
@@ -95,28 +95,28 @@ extern void msg_fifo_free(struct msg_fifo *fifo);
  */
 
 /* Messages to OSPF daemon. */
-#define MSG_REGISTER_OPAQUETYPE   1
+#define MSG_REGISTER_OPAQUETYPE 1
 #define MSG_UNREGISTER_OPAQUETYPE 2
-#define MSG_REGISTER_EVENT        3
-#define MSG_SYNC_LSDB             4
-#define MSG_ORIGINATE_REQUEST     5
-#define MSG_DELETE_REQUEST        6
-#define MSG_SYNC_REACHABLE        7
-#define MSG_SYNC_ISM              8
-#define MSG_SYNC_NSM              9
-#define MSG_SYNC_ROUTER_ID        19
+#define MSG_REGISTER_EVENT 3
+#define MSG_SYNC_LSDB 4
+#define MSG_ORIGINATE_REQUEST 5
+#define MSG_DELETE_REQUEST 6
+#define MSG_SYNC_REACHABLE 7
+#define MSG_SYNC_ISM 8
+#define MSG_SYNC_NSM 9
+#define MSG_SYNC_ROUTER_ID 19
 
 /* Messages from OSPF daemon. */
-#define MSG_REPLY                10
-#define MSG_READY_NOTIFY         11
-#define MSG_LSA_UPDATE_NOTIFY    12
-#define MSG_LSA_DELETE_NOTIFY    13
-#define MSG_NEW_IF               14
-#define MSG_DEL_IF               15
-#define MSG_ISM_CHANGE           16
-#define MSG_NSM_CHANGE           17
-#define MSG_REACHABLE_CHANGE     18
-#define MSG_ROUTER_ID_CHANGE     20
+#define MSG_REPLY 10
+#define MSG_READY_NOTIFY 11
+#define MSG_LSA_UPDATE_NOTIFY 12
+#define MSG_LSA_DELETE_NOTIFY 13
+#define MSG_NEW_IF 14
+#define MSG_DEL_IF 15
+#define MSG_ISM_CHANGE 16
+#define MSG_NSM_CHANGE 17
+#define MSG_REACHABLE_CHANGE 18
+#define MSG_ROUTER_ID_CHANGE 20
 
 struct msg_register_opaque_type {
 	uint8_t lsatype;
@@ -135,17 +135,18 @@ struct msg_unregister_opaque_type {
  * Power2[0] is not used. */
 
 
-static const uint16_t Power2[] = {
-	0,	 (1 << 0),  (1 << 1),  (1 << 2),  (1 << 3), (1 << 4),
-	(1 << 5),  (1 << 6),  (1 << 7),  (1 << 8),  (1 << 9), (1 << 10),
-	(1 << 11), (1 << 12), (1 << 13), (1 << 14), (1 << 15)};
+static const uint16_t Power2[] = {0,	     (1 << 0),	(1 << 1),  (1 << 2),
+				  (1 << 3),  (1 << 4),	(1 << 5),  (1 << 6),
+				  (1 << 7),  (1 << 8),	(1 << 9),  (1 << 10),
+				  (1 << 11), (1 << 12), (1 << 13), (1 << 14),
+				  (1 << 15)};
 
 struct lsa_filter_type {
 	uint16_t typemask; /* bitmask for selecting LSA types (1..16) */
-	uint8_t origin;    /* selects according to origin. */
-#define NON_SELF_ORIGINATED	0
-#define	SELF_ORIGINATED  (OSPF_LSA_SELF)
-#define	ANY_ORIGIN 2
+	uint8_t origin;	   /* selects according to origin. */
+#define NON_SELF_ORIGINATED 0
+#define SELF_ORIGINATED (OSPF_LSA_SELF)
+#define ANY_ORIGIN 2
 
 	uint8_t num_areas; /* number of areas in the filter. */
 			   /* areas, if any, go here. */
@@ -188,17 +189,17 @@ struct msg_delete_request {
 
 struct msg_reply {
 	signed char errcode;
-#define OSPF_API_OK                         0
-#define OSPF_API_NOSUCHINTERFACE          (-1)
-#define OSPF_API_NOSUCHAREA               (-2)
-#define OSPF_API_NOSUCHLSA                (-3)
-#define OSPF_API_ILLEGALLSATYPE           (-4)
-#define OSPF_API_OPAQUETYPEINUSE          (-5)
-#define OSPF_API_OPAQUETYPENOTREGISTERED  (-6)
-#define OSPF_API_NOTREADY                 (-7)
-#define OSPF_API_NOMEMORY                 (-8)
-#define OSPF_API_ERROR                    (-9)
-#define OSPF_API_UNDEF                   (-10)
+#define OSPF_API_OK 0
+#define OSPF_API_NOSUCHINTERFACE (-1)
+#define OSPF_API_NOSUCHAREA (-2)
+#define OSPF_API_NOSUCHLSA (-3)
+#define OSPF_API_ILLEGALLSATYPE (-4)
+#define OSPF_API_OPAQUETYPEINUSE (-5)
+#define OSPF_API_OPAQUETYPENOTREGISTERED (-6)
+#define OSPF_API_NOTREADY (-7)
+#define OSPF_API_NOMEMORY (-8)
+#define OSPF_API_ERROR (-9)
+#define OSPF_API_UNDEF (-10)
 	uint8_t pad[3]; /* padding to four byte alignment */
 };
 
@@ -208,7 +209,7 @@ struct msg_reply {
 struct msg_ready_notify {
 	uint8_t lsa_type;
 	uint8_t opaque_type;
-	uint8_t pad[2];      /* padding */
+	uint8_t pad[2];	     /* padding */
 	struct in_addr addr; /* interface address or area address */
 };
 
@@ -227,7 +228,7 @@ struct msg_lsa_change_notify {
 };
 
 struct msg_new_if {
-	struct in_addr ifaddr;  /* interface IP address */
+	struct in_addr ifaddr;	/* interface IP address */
 	struct in_addr area_id; /* area this interface belongs to */
 };
 
@@ -236,15 +237,15 @@ struct msg_del_if {
 };
 
 struct msg_ism_change {
-	struct in_addr ifaddr;  /* interface IP address */
+	struct in_addr ifaddr;	/* interface IP address */
 	struct in_addr area_id; /* area this interface belongs to */
 	uint8_t status;		/* interface status (up/down) */
 	uint8_t pad[3];		/* not used */
 };
 
 struct msg_nsm_change {
-	struct in_addr ifaddr;    /* attached interface */
-	struct in_addr nbraddr;   /* Neighbor interface address */
+	struct in_addr ifaddr;	  /* attached interface */
+	struct in_addr nbraddr;	  /* Neighbor interface address */
 	struct in_addr router_id; /* Router ID of neighbor */
 	uint8_t status;		  /* NSM status */
 	uint8_t pad[3];

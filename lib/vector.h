@@ -18,7 +18,7 @@ struct _vector {
 	unsigned int active;  /* number of active slots */
 	unsigned int alloced; /* number of allocated slot */
 	unsigned int count;
-	void **index;	 /* index to data */
+	void **index; /* index to data */
 };
 typedef struct _vector *vector;
 
@@ -27,7 +27,7 @@ typedef struct _vector *vector;
 /* (Sometimes) usefull macros.  This macro convert index expression to
  array expression. */
 /* Reference slot at given index, caller must ensure slot is active */
-#define vector_slot(V,I)  ((V)->index[(I)])
+#define vector_slot(V, I) ((V)->index[(I)])
 /* Number of active slots.
  * Note that this differs from vector_count() as it the count returned
  * will include any empty slots

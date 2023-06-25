@@ -48,8 +48,7 @@ static inline void mt_count_alloc(struct memtype *mt, size_t size, void *ptr)
 		oldsize = atomic_exchange_explicit(&mt->size, size,
 						   memory_order_relaxed);
 	if (oldsize != 0 && oldsize != size && oldsize != SIZE_VAR)
-		atomic_store_explicit(&mt->size, SIZE_VAR,
-				      memory_order_relaxed);
+		atomic_store_explicit(&mt->size, SIZE_VAR, memory_order_relaxed);
 
 #ifdef HAVE_MALLOC_USABLE_SIZE
 	size_t mallocsz = malloc_usable_size(ptr);

@@ -20,17 +20,17 @@
 #include <atomic>
 using std::atomic_int;
 using std::memory_order;
-using std::memory_order_relaxed;
-using std::memory_order_acquire;
-using std::memory_order_release;
 using std::memory_order_acq_rel;
+using std::memory_order_acquire;
 using std::memory_order_consume;
+using std::memory_order_relaxed;
+using std::memory_order_release;
 using std::memory_order_seq_cst;
 
-typedef std::atomic<bool>		atomic_bool;
-typedef std::atomic<size_t>		atomic_size_t;
-typedef std::atomic<uint_fast32_t>	atomic_uint_fast32_t;
-typedef std::atomic<uintptr_t>		atomic_uintptr_t;
+typedef std::atomic<bool> atomic_bool;
+typedef std::atomic<size_t> atomic_size_t;
+typedef std::atomic<uint_fast32_t> atomic_uint_fast32_t;
+typedef std::atomic<uintptr_t> atomic_uintptr_t;
 
 #elif defined(HAVE_STDATOMIC_H)
 #include <stdatomic.h>
@@ -67,11 +67,10 @@ typedef std::atomic<uintptr_t>		atomic_uintptr_t;
 #define atomic_and_fetch_explicit __atomic_and_fetch
 #define atomic_or_fetch_explicit __atomic_or_fetch
 
-#define atomic_compare_exchange_weak_explicit(atom, expect, desire, mem1,      \
-					      mem2)                            \
+#define atomic_compare_exchange_weak_explicit(atom, expect, desire, mem1, mem2) \
 	__atomic_compare_exchange_n(atom, expect, desire, 1, mem1, mem2)
 #define atomic_compare_exchange_strong_explicit(atom, expect, desire, mem1,    \
-					      mem2)                            \
+						mem2)                          \
 	__atomic_compare_exchange_n(atom, expect, desire, 0, mem1, mem2)
 
 /* gcc 4.1 and newer,
@@ -146,7 +145,7 @@ typedef std::atomic<uintptr_t>		atomic_uintptr_t;
 	})
 
 #define atomic_compare_exchange_strong_explicit(atom, expect, desire, mem1,    \
-					      mem2)                            \
+						mem2)                          \
 	({                                                                     \
 		typeof(atom) _atom = (atom);                                   \
 		typeof(expect) _expect = (expect);                             \
@@ -159,7 +158,7 @@ typedef std::atomic<uintptr_t>		atomic_uintptr_t;
 		*_expect = rval;                                               \
 		ret;                                                           \
 	})
-#define atomic_compare_exchange_weak_explicit \
+#define atomic_compare_exchange_weak_explicit                                  \
 	atomic_compare_exchange_strong_explicit
 
 #define atomic_fetch_and_explicit(ptr, val, mem)                               \
@@ -217,10 +216,10 @@ typedef std::atomic<uintptr_t>		atomic_uintptr_t;
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef _Atomic bool		atomic_bool;
-typedef _Atomic size_t		atomic_size_t;
-typedef _Atomic uint_fast32_t	atomic_uint_fast32_t;
-typedef _Atomic uintptr_t	atomic_uintptr_t;
+typedef _Atomic bool atomic_bool;
+typedef _Atomic size_t atomic_size_t;
+typedef _Atomic uint_fast32_t atomic_uint_fast32_t;
+typedef _Atomic uintptr_t atomic_uintptr_t;
 #endif
 
 #endif /* _FRRATOMIC_H */

@@ -12,8 +12,8 @@
 #include <lib/json.h>
 
 #define IS_OPAQUE_LSA(type)                                                    \
-	((type) == OSPF_OPAQUE_LINK_LSA || (type) == OSPF_OPAQUE_AREA_LSA      \
-	 || (type) == OSPF_OPAQUE_AS_LSA)
+	((type) == OSPF_OPAQUE_LINK_LSA || (type) == OSPF_OPAQUE_AREA_LSA ||   \
+	 (type) == OSPF_OPAQUE_AS_LSA)
 
 /*
  * Opaque LSA's link state ID is redefined as follows.
@@ -24,38 +24,38 @@
  * +--------+--------+--------+--------+
  * |<-Type->|<------- Opaque ID ------>|
  */
-#define LSID_OPAQUE_TYPE_MASK	0xff000000	/*  8 bits */
-#define LSID_OPAQUE_ID_MASK	0x00ffffff	/* 24 bits */
+#define LSID_OPAQUE_TYPE_MASK 0xff000000 /*  8 bits */
+#define LSID_OPAQUE_ID_MASK 0x00ffffff	 /* 24 bits */
 
 #define GET_OPAQUE_TYPE(lsid) (((uint32_t)(lsid)&LSID_OPAQUE_TYPE_MASK) >> 24)
 
 #define GET_OPAQUE_ID(lsid) ((uint32_t)(lsid)&LSID_OPAQUE_ID_MASK)
 
 #define SET_OPAQUE_LSID(type, id)                                              \
-	((((unsigned)(type) << 24) & LSID_OPAQUE_TYPE_MASK)                    \
-	 | ((id)&LSID_OPAQUE_ID_MASK))
+	((((unsigned)(type) << 24) & LSID_OPAQUE_TYPE_MASK) |                  \
+	 ((id)&LSID_OPAQUE_ID_MASK))
 
 /*
  * Opaque LSA types will be assigned by IANA.
  * <http://www.iana.org/assignments/ospf-opaque-types>
  */
-#define OPAQUE_TYPE_TRAFFIC_ENGINEERING_LSA		1
-#define OPAQUE_TYPE_SYCAMORE_OPTICAL_TOPOLOGY_DESC	2
-#define OPAQUE_TYPE_GRACE_LSA				3
-#define OPAQUE_TYPE_L1VPN_LSA                          5
-#define OPAQUE_TYPE_ROUTER_INFORMATION_LSA             4
-#define OPAQUE_TYPE_INTER_AS_LSA                       6
-#define OPAQUE_TYPE_EXTENDED_PREFIX_LSA                7
-#define OPAQUE_TYPE_EXTENDED_LINK_LSA                  8
-#define OPAQUE_TYPE_MAX                                8
+#define OPAQUE_TYPE_TRAFFIC_ENGINEERING_LSA 1
+#define OPAQUE_TYPE_SYCAMORE_OPTICAL_TOPOLOGY_DESC 2
+#define OPAQUE_TYPE_GRACE_LSA 3
+#define OPAQUE_TYPE_L1VPN_LSA 5
+#define OPAQUE_TYPE_ROUTER_INFORMATION_LSA 4
+#define OPAQUE_TYPE_INTER_AS_LSA 6
+#define OPAQUE_TYPE_EXTENDED_PREFIX_LSA 7
+#define OPAQUE_TYPE_EXTENDED_LINK_LSA 8
+#define OPAQUE_TYPE_MAX 8
 
 /* Following types are proposed in internet-draft documents. */
-#define OPAQUE_TYPE_8021_QOSPF				129
-#define OPAQUE_TYPE_SECONDARY_NEIGHBOR_DISCOVERY	224
-#define OPAQUE_TYPE_FLOODGATE                           225
+#define OPAQUE_TYPE_8021_QOSPF 129
+#define OPAQUE_TYPE_SECONDARY_NEIGHBOR_DISCOVERY 224
+#define OPAQUE_TYPE_FLOODGATE 225
 
 /* Ugly hack to make use of an unallocated value for wildcard matching! */
-#define OPAQUE_TYPE_WILDCARD				0
+#define OPAQUE_TYPE_WILDCARD 0
 
 #define OPAQUE_TYPE_RANGE_UNASSIGNED(type)                                     \
 	(OPAQUE_TYPE_MAX <= (type) && (type) <= 127)
@@ -65,24 +65,24 @@
 #define OSPF_OPAQUE_LSA_MIN_SIZE 0 /* RFC5250 imposes no minimum */
 
 #define VALID_OPAQUE_INFO_LEN(lsahdr)                                          \
-	((ntohs((lsahdr)->length) >= sizeof(struct lsa_header))                \
-	 && ((ntohs((lsahdr)->length) < OSPF_MAX_LSA_SIZE))                    \
-	 && ((ntohs((lsahdr)->length) % sizeof(uint32_t)) == 0))
+	((ntohs((lsahdr)->length) >= sizeof(struct lsa_header)) &&             \
+	 ((ntohs((lsahdr)->length) < OSPF_MAX_LSA_SIZE)) &&                    \
+	 ((ntohs((lsahdr)->length) % sizeof(uint32_t)) == 0))
 
 /*
  * Following section defines generic TLV (type, length, value) macros,
  * used for various LSA opaque usage e.g. Traffic Engineering.
  */
 struct tlv_header {
-	uint16_t type;   /* Type of Value */
+	uint16_t type;	 /* Type of Value */
 	uint16_t length; /* Length of Value portion only, in bytes */
 };
 
-#define TLV_HDR_SIZE	(sizeof(struct tlv_header))
+#define TLV_HDR_SIZE (sizeof(struct tlv_header))
 
 #define TLV_BODY_SIZE(tlvh) (ROUNDUP(ntohs((tlvh)->length), sizeof(uint32_t)))
 
-#define TLV_SIZE(tlvh)	(uint32_t)(TLV_HDR_SIZE + TLV_BODY_SIZE(tlvh))
+#define TLV_SIZE(tlvh) (uint32_t)(TLV_HDR_SIZE + TLV_BODY_SIZE(tlvh))
 
 #define TLV_HDR_TOP(lsah)                                                      \
 	(struct tlv_header *)((char *)(lsah) + OSPF_LSA_HEADER_SIZE)
@@ -93,11 +93,11 @@ struct tlv_header {
 #define TLV_HDR_SUBTLV(tlvh)                                                   \
 	(struct tlv_header *)((char *)(tlvh) + TLV_HDR_SIZE)
 
-#define TLV_DATA(tlvh)	(void *)((char *)(tlvh) + TLV_HDR_SIZE)
+#define TLV_DATA(tlvh) (void *)((char *)(tlvh) + TLV_HDR_SIZE)
 
-#define TLV_TYPE(tlvh)	tlvh.header.type
-#define TLV_LEN(tlvh)	tlvh.header.length
-#define TLV_HDR(tlvh)	tlvh.header
+#define TLV_TYPE(tlvh) tlvh.header.type
+#define TLV_LEN(tlvh) tlvh.header.length
+#define TLV_HDR(tlvh) tlvh.header
 
 /* Following declaration concerns the Opaque LSA management */
 enum lsa_opcode { REORIGINATE_THIS_LSA, REFRESH_THIS_LSA, FLUSH_THIS_LSA };

@@ -40,14 +40,13 @@ struct skiplistnode {
 struct skiplist {
 	int flags;
 
-#define SKIPLIST_FLAG_ALLOW_DUPLICATES	0x00000001
+#define SKIPLIST_FLAG_ALLOW_DUPLICATES 0x00000001
 
 	int level; /* max lvl (1 + current # of levels in list) */
 	unsigned int count;
 	struct skiplistnode *header;
 	int *level_stats;
-	struct skiplistnode
-		*last; /* last real list item (NULL if empty list) */
+	struct skiplistnode *last; /* last real list item (NULL if empty list) */
 
 	/*
 	 * Returns -1 if val1 < val2, 0 if equal?, 1 if val1 > val2.
@@ -87,8 +86,8 @@ extern int skiplist_first_value(register struct skiplist *l, /* in */
 				void **cursor);		     /* out */
 
 extern int skiplist_next_value(register struct skiplist *l, /* in */
-			       register const void *key,	  /* in */
-			       void **valuePointer,	 /* in/out */
+			       register const void *key,    /* in */
+			       void **valuePointer,	    /* in/out */
 			       void **cursor);		    /* in/out */
 
 extern int skiplist_first(register struct skiplist *l, void **keyPointer,
@@ -100,8 +99,8 @@ extern int skiplist_last(register struct skiplist *l, void **keyPointer,
 extern int skiplist_delete_first(register struct skiplist *l);
 
 extern int skiplist_next(register struct skiplist *l, /* in */
-			 void **keyPointer,	   /* out */
-			 void **valuePointer,	 /* out */
+			 void **keyPointer,	      /* out */
+			 void **valuePointer,	      /* out */
 			 void **cursor);	      /* in/out */
 
 extern int skiplist_empty(register struct skiplist *l); /* in */

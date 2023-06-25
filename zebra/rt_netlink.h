@@ -29,22 +29,22 @@ extern "C" {
  * know about this new route.
  * tools/etc/iproute2/rt_protos.d
  */
-#define RTPROT_BGP         186
-#define RTPROT_ISIS        187
-#define RTPROT_OSPF        188
-#define RTPROT_RIP         189
-#define RTPROT_RIPNG       190
+#define RTPROT_BGP 186
+#define RTPROT_ISIS 187
+#define RTPROT_OSPF 188
+#define RTPROT_RIP 189
+#define RTPROT_RIPNG 190
 #if !defined(RTPROT_BABEL)
-#define RTPROT_BABEL        42
+#define RTPROT_BABEL 42
 #endif
-#define RTPROT_NHRP        191
-#define RTPROT_EIGRP       192
-#define RTPROT_LDP         193
-#define RTPROT_SHARP       194
-#define RTPROT_PBR         195
-#define RTPROT_ZSTATIC     196
-#define RTPROT_OPENFABRIC  197
-#define RTPROT_SRTE        198
+#define RTPROT_NHRP 191
+#define RTPROT_EIGRP 192
+#define RTPROT_LDP 193
+#define RTPROT_SHARP 194
+#define RTPROT_PBR 195
+#define RTPROT_ZSTATIC 196
+#define RTPROT_OPENFABRIC 197
+#define RTPROT_SRTE 198
 
 void rt_netlink_init(void);
 
@@ -77,8 +77,7 @@ extern int netlink_neigh_change(struct nlmsghdr *h, ns_id_t ns_id);
 extern int netlink_macfdb_read(struct zebra_ns *zns);
 extern int netlink_macfdb_read_for_bridge(struct zebra_ns *zns,
 					  struct interface *ifp,
-					  struct interface *br_if,
-					  vlanid_t vid);
+					  struct interface *br_if, vlanid_t vid);
 extern int netlink_macfdb_read_mcast_for_vni(struct zebra_ns *zns,
 					     struct interface *ifp, vni_t vni);
 extern int netlink_neigh_read(struct zebra_ns *zns);
@@ -94,16 +93,14 @@ extern vrf_id_t vrf_lookup_by_table(uint32_t table_id, ns_id_t ns_id);
 
 struct nl_batch;
 extern enum netlink_msg_status
-netlink_put_route_update_msg(struct nl_batch *bth,
-			     struct zebra_dplane_ctx *ctx);
+netlink_put_route_update_msg(struct nl_batch *bth, struct zebra_dplane_ctx *ctx);
 extern enum netlink_msg_status
 netlink_put_nexthop_update_msg(struct nl_batch *bth,
 			       struct zebra_dplane_ctx *ctx);
 extern enum netlink_msg_status
 netlink_put_mac_update_msg(struct nl_batch *bth, struct zebra_dplane_ctx *ctx);
 extern enum netlink_msg_status
-netlink_put_neigh_update_msg(struct nl_batch *bth,
-			     struct zebra_dplane_ctx *ctx);
+netlink_put_neigh_update_msg(struct nl_batch *bth, struct zebra_dplane_ctx *ctx);
 extern enum netlink_msg_status
 netlink_put_lsp_update_msg(struct nl_batch *bth, struct zebra_dplane_ctx *ctx);
 extern enum netlink_msg_status

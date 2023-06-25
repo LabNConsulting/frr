@@ -43,7 +43,10 @@ typedef unsigned int word_t;
  * @n: The current word number that is being used.
  * @m: total number of words in 'data'
  */
-typedef struct {word_t *data; size_t n, m; } bitfield_t;
+typedef struct {
+	word_t *data;
+	size_t n, m;
+} bitfield_t;
 
 DECLARE_MTYPE(BITFIELD);
 
@@ -86,8 +89,7 @@ DECLARE_MTYPE(BITFIELD);
 	(v).data[bf_index(id)] &= ~(1 << (bf_offset(id)))
 
 /* check if an id is in use */
-#define bf_test_index(v, id)                                                \
-	((v).data[bf_index(id)] & (1 << (bf_offset(id))))
+#define bf_test_index(v, id) ((v).data[bf_index(id)] & (1 << (bf_offset(id))))
 
 /* check if the bit field has been setup */
 #define bf_is_inited(v) ((v).data)
@@ -213,8 +215,7 @@ bf_find_next_clear_bit_wrap(bitfield_t *v, word_t start_index, word_t max_index)
 	return WORD_MAX;
 }
 
-static inline unsigned int bf_find_next_set_bit(bitfield_t v,
-		word_t start_index)
+static inline unsigned int bf_find_next_set_bit(bitfield_t v, word_t start_index)
 {
 	int start_bit;
 	unsigned long i, offset;
@@ -239,10 +240,9 @@ static inline unsigned int bf_find_next_set_bit(bitfield_t v,
 }
 
 /* iterate through all the set bits */
-#define bf_for_each_set_bit(v, b, max)                 \
-	for ((b) = bf_find_next_set_bit((v), 0);           \
-			(b) < max;                                 \
-			(b) = bf_find_next_set_bit((v), (b) + 1))
+#define bf_for_each_set_bit(v, b, max)                                         \
+	for ((b) = bf_find_next_set_bit((v), 0); (b) < max;                    \
+	     (b) = bf_find_next_set_bit((v), (b) + 1))
 
 /*
  * Free the allocated memory for data

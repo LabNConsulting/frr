@@ -91,12 +91,10 @@ mpls_label_t bgp_adv_label(struct bgp_dest *dest, struct bgp_path_info *pi,
 
 	remote_label = pi->extra ? pi->extra->label[0] : MPLS_INVALID_LABEL;
 	from = pi->peer;
-	reflect =
-		((from->sort == BGP_PEER_IBGP) && (to->sort == BGP_PEER_IBGP));
+	reflect = ((from->sort == BGP_PEER_IBGP) && (to->sort == BGP_PEER_IBGP));
 
-	if (reflect
-	    && !CHECK_FLAG(to->af_flags[afi][safi],
-			   PEER_FLAG_FORCE_NEXTHOP_SELF))
+	if (reflect &&
+	    !CHECK_FLAG(to->af_flags[afi][safi], PEER_FLAG_FORCE_NEXTHOP_SELF))
 		return remote_label;
 
 	if (CHECK_FLAG(to->af_flags[afi][safi], PEER_FLAG_NEXTHOP_UNCHANGED))
@@ -208,8 +206,9 @@ int bgp_reg_for_label_callback(mpls_label_t new_label, void *labelid,
 		 */
 		if (CHECK_FLAG(dest->flags, BGP_NODE_REGISTERED_FOR_LABEL)) {
 			UNSET_FLAG(dest->flags, BGP_NODE_LABEL_REQUESTED);
-			dest->local_label = mpls_lse_encode(
-				MPLS_LABEL_IMPLICIT_NULL, 0, 0, 1);
+			dest->local_label =
+				mpls_lse_encode(MPLS_LABEL_IMPLICIT_NULL, 0, 0,
+						1);
 			bgp_set_valid_label(&dest->local_label);
 		}
 	}
@@ -254,8 +253,8 @@ void bgp_reg_dereg_for_label(struct bgp_dest *dest, struct bgp_path_info *pi,
 		 * label index instead of bgpd requesting from label pool
 		 */
 		if (CHECK_FLAG(pi->attr->flag,
-			    ATTR_FLAG_BIT(BGP_ATTR_PREFIX_SID))
-			&& pi->attr->label_index != BGP_INVALID_LABEL_INDEX) {
+			       ATTR_FLAG_BIT(BGP_ATTR_PREFIX_SID)) &&
+		    pi->attr->label_index != BGP_INVALID_LABEL_INDEX) {
 			with_label_index = true;
 			UNSET_FLAG(dest->flags, BGP_NODE_LABEL_REQUESTED);
 		} else {
@@ -267,9 +266,8 @@ void bgp_reg_dereg_for_label(struct bgp_dest *dest, struct bgp_path_info *pi,
 			if (!have_label_to_reg) {
 				SET_FLAG(dest->flags, BGP_NODE_LABEL_REQUESTED);
 				if (BGP_DEBUG(labelpool, LABELPOOL))
-					zlog_debug(
-						"%s: Requesting label from LP for %pFX",
-						__func__, p);
+					zlog_debug("%s: Requesting label from LP for %pFX",
+						   __func__, p);
 				/* bgp_reg_for_label_callback() will deal with
 				 * fec registration when it gets a label from
 				 * the pool. This means we'll never register
@@ -285,8 +283,9 @@ void bgp_reg_dereg_for_label(struct bgp_dest *dest, struct bgp_path_info *pi,
 		bgp_lp_release(LP_TYPE_BGP_LU, dest, label);
 	}
 
-	bgp_send_fec_register_label_msg(
-		dest, reg, with_label_index ? pi->attr->label_index : 0);
+	bgp_send_fec_register_label_msg(dest, reg,
+					with_label_index ? pi->attr->label_index
+							 : 0);
 }
 
 static int bgp_nlri_get_labels(struct peer *peer, uint8_t *pnt, uint8_t plen,
@@ -318,10 +317,9 @@ static int bgp_nlri_get_labels(struct peer *peer, uint8_t *pnt, uint8_t plen,
 			  label_depth);
 
 	if (!(bgp_is_withdraw_label(label) || label_bos(label)))
-		flog_warn(
-			EC_BGP_INVALID_LABEL_STACK,
-			"%pBP rcvd UPDATE with invalid label stack - no bottom of stack",
-			peer);
+		flog_warn(EC_BGP_INVALID_LABEL_STACK,
+			  "%pBP rcvd UPDATE with invalid label stack - no bottom of stack",
+			  peer);
 
 	return llen;
 }
@@ -374,20 +372,18 @@ int bgp_nlri_parse_label(struct peer *peer, struct attr *attr,
 
 		/* sanity check against packet data */
 		if ((pnt + psize) > lim) {
-			flog_err(
-				EC_BGP_UPDATE_RCV,
-				"%s [Error] Update packet error / L-U (prefix length %d exceeds packet size %u)",
-				peer->host, prefixlen, (uint)(lim - pnt));
+			flog_err(EC_BGP_UPDATE_RCV,
+				 "%s [Error] Update packet error / L-U (prefix length %d exceeds packet size %u)",
+				 peer->host, prefixlen, (uint)(lim - pnt));
 			return BGP_NLRI_PARSE_ERROR_PACKET_OVERFLOW;
 		}
 
 		/* Fill in the labels */
 		llen = bgp_nlri_get_labels(peer, pnt, psize, &label);
 		if (llen == 0) {
-			flog_err(
-				EC_BGP_UPDATE_RCV,
-				"%s [Error] Update packet error (wrong label length 0)",
-				peer->host);
+			flog_err(EC_BGP_UPDATE_RCV,
+				 "%s [Error] Update packet error (wrong label length 0)",
+				 peer->host);
 			return BGP_NLRI_PARSE_ERROR_LABEL_LENGTH;
 		}
 		p.prefixlen = prefixlen - BSIZE(llen);
@@ -400,8 +396,8 @@ int bgp_nlri_parse_label(struct peer *peer, struct attr *attr,
 			return BGP_NLRI_PARSE_ERROR_LABEL_LENGTH;
 		}
 
-		if ((afi == AFI_IP && p.prefixlen > IPV4_MAX_BITLEN)
-		    || (afi == AFI_IP6 && p.prefixlen > IPV6_MAX_BITLEN))
+		if ((afi == AFI_IP && p.prefixlen > IPV4_MAX_BITLEN) ||
+		    (afi == AFI_IP6 && p.prefixlen > IPV6_MAX_BITLEN))
 			return BGP_NLRI_PARSE_ERROR_PREFIX_LENGTH;
 
 		/* Fetch prefix from NLRI packet */
@@ -418,11 +414,10 @@ int bgp_nlri_parse_label(struct peer *peer, struct attr *attr,
 				 * an error SHOULD
 				 * be logged locally, and the prefix SHOULD be
 				 * ignored.
-				  */
-				flog_err(
-					EC_BGP_UPDATE_RCV,
-					"%s: IPv4 labeled-unicast NLRI is multicast address %pI4, ignoring",
-					peer->host, &p.u.prefix4);
+				 */
+				flog_err(EC_BGP_UPDATE_RCV,
+					 "%s: IPv4 labeled-unicast NLRI is multicast address %pI4, ignoring",
+					 peer->host, &p.u.prefix4);
 				continue;
 			}
 		}
@@ -430,19 +425,17 @@ int bgp_nlri_parse_label(struct peer *peer, struct attr *attr,
 		/* Check address. */
 		if (afi == AFI_IP6 && safi == SAFI_LABELED_UNICAST) {
 			if (IN6_IS_ADDR_LINKLOCAL(&p.u.prefix6)) {
-				flog_err(
-					EC_BGP_UPDATE_RCV,
-					"%s: IPv6 labeled-unicast NLRI is link-local address %pI6, ignoring",
-					peer->host, &p.u.prefix6);
+				flog_err(EC_BGP_UPDATE_RCV,
+					 "%s: IPv6 labeled-unicast NLRI is link-local address %pI6, ignoring",
+					 peer->host, &p.u.prefix6);
 
 				continue;
 			}
 
 			if (IN6_IS_ADDR_MULTICAST(&p.u.prefix6)) {
-				flog_err(
-					EC_BGP_UPDATE_RCV,
-					"%s: IPv6 unicast NLRI is multicast address %pI6, ignoring",
-					peer->host, &p.u.prefix6);
+				flog_err(EC_BGP_UPDATE_RCV,
+					 "%s: IPv6 unicast NLRI is multicast address %pI6, ignoring",
+					 peer->host, &p.u.prefix6);
 
 				continue;
 			}
@@ -461,10 +454,9 @@ int bgp_nlri_parse_label(struct peer *peer, struct attr *attr,
 
 	/* Packet length consistency check. */
 	if (pnt != lim) {
-		flog_err(
-			EC_BGP_UPDATE_RCV,
-			"%s [Error] Update packet error / L-U (%td data remaining after parsing)",
-			peer->host, lim - pnt);
+		flog_err(EC_BGP_UPDATE_RCV,
+			 "%s [Error] Update packet error / L-U (%td data remaining after parsing)",
+			 peer->host, lim - pnt);
 		return BGP_NLRI_PARSE_ERROR_PACKET_LENGTH;
 	}
 

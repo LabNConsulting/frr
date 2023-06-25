@@ -59,8 +59,8 @@ bool str2esi(const char *str, esi_t *id)
 	if (!str)
 		return false;
 	if (sscanf(str, "%2x:%2x:%2x:%2x:%2x:%2x:%2x:%2x:%2x:%2x", a + 0, a + 1,
-		   a + 2, a + 3, a + 4, a + 5, a + 6, a + 7, a + 8, a + 9)
-	    != ESI_BYTES) {
+		   a + 2, a + 3, a + 4, a + 5, a + 6, a + 7, a + 8,
+		   a + 9) != ESI_BYTES) {
 		/* error in incoming str length */
 		return false;
 	}
@@ -102,8 +102,8 @@ bool bgp_attr_rmac(struct attr *attr, struct ethaddr *rmac)
 		type = *pnt++;
 		sub_type = *pnt++;
 
-		if (!(type == ECOMMUNITY_ENCODE_EVPN
-		      && sub_type == ECOMMUNITY_EVPN_SUBTYPE_ROUTERMAC))
+		if (!(type == ECOMMUNITY_ENCODE_EVPN &&
+		      sub_type == ECOMMUNITY_EVPN_SUBTYPE_ROUTERMAC))
 			continue;
 
 		memcpy(rmac, pnt, ETH_ALEN);
@@ -134,8 +134,8 @@ uint8_t bgp_attr_default_gw(struct attr *attr)
 		type = *pnt++;
 		sub_type = *pnt++;
 
-		if ((type == ECOMMUNITY_ENCODE_OPAQUE
-		     && sub_type == ECOMMUNITY_EVPN_SUBTYPE_DEF_GW))
+		if ((type == ECOMMUNITY_ENCODE_OPAQUE &&
+		     sub_type == ECOMMUNITY_EVPN_SUBTYPE_DEF_GW))
 			return 1;
 	}
 
@@ -164,8 +164,8 @@ uint16_t bgp_attr_df_pref_from_ec(struct attr *attr, uint8_t *alg)
 		pnt = (ecom->val + (i * ECOMMUNITY_SIZE));
 		type = *pnt++;
 		sub_type = *pnt++;
-		if (!(type == ECOMMUNITY_ENCODE_EVPN
-		      && sub_type == ECOMMUNITY_EVPN_SUBTYPE_DF_ELECTION))
+		if (!(type == ECOMMUNITY_ENCODE_EVPN &&
+		      sub_type == ECOMMUNITY_EVPN_SUBTYPE_DF_ELECTION))
 			continue;
 
 		*alg = (*pnt++) & ECOMMUNITY_EVPN_SUBTYPE_DF_ALG_BITS;
@@ -207,8 +207,8 @@ uint32_t bgp_attr_mac_mobility_seqnum(struct attr *attr, uint8_t *sticky)
 		pnt = (ecom->val + (i * ECOMMUNITY_SIZE));
 		type = *pnt++;
 		sub_type = *pnt++;
-		if (!(type == ECOMMUNITY_ENCODE_EVPN
-		      && sub_type == ECOMMUNITY_EVPN_SUBTYPE_MACMOBILITY))
+		if (!(type == ECOMMUNITY_ENCODE_EVPN &&
+		      sub_type == ECOMMUNITY_EVPN_SUBTYPE_MACMOBILITY))
 			continue;
 		flags = *pnt++;
 
@@ -229,8 +229,7 @@ uint32_t bgp_attr_mac_mobility_seqnum(struct attr *attr, uint8_t *sticky)
 /*
  * return true if attr contains router flag extended community
  */
-void bgp_attr_evpn_na_flag(struct attr *attr,
-		uint8_t *router_flag, bool *proxy)
+void bgp_attr_evpn_na_flag(struct attr *attr, uint8_t *router_flag, bool *proxy)
 {
 	struct ecommunity *ecom;
 	uint32_t i;
@@ -286,14 +285,12 @@ extern int bgp_build_evpn_prefix(int evpn_type, uint32_t eth_tag,
 		if (src->family == AF_INET) {
 			SET_IPADDR_V4(&p_evpn_p->prefix_addr.ip);
 			memcpy(&p_evpn_p->prefix_addr.ip.ipaddr_v4,
-			       &src->u.prefix4,
-			       sizeof(struct in_addr));
+			       &src->u.prefix4, sizeof(struct in_addr));
 			dst->prefixlen = (uint16_t)PREFIX_LEN_ROUTE_TYPE_5_IPV4;
 		} else {
 			SET_IPADDR_V6(&p_evpn_p->prefix_addr.ip);
 			memcpy(&p_evpn_p->prefix_addr.ip.ipaddr_v6,
-			       &src->u.prefix6,
-			       sizeof(struct in6_addr));
+			       &src->u.prefix6, sizeof(struct in6_addr));
 			dst->prefixlen = (uint16_t)PREFIX_LEN_ROUTE_TYPE_5_IPV6;
 		}
 	} else

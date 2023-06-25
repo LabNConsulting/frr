@@ -12,7 +12,7 @@
 #define EVPN_ROUTE_STRLEN 200 /* Must be >> MAC + IPv6 strings. */
 #define EVPN_AUTORT_VXLAN 0x10000000
 
-#define EVPN_ENABLED(bgp)  (bgp)->advertise_all_vni
+#define EVPN_ENABLED(bgp) (bgp)->advertise_all_vni
 static inline int is_evpn_enabled(void)
 {
 	struct bgp *bgp = NULL;
@@ -21,24 +21,23 @@ static inline int is_evpn_enabled(void)
 	return bgp ? EVPN_ENABLED(bgp) : 0;
 }
 
-static inline int advertise_type5_routes(struct bgp *bgp_vrf,
-					 afi_t afi)
+static inline int advertise_type5_routes(struct bgp *bgp_vrf, afi_t afi)
 {
 	if (!bgp_vrf->l3vni)
 		return 0;
 
-	if ((afi == AFI_IP)
-	    && ((CHECK_FLAG(bgp_vrf->af_flags[AFI_L2VPN][SAFI_EVPN],
-			    BGP_L2VPN_EVPN_ADV_IPV4_UNICAST))
-		|| (CHECK_FLAG(bgp_vrf->af_flags[AFI_L2VPN][SAFI_EVPN],
-			       BGP_L2VPN_EVPN_ADV_IPV4_UNICAST_GW_IP))))
+	if ((afi == AFI_IP) &&
+	    ((CHECK_FLAG(bgp_vrf->af_flags[AFI_L2VPN][SAFI_EVPN],
+			 BGP_L2VPN_EVPN_ADV_IPV4_UNICAST)) ||
+	     (CHECK_FLAG(bgp_vrf->af_flags[AFI_L2VPN][SAFI_EVPN],
+			 BGP_L2VPN_EVPN_ADV_IPV4_UNICAST_GW_IP))))
 		return 1;
 
-	if ((afi == AFI_IP6)
-	    && ((CHECK_FLAG(bgp_vrf->af_flags[AFI_L2VPN][SAFI_EVPN],
-			    BGP_L2VPN_EVPN_ADV_IPV6_UNICAST))
-		|| (CHECK_FLAG(bgp_vrf->af_flags[AFI_L2VPN][SAFI_EVPN],
-			       BGP_L2VPN_EVPN_ADV_IPV6_UNICAST_GW_IP))))
+	if ((afi == AFI_IP6) &&
+	    ((CHECK_FLAG(bgp_vrf->af_flags[AFI_L2VPN][SAFI_EVPN],
+			 BGP_L2VPN_EVPN_ADV_IPV6_UNICAST)) ||
+	     (CHECK_FLAG(bgp_vrf->af_flags[AFI_L2VPN][SAFI_EVPN],
+			 BGP_L2VPN_EVPN_ADV_IPV6_UNICAST_GW_IP))))
 		return 1;
 
 	return 0;
@@ -51,8 +50,7 @@ get_route_parent_evpn(struct bgp_path_info *ri)
 	struct bgp_path_info *parent_ri;
 
 	/* If not imported (or doesn't have a parent), bail. */
-	if (ri->sub_type != BGP_ROUTE_IMPORTED ||
-	    !ri->extra ||
+	if (ri->sub_type != BGP_ROUTE_IMPORTED || !ri->extra ||
 	    !ri->extra->parent)
 		return NULL;
 
@@ -81,9 +79,7 @@ static inline int is_route_parent_evpn(struct bgp_path_info *ri)
 	if (!dest)
 		return 0;
 	table = bgp_dest_table(dest);
-	if (table &&
-	    table->afi == AFI_L2VPN &&
-	    table->safi == SAFI_EVPN)
+	if (table && table->afi == AFI_L2VPN && table->safi == SAFI_EVPN)
 		return 1;
 	return 0;
 }
@@ -103,8 +99,7 @@ static inline bool is_route_injectable_into_evpn(struct bgp_path_info *pi)
 	struct bgp_table *table;
 	struct bgp_dest *dest;
 
-	if (pi->sub_type != BGP_ROUTE_IMPORTED ||
-	    !pi->extra ||
+	if (pi->sub_type != BGP_ROUTE_IMPORTED || !pi->extra ||
 	    !pi->extra->parent)
 		return true;
 
@@ -113,9 +108,7 @@ static inline bool is_route_injectable_into_evpn(struct bgp_path_info *pi)
 	if (!dest)
 		return true;
 	table = bgp_dest_table(dest);
-	if (table &&
-	    table->afi == AFI_L2VPN &&
-	    table->safi == SAFI_EVPN)
+	if (table && table->afi == AFI_L2VPN && table->safi == SAFI_EVPN)
 		return false;
 	return true;
 }
@@ -157,10 +150,8 @@ extern int bgp_evpn_import_route(struct bgp *bgp, afi_t afi, safi_t safi,
 extern int bgp_evpn_unimport_route(struct bgp *bgp, afi_t afi, safi_t safi,
 				   const struct prefix *p,
 				   struct bgp_path_info *ri);
-extern void
-bgp_reimport_evpn_routes_upon_macvrf_soo_change(struct bgp *bgp,
-						struct ecommunity *old_soo,
-						struct ecommunity *new_soo);
+extern void bgp_reimport_evpn_routes_upon_macvrf_soo_change(
+	struct bgp *bgp, struct ecommunity *old_soo, struct ecommunity *new_soo);
 extern void bgp_reimport_evpn_routes_upon_martian_change(
 	struct bgp *bgp, enum bgp_martian_type martian_type, void *old_martian,
 	void *new_martian);
@@ -169,7 +160,7 @@ bgp_filter_evpn_routes_upon_martian_change(struct bgp *bgp,
 					   enum bgp_martian_type martian_type);
 extern int bgp_evpn_local_macip_del(struct bgp *bgp, vni_t vni,
 				    struct ethaddr *mac, struct ipaddr *ip,
-					int state);
+				    int state);
 extern int bgp_evpn_local_macip_add(struct bgp *bgp, vni_t vni,
 				    struct ethaddr *mac, struct ipaddr *ip,
 				    uint8_t flags, uint32_t seq, esi_t *esi);
@@ -192,13 +183,11 @@ extern void bgp_evpn_init(struct bgp *bgp);
 extern int bgp_evpn_get_type5_prefixlen(const struct prefix *pfx);
 extern bool bgp_evpn_is_prefix_nht_supported(const struct prefix *pfx);
 extern void update_advertise_vrf_routes(struct bgp *bgp_vrf);
-extern void bgp_evpn_show_remote_ip_hash(struct hash_bucket *bucket,
-					 void *args);
+extern void bgp_evpn_show_remote_ip_hash(struct hash_bucket *bucket, void *args);
 extern void bgp_evpn_show_vni_svi_hash(struct hash_bucket *bucket, void *args);
 extern bool bgp_evpn_is_gateway_ip_resolved(struct bgp_nexthop_cache *bnc);
-extern void
-bgp_evpn_handle_resolve_overlay_index_set(struct hash_bucket *bucket,
-					  void *arg);
+extern void bgp_evpn_handle_resolve_overlay_index_set(struct hash_bucket *bucket,
+						      void *arg);
 extern void
 bgp_evpn_handle_resolve_overlay_index_unset(struct hash_bucket *bucket,
 					    void *arg);

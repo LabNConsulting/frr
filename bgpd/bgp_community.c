@@ -229,7 +229,7 @@ static void set_community_string(struct community *com, bool make_json,
 
 		switch (comval) {
 #if CONFDATE > 20230801
-CPP_NOTICE("Deprecate COMMUNITY_INTERNET BGP community")
+			CPP_NOTICE("Deprecate COMMUNITY_INTERNET BGP community")
 #endif
 		case COMMUNITY_INTERNET:
 			len += strlen(" internet");
@@ -299,13 +299,12 @@ CPP_NOTICE("Deprecate COMMUNITY_INTERNET BGP community")
 
 		switch (comval) {
 #if CONFDATE > 20230801
-CPP_NOTICE("Deprecate COMMUNITY_INTERNET BGP community")
+			CPP_NOTICE("Deprecate COMMUNITY_INTERNET BGP community")
 #endif
 		case COMMUNITY_INTERNET:
 			strlcat(str, "internet", len);
 			if (make_json) {
-				json_string =
-					json_object_new_string("internet");
+				json_string = json_object_new_string("internet");
 				json_object_array_add(json_community_list,
 						      json_string);
 			}
@@ -323,8 +322,8 @@ CPP_NOTICE("Deprecate COMMUNITY_INTERNET BGP community")
 		case COMMUNITY_ACCEPT_OWN:
 			strlcat(str, "accept-own", len);
 			if (make_json) {
-				json_string = json_object_new_string(
-					"acceptown");
+				json_string =
+					json_object_new_string("acceptown");
 				json_object_array_add(json_community_list,
 						      json_string);
 			}
@@ -341,8 +340,8 @@ CPP_NOTICE("Deprecate COMMUNITY_INTERNET BGP community")
 		case COMMUNITY_ROUTE_FILTER_v4:
 			strlcat(str, "route-filter-v4", len);
 			if (make_json) {
-				json_string = json_object_new_string(
-					"routeFilterV4");
+				json_string =
+					json_object_new_string("routeFilterV4");
 				json_object_array_add(json_community_list,
 						      json_string);
 			}
@@ -359,8 +358,8 @@ CPP_NOTICE("Deprecate COMMUNITY_INTERNET BGP community")
 		case COMMUNITY_ROUTE_FILTER_v6:
 			strlcat(str, "route-filter-v6", len);
 			if (make_json) {
-				json_string = json_object_new_string(
-					"routeFilterV6");
+				json_string =
+					json_object_new_string("routeFilterV6");
 				json_object_array_add(json_community_list,
 						      json_string);
 			}
@@ -368,8 +367,8 @@ CPP_NOTICE("Deprecate COMMUNITY_INTERNET BGP community")
 		case COMMUNITY_LLGR_STALE:
 			strlcat(str, "llgr-stale", len);
 			if (make_json) {
-				json_string = json_object_new_string(
-					"llgrStale");
+				json_string =
+					json_object_new_string("llgrStale");
 				json_object_array_add(json_community_list,
 						      json_string);
 			}
@@ -377,8 +376,7 @@ CPP_NOTICE("Deprecate COMMUNITY_INTERNET BGP community")
 		case COMMUNITY_NO_LLGR:
 			strlcat(str, "no-llgr", len);
 			if (make_json) {
-				json_string = json_object_new_string(
-					"noLlgr");
+				json_string = json_object_new_string("noLlgr");
 				json_object_array_add(json_community_list,
 						      json_string);
 			}
@@ -395,8 +393,8 @@ CPP_NOTICE("Deprecate COMMUNITY_INTERNET BGP community")
 		case COMMUNITY_BLACKHOLE:
 			strlcat(str, "blackhole", len);
 			if (make_json) {
-				json_string = json_object_new_string(
-					"blackhole");
+				json_string =
+					json_object_new_string("blackhole");
 				json_object_array_add(json_community_list,
 						      json_string);
 			}
@@ -404,8 +402,7 @@ CPP_NOTICE("Deprecate COMMUNITY_INTERNET BGP community")
 		case COMMUNITY_NO_EXPORT:
 			strlcat(str, "no-export", len);
 			if (make_json) {
-				json_string =
-					json_object_new_string("noExport");
+				json_string = json_object_new_string("noExport");
 				json_object_array_add(json_community_list,
 						      json_string);
 			}
@@ -441,8 +438,7 @@ CPP_NOTICE("Deprecate COMMUNITY_INTERNET BGP community")
 			char buf[32];
 			snprintf(buf, sizeof(buf), "%u:%d", as, val);
 			const char *com2alias =
-				translate_alias ? bgp_community2alias(buf)
-						: buf;
+				translate_alias ? bgp_community2alias(buf) : buf;
 
 			strlcat(str, com2alias, len);
 			if (make_json) {
@@ -600,15 +596,14 @@ bool community_cmp(const struct community *com1, const struct community *com2)
 		return false;
 
 	if (com1->size == com2->size)
-		if (memcmp(com1->val, com2->val, com1->size * COMMUNITY_SIZE)
-		    == 0)
+		if (memcmp(com1->val, com2->val, com1->size * COMMUNITY_SIZE) ==
+		    0)
 			return true;
 	return false;
 }
 
 /* Add com2 to the end of com1. */
-struct community *community_merge(struct community *com1,
-				  struct community *com2)
+struct community *community_merge(struct community *com1, struct community *com2)
 {
 	com1->val = XREALLOC(MTYPE_COMMUNITY_VAL, com1->val,
 			     (com1->size + com2->size) * COMMUNITY_SIZE);
@@ -665,8 +660,8 @@ static bool community_valid(const char *community)
 }
 
 /* Get next community token from string. */
-static const char *
-community_gettoken(const char *buf, enum community_token *token, uint32_t *val)
+static const char *community_gettoken(const char *buf,
+				      enum community_token *token, uint32_t *val)
 {
 	const char *p = buf;
 
@@ -681,7 +676,7 @@ community_gettoken(const char *buf, enum community_token *token, uint32_t *val)
 	/* Well known community string check. */
 	if (isalpha((unsigned char)*p)) {
 #if CONFDATE > 20230801
-CPP_NOTICE("Deprecate COMMUNITY_INTERNET BGP community")
+		CPP_NOTICE("Deprecate COMMUNITY_INTERNET BGP community")
 #endif
 		if (strncmp(p, "internet", strlen("internet")) == 0) {
 			*val = COMMUNITY_INTERNET;
@@ -690,74 +685,67 @@ CPP_NOTICE("Deprecate COMMUNITY_INTERNET BGP community")
 			zlog_warn("`internet` community is deprecated");
 			return p;
 		}
-		if (strncmp(p, "graceful-shutdown", strlen("graceful-shutdown"))
-		    == 0) {
+		if (strncmp(p, "graceful-shutdown",
+			    strlen("graceful-shutdown")) == 0) {
 			*val = COMMUNITY_GSHUT;
 			*token = community_token_gshut;
 			p += strlen("graceful-shutdown");
 			return p;
 		}
 		if (strncmp(p, "accept-own-nexthop",
-			    strlen("accept-own-nexthop"))
-		    == 0) {
+			    strlen("accept-own-nexthop")) == 0) {
 			*val = COMMUNITY_ACCEPT_OWN_NEXTHOP;
 			*token = community_token_accept_own_nexthop;
 			p += strlen("accept-own-nexthop");
 			return p;
 		}
-		if (strncmp(p, "accept-own", strlen("accept-own"))
-		    == 0) {
+		if (strncmp(p, "accept-own", strlen("accept-own")) == 0) {
 			*val = COMMUNITY_ACCEPT_OWN;
 			*token = community_token_accept_own;
 			p += strlen("accept-own");
 			return p;
 		}
 		if (strncmp(p, "route-filter-translated-v4",
-			strlen("route-filter-translated-v4"))
-		    == 0) {
+			    strlen("route-filter-translated-v4")) == 0) {
 			*val = COMMUNITY_ROUTE_FILTER_TRANSLATED_v4;
 			*token = community_token_route_filter_translated_v4;
 			p += strlen("route-filter-translated-v4");
 			return p;
 		}
-		if (strncmp(p, "route-filter-v4", strlen("route-filter-v4"))
-		    == 0) {
+		if (strncmp(p, "route-filter-v4", strlen("route-filter-v4")) ==
+		    0) {
 			*val = COMMUNITY_ROUTE_FILTER_v4;
 			*token = community_token_route_filter_v4;
 			p += strlen("route-filter-v4");
 			return p;
 		}
 		if (strncmp(p, "route-filter-translated-v6",
-			strlen("route-filter-translated-v6"))
-		    == 0) {
+			    strlen("route-filter-translated-v6")) == 0) {
 			*val = COMMUNITY_ROUTE_FILTER_TRANSLATED_v6;
 			*token = community_token_route_filter_translated_v6;
 			p += strlen("route-filter-translated-v6");
 			return p;
 		}
-		if (strncmp(p, "route-filter-v6", strlen("route-filter-v6"))
-		    == 0) {
+		if (strncmp(p, "route-filter-v6", strlen("route-filter-v6")) ==
+		    0) {
 			*val = COMMUNITY_ROUTE_FILTER_v6;
 			*token = community_token_route_filter_v6;
 			p += strlen("route-filter-v6");
 			return p;
 		}
-		if (strncmp(p, "llgr-stale", strlen("llgr-stale"))
-		    == 0) {
+		if (strncmp(p, "llgr-stale", strlen("llgr-stale")) == 0) {
 			*val = COMMUNITY_LLGR_STALE;
 			*token = community_token_llgr_stale;
 			p += strlen("llgr-stale");
 			return p;
 		}
-		if (strncmp(p, "no-llgr", strlen("no-llgr"))
-		    == 0) {
+		if (strncmp(p, "no-llgr", strlen("no-llgr")) == 0) {
 			*val = COMMUNITY_NO_LLGR;
 			*token = community_token_no_llgr;
 			p += strlen("no-llgr");
 			return p;
 		}
-		if (strncmp(p, "blackhole", strlen("blackhole"))
-		    == 0) {
+		if (strncmp(p, "blackhole", strlen("blackhole")) == 0) {
 			*val = COMMUNITY_BLACKHOLE;
 			*token = community_token_blackhole;
 			p += strlen("blackhole");
@@ -815,8 +803,7 @@ CPP_NOTICE("Deprecate COMMUNITY_INTERNET BGP community")
 					digit = 0;
 
 					if (community_low > UINT16_MAX) {
-						*token =
-							community_token_unknown;
+						*token = community_token_unknown;
 						return NULL;
 					}
 
@@ -922,9 +909,9 @@ void community_finish(void)
 	hash_clean_and_free(&comhash, community_hash_free);
 }
 
-static struct community *bgp_aggr_community_lookup(
-						struct bgp_aggregate *aggregate,
-						struct community *community)
+static struct community *
+bgp_aggr_community_lookup(struct bgp_aggregate *aggregate,
+			  struct community *community)
 {
 	return hash_lookup(aggregate->community_hash, community);
 }
@@ -944,8 +931,7 @@ static void bgp_aggr_community_prepare(struct hash_bucket *hb, void *arg)
 	struct community **aggr_community = arg;
 
 	if (*aggr_community)
-		*aggr_community = community_merge(*aggr_community,
-						  hb_community);
+		*aggr_community = community_merge(*aggr_community, hb_community);
 	else
 		*aggr_community = community_dup(hb_community);
 }
@@ -976,10 +962,12 @@ void bgp_compute_aggregate_community_hash(struct bgp_aggregate *aggregate,
 	/* Create hash if not already created.
 	 */
 	if (aggregate->community_hash == NULL)
-		aggregate->community_hash = hash_create(
-			(unsigned int (*)(const void *))community_hash_make,
-			(bool (*)(const void *, const void *))community_cmp,
-			"BGP Aggregator community hash");
+		aggregate->community_hash =
+			hash_create((unsigned int (*)(
+					    const void *))community_hash_make,
+				    (bool (*)(const void *,
+					      const void *))community_cmp,
+				    "BGP Aggregator community hash");
 
 	aggr_community = bgp_aggr_community_lookup(aggregate, community);
 	if (aggr_community == NULL) {
@@ -1005,11 +993,9 @@ void bgp_compute_aggregate_community_val(struct bgp_aggregate *aggregate)
 	 */
 	if (aggregate->community)
 		community_free(&aggregate->community);
-	if (aggregate->community_hash &&
-	    aggregate->community_hash->count) {
+	if (aggregate->community_hash && aggregate->community_hash->count) {
 		hash_iterate(aggregate->community_hash,
-			     bgp_aggr_community_prepare,
-			     &aggregate->community);
+			     bgp_aggr_community_prepare, &aggregate->community);
 		commerge = aggregate->community;
 		aggregate->community = community_uniq_sort(commerge);
 		if (commerge)
@@ -1018,16 +1004,13 @@ void bgp_compute_aggregate_community_val(struct bgp_aggregate *aggregate)
 }
 
 
-
 void bgp_remove_community_from_aggregate(struct bgp_aggregate *aggregate,
 					 struct community *community)
 {
 	struct community *aggr_community = NULL;
 	struct community *ret_comm = NULL;
 
-	if ((!aggregate)
-	    || (!aggregate->community_hash)
-	    || (!community))
+	if ((!aggregate) || (!aggregate->community_hash) || (!community))
 		return;
 
 	/* Look-up the community in the hash.
@@ -1047,15 +1030,13 @@ void bgp_remove_community_from_aggregate(struct bgp_aggregate *aggregate,
 }
 
 void bgp_remove_comm_from_aggregate_hash(struct bgp_aggregate *aggregate,
-		struct community *community)
+					 struct community *community)
 {
 
 	struct community *aggr_community = NULL;
 	struct community *ret_comm = NULL;
 
-	if ((!aggregate)
-	    || (!aggregate->community_hash)
-	    || (!community))
+	if ((!aggregate) || (!aggregate->community_hash) || (!community))
 		return;
 
 	/* Look-up the community in the hash.

@@ -50,9 +50,8 @@ extern void
 bgp_encap_type_mpls_in_gre_to_tlv(struct bgp_encap_type_mpls_in_gre *bet,
 				  struct attr *attr);
 
-extern void
-bgp_encap_type_vxlan_gpe_to_tlv(struct bgp_encap_type_vxlan_gpe *bet,
-				struct attr *attr);
+extern void bgp_encap_type_vxlan_gpe_to_tlv(struct bgp_encap_type_vxlan_gpe *bet,
+					    struct attr *attr);
 
 extern void
 bgp_encap_type_mpls_in_udp_to_tlv(struct bgp_encap_type_mpls_in_udp *bet,
@@ -63,7 +62,7 @@ bgp_encap_type_mpls_in_udp_to_tlv(struct bgp_encap_type_mpls_in_udp *bet,
  ***********************************************************************/
 
 extern int tlv_to_bgp_encap_type_l2tpv3overip(
-	struct bgp_attr_encap_subtlv *stlv,	 /* subtlv chain */
+	struct bgp_attr_encap_subtlv *stlv,	    /* subtlv chain */
 	struct bgp_encap_type_l2tpv3_over_ip *bet); /* caller-allocated */
 
 extern int tlv_to_bgp_encap_type_gre(
@@ -106,9 +105,8 @@ extern int
 tlv_to_bgp_encap_type_mpls_in_gre(struct bgp_attr_encap_subtlv *stlv,
 				  struct bgp_encap_type_mpls_in_gre *bet);
 
-extern int
-tlv_to_bgp_encap_type_vxlan_gpe(struct bgp_attr_encap_subtlv *stlv,
-				struct bgp_encap_type_vxlan_gpe *bet);
+extern int tlv_to_bgp_encap_type_vxlan_gpe(struct bgp_attr_encap_subtlv *stlv,
+					   struct bgp_encap_type_vxlan_gpe *bet);
 
 extern int
 tlv_to_bgp_encap_type_mpls_in_udp(struct bgp_attr_encap_subtlv *stlv,

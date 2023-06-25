@@ -23,8 +23,7 @@ extern void ospf_bfd_trigger_event(struct ospf_neighbor *nbr, int old_state,
  * Legacy information: it is the peers who actually have this information
  * and the protocol should not need to know about timers.
  */
-extern void ospf_interface_bfd_show(struct vty *vty,
-				    const struct interface *ifp,
+extern void ospf_interface_bfd_show(struct vty *vty, const struct interface *ifp,
 				    struct json_object *json);
 
 /**

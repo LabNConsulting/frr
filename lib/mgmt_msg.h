@@ -30,12 +30,12 @@ struct mgmt_msg_state {
 	struct stream *outs;
 	struct stream_fifo inq;
 	struct stream_fifo outq;
-	uint64_t nrxm;		/* number of received messages */
-	uint64_t nrxb;		/* number of received bytes */
-	uint64_t ntxm;		/* number of sent messages */
-	uint64_t ntxb;		/* number of sent bytes */
-	size_t max_read_buf;	/* should replace with max time value */
-	size_t max_write_buf;	/* should replace with max time value */
+	uint64_t nrxm;	      /* number of received messages */
+	uint64_t nrxb;	      /* number of received bytes */
+	uint64_t ntxm;	      /* number of sent messages */
+	uint64_t ntxb;	      /* number of sent bytes */
+	size_t max_read_buf;  /* should replace with max time value */
+	size_t max_write_buf; /* should replace with max time value */
 	size_t max_msg_sz;
 	char *idtag; /* identifying tag for messages */
 };
@@ -52,9 +52,9 @@ enum mgmt_msg_rsched {
 };
 
 enum mgmt_msg_wsched {
-	MSW_SCHED_NONE,	      /* no scheduling required */
-	MSW_SCHED_STREAM,     /* schedule writing */
-	MSW_DISCONNECT,	      /* disconnect and start reconnecting */
+	MSW_SCHED_NONE,	  /* no scheduling required */
+	MSW_SCHED_STREAM, /* schedule writing */
+	MSW_DISCONNECT,	  /* disconnect and start reconnecting */
 };
 
 struct msg_conn;
@@ -98,7 +98,7 @@ struct msg_conn {
 			   struct msg_conn *conn);
 	void *user;
 	uint short_circuit_depth;
-	bool is_short_circuit;	/* true when the message being handled is SC */
+	bool is_short_circuit; /* true when the message being handled is SC */
 	bool is_client;
 	bool debug;
 };
@@ -111,9 +111,8 @@ struct msg_conn {
  */
 extern void msg_conn_cleanup(struct msg_conn *conn);
 extern void msg_conn_disconnect(struct msg_conn *conn, bool reconnect);
-extern int msg_conn_send_msg(struct msg_conn *client, uint8_t version,
-			     void *msg, size_t mlen,
-			     size_t (*packf)(void *, void *),
+extern int msg_conn_send_msg(struct msg_conn *client, uint8_t version, void *msg,
+			     size_t mlen, size_t (*packf)(void *, void *),
 			     bool short_circuit_ok);
 
 /*
