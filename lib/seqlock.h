@@ -47,18 +47,18 @@ extern "C" {
  * be 1 to have a 'cleared' indication (i.e., counts 1,5,9,13,etc. )
  * 2nd lowest bit is used to indicate we have waiters.
  */
-typedef _Atomic uint32_t	seqlock_ctr_t;
-typedef uint32_t		seqlock_val_t;
-#define seqlock_assert_valid(val) assert((val) & SEQLOCK_HELD)
+typedef _Atomic uint32_t seqlock_ctr_t;
+typedef uint32_t seqlock_val_t;
+#define seqlock_assert_valid(val) assert((val)&SEQLOCK_HELD)
 
 /* NB: SEQLOCK_WAITERS is only allowed if SEQLOCK_HELD is also set; can't
  * have waiters on an unheld seqlock
  */
-#define SEQLOCK_HELD		(1U << 0)
-#define SEQLOCK_WAITERS		(1U << 1)
-#define SEQLOCK_VAL(n)		((n) & ~SEQLOCK_WAITERS)
-#define SEQLOCK_STARTVAL	1U
-#define SEQLOCK_INCR		4U
+#define SEQLOCK_HELD	 (1U << 0)
+#define SEQLOCK_WAITERS	 (1U << 1)
+#define SEQLOCK_VAL(n)	 ((n) & ~SEQLOCK_WAITERS)
+#define SEQLOCK_STARTVAL 1U
+#define SEQLOCK_INCR	 4U
 
 /* TODO: originally, this was using "atomic_fetch_add", which is the reason
  * bit 0 is used to indicate held state.  With SEQLOCK_WAITERS added, there's
@@ -68,11 +68,11 @@ typedef uint32_t		seqlock_val_t;
  */
 
 struct seqlock {
-/* always used */
+	/* always used */
 	seqlock_ctr_t pos;
-/* used when futexes not available: (i.e. non-linux) */
+	/* used when futexes not available: (i.e. non-linux) */
 	pthread_mutex_t lock;
-	pthread_cond_t  wake;
+	pthread_cond_t wake;
 };
 
 

@@ -68,8 +68,7 @@ char *mlag_lib_msgid_to_str(enum mlag_msg_type msg_type, char *buf, size_t size)
 }
 
 
-int mlag_lib_decode_mlag_hdr(struct stream *s, struct mlag_msg *msg,
-			     size_t *length)
+int mlag_lib_decode_mlag_hdr(struct stream *s, struct mlag_msg *msg, size_t *length)
 {
 #define LIB_MLAG_HDR_LENGTH 8
 	if (s == NULL || msg == NULL)

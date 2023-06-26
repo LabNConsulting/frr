@@ -15,19 +15,19 @@
 extern "C" {
 #endif
 
-#define BFD_DEF_MIN_RX 300
-#define BFD_MIN_MIN_RX 50
-#define BFD_MAX_MIN_RX 60000
-#define BFD_DEF_MIN_TX 300
-#define BFD_MIN_MIN_TX 50
-#define BFD_MAX_MIN_TX 60000
+#define BFD_DEF_MIN_RX	    300
+#define BFD_MIN_MIN_RX	    50
+#define BFD_MAX_MIN_RX	    60000
+#define BFD_DEF_MIN_TX	    300
+#define BFD_MIN_MIN_TX	    50
+#define BFD_MAX_MIN_TX	    60000
 #define BFD_DEF_DETECT_MULT 3
 #define BFD_MIN_DETECT_MULT 2
 #define BFD_MAX_DETECT_MULT 255
 
 #define BFD_STATUS_UNKNOWN    (1 << 0) /* BFD session status never received */
-#define BFD_STATUS_DOWN       (1 << 1) /* BFD session status is down */
-#define BFD_STATUS_UP         (1 << 2) /* BFD session status is up */
+#define BFD_STATUS_DOWN	      (1 << 1) /* BFD session status is down */
+#define BFD_STATUS_UP	      (1 << 2) /* BFD session status is up */
 #define BFD_STATUS_ADMIN_DOWN (1 << 3) /* BFD session is admin down */
 
 #define BFD_PROFILE_NAME_LEN 64
@@ -76,8 +76,7 @@ struct bfd_session_status {
  * \param arg application independent data.
  */
 typedef void (*bsp_status_update)(struct bfd_session_params *bsp,
-				  const struct bfd_session_status *bss,
-				  void *arg);
+				  const struct bfd_session_status *bss, void *arg);
 
 /**
  * Allocates and initializes the session parameters.
@@ -109,8 +108,7 @@ void bfd_sess_free(struct bfd_session_params **bsp);
  * \param dst remote address (mandatory).
  */
 void bfd_sess_set_ipv4_addrs(struct bfd_session_params *bsp,
-			     const struct in_addr *src,
-			     const struct in_addr *dst);
+			     const struct in_addr *src, const struct in_addr *dst);
 
 /**
  * Set the local and peer address of the BFD session.

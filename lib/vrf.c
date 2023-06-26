@@ -85,10 +85,10 @@ int vrf_switch_to_netns(vrf_id_t vrf_id)
 
 	/* VRF is default VRF. silently ignore */
 	if (!vrf || vrf->vrf_id == VRF_DEFAULT)
-		return 1;	/* 1 = default */
+		return 1; /* 1 = default */
 	/* VRF has no NETNS backend. silently ignore */
 	if (vrf->data.l.netns_name[0] == '\0')
-		return 2;	/* 2 = no netns */
+		return 2; /* 2 = no netns */
 	name = ns_netns_pathname(NULL, vrf->data.l.netns_name);
 	if (debug_vrf)
 		zlog_debug("VRF_SWITCH: %s(%u)", name, vrf->vrf_id);
@@ -124,9 +124,8 @@ struct vrf *vrf_get(vrf_id_t vrf_id, const char *name)
 	 */
 	if (name)
 		vrf = vrf_lookup_by_name(name);
-	if (vrf && vrf_id != VRF_UNKNOWN
-	    && vrf->vrf_id != VRF_UNKNOWN
-	    && vrf->vrf_id != vrf_id) {
+	if (vrf && vrf_id != VRF_UNKNOWN && vrf->vrf_id != VRF_UNKNOWN &&
+	    vrf->vrf_id != vrf_id) {
 		zlog_debug("VRF_GET: avoid %s creation(%u), same name exists (%u)",
 			   name, vrf_id, vrf->vrf_id);
 		return NULL;
@@ -156,8 +155,7 @@ struct vrf *vrf_get(vrf_id_t vrf_id, const char *name)
 	if (name && vrf->name[0] != '\0' && strcmp(name, vrf->name)) {
 		/* update the vrf name */
 		RB_REMOVE(vrf_name_head, &vrfs_by_name, vrf);
-		strlcpy(vrf->data.l.netns_name,
-			name, NS_NAMSIZ);
+		strlcpy(vrf->data.l.netns_name, name, NS_NAMSIZ);
 		strlcpy(vrf->name, name, sizeof(vrf->name));
 		RB_INSERT(vrf_name_head, &vrfs_by_name, vrf);
 	} else if (name && vrf->name[0] == '\0') {
@@ -188,12 +186,11 @@ struct vrf *vrf_update(vrf_id_t new_vrf_id, const char *name)
 	 */
 	if (name)
 		vrf = vrf_lookup_by_name(name);
-	if (vrf && new_vrf_id != VRF_UNKNOWN && vrf->vrf_id != VRF_UNKNOWN
-	    && vrf->vrf_id != new_vrf_id) {
+	if (vrf && new_vrf_id != VRF_UNKNOWN && vrf->vrf_id != VRF_UNKNOWN &&
+	    vrf->vrf_id != new_vrf_id) {
 		if (debug_vrf) {
-			zlog_debug(
-				"Vrf Update event: %s old id: %u, new id: %u",
-				name, vrf->vrf_id, new_vrf_id);
+			zlog_debug("Vrf Update event: %s old id: %u, new id: %u",
+				   name, vrf->vrf_id, new_vrf_id);
 		}
 
 		/*Disable the vrf to simulate implicit delete
@@ -208,7 +205,6 @@ struct vrf *vrf_update(vrf_id_t new_vrf_id, const char *name)
 		RB_INSERT(vrf_id_head, &vrfs_by_id, vrf);
 
 	} else {
-
 		/*
 		 * vrf_get is implied creation if it does not exist
 		 */
@@ -223,8 +219,7 @@ struct vrf *vrf_update(vrf_id_t new_vrf_id, const char *name)
 void vrf_delete(struct vrf *vrf)
 {
 	if (debug_vrf)
-		zlog_debug("VRF %s(%u) is to be deleted.", vrf->name,
-			   vrf->vrf_id);
+		zlog_debug("VRF %s(%u) is to be deleted.", vrf->name, vrf->vrf_id);
 
 	if (vrf_is_enabled(vrf))
 		vrf_disable(vrf);
@@ -307,8 +302,7 @@ void vrf_disable(struct vrf *vrf)
 	UNSET_FLAG(vrf->status, VRF_ACTIVE);
 
 	if (debug_vrf)
-		zlog_debug("VRF %s(%u) is to be disabled.", vrf->name,
-			   vrf->vrf_id);
+		zlog_debug("VRF %s(%u) is to be disabled.", vrf->name, vrf->vrf_id);
 
 	/* Till now, nothing to be done for the default VRF. */
 	// Pending: see why this statement.
@@ -460,7 +454,7 @@ static const struct cmd_variable_handler vrf_var_handlers[] = {
 		.varname = "nexthop_vrf",
 		.completions = vrf_autocomplete,
 	},
-	{.completions = NULL},
+	{ .completions = NULL },
 };
 
 /* Initialize VRF module. */
@@ -489,8 +483,8 @@ void vrf_init(int (*create)(struct vrf *), int (*enable)(struct vrf *),
 	if (vrf_is_backend_netns()) {
 		struct ns *ns;
 
-		strlcpy(default_vrf->data.l.netns_name,
-			VRF_DEFAULT_NAME, NS_NAMSIZ);
+		strlcpy(default_vrf->data.l.netns_name, VRF_DEFAULT_NAME,
+			NS_NAMSIZ);
 		ns = ns_lookup(NS_DEFAULT);
 		ns->vrf_ctxt = default_vrf;
 		default_vrf->ns_ctxt = ns;
@@ -557,9 +551,8 @@ int vrf_socket(int domain, int type, int protocol, vrf_id_t vrf_id,
 	save_errno = errno;
 	ret2 = vrf_switchback_to_initial();
 	if (ret2 < 0)
-		flog_err_sys(EC_LIB_SOCKET,
-			     "%s: Can't switchback from VRF %u (%s)", __func__,
-			     vrf_id, safe_strerror(errno));
+		flog_err_sys(EC_LIB_SOCKET, "%s: Can't switchback from VRF %u (%s)",
+			     __func__, vrf_id, safe_strerror(errno));
 	errno = save_errno;
 	if (ret <= 0)
 		return ret;
@@ -602,20 +595,16 @@ int vrf_configure_backend(enum vrf_backend_type backend)
 }
 
 /* vrf CLI commands */
-DEFUN_NOSH(vrf_exit,
-           vrf_exit_cmd,
-	   "exit-vrf",
+DEFUN_NOSH(vrf_exit, vrf_exit_cmd, "exit-vrf",
 	   "Exit current mode and down to previous mode\n")
 {
 	cmd_exit(vty);
 	return CMD_SUCCESS;
 }
 
-DEFUN_YANG_NOSH (vrf,
-       vrf_cmd,
-       "vrf NAME",
-       "Select a VRF to configure\n"
-       "VRF's name\n")
+DEFUN_YANG_NOSH(vrf, vrf_cmd, "vrf NAME",
+		"Select a VRF to configure\n"
+		"VRF's name\n")
 {
 	int idx_name = 1;
 	const char *vrfname = argv[idx_name]->arg;
@@ -624,8 +613,7 @@ DEFUN_YANG_NOSH (vrf,
 	int ret;
 
 	if (strlen(vrfname) > VRF_NAMSIZ) {
-		vty_out(vty,
-			"%% VRF name %s invalid: length exceeds %d bytes\n",
+		vty_out(vty, "%% VRF name %s invalid: length exceeds %d bytes\n",
 			vrfname, VRF_NAMSIZ);
 		return CMD_WARNING_CONFIG_FAILED;
 	}
@@ -644,12 +632,9 @@ DEFUN_YANG_NOSH (vrf,
 	return ret;
 }
 
-DEFUN_YANG (no_vrf,
-       no_vrf_cmd,
-       "no vrf NAME",
-       NO_STR
-       "Delete a pseudo VRF's configuration\n"
-       "VRF's name\n")
+DEFUN_YANG(no_vrf, no_vrf_cmd, "no vrf NAME",
+	   NO_STR "Delete a pseudo VRF's configuration\n"
+		  "VRF's name\n")
 {
 	const char *vrfname = argv[2]->arg;
 	char xpath_list[XPATH_MAXLEN];
@@ -692,23 +677,15 @@ static struct cmd_node vrf_node = {
 /*
  * Debug CLI for vrf's
  */
-DEFUN (vrf_debug,
-      vrf_debug_cmd,
-      "debug vrf",
-      DEBUG_STR
-      "VRF Debugging\n")
+DEFUN(vrf_debug, vrf_debug_cmd, "debug vrf", DEBUG_STR "VRF Debugging\n")
 {
 	debug_vrf = 1;
 
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_vrf_debug,
-      no_vrf_debug_cmd,
-      "no debug vrf",
-      NO_STR
-      DEBUG_STR
-      "VRF Debugging\n")
+DEFUN(no_vrf_debug, no_vrf_debug_cmd, "no debug vrf",
+      NO_STR DEBUG_STR "VRF Debugging\n")
 {
 	debug_vrf = 0;
 
@@ -803,8 +780,7 @@ int vrf_bind(vrf_id_t vrf_id, int fd, const char *ifname)
 	ret = setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, ifname,
 			 strlen(ifname) + 1);
 	if (ret < 0)
-		zlog_err("bind to interface %s failed, errno=%d", ifname,
-			 errno);
+		zlog_err("bind to interface %s failed, errno=%d", ifname, errno);
 #endif /* SO_BINDTODEVICE */
 	return ret;
 }
@@ -822,9 +798,8 @@ int vrf_getaddrinfo(const char *node, const char *service,
 	save_errno = errno;
 	ret2 = vrf_switchback_to_initial();
 	if (ret2 < 0)
-		flog_err_sys(EC_LIB_SOCKET,
-			     "%s: Can't switchback from VRF %u (%s)", __func__,
-			     vrf_id, safe_strerror(errno));
+		flog_err_sys(EC_LIB_SOCKET, "%s: Can't switchback from VRF %u (%s)",
+			     __func__, vrf_id, safe_strerror(errno));
 	errno = save_errno;
 	return ret;
 }
@@ -843,9 +818,8 @@ int vrf_ioctl(vrf_id_t vrf_id, int d, unsigned long request, char *params)
 	saved_errno = errno;
 	ret = vrf_switchback_to_initial();
 	if (ret < 0)
-		flog_err_sys(EC_LIB_SOCKET,
-			     "%s: Can't switchback from VRF %u (%s)", __func__,
-			     vrf_id, safe_strerror(errno));
+		flog_err_sys(EC_LIB_SOCKET, "%s: Can't switchback from VRF %u (%s)",
+			     __func__, vrf_id, safe_strerror(errno));
 	errno = saved_errno;
 	return rc;
 }
@@ -863,9 +837,8 @@ int vrf_sockunion_socket(const union sockunion *su, vrf_id_t vrf_id,
 	save_errno = errno;
 	ret2 = vrf_switchback_to_initial();
 	if (ret2 < 0)
-		flog_err_sys(EC_LIB_SOCKET,
-			     "%s: Can't switchback from VRF %u (%s)", __func__,
-			     vrf_id, safe_strerror(errno));
+		flog_err_sys(EC_LIB_SOCKET, "%s: Can't switchback from VRF %u (%s)",
+			     __func__, vrf_id, safe_strerror(errno));
 	errno = save_errno;
 
 	if (ret <= 0)
@@ -964,8 +937,7 @@ static const void *lib_vrf_lookup_entry(struct nb_cb_lookup_entry_args *args)
 /*
  * XPath: /frr-vrf:lib/vrf/id
  */
-static struct yang_data *
-lib_vrf_state_id_get_elem(struct nb_cb_get_elem_args *args)
+static struct yang_data *lib_vrf_state_id_get_elem(struct nb_cb_get_elem_args *args)
 {
 	struct vrf *vrfp = (struct vrf *)args->list_entry;
 
@@ -975,8 +947,7 @@ lib_vrf_state_id_get_elem(struct nb_cb_get_elem_args *args)
 /*
  * XPath: /frr-vrf:lib/vrf/active
  */
-static struct yang_data *
-lib_vrf_state_active_get_elem(struct nb_cb_get_elem_args *args)
+static struct yang_data *lib_vrf_state_active_get_elem(struct nb_cb_get_elem_args *args)
 {
 	struct vrf *vrfp = (struct vrf *)args->list_entry;
 

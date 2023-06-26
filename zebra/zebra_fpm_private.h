@@ -44,7 +44,7 @@ struct fpm_mac_info_t {
 	uint32_t zebra_flags; /* Could be used to build FPM messages */
 	vni_t vni;
 	ifindex_t vxlan_if;
-	ifindex_t svi_if; /* L2 or L3 Bridge interface */
+	ifindex_t svi_if;	  /* L2 or L3 Bridge interface */
 	struct in_addr r_vtep_ip; /* Remote VTEP IP */
 
 	/* Linkage to put MAC on the FPM processing queue. */
@@ -52,7 +52,8 @@ struct fpm_mac_info_t {
 
 	uint8_t fpm_flags;
 
-#define ZEBRA_MAC_UPDATE_FPM 0x1 /* This flag indicates if we want to upadte
+#define ZEBRA_MAC_UPDATE_FPM                                                   \
+	0x1 /* This flag indicates if we want to upadte
 				  * data plane for this MAC. If a MAC is added
 				  * and then deleted immediately, we do not want
 				  * to update data plane for such operation.
@@ -62,7 +63,8 @@ struct fpm_mac_info_t {
 				  * node silently without sending any update to
 				  * the data plane.
 				  */
-#define ZEBRA_MAC_DELETE_FPM 0x2 /* This flag is set if it is a delete operation
+#define ZEBRA_MAC_DELETE_FPM                                                   \
+	0x2 /* This flag is set if it is a delete operation
 				  * for the MAC.
 				  */
 };

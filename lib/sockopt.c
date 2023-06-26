@@ -10,13 +10,13 @@
 #include "sockunion.h"
 #include "lib_errors.h"
 
-#if (defined(__FreeBSD__)                                                      \
-     && ((__FreeBSD_version >= 500022 && __FreeBSD_version < 700000)           \
-	 || (__FreeBSD_version < 500000 && __FreeBSD_version >= 440000)))      \
-	|| (defined(__NetBSD__) && defined(__NetBSD_Version__)                 \
-	    && __NetBSD_Version__ >= 106010000)                                \
-	|| defined(__OpenBSD__) || defined(__APPLE__)                          \
-	|| defined(__DragonFly__) || defined(__sun)
+#if (defined(__FreeBSD__) &&                                                   \
+     ((__FreeBSD_version >= 500022 && __FreeBSD_version < 700000) ||           \
+      (__FreeBSD_version < 500000 && __FreeBSD_version >= 440000))) ||         \
+	(defined(__NetBSD__) && defined(__NetBSD_Version__) &&                 \
+	 __NetBSD_Version__ >= 106010000) ||                                   \
+	defined(__OpenBSD__) || defined(__APPLE__) ||                          \
+	defined(__DragonFly__) || defined(__sun)
 #define HAVE_BSD_STRUCT_IP_MREQ_HACK
 #endif
 
@@ -24,8 +24,7 @@ void setsockopt_so_recvbuf(int sock, int size)
 {
 	int orig_req = size;
 
-	while (setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size))
-	       == -1)
+	while (setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size)) == -1)
 		size /= 2;
 
 	if (size != orig_req)
@@ -38,8 +37,7 @@ void setsockopt_so_sendbuf(const int sock, int size)
 {
 	int orig_req = size;
 
-	while (setsockopt(sock, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size))
-	       == -1)
+	while (setsockopt(sock, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size)) == -1)
 		size /= 2;
 
 	if (size != orig_req)
@@ -52,8 +50,7 @@ int getsockopt_so_sendbuf(const int sock)
 {
 	uint32_t optval;
 	socklen_t optlen = sizeof(optval);
-	int ret = getsockopt(sock, SOL_SOCKET, SO_SNDBUF, (char *)&optval,
-			     &optlen);
+	int ret = getsockopt(sock, SOL_SOCKET, SO_SNDBUF, (char *)&optval, &optlen);
 	if (ret < 0) {
 		flog_err_sys(EC_LIB_SYSTEM_CALL,
 			     "fd %d: can't getsockopt SO_SNDBUF: %d (%s)", sock,
@@ -67,8 +64,7 @@ int getsockopt_so_recvbuf(const int sock)
 {
 	uint32_t optval;
 	socklen_t optlen = sizeof(optval);
-	int ret = getsockopt(sock, SOL_SOCKET, SO_RCVBUF, (char *)&optval,
-			     &optlen);
+	int ret = getsockopt(sock, SOL_SOCKET, SO_RCVBUF, (char *)&optval, &optlen);
 	if (ret < 0) {
 		flog_err_sys(EC_LIB_SYSTEM_CALL,
 			     "fd %d: can't getsockopt SO_RCVBUF: %d (%s)", sock,
@@ -96,11 +92,9 @@ int setsockopt_ipv6_pktinfo(int sock, int val)
 	int ret;
 
 #ifdef IPV6_RECVPKTINFO /*2292bis-01*/
-	ret = setsockopt(sock, IPPROTO_IPV6, IPV6_RECVPKTINFO, &val,
-			 sizeof(val));
+	ret = setsockopt(sock, IPPROTO_IPV6, IPV6_RECVPKTINFO, &val, sizeof(val));
 	if (ret < 0)
-		flog_err(EC_LIB_SOCKET,
-			 "can't setsockopt IPV6_RECVPKTINFO : %s",
+		flog_err(EC_LIB_SOCKET, "can't setsockopt IPV6_RECVPKTINFO : %s",
 			 safe_strerror(errno));
 #else  /*RFC2292*/
 	ret = setsockopt(sock, IPPROTO_IPV6, IPV6_PKTINFO, &val, sizeof(val));
@@ -128,8 +122,7 @@ int setsockopt_ipv6_unicast_hops(int sock, int val)
 {
 	int ret;
 
-	ret = setsockopt(sock, IPPROTO_IPV6, IPV6_UNICAST_HOPS, &val,
-			 sizeof(val));
+	ret = setsockopt(sock, IPPROTO_IPV6, IPV6_UNICAST_HOPS, &val, sizeof(val));
 	if (ret < 0)
 		flog_err(EC_LIB_SOCKET, "can't setsockopt IPV6_UNICAST_HOPS");
 	return ret;
@@ -140,8 +133,7 @@ int setsockopt_ipv6_hoplimit(int sock, int val)
 	int ret;
 
 #ifdef IPV6_RECVHOPLIMIT /*2292bis-01*/
-	ret = setsockopt(sock, IPPROTO_IPV6, IPV6_RECVHOPLIMIT, &val,
-			 sizeof(val));
+	ret = setsockopt(sock, IPPROTO_IPV6, IPV6_RECVHOPLIMIT, &val, sizeof(val));
 	if (ret < 0)
 		flog_err(EC_LIB_SOCKET, "can't setsockopt IPV6_RECVHOPLIMIT");
 #else /*RFC2292*/
@@ -178,8 +170,7 @@ int setsockopt_ipv6_tclass(int sock, int tclass)
 	int ret = 0;
 
 #ifdef IPV6_TCLASS /* RFC3542 */
-	ret = setsockopt(sock, IPPROTO_IPV6, IPV6_TCLASS, &tclass,
-			 sizeof(tclass));
+	ret = setsockopt(sock, IPPROTO_IPV6, IPV6_TCLASS, &tclass, sizeof(tclass));
 	if (ret < 0)
 		flog_err(EC_LIB_SOCKET,
 			 "Can't set IPV6_TCLASS option for fd %d to %#x: %s",
@@ -228,8 +219,7 @@ int setsockopt_ipv4_multicast(int sock, int optname, struct in_addr if_addr,
 			 (optname == IP_ADD_MEMBERSHIP) ? MCAST_JOIN_GROUP
 							: MCAST_LEAVE_GROUP,
 			 (void *)&gr, sizeof(gr));
-	if ((ret < 0) && (optname == IP_ADD_MEMBERSHIP)
-	    && (errno == EADDRINUSE)) {
+	if ((ret < 0) && (optname == IP_ADD_MEMBERSHIP) && (errno == EADDRINUSE)) {
 		setsockopt(sock, IPPROTO_IP, MCAST_LEAVE_GROUP, (void *)&gr,
 			   sizeof(gr));
 		ret = setsockopt(sock, IPPROTO_IP, MCAST_JOIN_GROUP,
@@ -247,15 +237,12 @@ int setsockopt_ipv4_multicast(int sock, int optname, struct in_addr if_addr,
 	mreqn.imr_multiaddr.s_addr = mcast_addr;
 	mreqn.imr_ifindex = ifindex;
 
-	ret = setsockopt(sock, IPPROTO_IP, optname, (void *)&mreqn,
-			 sizeof(mreqn));
-	if ((ret < 0) && (optname == IP_ADD_MEMBERSHIP)
-	    && (errno == EADDRINUSE)) {
+	ret = setsockopt(sock, IPPROTO_IP, optname, (void *)&mreqn, sizeof(mreqn));
+	if ((ret < 0) && (optname == IP_ADD_MEMBERSHIP) && (errno == EADDRINUSE)) {
 		/* see above: handle possible problem when interface comes back
 		 * up */
-		zlog_info(
-			"setsockopt_ipv4_multicast attempting to drop and re-add (fd %d, mcast %pI4, ifindex %u)",
-			sock, &mreqn.imr_multiaddr, ifindex);
+		zlog_info("setsockopt_ipv4_multicast attempting to drop and re-add (fd %d, mcast %pI4, ifindex %u)",
+			  sock, &mreqn.imr_multiaddr, ifindex);
 		setsockopt(sock, IPPROTO_IP, IP_DROP_MEMBERSHIP, (void *)&mreqn,
 			   sizeof(mreqn));
 		ret = setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
@@ -263,10 +250,10 @@ int setsockopt_ipv4_multicast(int sock, int optname, struct in_addr if_addr,
 	}
 	return ret;
 
-/* Example defines for another OS, boilerplate off other code in this
+	/* Example defines for another OS, boilerplate off other code in this
    function, AND handle optname as per other sections for consistency !! */
-/* #elif  defined(BOGON_NIX) && EXAMPLE_VERSION_CODE > -100000 */
-/* Add your favourite OS here! */
+	/* #elif  defined(BOGON_NIX) && EXAMPLE_VERSION_CODE > -100000 */
+	/* Add your favourite OS here! */
 
 #elif defined(HAVE_BSD_STRUCT_IP_MREQ_HACK) /* #if OS_TYPE */
 	/* standard BSD API */
@@ -285,15 +272,12 @@ int setsockopt_ipv4_multicast(int sock, int optname, struct in_addr if_addr,
 	mreq.imr_interface.s_addr = if_addr.s_addr;
 #endif
 
-	ret = setsockopt(sock, IPPROTO_IP, optname, (void *)&mreq,
-			 sizeof(mreq));
-	if ((ret < 0) && (optname == IP_ADD_MEMBERSHIP)
-	    && (errno == EADDRINUSE)) {
+	ret = setsockopt(sock, IPPROTO_IP, optname, (void *)&mreq, sizeof(mreq));
+	if ((ret < 0) && (optname == IP_ADD_MEMBERSHIP) && (errno == EADDRINUSE)) {
 		/* see above: handle possible problem when interface comes back
 		 * up */
-		zlog_info(
-			"setsockopt_ipv4_multicast attempting to drop and re-add (fd %d, mcast %pI4, ifindex %u)",
-			sock, &mreq.imr_multiaddr, ifindex);
+		zlog_info("setsockopt_ipv4_multicast attempting to drop and re-add (fd %d, mcast %pI4, ifindex %u)",
+			  sock, &mreq.imr_multiaddr, ifindex);
 		setsockopt(sock, IPPROTO_IP, IP_DROP_MEMBERSHIP, (void *)&mreq,
 			   sizeof(mreq));
 		ret = setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
@@ -309,10 +293,8 @@ int setsockopt_ipv4_multicast(int sock, int optname, struct in_addr if_addr,
 /*
  * Set IP_MULTICAST_IF socket option in an OS-dependent manner.
  */
-int setsockopt_ipv4_multicast_if(int sock, struct in_addr if_addr,
-				 ifindex_t ifindex)
+int setsockopt_ipv4_multicast_if(int sock, struct in_addr if_addr, ifindex_t ifindex)
 {
-
 #ifdef HAVE_STRUCT_IP_MREQN_IMR_IFINDEX
 	struct ip_mreqn mreqn;
 	memset(&mreqn, 0, sizeof(mreqn));
@@ -334,8 +316,7 @@ int setsockopt_ipv4_multicast_if(int sock, struct in_addr if_addr,
 	m.s_addr = if_addr.s_addr;
 #endif
 
-	return setsockopt(sock, IPPROTO_IP, IP_MULTICAST_IF, (void *)&m,
-			  sizeof(m));
+	return setsockopt(sock, IPPROTO_IP, IP_MULTICAST_IF, (void *)&m, sizeof(m));
 #else
 #error "Unsupported multicast API"
 #endif
@@ -437,7 +418,7 @@ static ifindex_t getsockopt_ipv4_ifindex(struct msghdr *msgh)
 
 #elif defined(IP_RECVIF)
 
-/* retrieval based on IP_RECVIF */
+	/* retrieval based on IP_RECVIF */
 
 	/* BSD systems use a sockaddr_dl as the control message payload. */
 	struct sockaddr_dl *sdl;
@@ -582,12 +563,10 @@ int sockopt_tcp_signature_ext(int sock, union sockunion *su, uint16_t prefixlen,
 		 * whether
 		 * this is a bug or not.
 		 */
-		if (su2->sa.sa_family == AF_INET6
-		    && su->sa.sa_family == AF_INET) {
+		if (su2->sa.sa_family == AF_INET6 && su->sa.sa_family == AF_INET) {
 			su2->sin6.sin6_family = AF_INET6;
 			/* V4Map the address */
-			memset(&su2->sin6.sin6_addr, 0,
-			       sizeof(struct in6_addr));
+			memset(&su2->sin6.sin6_addr, 0, sizeof(struct in6_addr));
 			su2->sin6.sin6_addr.s6_addr32[2] = htonl(0xffff);
 			memcpy(&su2->sin6.sin6_addr.s6_addr32[3],
 			       &su->sin.sin_addr, 4);
@@ -623,10 +602,9 @@ int sockopt_tcp_signature_ext(int sock, union sockunion *su, uint16_t prefixlen,
 		if (ENOENT == errno)
 			ret = 0;
 		else
-			flog_err_sys(
-				EC_LIB_SYSTEM_CALL,
-				"sockopt_tcp_signature: setsockopt(%d): %s",
-				sock, safe_strerror(errno));
+			flog_err_sys(EC_LIB_SYSTEM_CALL,
+				     "sockopt_tcp_signature: setsockopt(%d): %s",
+				     sock, safe_strerror(errno));
 	}
 	return ret;
 #endif /* HAVE_TCP_MD5SIG */
@@ -652,9 +630,8 @@ int sockopt_tcp_mss_set(int sock, int tcp_maxseg)
 	ret = setsockopt(sock, IPPROTO_TCP, TCP_MAXSEG, &tcp_maxseg,
 			 tcp_maxseg_len);
 	if (ret != 0) {
-		flog_err_sys(EC_LIB_SYSTEM_CALL,
-			     "%s failed: setsockopt(%d): %s", __func__, sock,
-			     safe_strerror(errno));
+		flog_err_sys(EC_LIB_SYSTEM_CALL, "%s failed: setsockopt(%d): %s",
+			     __func__, sock, safe_strerror(errno));
 	}
 
 	return ret;
@@ -670,9 +647,8 @@ int sockopt_tcp_mss_get(int sock)
 	ret = getsockopt(sock, IPPROTO_TCP, TCP_MAXSEG, &tcp_maxseg,
 			 &tcp_maxseg_len);
 	if (ret != 0) {
-		flog_err_sys(EC_LIB_SYSTEM_CALL,
-			     "%s failed: getsockopt(%d): %s", __func__, sock,
-			     safe_strerror(errno));
+		flog_err_sys(EC_LIB_SYSTEM_CALL, "%s failed: getsockopt(%d): %s",
+			     __func__, sock, safe_strerror(errno));
 		return 0;
 	}
 
@@ -680,8 +656,7 @@ int sockopt_tcp_mss_get(int sock)
 }
 
 int setsockopt_tcp_keepalive(int sock, uint16_t keepalive_idle,
-			     uint16_t keepalive_intvl,
-			     uint16_t keepalive_probes)
+			     uint16_t keepalive_intvl, uint16_t keepalive_probes)
 {
 	int val = 1;
 
@@ -697,8 +672,7 @@ int setsockopt_tcp_keepalive(int sock, uint16_t keepalive_idle,
 #else
 	/* Send first probe after keepalive_idle seconds */
 	val = keepalive_idle;
-	if (setsockopt(sock, IPPROTO_TCP, TCP_KEEPIDLE, &val, sizeof(val)) <
-	    0) {
+	if (setsockopt(sock, IPPROTO_TCP, TCP_KEEPIDLE, &val, sizeof(val)) < 0) {
 		flog_err_sys(EC_LIB_SYSTEM_CALL,
 			     "%s failed: setsockopt TCP_KEEPIDLE (%d): %s",
 			     __func__, sock, safe_strerror(errno));
@@ -707,8 +681,7 @@ int setsockopt_tcp_keepalive(int sock, uint16_t keepalive_idle,
 
 	/* Set interval between two probes */
 	val = keepalive_intvl;
-	if (setsockopt(sock, IPPROTO_TCP, TCP_KEEPINTVL, &val, sizeof(val)) <
-	    0) {
+	if (setsockopt(sock, IPPROTO_TCP, TCP_KEEPINTVL, &val, sizeof(val)) < 0) {
 		flog_err_sys(EC_LIB_SYSTEM_CALL,
 			     "%s failed: setsockopt TCP_KEEPINTVL (%d): %s",
 			     __func__, sock, safe_strerror(errno));

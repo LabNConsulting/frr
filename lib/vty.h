@@ -34,8 +34,8 @@ extern "C" {
 
 struct json_object;
 
-#define VTY_BUFSIZ 4096
-#define VTY_MAXHIST 20
+#define VTY_BUFSIZ   4096
+#define VTY_MAXHIST  20
 #define VTY_MAXDEPTH 8
 
 #define VTY_MAXCFGCHANGES 16
@@ -72,10 +72,11 @@ struct vty {
 	bool is_paged;
 
 	/* Is this vty connect to file or not */
-	enum { VTY_TERM,       /* telnet conn or stdin/stdout UI */
-	       VTY_FILE,       /* reading and writing config files */
-	       VTY_SHELL,      /* vtysh client side UI */
-	       VTY_SHELL_SERV, /* server-side vtysh connection */
+	enum {
+		VTY_TERM,	/* telnet conn or stdin/stdout UI */
+		VTY_FILE,	/* reading and writing config files */
+		VTY_SHELL,	/* vtysh client side UI */
+		VTY_SHELL_SERV, /* server-side vtysh connection */
 	} type;
 
 	/* Node status of this vty */
@@ -260,9 +261,8 @@ static inline void vty_push_context(struct vty *vty, int node, uint64_t id)
 /* will return if ptr is NULL. */
 #define VTY_CHECK_CONTEXT(ptr)                                                 \
 	if (!ptr) {                                                            \
-		vty_out(vty,                                                   \
-			"Current configuration object was deleted "            \
-			"by another process.\n");                              \
+		vty_out(vty, "Current configuration object was deleted "       \
+			     "by another process.\n");                         \
 		return CMD_WARNING;                                            \
 	}
 
@@ -304,17 +304,16 @@ static inline void vty_push_context(struct vty *vty, int node, uint64_t id)
 
 #define VTY_CURR_XPATH vty->xpath[vty->xpath_index - 1]
 
-#define VTY_CHECK_XPATH                                                        \
-	do {                                                                   \
-		if (vty->type != VTY_FILE && !vty->private_config &&           \
-		    vty->xpath_index > 0 &&                                    \
-		    !yang_dnode_exists(vty->candidate_config->dnode,           \
-				       VTY_CURR_XPATH)) {                      \
-			vty_out(vty,                                           \
-				"Current configuration object was deleted "    \
-				"by another process.\n\n");                    \
-			return CMD_WARNING;                                    \
-		}                                                              \
+#define VTY_CHECK_XPATH                                                          \
+	do {                                                                     \
+		if (vty->type != VTY_FILE && !vty->private_config &&             \
+		    vty->xpath_index > 0 &&                                      \
+		    !yang_dnode_exists(vty->candidate_config->dnode,             \
+				       VTY_CURR_XPATH)) {                        \
+			vty_out(vty, "Current configuration object was deleted " \
+				     "by another process.\n\n");                 \
+			return CMD_WARNING;                                      \
+		}                                                                \
 	} while (0)
 
 struct vty_arg {
@@ -411,8 +410,7 @@ extern bool mgmt_vty_read_configs(void);
 extern int vty_mgmt_send_config_data(struct vty *vty, bool implicit_commit);
 extern int vty_mgmt_send_commit_config(struct vty *vty, bool validate_only,
 				       bool abort);
-extern int vty_mgmt_send_get_config(struct vty *vty,
-				    Mgmtd__DatastoreId datastore,
+extern int vty_mgmt_send_get_config(struct vty *vty, Mgmtd__DatastoreId datastore,
 				    const char **xpath_list, int num_req);
 extern int vty_mgmt_send_get_data(struct vty *vty, Mgmtd__DatastoreId datastore,
 				  const char **xpath_list, int num_req);

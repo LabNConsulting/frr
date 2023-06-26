@@ -28,10 +28,10 @@ extern "C" {
  */
 #define DEBUG_MODE_TERM 0x01000000
 #define DEBUG_MODE_CONF 0x02000000
-#define DEBUG_MODE_ALL (DEBUG_MODE_TERM | DEBUG_MODE_CONF)
+#define DEBUG_MODE_ALL	(DEBUG_MODE_TERM | DEBUG_MODE_CONF)
 #define DEBUG_MODE_NONE 0x00000000
-#define DEBUG_OPT_ALL 0x00FFFFFF
-#define DEBUG_OPT_NONE 0x00000000
+#define DEBUG_OPT_ALL	0x00FFFFFF
+#define DEBUG_OPT_NONE	0x00000000
 
 
 /*
@@ -124,18 +124,16 @@ struct debug_callbacks {
  *
  * MT-Safe
  */
-#define DEBUG_MODE_SET(name, mode, onoff)                                      \
-	do {                                                                   \
-		if (onoff)                                                     \
-			SET_FLAG_ATOMIC(&(name)->flags,                        \
-					(mode)&DEBUG_MODE_ALL);                \
-		else                                                           \
-			UNSET_FLAG_ATOMIC(&(name)->flags,                      \
-					  (mode)&DEBUG_MODE_ALL);              \
+#define DEBUG_MODE_SET(name, mode, onoff)                                         \
+	do {                                                                      \
+		if (onoff)                                                        \
+			SET_FLAG_ATOMIC(&(name)->flags, (mode)&DEBUG_MODE_ALL);   \
+		else                                                              \
+			UNSET_FLAG_ATOMIC(&(name)->flags, (mode)&DEBUG_MODE_ALL); \
 	} while (0)
 
 /* Convenience macros for specific set operations. */
-#define DEBUG_MODE_ON(name, mode) DEBUG_MODE_SET(name, mode, true)
+#define DEBUG_MODE_ON(name, mode)  DEBUG_MODE_SET(name, mode, true)
 #define DEBUG_MODE_OFF(name, mode) DEBUG_MODE_SET(name, mode, false)
 
 /*
@@ -143,17 +141,16 @@ struct debug_callbacks {
  *
  * MT-Safe
  */
-#define DEBUG_OPT_SET(name, opt, onoff)                                        \
-	do {                                                                   \
-		if (onoff)                                                     \
-			SET_FLAG_ATOMIC(&(name)->flags, (opt)&DEBUG_OPT_ALL);  \
-		else                                                           \
-			UNSET_FLAG_ATOMIC(&(name)->flags,                      \
-					  (opt)&DEBUG_OPT_ALL);                \
+#define DEBUG_OPT_SET(name, opt, onoff)                                         \
+	do {                                                                    \
+		if (onoff)                                                      \
+			SET_FLAG_ATOMIC(&(name)->flags, (opt)&DEBUG_OPT_ALL);   \
+		else                                                            \
+			UNSET_FLAG_ATOMIC(&(name)->flags, (opt)&DEBUG_OPT_ALL); \
 	} while (0)
 
 /* Convenience macros for specific set operations. */
-#define DEBUG_OPT_ON(name, opt) DEBUG_OPT_SET(name, opt, true)
+#define DEBUG_OPT_ON(name, opt)	 DEBUG_OPT_SET(name, opt, true)
 #define DEBUG_OPT_OFF(name, opt) DEBUG_OPT_SET(name, opt, true)
 
 /*
@@ -170,7 +167,7 @@ struct debug_callbacks {
 	} while (0)
 
 /* Convenience macros for specific set operations. */
-#define DEBUG_FLAGS_ON(name, fl) DEBUG_FLAGS_SET(&(name)->flags, (type), true)
+#define DEBUG_FLAGS_ON(name, fl)  DEBUG_FLAGS_SET(&(name)->flags, (type), true)
 #define DEBUG_FLAGS_OFF(name, fl) DEBUG_FLAGS_SET(&(name)->flags, (type), false)
 
 /*

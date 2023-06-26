@@ -33,9 +33,8 @@ enum mgmt_be_client_id {
 	MGMTD_BE_CLIENT_ID_MAX
 };
 
-#define FOREACH_MGMTD_BE_CLIENT_ID(id)			\
-	for ((id) = MGMTD_BE_CLIENT_ID_MIN;		\
-	     (id) < MGMTD_BE_CLIENT_ID_MAX; (id)++)
+#define FOREACH_MGMTD_BE_CLIENT_ID(id)                                         \
+	for ((id) = MGMTD_BE_CLIENT_ID_MIN; (id) < MGMTD_BE_CLIENT_ID_MAX; (id)++)
 
 /***************************************************************
  * Constants
@@ -46,10 +45,10 @@ enum mgmt_be_client_id {
 #define MGMTD_BE_DEFAULT_CONN_RETRY_INTVL_SEC 5
 
 #define MGMTD_BE_MSG_PROC_DELAY_USEC 10
-#define MGMTD_BE_MAX_NUM_MSG_PROC 500
+#define MGMTD_BE_MAX_NUM_MSG_PROC    500
 
 #define MGMTD_BE_MSG_WRITE_DELAY_MSEC 1
-#define MGMTD_BE_MAX_NUM_MSG_WRITE 1000
+#define MGMTD_BE_MAX_NUM_MSG_WRITE    1000
 
 #define GMGD_BE_MAX_NUM_REQ_ITEMS 64
 
@@ -58,8 +57,8 @@ enum mgmt_be_client_id {
 #define MGMTD_SOCKET_BE_SEND_BUF_SIZE 65535
 #define MGMTD_SOCKET_BE_RECV_BUF_SIZE MGMTD_SOCKET_BE_SEND_BUF_SIZE
 
-#define MGMTD_MAX_CFG_CHANGES_IN_BATCH				\
-	((10 * MGMTD_BE_MSG_MAX_LEN) /				\
+#define MGMTD_MAX_CFG_CHANGES_IN_BATCH                                         \
+	((10 * MGMTD_BE_MSG_MAX_LEN) /                                         \
 	 (MGMTD_MAX_XPATH_LEN + MGMTD_MAX_YANG_VALUE_LEN))
 
 /*
@@ -68,10 +67,10 @@ enum mgmt_be_client_id {
  * that gets added to sent message
  */
 #define MGMTD_BE_CFGDATA_PACKING_EFFICIENCY 0.8
-#define MGMTD_BE_CFGDATA_MAX_MSG_LEN                                        \
+#define MGMTD_BE_CFGDATA_MAX_MSG_LEN                                           \
 	(MGMTD_BE_MSG_MAX_LEN * MGMTD_BE_CFGDATA_PACKING_EFFICIENCY)
 
-#define MGMTD_BE_MAX_BATCH_IDS_IN_REQ                                       \
+#define MGMTD_BE_MAX_BATCH_IDS_IN_REQ                                          \
 	(MGMTD_BE_MSG_MAX_LEN - 128) / sizeof(uint64_t)
 
 #define MGMTD_BE_CONTAINER_NODE_VAL "<<container>>"
@@ -100,8 +99,7 @@ struct mgmt_be_client_cbs {
 				      uintptr_t usr_data, bool connected);
 
 	void (*txn_notify)(struct mgmt_be_client *client, uintptr_t usr_data,
-			   struct mgmt_be_client_txn_ctx *txn_ctx,
-			   bool destroyed);
+			   struct mgmt_be_client_txn_ctx *txn_ctx, bool destroyed);
 };
 
 /***************************************************************
@@ -117,8 +115,7 @@ static inline const char *mgmt_be_client_id2name(enum mgmt_be_client_id id)
 	return mgmt_be_client_names[id];
 }
 
-static inline enum mgmt_be_client_id
-mgmt_be_client_name2id(const char *name)
+static inline enum mgmt_be_client_id mgmt_be_client_name2id(const char *name)
 {
 	enum mgmt_be_client_id id;
 
@@ -138,8 +135,7 @@ extern struct debug mgmt_dbg_be_client;
  ***************************************************************/
 
 #define MGMTD_BE_CLIENT_DBG(fmt, ...)                                          \
-	DEBUGD(&mgmt_dbg_be_client, "BE-CLIENT: %s: " fmt, __func__,           \
-	       ##__VA_ARGS__)
+	DEBUGD(&mgmt_dbg_be_client, "BE-CLIENT: %s: " fmt, __func__, ##__VA_ARGS__)
 #define MGMTD_BE_CLIENT_ERR(fmt, ...)                                          \
 	zlog_err("BE-CLIENT: %s: ERROR: " fmt, __func__, ##__VA_ARGS__)
 #define MGMTD_DBG_BE_CLIENT_CHECK()                                            \

@@ -49,10 +49,9 @@ DEFPY_YANG_NOSH(affinity_map, affinity_map_cmd,
 {
 	char xpathr[XPATH_MAXLEN];
 
-	snprintf(
-		xpathr, sizeof(xpathr),
-		"/frr-affinity-map:lib/affinity-maps/affinity-map[name='%s']/value",
-		name);
+	snprintf(xpathr, sizeof(xpathr),
+		 "/frr-affinity-map:lib/affinity-maps/affinity-map[name='%s']/value",
+		 name);
 	nb_cli_enqueue_change(vty, xpathr, NB_OP_MODIFY, position_str);
 	return nb_cli_apply_changes(vty, NULL);
 }
@@ -60,11 +59,10 @@ DEFPY_YANG_NOSH(affinity_map, affinity_map_cmd,
 /* max value is EXT_ADMIN_GROUP_MAX_POSITIONS - 1 */
 DEFPY_YANG_NOSH(no_affinity_map, no_affinity_map_cmd,
 		"no affinity-map NAME$name [bit-position (0-1023)$position]",
-		NO_STR
-		"Affinity map configuration\n"
-		"Affinity attribute name\n"
-		"Bit position for affinity attribute value\n"
-		"Bit position\n")
+		NO_STR "Affinity map configuration\n"
+		       "Affinity attribute name\n"
+		       "Bit position for affinity attribute value\n"
+		       "Bit position\n")
 {
 	char xpathr[XPATH_MAXLEN];
 

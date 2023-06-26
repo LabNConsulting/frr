@@ -92,10 +92,10 @@ struct stream {
 	 * direct access is frowned upon!
 	 * Use the appropriate functions/macros
 	 */
-	size_t getp;	       /* next get position */
-	size_t endp;	       /* last valid data position */
-	size_t size;	       /* size of data segment */
-	unsigned char data[];  /* data pointer */
+	size_t getp;	      /* next get position */
+	size_t endp;	      /* last valid data position */
+	size_t size;	      /* size of data segment */
+	unsigned char data[]; /* data pointer */
 };
 
 /* First in first out queue structure. */
@@ -114,7 +114,7 @@ struct stream_fifo {
 };
 
 /* Utility macros. */
-#define STREAM_SIZE(S)  ((S)->size)
+#define STREAM_SIZE(S) ((S)->size)
 /* number of bytes which can still be written */
 #define STREAM_WRITEABLE(S) ((S)->size - (S)->endp)
 /* number of bytes still to be read */
@@ -123,7 +123,7 @@ struct stream_fifo {
 #define STREAM_CONCAT_REMAIN(S1, S2, size) ((size) - (S1)->endp - (S2)->endp)
 
 /* this macro is deprecated, but not slated for removal anytime soon */
-#define STREAM_DATA(S)  ((S)->data)
+#define STREAM_DATA(S) ((S)->data)
 
 /* Stream prototypes.
  * For stream_{put,get}S, the S suffix mean:
@@ -136,8 +136,7 @@ struct stream_fifo {
 extern struct stream *stream_new(size_t);
 extern void stream_free(struct stream *);
 /* Copy 'src' into 'dest', returns 'dest' */
-extern struct stream *stream_copy(struct stream *dest,
-				  const struct stream *src);
+extern struct stream *stream_copy(struct stream *dest, const struct stream *src);
 extern struct stream *stream_dup(const struct stream *s);
 
 extern size_t stream_resize_inplace(struct stream **sptr, size_t newsize);
@@ -183,8 +182,7 @@ extern int stream_put_in_addr_at(struct stream *s, size_t putp,
 extern int stream_put_in6_addr_at(struct stream *s, size_t putp,
 				  const struct in6_addr *addr);
 extern int stream_put_prefix_addpath(struct stream *s, const struct prefix *p,
-				     bool addpath_capable,
-				     uint32_t addpath_tx_id);
+				     bool addpath_capable, uint32_t addpath_tx_id);
 extern int stream_put_prefix(struct stream *s, const struct prefix *p);
 extern int stream_put_labeled_prefix(struct stream *, const struct prefix *,
 				     mpls_label_t *, bool addpath_capable,

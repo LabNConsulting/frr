@@ -47,8 +47,7 @@ void json_array_string_addv(json_object *json, const char *fmt, va_list args)
 	json_object_array_add(json, json_object_new_stringv(fmt, args));
 }
 
-void json_object_string_add(struct json_object *obj, const char *key,
-			    const char *s)
+void json_object_string_add(struct json_object *obj, const char *key, const char *s)
 {
 	json_object_object_add(obj, key, json_object_new_string(s));
 }
@@ -59,9 +58,8 @@ void json_object_string_addv(struct json_object *obj, const char *key,
 	json_object_object_add(obj, key, json_object_new_stringv(fmt, args));
 }
 
-void json_object_object_addv(struct json_object *parent,
-			     struct json_object *child, const char *keyfmt,
-			     va_list args)
+void json_object_object_addv(struct json_object *parent, struct json_object *child,
+			     const char *keyfmt, va_list args)
 {
 	char *text, buf[256];
 

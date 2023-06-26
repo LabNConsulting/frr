@@ -23,8 +23,7 @@ DEFINE_MTYPE_STATIC(LIB, NEXTHOP, "Nexthop");
 DEFINE_MTYPE_STATIC(LIB, NH_LABEL, "Nexthop label");
 DEFINE_MTYPE_STATIC(LIB, NH_SRV6, "Nexthop srv6");
 
-static int _nexthop_labels_cmp(const struct nexthop *nh1,
-			       const struct nexthop *nh2)
+static int _nexthop_labels_cmp(const struct nexthop *nh1, const struct nexthop *nh2)
 {
 	const struct mpls_label_stack *nhl1 = NULL;
 	const struct mpls_label_stack *nhl2 = NULL;
@@ -52,8 +51,7 @@ static int _nexthop_labels_cmp(const struct nexthop *nh1,
 		      (nhl1->num_labels * sizeof(mpls_label_t)));
 }
 
-static int _nexthop_srv6_cmp(const struct nexthop *nh1,
-			     const struct nexthop *nh2)
+static int _nexthop_srv6_cmp(const struct nexthop *nh1, const struct nexthop *nh2)
 {
 	int ret = 0;
 
@@ -72,14 +70,12 @@ static int _nexthop_srv6_cmp(const struct nexthop *nh1,
 	if (nh2->nh_srv6->seg6local_action < nh1->nh_srv6->seg6local_action)
 		return -1;
 
-	ret = memcmp(&nh1->nh_srv6->seg6local_ctx,
-		     &nh2->nh_srv6->seg6local_ctx,
+	ret = memcmp(&nh1->nh_srv6->seg6local_ctx, &nh2->nh_srv6->seg6local_ctx,
 		     sizeof(struct seg6local_context));
 	if (ret != 0)
 		return ret;
 
-	ret = memcmp(&nh1->nh_srv6->seg6_segs,
-		     &nh2->nh_srv6->seg6_segs,
+	ret = memcmp(&nh1->nh_srv6->seg6_segs, &nh2->nh_srv6->seg6_segs,
 		     sizeof(struct in6_addr));
 
 	return ret;
@@ -108,14 +104,12 @@ int nexthop_g_addr_cmp(enum nexthop_types_t type, const union g_addr *addr1,
 	return ret;
 }
 
-static int _nexthop_gateway_cmp(const struct nexthop *nh1,
-				const struct nexthop *nh2)
+static int _nexthop_gateway_cmp(const struct nexthop *nh1, const struct nexthop *nh2)
 {
 	return nexthop_g_addr_cmp(nh1->type, &nh1->gate, &nh2->gate);
 }
 
-static int _nexthop_source_cmp(const struct nexthop *nh1,
-			       const struct nexthop *nh2)
+static int _nexthop_source_cmp(const struct nexthop *nh1, const struct nexthop *nh2)
 {
 	return nexthop_g_addr_cmp(nh1->type, &nh1->src, &nh2->src);
 }
@@ -202,8 +196,7 @@ static int _nexthop_cmp_no_labels(const struct nexthop *next1,
 	if (next1->backup_num > next2->backup_num)
 		return 1;
 
-	ret = memcmp(next1->backup_idx,
-		     next2->backup_idx, next1->backup_num);
+	ret = memcmp(next1->backup_idx, next2->backup_idx, next1->backup_num);
 
 done:
 	return ret;
@@ -231,8 +224,7 @@ int nexthop_cmp(const struct nexthop *next1, const struct nexthop *next2)
  * nexthops. This is used in places where we don't need the full
  * comparison of 'nexthop_cmp()'.
  */
-int nexthop_cmp_basic(const struct nexthop *nh1,
-		      const struct nexthop *nh2)
+int nexthop_cmp_basic(const struct nexthop *nh1, const struct nexthop *nh2)
 {
 	int ret = 0;
 	const struct mpls_label_stack *nhl1 = NULL;
@@ -332,8 +324,8 @@ const char *nexthop_type_to_str(enum nexthop_types_t nh_type)
 {
 	static const char *const desc[] = {
 		"none",		 "Directly connected",
-		"IPv4 nexthop",  "IPv4 nexthop with ifindex",
-		"IPv6 nexthop",  "IPv6 nexthop with ifindex",
+		"IPv4 nexthop",	 "IPv4 nexthop with ifindex",
+		"IPv6 nexthop",	 "IPv6 nexthop with ifindex",
 		"Null0 nexthop",
 	};
 
@@ -411,8 +403,7 @@ bool nexthop_same(const struct nexthop *nh1, const struct nexthop *nh2)
 	return true;
 }
 
-bool nexthop_same_no_labels(const struct nexthop *nh1,
-			    const struct nexthop *nh2)
+bool nexthop_same_no_labels(const struct nexthop *nh1, const struct nexthop *nh2)
 {
 	if (nh1 && !nh2)
 		return false;
@@ -445,8 +436,7 @@ struct nexthop *nexthop_from_ifindex(ifindex_t ifindex, vrf_id_t vrf_id)
 }
 
 struct nexthop *nexthop_from_ipv4(const struct in_addr *ipv4,
-				  const struct in_addr *src,
-				  vrf_id_t vrf_id)
+				  const struct in_addr *src, vrf_id_t vrf_id)
 {
 	struct nexthop *nexthop;
 
@@ -477,8 +467,7 @@ struct nexthop *nexthop_from_ipv4_ifindex(const struct in_addr *ipv4,
 	return nexthop;
 }
 
-struct nexthop *nexthop_from_ipv6(const struct in6_addr *ipv6,
-				  vrf_id_t vrf_id)
+struct nexthop *nexthop_from_ipv6(const struct in6_addr *ipv6, vrf_id_t vrf_id)
 {
 	struct nexthop *nexthop;
 
@@ -534,8 +523,8 @@ void nexthop_add_labels(struct nexthop *nexthop, enum lsp_types_t ltype,
 	nexthop->nh_label_type = ltype;
 
 	nh_label = XCALLOC(MTYPE_NH_LABEL,
-			   sizeof(struct mpls_label_stack)
-				   + num_labels * sizeof(mpls_label_t));
+			   sizeof(struct mpls_label_stack) +
+				   num_labels * sizeof(mpls_label_t));
 	nh_label->num_labels = num_labels;
 	for (i = 0; i < num_labels; i++)
 		nh_label->label[i] = *(labels + i);
@@ -556,8 +545,8 @@ void nexthop_add_srv6_seg6local(struct nexthop *nexthop, uint32_t action,
 		return;
 
 	if (!nexthop->nh_srv6)
-		nexthop->nh_srv6 = XCALLOC(MTYPE_NH_SRV6,
-					   sizeof(struct nexthop_srv6));
+		nexthop->nh_srv6 =
+			XCALLOC(MTYPE_NH_SRV6, sizeof(struct nexthop_srv6));
 
 	nexthop->nh_srv6->seg6local_action = action;
 	nexthop->nh_srv6->seg6local_ctx = *ctx;
@@ -574,15 +563,14 @@ void nexthop_del_srv6_seg6local(struct nexthop *nexthop)
 		XFREE(MTYPE_NH_SRV6, nexthop->nh_srv6);
 }
 
-void nexthop_add_srv6_seg6(struct nexthop *nexthop,
-			   const struct in6_addr *segs)
+void nexthop_add_srv6_seg6(struct nexthop *nexthop, const struct in6_addr *segs)
 {
 	if (!segs)
 		return;
 
 	if (!nexthop->nh_srv6)
-		nexthop->nh_srv6 = XCALLOC(MTYPE_NH_SRV6,
-					   sizeof(struct nexthop_srv6));
+		nexthop->nh_srv6 =
+			XCALLOC(MTYPE_NH_SRV6, sizeof(struct nexthop_srv6));
 
 	nexthop->nh_srv6->seg6_segs = *segs;
 }
@@ -595,8 +583,7 @@ void nexthop_del_srv6_seg6(struct nexthop *nexthop)
 	memset(&nexthop->nh_srv6->seg6_segs, 0,
 	       sizeof(nexthop->nh_srv6->seg6_segs));
 
-	if (nexthop->nh_srv6->seg6local_action ==
-	    ZEBRA_SEG6_LOCAL_ACTION_UNSPEC)
+	if (nexthop->nh_srv6->seg6local_action == ZEBRA_SEG6_LOCAL_ACTION_UNSPEC)
 		XFREE(MTYPE_NH_SRV6, nexthop->nh_srv6);
 }
 
@@ -659,9 +646,8 @@ struct nexthop *nexthop_next_active_resolved(const struct nexthop *nexthop)
 {
 	struct nexthop *next = nexthop_next(nexthop);
 
-	while (next
-	       && (CHECK_FLAG(next->flags, NEXTHOP_FLAG_RECURSIVE)
-		   || !CHECK_FLAG(next->flags, NEXTHOP_FLAG_ACTIVE)))
+	while (next && (CHECK_FLAG(next->flags, NEXTHOP_FLAG_RECURSIVE) ||
+			!CHECK_FLAG(next->flags, NEXTHOP_FLAG_ACTIVE)))
 		next = nexthop_next(next);
 
 	return next;
@@ -671,8 +657,7 @@ unsigned int nexthop_level(const struct nexthop *nexthop)
 {
 	unsigned int rv = 0;
 
-	for (const struct nexthop *par = nexthop->rparent;
-	     par; par = par->rparent)
+	for (const struct nexthop *par = nexthop->rparent; par; par = par->rparent)
 		rv++;
 
 	return rv;
@@ -695,16 +680,14 @@ uint32_t nexthop_hash_quick(const struct nexthop *nexthop)
 		while (labels >= 3) {
 			key = jhash_3words(nexthop->nh_label->label[i],
 					   nexthop->nh_label->label[i + 1],
-					   nexthop->nh_label->label[i + 2],
-					   key);
+					   nexthop->nh_label->label[i + 2], key);
 			labels -= 3;
 			i += 3;
 		}
 
 		if (labels >= 2) {
 			key = jhash_2words(nexthop->nh_label->label[i],
-					   nexthop->nh_label->label[i + 1],
-					   key);
+					   nexthop->nh_label->label[i + 1], key);
 			labels -= 2;
 			i += 2;
 		}
@@ -714,8 +697,7 @@ uint32_t nexthop_hash_quick(const struct nexthop *nexthop)
 	}
 
 	key = jhash_2words(nexthop->ifindex,
-			   CHECK_FLAG(nexthop->flags, NEXTHOP_FLAG_ONLINK),
-			   key);
+			   CHECK_FLAG(nexthop->flags, NEXTHOP_FLAG_ONLINK), key);
 
 	/* Include backup nexthops, if present */
 	if (CHECK_FLAG(nexthop->flags, NEXTHOP_FLAG_HAS_BACKUP)) {
@@ -763,23 +745,20 @@ uint32_t nexthop_hash(const struct nexthop *nexthop)
 	/* Get all the quick stuff */
 	uint32_t key = nexthop_hash_quick(nexthop);
 
-	assert(((sizeof(nexthop->gate) + sizeof(nexthop->src)
-		 + sizeof(nexthop->rmap_src))
-		/ 3)
-	       == (GATE_SIZE * sizeof(uint32_t)));
+	assert(((sizeof(nexthop->gate) + sizeof(nexthop->src) +
+		 sizeof(nexthop->rmap_src)) /
+		3) == (GATE_SIZE * sizeof(uint32_t)));
 
 	memcpy(gate_src_rmap_raw, &nexthop->gate, GATE_SIZE);
 	memcpy(gate_src_rmap_raw + GATE_SIZE, &nexthop->src, GATE_SIZE);
-	memcpy(gate_src_rmap_raw + (2 * GATE_SIZE), &nexthop->rmap_src,
-	       GATE_SIZE);
+	memcpy(gate_src_rmap_raw + (2 * GATE_SIZE), &nexthop->rmap_src, GATE_SIZE);
 
 	key = jhash2(gate_src_rmap_raw, (GATE_SIZE * 3), key);
 
 	return key;
 }
 
-void nexthop_copy_no_recurse(struct nexthop *copy,
-			     const struct nexthop *nexthop,
+void nexthop_copy_no_recurse(struct nexthop *copy, const struct nexthop *nexthop,
 			     struct nexthop *rparent)
 {
 	copy->vrf_id = nexthop->vrf_id;
@@ -807,11 +786,10 @@ void nexthop_copy_no_recurse(struct nexthop *copy,
 		if (nexthop->nh_srv6->seg6local_action !=
 		    ZEBRA_SEG6_LOCAL_ACTION_UNSPEC)
 			nexthop_add_srv6_seg6local(copy,
-				nexthop->nh_srv6->seg6local_action,
-				&nexthop->nh_srv6->seg6local_ctx);
+						   nexthop->nh_srv6->seg6local_action,
+						   &nexthop->nh_srv6->seg6local_ctx);
 		if (!sid_zero(&nexthop->nh_srv6->seg6_segs))
-			nexthop_add_srv6_seg6(copy,
-				&nexthop->nh_srv6->seg6_segs);
+			nexthop_add_srv6_seg6(copy, &nexthop->nh_srv6->seg6_segs);
 	}
 }
 
@@ -837,8 +815,7 @@ struct nexthop *nexthop_dup_no_recurse(const struct nexthop *nexthop,
 	return new;
 }
 
-struct nexthop *nexthop_dup(const struct nexthop *nexthop,
-			    struct nexthop *rparent)
+struct nexthop *nexthop_dup(const struct nexthop *nexthop, struct nexthop *rparent)
 {
 	struct nexthop *new = nexthop_new();
 
@@ -852,13 +829,12 @@ struct nexthop *nexthop_dup(const struct nexthop *nexthop,
  * in size. Mails back the number of values converted, and returns 0 on
  * success, <0 if an error in parsing.
  */
-int nexthop_str2backups(const char *str, int *num_backups,
-			uint8_t *backups)
+int nexthop_str2backups(const char *str, int *num_backups, uint8_t *backups)
 {
-	char *ostr;			  /* copy of string (start) */
-	char *lstr;			  /* working copy of string */
-	char *nump;			  /* pointer to next segment */
-	char *endp;			  /* end pointer */
+	char *ostr; /* copy of string (start) */
+	char *lstr; /* working copy of string */
+	char *nump; /* pointer to next segment */
+	char *endp; /* end pointer */
 	int i, ret;
 	uint8_t tmp[NEXTHOP_MAX_BACKUPS];
 	uint32_t lval;
@@ -981,14 +957,12 @@ static ssize_t printfrr_nh(struct fbuf *buf, struct printfrr_eargs *ea,
 		switch (nexthop->type) {
 		case NEXTHOP_TYPE_IPV4:
 		case NEXTHOP_TYPE_IPV4_IFINDEX:
-			ret += bprintfrr(buf, "%s%pI4", v_via,
-					 &nexthop->gate.ipv4);
+			ret += bprintfrr(buf, "%s%pI4", v_via, &nexthop->gate.ipv4);
 			do_ifi = true;
 			break;
 		case NEXTHOP_TYPE_IPV6:
 		case NEXTHOP_TYPE_IPV6_IFINDEX:
-			ret += bprintfrr(buf, "%s%pI6", v_via,
-					 &nexthop->gate.ipv6);
+			ret += bprintfrr(buf, "%s%pI6", v_via, &nexthop->gate.ipv6);
 			do_ifi = true;
 			break;
 		case NEXTHOP_TYPE_IFINDEX:
@@ -1034,13 +1008,11 @@ static ssize_t printfrr_nh(struct fbuf *buf, struct printfrr_eargs *ea,
 			switch (nexthop->type) {
 			case NEXTHOP_TYPE_IPV4:
 			case NEXTHOP_TYPE_IPV4_IFINDEX:
-				ret += bprintfrr(buf, "%pI4",
-						 &nexthop->gate.ipv4);
+				ret += bprintfrr(buf, "%pI4", &nexthop->gate.ipv4);
 				break;
 			case NEXTHOP_TYPE_IPV6:
 			case NEXTHOP_TYPE_IPV6_IFINDEX:
-				ret += bprintfrr(buf, "%pI6",
-						 &nexthop->gate.ipv6);
+				ret += bprintfrr(buf, "%pI6", &nexthop->gate.ipv6);
 				break;
 			case NEXTHOP_TYPE_IFINDEX:
 			case NEXTHOP_TYPE_BLACKHOLE:
@@ -1052,10 +1024,9 @@ static ssize_t printfrr_nh(struct fbuf *buf, struct printfrr_eargs *ea,
 				return bputs(buf, "(null)");
 			switch (nexthop->type) {
 			case NEXTHOP_TYPE_IFINDEX:
-				ret += bprintfrr(
-					buf, "%s",
-					ifindex2ifname(nexthop->ifindex,
-						       nexthop->vrf_id));
+				ret += bprintfrr(buf, "%s",
+						 ifindex2ifname(nexthop->ifindex,
+								nexthop->vrf_id));
 				break;
 			case NEXTHOP_TYPE_IPV4:
 			case NEXTHOP_TYPE_IPV4_IFINDEX:
@@ -1064,9 +1035,8 @@ static ssize_t printfrr_nh(struct fbuf *buf, struct printfrr_eargs *ea,
 				if (nexthop->ifindex)
 					ret += bprintfrr(
 						buf, "%s",
-						ifindex2ifname(
-							nexthop->ifindex,
-							nexthop->vrf_id));
+						ifindex2ifname(nexthop->ifindex,
+							       nexthop->vrf_id));
 				break;
 			case NEXTHOP_TYPE_BLACKHOLE:
 				break;

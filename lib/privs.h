@@ -74,17 +74,16 @@ struct zebra_privs_t {
 	const char *vty_group; /* group to chown vty socket to */
 	/* methods */
 	int (*change)(zebra_privs_ops_t); /* change privileges, 0 on success */
-	zebra_privs_current_t (*current_state)(
-		void); /* current privilege state */
+	zebra_privs_current_t (*current_state)(void); /* current privilege state */
 };
 
 struct zprivs_ids_t {
 	/* -1 is undefined */
-	uid_t uid_priv;   /* privileged uid */
+	uid_t uid_priv;	  /* privileged uid */
 	uid_t uid_normal; /* normal uid */
-	gid_t gid_priv;   /* privileged uid */
+	gid_t gid_priv;	  /* privileged uid */
 	gid_t gid_normal; /* normal uid */
-	gid_t gid_vty;    /* vty gid */
+	gid_t gid_vty;	  /* vty gid */
 };
 
 extern struct zebra_privs_t *lib_privs;
@@ -128,11 +127,11 @@ extern struct zebra_privs_t *_zprivs_raise(struct zebra_privs_t *privs,
 					   const char *funcname);
 extern void _zprivs_lower(struct zebra_privs_t **privs);
 
-#define frr_with_privs(privs)                                               \
-	for (struct zebra_privs_t *_once = NULL,                               \
-				  *_privs __attribute__(                       \
-					  (unused, cleanup(_zprivs_lower))) =  \
-					  _zprivs_raise(privs, __func__);      \
+#define frr_with_privs(privs)                                                       \
+	for (struct zebra_privs_t *_once = NULL,                                    \
+				  *_privs                                           \
+				  __attribute__((unused, cleanup(_zprivs_lower))) = \
+					  _zprivs_raise(privs, __func__);           \
 	     _once == NULL; _once = (void *)1)
 
 #ifdef __cplusplus

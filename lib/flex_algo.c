@@ -20,16 +20,14 @@
 DEFINE_MTYPE_STATIC(LIB, FLEX_ALGO_DATABASE, "Flex-Algo database");
 DEFINE_MTYPE_STATIC(LIB, FLEX_ALGO, "Flex-Algo algorithm information");
 
-static void _flex_algo_delete(struct flex_algos *flex_algos,
-			      struct flex_algo *fa);
+static void _flex_algo_delete(struct flex_algos *flex_algos, struct flex_algo *fa);
 
 struct flex_algos *flex_algos_alloc(flex_algo_allocator_t allocator,
 				    flex_algo_releaser_t releaser)
 {
 	struct flex_algos *flex_algos;
 
-	flex_algos =
-		XCALLOC(MTYPE_FLEX_ALGO_DATABASE, sizeof(struct flex_algos));
+	flex_algos = XCALLOC(MTYPE_FLEX_ALGO_DATABASE, sizeof(struct flex_algos));
 	flex_algos->flex_algos = list_new();
 	flex_algos->allocator = allocator;
 	flex_algos->releaser = releaser;
@@ -63,8 +61,7 @@ struct flex_algo *flex_algo_alloc(struct flex_algos *flex_algos,
 	return fa;
 }
 
-static void _flex_algo_delete(struct flex_algos *flex_algos,
-			      struct flex_algo *fa)
+static void _flex_algo_delete(struct flex_algos *flex_algos, struct flex_algo *fa)
 {
 	if (flex_algos->releaser)
 		flex_algos->releaser(fa->data);
@@ -94,8 +91,7 @@ void flex_algo_delete(struct flex_algos *flex_algos, uint8_t algorithm)
  * @param area area pointer of flex-algo
  * @return local flex-algo object if exist, else NULL
  */
-struct flex_algo *flex_algo_lookup(struct flex_algos *flex_algos,
-				   uint8_t algorithm)
+struct flex_algo *flex_algo_lookup(struct flex_algos *flex_algos, uint8_t algorithm)
 {
 	struct listnode *node;
 	struct flex_algo *fa;
@@ -179,8 +175,7 @@ bool flex_algo_get_state(struct flex_algos *flex_algos, uint8_t algorithm)
 	return fa->state;
 }
 
-void flex_algo_set_state(struct flex_algos *flex_algos, uint8_t algorithm,
-			 bool state)
+void flex_algo_set_state(struct flex_algos *flex_algos, uint8_t algorithm, bool state)
 {
 	struct flex_algo *fa = flex_algo_lookup(flex_algos, algorithm);
 

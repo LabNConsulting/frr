@@ -136,8 +136,7 @@ int csv_is_record_valid(csv_t *csv, csv_record_t *in_rec);
  * Returns the newly formed record which includes fields from rec1 and rec2
  * rec1 and rec2 are removed
  */
-csv_record_t *csv_concat_record(csv_t *csv, csv_record_t *rec1,
-				csv_record_t *rec2);
+csv_record_t *csv_concat_record(csv_t *csv, csv_record_t *rec1, csv_record_t *rec2);
 
 /**
  * Remove a record from csv

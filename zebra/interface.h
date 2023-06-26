@@ -24,22 +24,22 @@ extern "C" {
 
 /* For interface configuration. */
 #define IF_ZEBRA_DATA_UNSPEC 0
-#define IF_ZEBRA_DATA_ON 1
-#define IF_ZEBRA_DATA_OFF 2
+#define IF_ZEBRA_DATA_ON     1
+#define IF_ZEBRA_DATA_OFF    2
 
 #define IF_VLAN_BITMAP_MAX 4096
 
 /* Zebra interface type - ones of interest. */
 enum zebra_iftype {
 	ZEBRA_IF_OTHER = 0, /* Anything else */
-	ZEBRA_IF_VXLAN,     /* VxLAN interface */
-	ZEBRA_IF_VRF,       /* VRF device */
+	ZEBRA_IF_VXLAN,	    /* VxLAN interface */
+	ZEBRA_IF_VRF,	    /* VRF device */
 	ZEBRA_IF_BRIDGE,    /* bridge device */
-	ZEBRA_IF_VLAN,      /* VLAN sub-interface */
+	ZEBRA_IF_VLAN,	    /* VLAN sub-interface */
 	ZEBRA_IF_MACVLAN,   /* MAC VLAN interface*/
-	ZEBRA_IF_VETH,      /* VETH interface*/
+	ZEBRA_IF_VETH,	    /* VETH interface*/
 	ZEBRA_IF_BOND,	    /* Bond */
-	ZEBRA_IF_GRE,      /* GRE interface */
+	ZEBRA_IF_GRE,	    /* GRE interface */
 };
 
 /* Zebra "slave" interface type */
@@ -236,41 +236,36 @@ DECLARE_HOOK(zebra_if_config_wr, (struct vty * vty, struct interface *ifp),
 #define IS_ZEBRA_IF_MACVLAN(ifp)                                               \
 	(((struct zebra_if *)(ifp->info))->zif_type == ZEBRA_IF_MACVLAN)
 
-#define IS_ZEBRA_IF_VETH(ifp)                                               \
+#define IS_ZEBRA_IF_VETH(ifp)                                                  \
 	(((struct zebra_if *)(ifp->info))->zif_type == ZEBRA_IF_VETH)
 
 #define IS_ZEBRA_IF_BOND(ifp)                                                  \
 	(((struct zebra_if *)(ifp->info))->zif_type == ZEBRA_IF_BOND)
 
-#define IS_ZEBRA_IF_GRE(ifp)                                               \
+#define IS_ZEBRA_IF_GRE(ifp)                                                   \
 	(((struct zebra_if *)(ifp->info))->zif_type == ZEBRA_IF_GRE)
 
-#define IS_ZEBRA_IF_BRIDGE_SLAVE(ifp)					\
-	(((struct zebra_if *)(ifp->info))->zif_slave_type                      \
-	 == ZEBRA_IF_SLAVE_BRIDGE)
+#define IS_ZEBRA_IF_BRIDGE_SLAVE(ifp)                                          \
+	(((struct zebra_if *)(ifp->info))->zif_slave_type == ZEBRA_IF_SLAVE_BRIDGE)
 
 #define IS_ZEBRA_IF_VRF_SLAVE(ifp)                                             \
 	(((struct zebra_if *)(ifp->info))->zif_slave_type == ZEBRA_IF_SLAVE_VRF)
 
-#define IS_ZEBRA_IF_BOND_SLAVE(ifp)					\
-	(((struct zebra_if *)(ifp->info))->zif_slave_type                      \
-	 == ZEBRA_IF_SLAVE_BOND)
+#define IS_ZEBRA_IF_BOND_SLAVE(ifp)                                            \
+	(((struct zebra_if *)(ifp->info))->zif_slave_type == ZEBRA_IF_SLAVE_BOND)
 
 extern void zebra_if_init(void);
 
 extern struct interface *if_lookup_by_index_per_ns(struct zebra_ns *, uint32_t);
-extern struct interface *if_lookup_by_name_per_ns(struct zebra_ns *,
-						  const char *);
+extern struct interface *if_lookup_by_name_per_ns(struct zebra_ns *, const char *);
 extern struct interface *if_link_per_ns(struct zebra_ns *, struct interface *);
 extern struct interface *if_lookup_by_index_per_nsid(ns_id_t nsid,
 						     uint32_t ifindex);
 extern const char *ifindex2ifname_per_ns(struct zebra_ns *, unsigned int);
 
 extern void if_unlink_per_ns(struct interface *);
-extern void if_nbr_mac_to_ipv4ll_neigh_update(struct interface *fip,
-					      char mac[6],
-					      struct in6_addr *address,
-					      int add);
+extern void if_nbr_mac_to_ipv4ll_neigh_update(struct interface *fip, char mac[6],
+					      struct in6_addr *address, int add);
 extern void if_nbr_ipv6ll_to_ipv4ll_neigh_update(struct interface *ifp,
 						 struct in6_addr *address,
 						 int add);
@@ -297,8 +292,7 @@ extern int zebra_if_update_protodown_rc(struct interface *ifp, bool new_down,
 extern void cli_show_legacy_admin_group(struct vty *vty,
 					const struct lyd_node *dnode,
 					bool show_defaults);
-extern void cli_show_affinity_mode(struct vty *vty,
-				   const struct lyd_node *dnode,
+extern void cli_show_affinity_mode(struct vty *vty, const struct lyd_node *dnode,
 				   bool show_defaults);
 extern void cli_show_affinity(struct vty *vty, const struct lyd_node *dnode,
 			      bool show_defaults);

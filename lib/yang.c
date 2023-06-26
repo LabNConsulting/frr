@@ -30,8 +30,7 @@ void yang_module_embed(struct yang_module_embed *embed)
 static LY_ERR yang_module_imp_clb(const char *mod_name, const char *mod_rev,
 				  const char *submod_name,
 				  const char *submod_rev, void *user_data,
-				  LYS_INFORMAT *format,
-				  const char **module_data,
+				  LYS_INFORMAT *format, const char **module_data,
 				  void (**free_module_data)(void *, void *))
 {
 	struct yang_module_embed *e;
@@ -62,10 +61,9 @@ static LY_ERR yang_module_imp_clb(const char *mod_name, const char *mod_rev,
 	}
 
 	/* We get here for indirect modules like ietf-inet-types */
-	zlog_debug(
-		"YANG model \"%s@%s\" \"%s@%s\"not embedded, trying external file",
-		mod_name, mod_rev ? mod_rev : "*",
-		submod_name ? submod_name : "*", submod_rev ? submod_rev : "*");
+	zlog_debug("YANG model \"%s@%s\" \"%s@%s\"not embedded, trying external file",
+		   mod_name, mod_rev ? mod_rev : "*",
+		   submod_name ? submod_name : "*", submod_rev ? submod_rev : "*");
 
 	return LY_ENOTFOUND;
 }
@@ -102,8 +100,7 @@ struct yang_module *yang_module_load(const char *module_name)
 	struct yang_module *module;
 	const struct lys_module *module_info;
 
-	module_info =
-		ly_ctx_load_module(ly_native_ctx, module_name, NULL, NULL);
+	module_info = ly_ctx_load_module(ly_native_ctx, module_name, NULL, NULL);
 	if (!module_info) {
 		flog_err(EC_LIB_YANG_MODULE_LOAD,
 			 "%s: failed to load data model: %s", __func__,
@@ -169,9 +166,9 @@ int yang_snodes_iterate_subtree(const struct lysc_node *snode,
 			goto next;
 		break;
 	default:
-		assert(snode->nodetype != LYS_AUGMENT
-		       && snode->nodetype != LYS_GROUPING
-		       && snode->nodetype != LYS_USES);
+		assert(snode->nodetype != LYS_AUGMENT &&
+		       snode->nodetype != LYS_GROUPING &&
+		       snode->nodetype != LYS_USES);
 		break;
 	}
 
@@ -187,8 +184,7 @@ next:
 		return YANG_ITER_CONTINUE;
 
 	LY_LIST_FOR (lysc_node_child(snode), child) {
-		ret = yang_snodes_iterate_subtree(child, module, cb, flags,
-						  arg);
+		ret = yang_snodes_iterate_subtree(child, module, cb, flags, arg);
 		if (ret == YANG_ITER_STOP)
 			return ret;
 	}
@@ -233,8 +229,7 @@ int yang_snodes_iterate(const struct lys_module *module, yang_iterate_cb cb,
 }
 
 void yang_snode_get_path(const struct lysc_node *snode,
-			 enum yang_path_type type, char *xpath,
-			 size_t xpath_len)
+			 enum yang_path_type type, char *xpath, size_t xpath_len)
 {
 	switch (type) {
 	case YANG_PATH_SCHEMA:
@@ -370,8 +365,7 @@ unsigned int yang_snode_num_keys(const struct lysc_node *snode)
 	return count;
 }
 
-void yang_dnode_get_path(const struct lyd_node *dnode, char *xpath,
-			 size_t xpath_len)
+void yang_dnode_get_path(const struct lyd_node *dnode, char *xpath, size_t xpath_len)
 {
 	lyd_path(dnode, LYD_PATH_STD, xpath, xpath_len);
 }
@@ -465,8 +459,7 @@ bool yang_dnode_exists(const struct lyd_node *dnode, const char *xpath)
 	return exists;
 }
 
-bool yang_dnode_existsf(const struct lyd_node *dnode, const char *xpath_fmt,
-			...)
+bool yang_dnode_existsf(const struct lyd_node *dnode, const char *xpath_fmt, ...)
 {
 	va_list ap;
 	char xpath[XPATH_MAXLEN];
@@ -479,8 +472,7 @@ bool yang_dnode_existsf(const struct lyd_node *dnode, const char *xpath_fmt,
 }
 
 void yang_dnode_iterate(yang_dnode_iter_cb cb, void *arg,
-			const struct lyd_node *dnode, const char *xpath_fmt,
-			...)
+			const struct lyd_node *dnode, const char *xpath_fmt, ...)
 {
 	va_list ap;
 	char xpath[XPATH_MAXLEN];
@@ -533,8 +525,7 @@ bool yang_dnode_is_default(const struct lyd_node *dnode, const char *xpath)
 	}
 }
 
-bool yang_dnode_is_defaultf(const struct lyd_node *dnode, const char *xpath_fmt,
-			    ...)
+bool yang_dnode_is_defaultf(const struct lyd_node *dnode, const char *xpath_fmt, ...)
 {
 	if (!xpath_fmt)
 		return yang_dnode_is_default(dnode, NULL);
@@ -822,14 +813,12 @@ const struct lyd_node *yang_dnode_get_parent(const struct lyd_node *dnode,
 
 bool yang_is_last_list_dnode(const struct lyd_node *dnode)
 {
-	return (((dnode->next == NULL)
-	     || (dnode->next
-		 && (strcmp(dnode->next->schema->name, dnode->schema->name)
-		     != 0)))
-	    && dnode->prev
-	    && ((dnode->prev == dnode)
-		|| (strcmp(dnode->prev->schema->name, dnode->schema->name)
-		    != 0)));
+	return (((dnode->next == NULL) ||
+		 (dnode->next &&
+		  (strcmp(dnode->next->schema->name, dnode->schema->name) != 0))) &&
+		dnode->prev &&
+		((dnode->prev == dnode) ||
+		 (strcmp(dnode->prev->schema->name, dnode->schema->name) != 0)));
 }
 
 bool yang_is_last_level_dnode(const struct lyd_node *dnode)
@@ -859,8 +848,7 @@ bool yang_is_last_level_dnode(const struct lyd_node *dnode)
 	return false;
 }
 
-const struct lyd_node *
-yang_get_subtree_with_no_sibling(const struct lyd_node *dnode)
+const struct lyd_node *yang_get_subtree_with_no_sibling(const struct lyd_node *dnode)
 {
 	bool parent = true;
 	const struct lyd_node *node;
@@ -873,9 +861,8 @@ yang_get_subtree_with_no_sibling(const struct lyd_node *dnode)
 		switch (node->schema->nodetype) {
 		case LYS_CONTAINER:
 			if (!CHECK_FLAG(node->schema->flags, LYS_PRESENCE)) {
-				if (node->parent
-				    && (node->parent->schema->module
-					== dnode->schema->module))
+				if (node->parent && (node->parent->schema->module ==
+						     dnode->schema->module))
 					node = lyd_parent(node);
 				else
 					parent = false;
@@ -883,11 +870,10 @@ yang_get_subtree_with_no_sibling(const struct lyd_node *dnode)
 				parent = false;
 			break;
 		case LYS_LIST:
-			if (yang_is_last_list_dnode(node)
-			    && yang_is_last_level_dnode(node)) {
-				if (node->parent
-				    && (node->parent->schema->module
-					== dnode->schema->module))
+			if (yang_is_last_list_dnode(node) &&
+			    yang_is_last_level_dnode(node)) {
+				if (node->parent && (node->parent->schema->module ==
+						     dnode->schema->module))
 					node = lyd_parent(node);
 				else
 					parent = false;
@@ -912,9 +898,8 @@ uint32_t yang_get_list_elements_count(const struct lyd_node *node)
 	unsigned int count;
 	const struct lysc_node *schema;
 
-	if (!node
-	    || ((node->schema->nodetype != LYS_LIST)
-		&& (node->schema->nodetype != LYS_LEAFLIST))) {
+	if (!node || ((node->schema->nodetype != LYS_LIST) &&
+		      (node->schema->nodetype != LYS_LEAFLIST))) {
 		return 0;
 	}
 

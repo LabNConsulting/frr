@@ -79,13 +79,13 @@ enum yang_path_type {
 
 enum yang_iter_flags {
 	/* Filter non-presence containers. */
-	YANG_ITER_FILTER_NPCONTAINERS = (1<<0),
+	YANG_ITER_FILTER_NPCONTAINERS = (1 << 0),
 
 	/* Filter list keys (leafs). */
-	YANG_ITER_FILTER_LIST_KEYS = (1<<1),
+	YANG_ITER_FILTER_LIST_KEYS = (1 << 1),
 
 	/* Filter RPC input/output nodes. */
-	YANG_ITER_FILTER_INPUT_OUTPUT = (1<<2),
+	YANG_ITER_FILTER_INPUT_OUTPUT = (1 << 2),
 };
 
 /* Callback used by the yang_snodes_iterate_*() family of functions. */
@@ -96,7 +96,7 @@ typedef int (*yang_dnode_iter_cb)(const struct lyd_node *dnode, void *arg);
 
 /* Return values of the 'yang_iterate_cb' callback. */
 #define YANG_ITER_CONTINUE 0
-#define YANG_ITER_STOP -1
+#define YANG_ITER_STOP	   -1
 
 /* Global libyang context for native FRR models. */
 extern struct ly_ctx *ly_native_ctx;
@@ -288,8 +288,7 @@ extern const char *yang_snode_get_default(const struct lysc_node *snode);
  *    The found type if the schema node represents a leaf or a leaf-list, NULL
  *    otherwise.
  */
-extern const struct lysc_type *
-yang_snode_get_type(const struct lysc_node *snode);
+extern const struct lysc_type *yang_snode_get_type(const struct lysc_node *snode);
 
 /*
  * Get the number of key nodes for the given list.
@@ -375,8 +374,7 @@ extern struct lyd_node *yang_dnode_get(const struct lyd_node *dnode,
  *    The libyang data node if found, or NULL if not found.
  */
 extern struct lyd_node *yang_dnode_getf(const struct lyd_node *dnode,
-					const char *path_fmt, ...)
-	PRINTFRR(2, 3);
+					const char *path_fmt, ...) PRINTFRR(2, 3);
 
 /*
  * Check if a libyang data node exists.
@@ -448,8 +446,7 @@ void yang_dnode_iterate(yang_dnode_iter_cb cb, void *arg,
  * Returns:
  *    true if the data node contains the default value, false otherwise.
  */
-extern bool yang_dnode_is_default(const struct lyd_node *dnode,
-				  const char *xpath);
+extern bool yang_dnode_is_default(const struct lyd_node *dnode, const char *xpath);
 
 /*
  * Check if the libyang data node contains a default value. Non-presence
@@ -653,8 +650,8 @@ extern void yang_terminate(void);
  *
  * Returns The dnode matched with the given name
  */
-extern const struct lyd_node *
-yang_dnode_get_parent(const struct lyd_node *dnode, const char *name);
+extern const struct lyd_node *yang_dnode_get_parent(const struct lyd_node *dnode,
+						    const char *name);
 
 
 /*

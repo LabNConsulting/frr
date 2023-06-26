@@ -38,7 +38,7 @@ struct nb_yang_xpath_elem {
 	struct nb_yang_value val;
 };
 
-#define NB_MAX_NUM_KEYS UINT8_MAX
+#define NB_MAX_NUM_KEYS	      UINT8_MAX
 #define NB_MAX_NUM_XPATH_TAGS UINT8_MAX
 
 struct nb_yang_xpath {
@@ -717,7 +717,7 @@ typedef int (*nb_oper_data_cb)(const struct lysc_node *snode,
 /* Hooks. */
 DECLARE_HOOK(nb_notification_send, (const char *xpath, struct list *arguments),
 	     (xpath, arguments));
-DECLARE_HOOK(nb_client_debug_config_write, (struct vty *vty), (vty));
+DECLARE_HOOK(nb_client_debug_config_write, (struct vty * vty), (vty));
 DECLARE_HOOK(nb_client_debug_set_all, (uint32_t flags, bool set), (flags, set));
 
 /* Northbound debugging records */
@@ -839,8 +839,7 @@ extern int nb_config_merge(struct nb_config *config_dst,
  *    operation.
  */
 extern void nb_config_replace(struct nb_config *config_dst,
-			      struct nb_config *config_src,
-			      bool preserve_source);
+			      struct nb_config *config_src, bool preserve_source);
 
 /*
  * Edit a candidate configuration.
@@ -1006,9 +1005,8 @@ extern void nb_config_diff(const struct nb_config *reference,
  * Returns:
  *    NB_OK on success, NB_ERR_VALIDATION otherwise
  */
-extern int nb_candidate_validate_yang(struct nb_config *candidate,
-				      bool no_state, char *errmsg,
-				      size_t errmsg_len);
+extern int nb_candidate_validate_yang(struct nb_config *candidate, bool no_state,
+				      char *errmsg, size_t errmsg_len);
 
 /*
  * Perform code-level validation using the northbound callbacks.
@@ -1121,9 +1119,8 @@ extern int nb_candidate_commit_prepare(struct nb_context context,
 				       struct nb_config *candidate,
 				       const char *comment,
 				       struct nb_transaction **transaction,
-				       bool skip_validate,
-				       bool ignore_zero_change, char *errmsg,
-				       size_t errmsg_len);
+				       bool skip_validate, bool ignore_zero_change,
+				       char *errmsg, size_t errmsg_len);
 
 /*
  * Abort a previously created configuration transaction, releasing all resources
@@ -1207,10 +1204,9 @@ extern void nb_candidate_commit_apply(struct nb_transaction *transaction,
  *    - NB_ERR for other errors.
  */
 extern int nb_candidate_commit(struct nb_context context,
-			       struct nb_config *candidate,
-			       bool save_transaction, const char *comment,
-			       uint32_t *transaction_id, char *errmsg,
-			       size_t errmsg_len);
+			       struct nb_config *candidate, bool save_transaction,
+			       const char *comment, uint32_t *transaction_id,
+			       char *errmsg, size_t errmsg_len);
 
 /*
  * Lock the running configuration.

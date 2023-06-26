@@ -66,8 +66,7 @@ struct timer_wheel {
  * and cause significant amount of time handling thread events instead
  * of running your code.
  */
-struct timer_wheel *wheel_init(struct event_loop *master, int period,
-			       size_t slots,
+struct timer_wheel *wheel_init(struct event_loop *master, int period, size_t slots,
 			       unsigned int (*slot_key)(const void *),
 			       void (*slot_run)(void *), const char *run_name);
 

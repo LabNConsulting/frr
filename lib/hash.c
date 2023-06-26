@@ -137,8 +137,7 @@ void *hash_get(struct hash *hash, void *data, void *(*alloc_func)(void *))
 	key = (*hash->hash_key)(data);
 	index = key & (hash->size - 1);
 
-	for (bucket = hash->index[index]; bucket != NULL;
-	     bucket = bucket->next) {
+	for (bucket = hash->index[index]; bucket != NULL; bucket = bucket->next) {
 		if (bucket->key == key && (*hash->hash_cmp)(bucket->data, data))
 			return bucket->data;
 	}
@@ -206,8 +205,7 @@ void *hash_release(struct hash *hash, void *data)
 	index = key & (hash->size - 1);
 
 	for (bucket = pp = hash->index[index]; bucket; bucket = bucket->next) {
-		if (bucket->key == key
-		    && (*hash->hash_cmp)(bucket->data, data)) {
+		if (bucket->key == key && (*hash->hash_cmp)(bucket->data, data)) {
 			int oldlen = hash->index[index]->len;
 			int newlen = oldlen - 1;
 
@@ -342,13 +340,10 @@ void hash_free(struct hash *hash)
 
 /* CLI commands ------------------------------------------------------------ */
 
-DEFUN_NOSH(show_hash_stats,
-           show_hash_stats_cmd,
-           "show debugging hashtable [statistics]",
-           SHOW_STR
-           DEBUG_STR
-           "Statistics about hash tables\n"
-           "Statistics about hash tables\n")
+DEFUN_NOSH(show_hash_stats, show_hash_stats_cmd,
+	   "show debugging hashtable [statistics]",
+	   SHOW_STR DEBUG_STR "Statistics about hash tables\n"
+			      "Statistics about hash tables\n")
 {
 	struct hash *h;
 	struct listnode *ln;
@@ -392,7 +387,7 @@ DEFUN_NOSH(show_hash_stats,
 	double stdv;  // overall stddev
 	double fstdv; // full stddev
 
-	long double x2;   // h->count ^ 2
+	long double x2;	  // h->count ^ 2
 	long double ldc;  // (long double) h->count
 	long double full; // h->size - h->stats.empty
 	long double ssq;  // ssq casted to long double

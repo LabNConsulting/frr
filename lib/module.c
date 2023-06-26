@@ -86,12 +86,12 @@ struct frrmod_runtime *frrmod_load(const char *spec, const char *dir,
 
 	memset(aErr, 0, sizeof(aErr));
 
-#define ERR_RECORD(...)                                                        \
-	do {                                                                   \
-		if (pFerrlog && (iErr < FRRMOD_LOAD_N_ERRSTR)) {               \
-			aErr[iErr++] = asprintfrr(MTYPE_MODULE_LOAD_ERR,       \
-						  __VA_ARGS__);                \
-		}                                                              \
+#define ERR_RECORD(...)                                                         \
+	do {                                                                    \
+		if (pFerrlog && (iErr < FRRMOD_LOAD_N_ERRSTR)) {                \
+			aErr[iErr++] =                                          \
+				asprintfrr(MTYPE_MODULE_LOAD_ERR, __VA_ARGS__); \
+		}                                                               \
 	} while (0)
 
 #define ERR_REPORT                                                             \
@@ -131,8 +131,7 @@ struct frrmod_runtime *frrmod_load(const char *spec, const char *dir,
 					   fullpath, dlerror());
 		}
 		if (!handle) {
-			snprintf(fullpath, sizeof(fullpath), "%s/%s.so", dir,
-				 name);
+			snprintf(fullpath, sizeof(fullpath), "%s/%s.so", dir, name);
 			handle = dlopen(fullpath, RTLD_NOW | RTLD_GLOBAL);
 			if (!handle)
 				ERR_RECORD("loader error: dlopen(%s): %s",

@@ -27,8 +27,8 @@ extern "C" {
 /* Definitions and macros. */
 
 #define NHLFE_FAMILY(nhlfe)                                                    \
-	(((nhlfe)->nexthop->type == NEXTHOP_TYPE_IPV6                          \
-	  || (nhlfe)->nexthop->type == NEXTHOP_TYPE_IPV6_IFINDEX)              \
+	(((nhlfe)->nexthop->type == NEXTHOP_TYPE_IPV6 ||                       \
+	  (nhlfe)->nexthop->type == NEXTHOP_TYPE_IPV6_IFINDEX)                 \
 		 ? AF_INET6                                                    \
 		 : AF_INET)
 
@@ -50,12 +50,12 @@ struct zebra_nhlfe {
 
 	/* Runtime info - flags, pointers etc. */
 	uint32_t flags;
-#define NHLFE_FLAG_CHANGED     (1 << 0)
-#define NHLFE_FLAG_SELECTED    (1 << 1)
-#define NHLFE_FLAG_MULTIPATH   (1 << 2)
-#define NHLFE_FLAG_DELETED     (1 << 3)
-#define NHLFE_FLAG_INSTALLED   (1 << 4)
-#define NHLFE_FLAG_IS_BACKUP   (1 << 5)
+#define NHLFE_FLAG_CHANGED   (1 << 0)
+#define NHLFE_FLAG_SELECTED  (1 << 1)
+#define NHLFE_FLAG_MULTIPATH (1 << 2)
+#define NHLFE_FLAG_DELETED   (1 << 3)
+#define NHLFE_FLAG_INSTALLED (1 << 4)
+#define NHLFE_FLAG_IS_BACKUP (1 << 5)
 
 	uint8_t distance;
 
@@ -91,10 +91,10 @@ struct zebra_lsp {
 
 	/* Flags */
 	uint32_t flags;
-#define LSP_FLAG_SCHEDULED        (1 << 0)
-#define LSP_FLAG_INSTALLED        (1 << 1)
-#define LSP_FLAG_CHANGED          (1 << 2)
-#define LSP_FLAG_FPM              (1 << 3)
+#define LSP_FLAG_SCHEDULED (1 << 0)
+#define LSP_FLAG_INSTALLED (1 << 1)
+#define LSP_FLAG_CHANGED   (1 << 2)
+#define LSP_FLAG_FPM	   (1 << 3)
 
 	/* Address-family of NHLFE - saved here for delete. All NHLFEs */
 	/* have to be of the same AF */
@@ -116,7 +116,7 @@ struct zebra_fec {
 
 	/* Flags. */
 	uint32_t flags;
-#define FEC_FLAG_CONFIGURED       (1 << 0)
+#define FEC_FLAG_CONFIGURED (1 << 0)
 
 	/* Clients interested in this FEC. */
 	struct list *client_list;
@@ -290,8 +290,7 @@ struct zebra_lsp *mpls_lsp_find(struct zebra_vrf *zvrf, mpls_label_t in_label);
  */
 int mpls_lsp_uninstall(struct zebra_vrf *zvrf, enum lsp_types_t type,
 		       mpls_label_t in_label, enum nexthop_types_t gtype,
-		       const union g_addr *gate, ifindex_t ifindex,
-		       bool backup_p);
+		       const union g_addr *gate, ifindex_t ifindex, bool backup_p);
 
 /*
  * Uninstall all NHLFEs for a particular LSP forwarding entry.
@@ -307,8 +306,7 @@ int mpls_lsp_uninstall_all_vrf(struct zebra_vrf *zvrf, enum lsp_types_t type,
  * to current HW restrictions.
  */
 int zebra_mpls_lsp_label_consistent(struct zebra_vrf *zvrf,
-				    mpls_label_t in_label,
-				    mpls_label_t out_label,
+				    mpls_label_t in_label, mpls_label_t out_label,
 				    enum nexthop_types_t gtype,
 				    union g_addr *gate, ifindex_t ifindex);
 #endif /* HAVE_CUMULUS */
@@ -321,9 +319,8 @@ int zebra_mpls_lsp_label_consistent(struct zebra_vrf *zvrf,
  * NHLFEs).
  */
 int zebra_mpls_static_lsp_add(struct zebra_vrf *zvrf, mpls_label_t in_label,
-			      mpls_label_t out_label,
-			      enum nexthop_types_t gtype, union g_addr *gate,
-			      ifindex_t ifindex);
+			      mpls_label_t out_label, enum nexthop_types_t gtype,
+			      union g_addr *gate, ifindex_t ifindex);
 
 /*
  * Delete static LSP entry. This may be the delete of one particular

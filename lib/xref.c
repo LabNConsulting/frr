@@ -26,8 +26,7 @@ static struct xref_block **xref_block_last = &xref_blocks;
 
 struct xrefdata_uid_head xrefdata_uid = INIT_RBTREE_UNIQ(xrefdata_uid);
 
-static void base32(uint8_t **inpos, int *bitpos,
-		   char *out, size_t n_chars)
+static void base32(uint8_t **inpos, int *bitpos, char *out, size_t n_chars)
 {
 	static const char base32ch[] = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 
@@ -88,8 +87,7 @@ static void xref_add_one(const struct xref *xref)
 
 	SHA256_Init(&sha);
 	SHA256_Update(&sha, filename, strlen(filename));
-	SHA256_Update(&sha, xrefdata->hashstr,
-		      strlen(xrefdata->hashstr));
+	SHA256_Update(&sha, xrefdata->hashstr, strlen(xrefdata->hashstr));
 	be_val = htonl(xrefdata->hashu32[0]);
 	SHA256_Update(&sha, &be_val, sizeof(be_val));
 	be_val = htonl(xrefdata->hashu32[1]);
@@ -111,7 +109,7 @@ void xref_gcc_workaround(const struct xref *xref)
 
 void xref_block_add(struct xref_block *block)
 {
-	const struct xref * const *xrefp;
+	const struct xref *const *xrefp;
 
 	*xref_block_last = block;
 	xref_block_last = &block->next;

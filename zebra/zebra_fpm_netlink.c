@@ -37,7 +37,6 @@
 static size_t af_addr_size(uint8_t af)
 {
 	switch (af) {
-
 	case AF_INET:
 		return 4;
 	case AF_INET6:
@@ -168,15 +167,15 @@ static int netlink_route_info_add_nh(struct netlink_route_info *ri,
 	nhi.if_index = nexthop->ifindex;
 	nhi.weight = nexthop->weight;
 
-	if (nexthop->type == NEXTHOP_TYPE_IPV4
-	    || nexthop->type == NEXTHOP_TYPE_IPV4_IFINDEX) {
+	if (nexthop->type == NEXTHOP_TYPE_IPV4 ||
+	    nexthop->type == NEXTHOP_TYPE_IPV4_IFINDEX) {
 		nhi.gateway = &nexthop->gate;
 		if (nexthop->src.ipv4.s_addr != INADDR_ANY)
 			src = &nexthop->src;
 	}
 
-	if (nexthop->type == NEXTHOP_TYPE_IPV6
-	    || nexthop->type == NEXTHOP_TYPE_IPV6_IFINDEX) {
+	if (nexthop->type == NEXTHOP_TYPE_IPV6 ||
+	    nexthop->type == NEXTHOP_TYPE_IPV6_IFINDEX) {
 		/* Special handling for IPv4 route with IPv6 Link Local next hop
 		 */
 		if (ri->af == AF_INET)
@@ -207,13 +206,11 @@ static int netlink_route_info_add_nh(struct netlink_route_info *ri,
 					if (IS_ZEBRA_IF_BRIDGE(ifp))
 						link_if = ifp;
 					else if (IS_ZEBRA_IF_VLAN(ifp))
-						link_if =
-						if_lookup_by_index_per_ns(
+						link_if = if_lookup_by_index_per_ns(
 							zvrf->zns,
 							zif->link_ifindex);
 					if (link_if)
-						vni = vni_id_from_svi(ifp,
-								      link_if);
+						vni = vni_id_from_svi(ifp, link_if);
 				}
 			}
 		}
@@ -303,10 +300,10 @@ static int netlink_route_info_fill(struct netlink_route_info *ri, int cmd,
 			}
 		}
 
-		if ((cmd == RTM_NEWROUTE
-		     && CHECK_FLAG(nexthop->flags, NEXTHOP_FLAG_ACTIVE))
-		    || (cmd == RTM_DELROUTE
-			&& CHECK_FLAG(re->status, ROUTE_ENTRY_INSTALLED))) {
+		if ((cmd == RTM_NEWROUTE &&
+		     CHECK_FLAG(nexthop->flags, NEXTHOP_FLAG_ACTIVE)) ||
+		    (cmd == RTM_DELROUTE &&
+		     CHECK_FLAG(re->status, ROUTE_ENTRY_INSTALLED))) {
 			netlink_route_info_add_nh(ri, nexthop, re);
 		}
 	}
@@ -319,8 +316,7 @@ static int netlink_route_info_fill(struct netlink_route_info *ri, int cmd,
 			break;
 		default:
 			/* If there is no useful nexthop then return. */
-			zfpm_debug(
-				"netlink_encode_route(): No useful nexthop.");
+			zfpm_debug("netlink_encode_route(): No useful nexthop.");
 			return 0;
 		}
 	}
@@ -390,8 +386,7 @@ static int netlink_route_info_encode(struct netlink_route_info *ri,
 	req->r.rtm_protocol = ri->rtm_protocol;
 	req->r.rtm_scope = RT_SCOPE_UNIVERSE;
 
-	nl_attr_put(&req->n, in_buf_len, RTA_DST, &ri->prefix->u.prefix,
-		    bytelen);
+	nl_attr_put(&req->n, in_buf_len, RTA_DST, &ri->prefix->u.prefix, bytelen);
 
 	req->r.rtm_type = ri->rtm_type;
 
@@ -406,10 +401,9 @@ static int netlink_route_info_encode(struct netlink_route_info *ri,
 		nhi = &ri->nhs[0];
 
 		if (nhi->gateway) {
-			if (nhi->type == NEXTHOP_TYPE_IPV4_IFINDEX
-			    && ri->af == AF_INET6) {
-				ipv4_to_ipv4_mapped_ipv6(&ipv6,
-							 nhi->gateway->ipv4);
+			if (nhi->type == NEXTHOP_TYPE_IPV4_IFINDEX &&
+			    ri->af == AF_INET6) {
+				ipv4_to_ipv4_mapped_ipv6(&ipv6, nhi->gateway->ipv4);
 				nl_attr_put(&req->n, in_buf_len, RTA_GATEWAY,
 					    &ipv6, bytelen);
 			} else
@@ -418,8 +412,7 @@ static int netlink_route_info_encode(struct netlink_route_info *ri,
 		}
 
 		if (nhi->if_index) {
-			nl_attr_put32(&req->n, in_buf_len, RTA_OIF,
-				      nhi->if_index);
+			nl_attr_put32(&req->n, in_buf_len, RTA_OIF, nhi->if_index);
 		}
 
 		encap = nhi->encap_info.encap_type;
@@ -428,12 +421,10 @@ static int netlink_route_info_encode(struct netlink_route_info *ri,
 		case FPM_NH_ENCAP_MAX:
 			break;
 		case FPM_NH_ENCAP_VXLAN:
-			nl_attr_put16(&req->n, in_buf_len, RTA_ENCAP_TYPE,
-				      encap);
+			nl_attr_put16(&req->n, in_buf_len, RTA_ENCAP_TYPE, encap);
 			vxlan = &nhi->encap_info.vxlan_encap;
 			nest = nl_attr_nest(&req->n, in_buf_len, RTA_ENCAP);
-			nl_attr_put32(&req->n, in_buf_len, VXLAN_VNI,
-				      vxlan->vni);
+			nl_attr_put32(&req->n, in_buf_len, VXLAN_VNI, vxlan->vni);
 			nl_attr_nest_end(&req->n, nest);
 			break;
 		}
@@ -466,13 +457,10 @@ static int netlink_route_info_encode(struct netlink_route_info *ri,
 		case FPM_NH_ENCAP_MAX:
 			break;
 		case FPM_NH_ENCAP_VXLAN:
-			nl_attr_put16(&req->n, in_buf_len, RTA_ENCAP_TYPE,
-				      encap);
+			nl_attr_put16(&req->n, in_buf_len, RTA_ENCAP_TYPE, encap);
 			vxlan = &nhi->encap_info.vxlan_encap;
-			inner_nest =
-				nl_attr_nest(&req->n, in_buf_len, RTA_ENCAP);
-			nl_attr_put32(&req->n, in_buf_len, VXLAN_VNI,
-				      vxlan->vni);
+			inner_nest = nl_attr_nest(&req->n, in_buf_len, RTA_ENCAP);
+			nl_attr_put32(&req->n, in_buf_len, VXLAN_VNI, vxlan->vni);
 			nl_attr_nest_end(&req->n, inner_nest);
 			break;
 		}
@@ -499,8 +487,7 @@ done:
  *
  * Helper function to log the information in a route_info structure.
  */
-static void zfpm_log_route_info(struct netlink_route_info *ri,
-				const char *label)
+static void zfpm_log_route_info(struct netlink_route_info *ri, const char *label)
 {
 	struct netlink_nh_info *nhi;
 	unsigned int i;
@@ -516,19 +503,16 @@ static void zfpm_log_route_info(struct netlink_route_info *ri,
 
 		if (nhi->gateway) {
 			if (ri->af == AF_INET)
-				inet_ntop(AF_INET, nhi->gateway, buf,
-					  sizeof(buf));
+				inet_ntop(AF_INET, nhi->gateway, buf, sizeof(buf));
 			else
-				inet_ntop(AF_INET6, nhi->gateway, buf,
-					  sizeof(buf));
+				inet_ntop(AF_INET6, nhi->gateway, buf, sizeof(buf));
 		} else
 			strlcpy(buf, "none", sizeof(buf));
 
 		zfpm_debug("  Intf: %u, Gateway: %s, Recursive: %s, Type: %s, Encap type: %s",
 			   nhi->if_index, buf, nhi->recursive ? "yes" : "no",
 			   nexthop_type_to_str(nhi->type),
-			   fpm_nh_encap_type_to_str(nhi->encap_info.encap_type)
-			   );
+			   fpm_nh_encap_type_to_str(nhi->encap_info.encap_type));
 	}
 }
 
@@ -573,7 +557,7 @@ int zfpm_netlink_encode_mac(struct fpm_mac_info_t *mac, char *in_buf,
 		struct nlmsghdr hdr;
 		struct ndmsg ndm;
 		char buf[0];
-	} *req;
+	} * req;
 	req = (void *)in_buf;
 
 	buf_offset = offsetof(struct macmsg, buf);
@@ -583,8 +567,9 @@ int zfpm_netlink_encode_mac(struct fpm_mac_info_t *mac, char *in_buf,
 
 	/* Construct nlmsg header */
 	req->hdr.nlmsg_len = NLMSG_LENGTH(sizeof(struct ndmsg));
-	req->hdr.nlmsg_type = CHECK_FLAG(mac->fpm_flags, ZEBRA_MAC_DELETE_FPM) ?
-				RTM_DELNEIGH : RTM_NEWNEIGH;
+	req->hdr.nlmsg_type = CHECK_FLAG(mac->fpm_flags, ZEBRA_MAC_DELETE_FPM)
+				      ? RTM_DELNEIGH
+				      : RTM_NEWNEIGH;
 	req->hdr.nlmsg_flags = NLM_F_REQUEST;
 	if (req->hdr.nlmsg_type == RTM_NEWNEIGH)
 		req->hdr.nlmsg_flags |= (NLM_F_CREATE | NLM_F_REPLACE);
@@ -596,7 +581,7 @@ int zfpm_netlink_encode_mac(struct fpm_mac_info_t *mac, char *in_buf,
 	req->ndm.ndm_state = NUD_REACHABLE;
 	req->ndm.ndm_flags |= NTF_SELF | NTF_MASTER;
 	if (CHECK_FLAG(mac->zebra_flags,
-		(ZEBRA_MAC_STICKY | ZEBRA_MAC_REMOTE_DEF_GW)))
+		       (ZEBRA_MAC_STICKY | ZEBRA_MAC_REMOTE_DEF_GW)))
 		req->ndm.ndm_state |= NUD_NOARP;
 	else
 		req->ndm.ndm_flags |= NTF_EXT_LEARNED;

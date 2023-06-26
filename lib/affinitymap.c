@@ -47,7 +47,7 @@ DEFINE_MTYPE_STATIC(LIB, AFFINITY_MAP_INDEX, "Affinity map index");
 DEFINE_QOBJ_TYPE(affinity_maps);
 DEFINE_QOBJ_TYPE(affinity_map);
 
-struct affinity_maps affinity_map_master = {NULL, NULL, NULL, NULL};
+struct affinity_maps affinity_map_master = { NULL, NULL, NULL, NULL };
 
 static void affinity_map_free(struct affinity_map *map)
 {
@@ -149,8 +149,7 @@ void affinity_map_update_hook(const char *affmap_name, uint16_t new_pos)
 		/* Affinity-map creation */
 		return;
 
-	(*affinity_map_master.update_hook)(affmap_name, map->bit_position,
-					   new_pos);
+	(*affinity_map_master.update_hook)(affmap_name, map->bit_position, new_pos);
 }
 
 
@@ -166,8 +165,7 @@ void affinity_map_set_check_update_hook(bool (*func)(const char *affmap_name,
 }
 
 void affinity_map_set_update_hook(void (*func)(const char *affmap_name,
-					       uint16_t old_pos,
-					       uint16_t new_pos))
+					       uint16_t old_pos, uint16_t new_pos))
 {
 	affinity_map_master.update_hook = func;
 }

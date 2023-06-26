@@ -32,8 +32,7 @@ struct zlt_live {
 	atomic_uint_fast32_t lost_msgs;
 };
 
-static void zlog_live(struct zlog_target *zt, struct zlog_msg *msgs[],
-		      size_t nmsgs)
+static void zlog_live(struct zlog_target *zt, struct zlog_msg *msgs[], size_t nmsgs)
 {
 	struct zlt_live *zte = container_of(zt, struct zlt_live, zt);
 	struct zlog_live_hdr hdrs[nmsgs], *hdr = hdrs;
@@ -137,15 +136,14 @@ out_err:
 	zlog_target_replace(zt, NULL);
 
 	state = STATE_NORMAL;
-	atomic_compare_exchange_strong_explicit(
-		&zte->state, &state, STATE_FD_DEAD, memory_order_relaxed,
-		memory_order_relaxed);
+	atomic_compare_exchange_strong_explicit(&zte->state, &state, STATE_FD_DEAD,
+						memory_order_relaxed,
+						memory_order_relaxed);
 	if (state == STATE_DISOWNED)
 		rcu_free(MTYPE_LOG_LIVE, zte, head_self);
 }
 
-static void zlog_live_sigsafe(struct zlog_target *zt, const char *text,
-			      size_t len)
+static void zlog_live_sigsafe(struct zlog_target *zt, const char *text, size_t len)
 {
 	struct zlt_live *zte = container_of(zt, struct zlt_live, zt);
 	struct zlog_live_hdr hdr[1] = {};
@@ -258,9 +256,9 @@ void zlog_live_disown(struct zlog_live_cfg *cfg)
 	cfg->target = NULL;
 
 	state = STATE_NORMAL;
-	atomic_compare_exchange_strong_explicit(
-		&zte->state, &state, STATE_DISOWNED, memory_order_relaxed,
-		memory_order_relaxed);
+	atomic_compare_exchange_strong_explicit(&zte->state, &state, STATE_DISOWNED,
+						memory_order_relaxed,
+						memory_order_relaxed);
 	if (state == STATE_FD_DEAD)
 		rcu_free(MTYPE_LOG_LIVE, zte, head_self);
 }

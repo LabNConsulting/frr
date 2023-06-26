@@ -8,10 +8,10 @@
 #define _ZEBRA_PTM_H
 
 extern const char ZEBRA_PTM_SOCK_NAME[];
-#define ZEBRA_PTM_MAX_SOCKBUF 3200 /* 25B *128 ports */
+#define ZEBRA_PTM_MAX_SOCKBUF	   3200 /* 25B *128 ports */
 #define ZEBRA_PTM_SEND_MAX_SOCKBUF 512
 
-#define ZEBRA_PTM_BFD_CLIENT_FLAG_REG   (1 << 1) /* client registered with BFD */
+#define ZEBRA_PTM_BFD_CLIENT_FLAG_REG (1 << 1) /* client registered with BFD */
 
 #include "zebra/zserv.h"
 #include "zebra/interface.h"
@@ -39,20 +39,19 @@ struct zebra_ptm_cb {
 	uint8_t client_flags[ZEBRA_ROUTE_MAX];
 };
 
-#define ZEBRA_PTM_STATUS_DOWN 0
-#define ZEBRA_PTM_STATUS_UP 1
+#define ZEBRA_PTM_STATUS_DOWN	 0
+#define ZEBRA_PTM_STATUS_UP	 1
 #define ZEBRA_PTM_STATUS_UNKNOWN 2
 
 /* For interface ptm-enable configuration. */
-#define ZEBRA_IF_PTM_ENABLE_OFF    0
-#define ZEBRA_IF_PTM_ENABLE_ON     1
+#define ZEBRA_IF_PTM_ENABLE_OFF	   0
+#define ZEBRA_IF_PTM_ENABLE_ON	   1
 #define ZEBRA_IF_PTM_ENABLE_UNSPEC 2
 
-#define IS_BFD_ENABLED_PROTOCOL(protocol)                                      \
-	((protocol) == ZEBRA_ROUTE_BGP || (protocol) == ZEBRA_ROUTE_OSPF ||    \
-	 (protocol) == ZEBRA_ROUTE_OSPF6 || (protocol) == ZEBRA_ROUTE_ISIS ||  \
-	 (protocol) == ZEBRA_ROUTE_PIM ||                                      \
-	 (protocol) == ZEBRA_ROUTE_OPENFABRIC ||                               \
+#define IS_BFD_ENABLED_PROTOCOL(protocol)                                         \
+	((protocol) == ZEBRA_ROUTE_BGP || (protocol) == ZEBRA_ROUTE_OSPF ||       \
+	 (protocol) == ZEBRA_ROUTE_OSPF6 || (protocol) == ZEBRA_ROUTE_ISIS ||     \
+	 (protocol) == ZEBRA_ROUTE_PIM || (protocol) == ZEBRA_ROUTE_OPENFABRIC || \
 	 (protocol) == ZEBRA_ROUTE_STATIC || (protocol) == ZEBRA_ROUTE_RIP)
 
 void zebra_ptm_init(void);
@@ -72,8 +71,7 @@ void zebra_ptm_bfd_dst_replay(ZAPI_HANDLER_ARGS);
 void zebra_ptm_show_status(struct vty *vty, json_object *json,
 			   struct interface *ifp);
 void zebra_ptm_if_init(struct zebra_if *zebra_ifp);
-void zebra_ptm_if_set_ptm_state(struct interface *ifp,
-				struct zebra_if *zebra_ifp);
+void zebra_ptm_if_set_ptm_state(struct interface *ifp, struct zebra_if *zebra_ifp);
 void zebra_ptm_if_write(struct vty *vty, struct zebra_if *zebra_ifp);
 
 #ifdef __cplusplus

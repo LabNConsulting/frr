@@ -21,8 +21,7 @@ struct host_rb_entry {
 };
 
 RB_HEAD(host_rb_tree_entry, host_rb_entry);
-RB_PROTOTYPE(host_rb_tree_entry, host_rb_entry, hl_entry,
-	     host_rb_entry_compare);
+RB_PROTOTYPE(host_rb_tree_entry, host_rb_entry, hl_entry, host_rb_entry_compare);
 /*
  * MAC hash table.
  *
@@ -41,16 +40,16 @@ struct zebra_mac {
 
 	/* When modifying flags please fixup zebra_evpn_zebra_mac_flag_dump */
 	uint32_t flags;
-#define ZEBRA_MAC_LOCAL 0x01
-#define ZEBRA_MAC_REMOTE 0x02
-#define ZEBRA_MAC_AUTO 0x04	/* Auto created for neighbor. */
-#define ZEBRA_MAC_STICKY 0x08      /* Static MAC */
+#define ZEBRA_MAC_LOCAL	      0x01
+#define ZEBRA_MAC_REMOTE      0x02
+#define ZEBRA_MAC_AUTO	      0x04 /* Auto created for neighbor. */
+#define ZEBRA_MAC_STICKY      0x08 /* Static MAC */
 #define ZEBRA_MAC_REMOTE_RMAC 0x10 /* remote router mac */
-#define ZEBRA_MAC_DEF_GW 0x20
+#define ZEBRA_MAC_DEF_GW      0x20
 /* remote VTEP advertised MAC as default GW */
 #define ZEBRA_MAC_REMOTE_DEF_GW 0x40
-#define ZEBRA_MAC_DUPLICATE 0x80
-#define ZEBRA_MAC_FPM_SENT 0x100 /* whether or not this entry was sent. */
+#define ZEBRA_MAC_DUPLICATE	0x80
+#define ZEBRA_MAC_FPM_SENT	0x100 /* whether or not this entry was sent. */
 /* MAC is locally active on an ethernet segment peer */
 #define ZEBRA_MAC_ES_PEER_ACTIVE 0x200
 /* MAC has been proxy-advertised by peers. This means we need to
@@ -136,15 +135,15 @@ struct zebra_mac {
  */
 struct mac_walk_ctx {
 	struct zebra_evpn *zevpn; /* EVPN hash */
-	struct zebra_vrf *zvrf; /* VRF - for client notification. */
-	int uninstall;		/* uninstall from kernel? */
-	int upd_client;		/* uninstall from client? */
+	struct zebra_vrf *zvrf;	  /* VRF - for client notification. */
+	int uninstall;		  /* uninstall from kernel? */
+	int upd_client;		  /* uninstall from client? */
 
 	uint32_t flags;
-#define DEL_LOCAL_MAC 0x1
-#define DEL_REMOTE_MAC 0x2
-#define DEL_ALL_MAC (DEL_LOCAL_MAC | DEL_REMOTE_MAC)
-#define DEL_REMOTE_MAC_FROM_VTEP 0x4
+#define DEL_LOCAL_MAC		  0x1
+#define DEL_REMOTE_MAC		  0x2
+#define DEL_ALL_MAC		  (DEL_LOCAL_MAC | DEL_REMOTE_MAC)
+#define DEL_REMOTE_MAC_FROM_VTEP  0x4
 #define SHOW_REMOTE_MAC_FROM_VTEP 0x8
 
 	struct in_addr r_vtep_ip; /* To walk MACs from specific VTEP */
@@ -174,9 +173,8 @@ static inline bool zebra_evpn_mac_is_static(struct zebra_mac *mac)
 /* mac needs to be locally active or active on an ES peer */
 static inline bool zebra_evpn_mac_is_ready_for_bgp(uint32_t flags)
 {
-	return (flags & ZEBRA_MAC_LOCAL)
-	       && (!(flags & ZEBRA_MAC_LOCAL_INACTIVE)
-		   || (flags & ZEBRA_MAC_ES_PEER_ACTIVE));
+	return (flags & ZEBRA_MAC_LOCAL) && (!(flags & ZEBRA_MAC_LOCAL_INACTIVE) ||
+					     (flags & ZEBRA_MAC_ES_PEER_ACTIVE));
 }
 
 void zebra_evpn_mac_stop_hold_timer(struct zebra_mac *mac);
@@ -189,8 +187,8 @@ static inline void zebra_evpn_mac_clear_sync_info(struct zebra_mac *mac)
 
 static inline bool zebra_evpn_mac_in_use(struct zebra_mac *mac)
 {
-	return !list_isempty(mac->neigh_list)
-	       || CHECK_FLAG(mac->flags, ZEBRA_MAC_SVI);
+	return !list_isempty(mac->neigh_list) ||
+	       CHECK_FLAG(mac->flags, ZEBRA_MAC_SVI);
 }
 
 struct hash *zebra_mac_db_create(const char *desc);
@@ -208,8 +206,7 @@ struct zebra_mac *zebra_evpn_mac_add(struct zebra_evpn *zevi,
 struct zebra_mac *zebra_evpn_mac_add_auto(struct zebra_evpn *zevi,
 					  const struct ethaddr *macaddr);
 int zebra_evpn_mac_del(struct zebra_evpn *zevi, struct zebra_mac *mac);
-int zebra_evpn_macip_send_msg_to_client(uint32_t id,
-					const struct ethaddr *macaddr,
+int zebra_evpn_macip_send_msg_to_client(uint32_t id, const struct ethaddr *macaddr,
 					const struct ipaddr *ip, uint8_t flags,
 					uint32_t seq, int state,
 					struct zebra_evpn_es *es, uint16_t cmd);
@@ -219,8 +216,7 @@ void zebra_evpn_print_mac_hash_detail(struct hash_bucket *bucket, void *ctxt);
 int zebra_evpn_sync_mac_dp_install(struct zebra_mac *mac, bool set_inactive,
 				   bool force_clear_static, const char *caller);
 void zebra_evpn_mac_send_add_del_to_client(struct zebra_mac *mac,
-					   bool old_bgp_ready,
-					   bool new_bgp_ready);
+					   bool old_bgp_ready, bool new_bgp_ready);
 
 void zebra_evpn_mac_del_all(struct zebra_evpn *zevi, int uninstall,
 			    int upd_client, uint32_t flags);
@@ -239,8 +235,7 @@ struct zebra_mac *zebra_evpn_proc_sync_mac_update(struct zebra_evpn *zevi,
 void zebra_evpn_sync_mac_del(struct zebra_mac *mac);
 void zebra_evpn_rem_mac_del(struct zebra_evpn *zevi, struct zebra_mac *mac);
 void zebra_evpn_print_dad_mac_hash(struct hash_bucket *bucket, void *ctxt);
-void zebra_evpn_print_dad_mac_hash_detail(struct hash_bucket *bucket,
-					  void *ctxt);
+void zebra_evpn_print_dad_mac_hash_detail(struct hash_bucket *bucket, void *ctxt);
 int zebra_evpn_mac_remote_macip_add(struct zebra_evpn *zevpn,
 				    struct zebra_vrf *zvrf,
 				    const struct ethaddr *macaddr,
@@ -248,17 +243,14 @@ int zebra_evpn_mac_remote_macip_add(struct zebra_evpn *zevpn,
 				    uint32_t seq, const esi_t *esi);
 
 int zebra_evpn_add_update_local_mac(struct zebra_vrf *zvrf,
-				    struct zebra_evpn *zevpn,
-				    struct interface *ifp,
+				    struct zebra_evpn *zevpn, struct interface *ifp,
 				    const struct ethaddr *macaddr, vlanid_t vid,
 				    bool sticky, bool local_inactive,
 				    bool dp_static, struct zebra_mac *mac);
 int zebra_evpn_del_local_mac(struct zebra_evpn *zevpn, struct zebra_mac *mac,
 			     bool clear_static);
-void zebra_evpn_mac_gw_macip_add(struct interface *ifp,
-				 struct zebra_evpn *zevpn,
-				 const struct ipaddr *ip,
-				 struct zebra_mac **macp,
+void zebra_evpn_mac_gw_macip_add(struct interface *ifp, struct zebra_evpn *zevpn,
+				 const struct ipaddr *ip, struct zebra_mac **macp,
 				 const struct ethaddr *macaddr,
 				 vlanid_t vlan_id, bool def_gw);
 void zebra_evpn_mac_svi_add(struct interface *ifp, struct zebra_evpn *zevpn);

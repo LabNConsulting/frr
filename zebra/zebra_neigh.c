@@ -62,8 +62,7 @@ static int zebra_neigh_rb_cmp(const struct zebra_neigh_ent *n1,
 }
 RB_GENERATE(zebra_neigh_rb_head, zebra_neigh_ent, rb_node, zebra_neigh_rb_cmp);
 
-static struct zebra_neigh_ent *zebra_neigh_find(ifindex_t ifindex,
-						struct ipaddr *ip)
+static struct zebra_neigh_ent *zebra_neigh_find(ifindex_t ifindex, struct ipaddr *ip)
 {
 	struct zebra_neigh_ent tmp;
 
@@ -153,8 +152,7 @@ void zebra_neigh_del(struct interface *ifp, struct ipaddr *ip)
 }
 
 /* kernel neigh add */
-void zebra_neigh_add(struct interface *ifp, struct ipaddr *ip,
-		     struct ethaddr *mac)
+void zebra_neigh_add(struct interface *ifp, struct ipaddr *ip, struct ethaddr *mac)
 {
 	struct zebra_neigh_ent *n;
 
@@ -203,8 +201,7 @@ static void zebra_neigh_read_on_first_ref(void)
 	}
 }
 
-void zebra_neigh_ref(int ifindex, struct ipaddr *ip,
-		     struct zebra_pbr_rule *rule)
+void zebra_neigh_ref(int ifindex, struct ipaddr *ip, struct zebra_pbr_rule *rule)
 {
 	struct zebra_neigh_ent *n;
 
@@ -235,8 +232,7 @@ static void zebra_neigh_show_one(struct vty *vty, struct zebra_neigh_ent *n)
 	char ip_buf[INET6_ADDRSTRLEN];
 	struct interface *ifp;
 
-	ifp = if_lookup_by_index_per_ns(zebra_ns_lookup(NS_DEFAULT),
-					n->ifindex);
+	ifp = if_lookup_by_index_per_ns(zebra_ns_lookup(NS_DEFAULT), n->ifindex);
 	ipaddr2str(&n->ip, ip_buf, sizeof(ip_buf));
 	prefix_mac2str(&n->mac, mac_buf, sizeof(mac_buf));
 	vty_out(vty, "%-20s %-30s %-18s %u\n", ifp ? ifp->name : "-", ip_buf,
@@ -266,8 +262,7 @@ void zebra_neigh_terminate(void)
 	if (!zrouter.neigh_info)
 		return;
 
-	RB_FOREACH_SAFE (n, zebra_neigh_rb_head, &zneigh_info->neigh_rb_tree,
-			 next)
+	RB_FOREACH_SAFE (n, zebra_neigh_rb_head, &zneigh_info->neigh_rb_tree, next)
 		zebra_neigh_free(n);
 	XFREE(MTYPE_ZNEIGH_INFO, zneigh_info);
 }

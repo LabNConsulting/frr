@@ -33,7 +33,8 @@ void ifstat_update_sysctl(void)
 #define MIBSIZ 6
 	int mib[MIBSIZ] = {
 		CTL_NET,       PF_ROUTE, 0, 0, /*  AF_INET & AF_INET6 */
-		NET_RT_IFLIST, 0};
+		NET_RT_IFLIST, 0
+	};
 
 	/* Query buffer size. */
 	if (sysctl(mib, MIBSIZ, NULL, &bufsiz, NULL, 0) < 0) {
@@ -79,7 +80,8 @@ void interface_list(struct zebra_ns *zns)
 #define MIBSIZ 6
 	int mib[MIBSIZ] = {
 		CTL_NET,       PF_ROUTE, 0, 0, /*  AF_INET & AF_INET6 */
-		NET_RT_IFLIST, 0};
+		NET_RT_IFLIST, 0
+	};
 
 	if (zns->ns_id != NS_DEFAULT) {
 		zlog_debug("%s: ignore NS %u", __func__, zns->ns_id);

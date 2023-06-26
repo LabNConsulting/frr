@@ -7,9 +7,7 @@
 #ifndef _BASE64_H_
 #define _BASE64_H_
 
-enum base64_encodestep {
-	step_A, step_B, step_C
-};
+enum base64_encodestep { step_A, step_B, step_C };
 
 struct base64_encodestate {
 	enum base64_encodestep step;
@@ -27,9 +25,7 @@ int base64_encode_block(const char *plaintext_in, int length_in, char *code_out,
 int base64_encode_blockend(char *code_out, struct base64_encodestate *state_in);
 
 
-enum base64_decodestep {
-	step_a, step_b, step_c, step_d
-};
+enum base64_decodestep { step_a, step_b, step_c, step_d };
 
 struct base64_decodestate {
 	enum base64_decodestep step;

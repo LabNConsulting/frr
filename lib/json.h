@@ -41,15 +41,12 @@ extern void json_object_string_add(struct json_object *obj, const char *key,
 				   const char *s);
 extern void json_object_int_add(struct json_object *obj, const char *key,
 				int64_t i);
-void json_object_boolean_add(struct json_object *obj, const char *key,
-			     bool val);
+void json_object_boolean_add(struct json_object *obj, const char *key, bool val);
 
 extern void json_object_double_add(struct json_object *obj, const char *key,
 				   double i);
-extern void json_object_boolean_false_add(struct json_object *obj,
-					  const char *key);
-extern void json_object_boolean_true_add(struct json_object *obj,
-					 const char *key);
+extern void json_object_boolean_false_add(struct json_object *obj, const char *key);
+extern void json_object_boolean_true_add(struct json_object *obj, const char *key);
 extern struct json_object *json_object_lock(struct json_object *obj);
 extern void json_object_free(struct json_object *obj);
 extern void json_array_string_add(json_object *json, const char *str);
@@ -61,8 +58,7 @@ extern void json_object_string_addv(struct json_object *obj, const char *key,
 				    const char *fmt, va_list args);
 PRINTFRR(3, 4)
 static inline void json_object_string_addf(struct json_object *obj,
-					   const char *key, const char *fmt,
-					   ...)
+					   const char *key, const char *fmt, ...)
 {
 	va_list args;
 
@@ -86,8 +82,7 @@ static inline void json_array_string_addf(struct json_object *obj,
 }
 
 PRINTFRR(1, 0)
-extern struct json_object *json_object_new_stringv(const char *fmt,
-						   va_list args);
+extern struct json_object *json_object_new_stringv(const char *fmt, va_list args);
 PRINTFRR(1, 2)
 static inline struct json_object *json_object_new_stringf(const char *fmt, ...)
 {
@@ -137,7 +132,7 @@ static inline void json_object_object_addf(struct json_object *parent,
 /**
   * Don't escape forward slashes.
   */
-#define JSON_C_TO_STRING_NOSLASHESCAPE (1<<4)
+#define JSON_C_TO_STRING_NOSLASHESCAPE (1 << 4)
 #endif
 
 #ifdef __cplusplus

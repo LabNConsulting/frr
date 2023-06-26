@@ -10,8 +10,7 @@
 /*
  * XPath: /frr-route-map:lib/route-map/entry/match-condition/rmap-match-condition/frr-zebra-route-map:ipv4-prefix-length
  */
-int
-lib_route_map_entry_match_condition_rmap_match_condition_ipv4_prefix_length_modify(
+int lib_route_map_entry_match_condition_rmap_match_condition_ipv4_prefix_length_modify(
 	struct nb_cb_modify_args *args)
 {
 	struct routemap_hook_context *rhc;
@@ -29,7 +28,7 @@ lib_route_map_entry_match_condition_rmap_match_condition_ipv4_prefix_length_modi
 		rhc = nb_running_get_entry(args->dnode, NULL, true);
 		length = yang_dnode_get_string(args->dnode, NULL);
 		condition = yang_dnode_get_string(args->dnode,
-				"../../frr-route-map:condition");
+						  "../../frr-route-map:condition");
 
 		if (IS_MATCH_IPv4_PREFIX_LEN(condition))
 			rhc->rhc_rule = "ip address prefix-len";
@@ -39,9 +38,9 @@ lib_route_map_entry_match_condition_rmap_match_condition_ipv4_prefix_length_modi
 		rhc->rhc_mhook = generic_match_delete;
 		rhc->rhc_event = RMAP_EVENT_MATCH_DELETED;
 
-		rv = generic_match_add(rhc->rhc_rmi, rhc->rhc_rule,
-				       length, RMAP_EVENT_MATCH_ADDED,
-				       args->errmsg, args->errmsg_len);
+		rv = generic_match_add(rhc->rhc_rmi, rhc->rhc_rule, length,
+				       RMAP_EVENT_MATCH_ADDED, args->errmsg,
+				       args->errmsg_len);
 		if (rv != CMD_SUCCESS) {
 			rhc->rhc_mhook = NULL;
 			return NB_ERR_INCONSISTENCY;
@@ -51,8 +50,7 @@ lib_route_map_entry_match_condition_rmap_match_condition_ipv4_prefix_length_modi
 	return NB_OK;
 }
 
-int
-lib_route_map_entry_match_condition_rmap_match_condition_ipv4_prefix_length_destroy(
+int lib_route_map_entry_match_condition_rmap_match_condition_ipv4_prefix_length_destroy(
 	struct nb_cb_destroy_args *args)
 {
 	switch (args->event) {
@@ -70,8 +68,7 @@ lib_route_map_entry_match_condition_rmap_match_condition_ipv4_prefix_length_dest
 /*
  * XPath: /frr-route-map:lib/route-map/entry/match-condition/rmap-match-condition/frr-zebra-route-map:ipv6-prefix-length
  */
-int
-lib_route_map_entry_match_condition_rmap_match_condition_ipv6_prefix_length_modify(
+int lib_route_map_entry_match_condition_rmap_match_condition_ipv6_prefix_length_modify(
 	struct nb_cb_modify_args *args)
 {
 	struct routemap_hook_context *rhc;
@@ -94,8 +91,8 @@ lib_route_map_entry_match_condition_rmap_match_condition_ipv6_prefix_length_modi
 		rhc->rhc_event = RMAP_EVENT_MATCH_DELETED;
 
 		rv = generic_match_add(rhc->rhc_rmi, "ipv6 address prefix-len",
-				length, RMAP_EVENT_MATCH_ADDED,
-				args->errmsg, args->errmsg_len);
+				       length, RMAP_EVENT_MATCH_ADDED,
+				       args->errmsg, args->errmsg_len);
 		if (rv != CMD_SUCCESS) {
 			rhc->rhc_mhook = NULL;
 			return NB_ERR_INCONSISTENCY;
@@ -105,8 +102,7 @@ lib_route_map_entry_match_condition_rmap_match_condition_ipv6_prefix_length_modi
 	return NB_OK;
 }
 
-int
-lib_route_map_entry_match_condition_rmap_match_condition_ipv6_prefix_length_destroy(
+int lib_route_map_entry_match_condition_rmap_match_condition_ipv6_prefix_length_destroy(
 	struct nb_cb_destroy_args *args)
 {
 	switch (args->event) {
@@ -119,14 +115,12 @@ lib_route_map_entry_match_condition_rmap_match_condition_ipv6_prefix_length_dest
 	}
 
 	return NB_OK;
-
 }
 
 /*
  * XPath: /frr-route-map:lib/route-map/entry/match-condition/rmap-match-condition/frr-zebra-route-map:source-instance
  */
-int
-lib_route_map_entry_match_condition_rmap_match_condition_source_instance_modify(
+int lib_route_map_entry_match_condition_rmap_match_condition_source_instance_modify(
 	struct nb_cb_modify_args *args)
 {
 	struct routemap_hook_context *rhc;
@@ -148,9 +142,9 @@ lib_route_map_entry_match_condition_rmap_match_condition_source_instance_modify(
 		rhc->rhc_rule = "source-instance";
 		rhc->rhc_event = RMAP_EVENT_MATCH_DELETED;
 
-		rv = generic_match_add(rhc->rhc_rmi, "source-instance",
-				       type, RMAP_EVENT_MATCH_ADDED,
-				       args->errmsg, args->errmsg_len);
+		rv = generic_match_add(rhc->rhc_rmi, "source-instance", type,
+				       RMAP_EVENT_MATCH_ADDED, args->errmsg,
+				       args->errmsg_len);
 		if (rv != CMD_SUCCESS) {
 			rhc->rhc_mhook = NULL;
 			return NB_ERR_INCONSISTENCY;
@@ -160,8 +154,7 @@ lib_route_map_entry_match_condition_rmap_match_condition_source_instance_modify(
 	return NB_OK;
 }
 
-int
-lib_route_map_entry_match_condition_rmap_match_condition_source_instance_destroy(
+int lib_route_map_entry_match_condition_rmap_match_condition_source_instance_destroy(
 	struct nb_cb_destroy_args *args)
 {
 	switch (args->event) {
@@ -179,8 +172,7 @@ lib_route_map_entry_match_condition_rmap_match_condition_source_instance_destroy
 /*
  * XPath: /frr-route-map:lib/route-map/entry/match-condition/rmap-match-condition/frr-zebra-route-map:source-protocol
  */
-int
-lib_route_map_entry_match_condition_rmap_match_condition_source_protocol_modify(
+int lib_route_map_entry_match_condition_rmap_match_condition_source_protocol_modify(
 	struct nb_cb_modify_args *args)
 {
 	struct routemap_hook_context *rhc;
@@ -213,8 +205,8 @@ lib_route_map_entry_match_condition_rmap_match_condition_source_protocol_modify(
 	rhc->rhc_event = RMAP_EVENT_MATCH_DELETED;
 
 	rv = generic_match_add(rhc->rhc_rmi, "source-protocol", type,
-			       RMAP_EVENT_MATCH_ADDED,
-			       args->errmsg, args->errmsg_len);
+			       RMAP_EVENT_MATCH_ADDED, args->errmsg,
+			       args->errmsg_len);
 	if (rv != CMD_SUCCESS) {
 		rhc->rhc_mhook = NULL;
 		return NB_ERR_INCONSISTENCY;
@@ -223,8 +215,7 @@ lib_route_map_entry_match_condition_rmap_match_condition_source_protocol_modify(
 	return NB_OK;
 }
 
-int
-lib_route_map_entry_match_condition_rmap_match_condition_source_protocol_destroy(
+int lib_route_map_entry_match_condition_rmap_match_condition_source_protocol_destroy(
 	struct nb_cb_destroy_args *args)
 {
 	switch (args->event) {
@@ -242,8 +233,7 @@ lib_route_map_entry_match_condition_rmap_match_condition_source_protocol_destroy
 /*
  * XPath: /frr-route-map:lib/route-map/entry/set-action/rmap-set-action/frr-zebra-route-map:ipv4-src-address
  */
-int
-lib_route_map_entry_set_action_rmap_set_action_ipv4_src_address_modify(
+int lib_route_map_entry_set_action_rmap_set_action_ipv4_src_address_modify(
 	struct nb_cb_modify_args *args)
 {
 	struct routemap_hook_context *rhc;
@@ -277,8 +267,8 @@ lib_route_map_entry_set_action_rmap_set_action_ipv4_src_address_modify(
 	rhc->rhc_shook = generic_set_delete;
 	rhc->rhc_rule = "src";
 
-	rv = generic_set_add(rhc->rhc_rmi, "src", source,
-			     args->errmsg, args->errmsg_len);
+	rv = generic_set_add(rhc->rhc_rmi, "src", source, args->errmsg,
+			     args->errmsg_len);
 	if (rv != CMD_SUCCESS) {
 		rhc->rhc_shook = NULL;
 		return NB_ERR_INCONSISTENCY;
@@ -287,8 +277,7 @@ lib_route_map_entry_set_action_rmap_set_action_ipv4_src_address_modify(
 	return NB_OK;
 }
 
-int
-lib_route_map_entry_set_action_rmap_set_action_ipv4_src_address_destroy(
+int lib_route_map_entry_set_action_rmap_set_action_ipv4_src_address_destroy(
 	struct nb_cb_destroy_args *args)
 {
 	switch (args->event) {
@@ -306,8 +295,7 @@ lib_route_map_entry_set_action_rmap_set_action_ipv4_src_address_destroy(
 /*
  * XPath: /frr-route-map:lib/route-map/entry/set-action/rmap-set-action/frr-zebra-route-map:ipv6-src-address
  */
-int
-lib_route_map_entry_set_action_rmap_set_action_ipv6_src_address_modify(
+int lib_route_map_entry_set_action_rmap_set_action_ipv6_src_address_modify(
 	struct nb_cb_modify_args *args)
 {
 	struct routemap_hook_context *rhc;
@@ -341,8 +329,8 @@ lib_route_map_entry_set_action_rmap_set_action_ipv6_src_address_modify(
 	rhc->rhc_shook = generic_set_delete;
 	rhc->rhc_rule = "src";
 
-	rv = generic_set_add(rhc->rhc_rmi, "src", source,
-			     args->errmsg, args->errmsg_len);
+	rv = generic_set_add(rhc->rhc_rmi, "src", source, args->errmsg,
+			     args->errmsg_len);
 	if (rv != CMD_SUCCESS) {
 		rhc->rhc_shook = NULL;
 		return NB_ERR_INCONSISTENCY;
@@ -351,8 +339,7 @@ lib_route_map_entry_set_action_rmap_set_action_ipv6_src_address_modify(
 	return NB_OK;
 }
 
-int
-lib_route_map_entry_set_action_rmap_set_action_ipv6_src_address_destroy(
+int lib_route_map_entry_set_action_rmap_set_action_ipv6_src_address_destroy(
 	struct nb_cb_destroy_args *args)
 {
 	switch (args->event) {

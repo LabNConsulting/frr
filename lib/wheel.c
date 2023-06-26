@@ -41,9 +41,9 @@ static void wheel_timer_thread_helper(struct event *t)
 			       nextnode, data))
 		(*wheel->slot_run)(data);
 
-	while (list_isempty(wheel->wheel_slot_lists[(curr_slot + slots_to_skip)
-						    % wheel->slots])
-	       && (curr_slot + slots_to_skip) % wheel->slots != curr_slot)
+	while (list_isempty(wheel->wheel_slot_lists[(curr_slot + slots_to_skip) %
+						    wheel->slots]) &&
+	       (curr_slot + slots_to_skip) % wheel->slots != curr_slot)
 		slots_to_skip++;
 
 	wheel->slots_to_skip = slots_to_skip;
@@ -60,8 +60,7 @@ static void wheel_timer_thread(struct event *t)
 	event_execute(wheel->master, wheel_timer_thread_helper, wheel, 0);
 }
 
-struct timer_wheel *wheel_init(struct event_loop *master, int period,
-			       size_t slots,
+struct timer_wheel *wheel_init(struct event_loop *master, int period, size_t slots,
 			       unsigned int (*slot_key)(const void *),
 			       void (*slot_run)(void *), const char *run_name)
 {
@@ -80,8 +79,8 @@ struct timer_wheel *wheel_init(struct event_loop *master, int period,
 	wheel->master = master;
 	wheel->nexttime = period / slots;
 
-	wheel->wheel_slot_lists = XCALLOC(MTYPE_TIMER_WHEEL_LIST,
-					  slots * sizeof(struct list *));
+	wheel->wheel_slot_lists =
+		XCALLOC(MTYPE_TIMER_WHEEL_LIST, slots * sizeof(struct list *));
 	for (i = 0; i < slots; i++)
 		wheel->wheel_slot_lists[i] = list_new();
 

@@ -188,8 +188,7 @@ int lib_vrf_zebra_ribs_rib_get_keys(struct nb_cb_get_keys_args *args)
 	return NB_OK;
 }
 
-const void *
-lib_vrf_zebra_ribs_rib_lookup_entry(struct nb_cb_lookup_entry_args *args)
+const void *lib_vrf_zebra_ribs_rib_lookup_entry(struct nb_cb_lookup_entry_args *args)
 {
 	struct vrf *vrf = (struct vrf *)args->parent_list_entry;
 	struct zebra_vrf *zvrf;
@@ -217,7 +216,8 @@ lib_vrf_zebra_ribs_rib_afi_safi_name_get_elem(struct nb_cb_get_elem_args *args)
 	const struct zebra_router_table *zrt = args->list_entry;
 
 	return yang_data_new_string(args->xpath,
-		yang_afi_safi_value2identity(zrt->afi, zrt->safi));
+				    yang_afi_safi_value2identity(zrt->afi,
+								 zrt->safi));
 }
 
 /*
@@ -234,8 +234,7 @@ lib_vrf_zebra_ribs_rib_table_id_get_elem(struct nb_cb_get_elem_args *args)
 /*
  * XPath: /frr-vrf:lib/vrf/frr-zebra:zebra/ribs/rib/route
  */
-const void *
-lib_vrf_zebra_ribs_rib_route_get_next(struct nb_cb_get_next_args *args)
+const void *lib_vrf_zebra_ribs_rib_route_get_next(struct nb_cb_get_next_args *args)
 {
 	const struct zebra_router_table *zrt = args->parent_list_entry;
 	struct route_node *rn = (struct route_node *)args->list_entry;
@@ -249,8 +248,8 @@ lib_vrf_zebra_ribs_rib_route_get_next(struct nb_cb_get_next_args *args)
 		rn = route_next(rn);
 
 	/* Skip link-local routes. */
-	if (rn && rn->p.family == AF_INET6
-	    && IN6_IS_ADDR_LINKLOCAL(&rn->p.u.prefix6))
+	if (rn && rn->p.family == AF_INET6 &&
+	    IN6_IS_ADDR_LINKLOCAL(&rn->p.u.prefix6))
 		return NULL;
 
 	return rn;
@@ -299,8 +298,8 @@ lib_vrf_zebra_ribs_rib_route_prefix_get_elem(struct nb_cb_get_elem_args *args)
 /*
  * XPath: /frr-vrf:lib/vrf/frr-zebra:zebra/ribs/rib/route/route-entry
  */
-const void *lib_vrf_zebra_ribs_rib_route_route_entry_get_next(
-	struct nb_cb_get_next_args *args)
+const void *
+lib_vrf_zebra_ribs_rib_route_route_entry_get_next(struct nb_cb_get_next_args *args)
 {
 	struct route_entry *re = (struct route_entry *)args->list_entry;
 	struct route_node *rn = (struct route_node *)args->parent_list_entry;
@@ -313,8 +312,7 @@ const void *lib_vrf_zebra_ribs_rib_route_route_entry_get_next(
 	return re;
 }
 
-int lib_vrf_zebra_ribs_rib_route_route_entry_get_keys(
-	struct nb_cb_get_keys_args *args)
+int lib_vrf_zebra_ribs_rib_route_route_entry_get_keys(struct nb_cb_get_keys_args *args)
 {
 	struct route_entry *re = (struct route_entry *)args->list_entry;
 
@@ -466,8 +464,7 @@ struct yang_data *lib_vrf_zebra_ribs_rib_route_route_entry_queued_get_elem(
  * XPath:
  * /frr-vrf:lib/vrf/frr-zebra:zebra/ribs/rib/route/route-entry/internal-flags
  */
-struct yang_data *
-lib_vrf_zebra_ribs_rib_route_route_entry_internal_flags_get_elem(
+struct yang_data *lib_vrf_zebra_ribs_rib_route_route_entry_internal_flags_get_elem(
 	struct nb_cb_get_elem_args *args)
 {
 	struct route_entry *re = (struct route_entry *)args->list_entry;
@@ -482,8 +479,7 @@ lib_vrf_zebra_ribs_rib_route_route_entry_internal_flags_get_elem(
  * XPath:
  * /frr-vrf:lib/vrf/frr-zebra:zebra/ribs/rib/route/route-entry/internal-status
  */
-struct yang_data *
-lib_vrf_zebra_ribs_rib_route_route_entry_internal_status_get_elem(
+struct yang_data *lib_vrf_zebra_ribs_rib_route_route_entry_internal_status_get_elem(
 	struct nb_cb_get_elem_args *args)
 {
 	struct route_entry *re = (struct route_entry *)args->list_entry;
@@ -509,8 +505,7 @@ struct yang_data *lib_vrf_zebra_ribs_rib_route_route_entry_uptime_get_elem(
  * XPath:
  * /frr-vrf:lib/vrf/frr-zebra:zebra/ribs/rib/route/route-entry/nexthop-group/id
  */
-struct yang_data *
-lib_vrf_zebra_ribs_rib_route_route_entry_nexthop_group_id_get_elem(
+struct yang_data *lib_vrf_zebra_ribs_rib_route_route_entry_nexthop_group_id_get_elem(
 	struct nb_cb_get_elem_args *args)
 {
 	struct route_entry *re = (struct route_entry *)args->list_entry;
@@ -522,8 +517,7 @@ lib_vrf_zebra_ribs_rib_route_route_entry_nexthop_group_id_get_elem(
  * XPath:
  * /frr-vrf:lib/vrf/frr-zebra:zebra/ribs/rib/route/route-entry/nexthop-group/nexthop
  */
-const void *
-lib_vrf_zebra_ribs_rib_route_route_entry_nexthop_group_nexthop_get_next(
+const void *lib_vrf_zebra_ribs_rib_route_route_entry_nexthop_group_nexthop_get_next(
 	struct nb_cb_get_next_args *args)
 {
 	struct nexthop *nexthop = (struct nexthop *)args->list_entry;
@@ -558,8 +552,7 @@ int lib_vrf_zebra_ribs_rib_route_route_entry_nexthop_group_nexthop_get_keys(
 			   "%pI4", &nexthop->gate.ipv4);
 		if (nexthop->ifindex)
 			strlcpy(args->keys->key[3],
-				ifindex2ifname(nexthop->ifindex,
-					       nexthop->vrf_id),
+				ifindex2ifname(nexthop->ifindex, nexthop->vrf_id),
 				sizeof(args->keys->key[3]));
 		else
 			/* no ifindex */
@@ -574,8 +567,7 @@ int lib_vrf_zebra_ribs_rib_route_route_entry_nexthop_group_nexthop_get_keys(
 
 		if (nexthop->ifindex)
 			strlcpy(args->keys->key[3],
-				ifindex2ifname(nexthop->ifindex,
-					       nexthop->vrf_id),
+				ifindex2ifname(nexthop->ifindex, nexthop->vrf_id),
 				sizeof(args->keys->key[3]));
 		else
 			/* no ifindex */
@@ -602,8 +594,7 @@ int lib_vrf_zebra_ribs_rib_route_route_entry_nexthop_group_nexthop_get_keys(
 	return NB_OK;
 }
 
-const void *
-lib_vrf_zebra_ribs_rib_route_route_entry_nexthop_group_nexthop_lookup_entry(
+const void *lib_vrf_zebra_ribs_rib_route_route_entry_nexthop_group_nexthop_lookup_entry(
 	struct nb_cb_lookup_entry_args *args)
 {
 	struct nhg_hash_entry *nhe;
@@ -718,8 +709,7 @@ lib_vrf_zebra_ribs_rib_route_route_entry_nexthop_group_nexthop_vrf_get_elem(
 {
 	struct nexthop *nexthop = (struct nexthop *)args->list_entry;
 
-	return yang_data_new_string(args->xpath,
-				    vrf_id_to_name(nexthop->vrf_id));
+	return yang_data_new_string(args->xpath, vrf_id_to_name(nexthop->vrf_id));
 }
 
 /*
@@ -769,9 +759,9 @@ lib_vrf_zebra_ribs_rib_route_route_entry_nexthop_group_nexthop_interface_get_ele
 	struct nexthop *nexthop = (struct nexthop *)args->list_entry;
 
 	if (nexthop->ifindex)
-		return yang_data_new_string(
-			args->xpath,
-			ifindex2ifname(nexthop->ifindex, nexthop->vrf_id));
+		return yang_data_new_string(args->xpath,
+					    ifindex2ifname(nexthop->ifindex,
+							   nexthop->vrf_id));
 
 	return NULL;
 }

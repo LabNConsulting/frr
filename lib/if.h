@@ -89,8 +89,8 @@ enum zebra_link_type {
    #define IFNAMSIZ        16
 */
 
-#define INTERFACE_NAMSIZ      IFNAMSIZ
-#define INTERFACE_HWADDR_MAX  20
+#define INTERFACE_NAMSIZ     IFNAMSIZ
+#define INTERFACE_HWADDR_MAX 20
 
 typedef signed int ifindex_t;
 
@@ -98,8 +98,8 @@ typedef signed int ifindex_t;
 struct if_stats {
 	unsigned long rx_packets;   /* total packets received       */
 	unsigned long tx_packets;   /* total packets transmitted    */
-	unsigned long rx_bytes;     /* total bytes received         */
-	unsigned long tx_bytes;     /* total bytes transmitted      */
+	unsigned long rx_bytes;	    /* total bytes received         */
+	unsigned long tx_bytes;	    /* total bytes transmitted      */
 	unsigned long rx_errors;    /* bad packets received         */
 	unsigned long tx_errors;    /* packet transmit problems     */
 	unsigned long rx_dropped;   /* no space in linux buffers    */
@@ -111,10 +111,10 @@ struct if_stats {
 
 	/* detailed rx_errors: */
 	unsigned long rx_length_errors;
-	unsigned long rx_over_errors;   /* receiver ring buff overflow  */
-	unsigned long rx_crc_errors;    /* recved pkt with crc error    */
-	unsigned long rx_frame_errors;  /* recv'd frame alignment error */
-	unsigned long rx_fifo_errors;   /* recv'r fifo overrun          */
+	unsigned long rx_over_errors;	/* receiver ring buff overflow  */
+	unsigned long rx_crc_errors;	/* recved pkt with crc error    */
+	unsigned long rx_frame_errors;	/* recv'd frame alignment error */
+	unsigned long rx_fifo_errors;	/* recv'r fifo overrun          */
 	unsigned long rx_missed_errors; /* receiver missed packet     */
 	/* detailed tx_errors */
 	unsigned long tx_aborted_errors;
@@ -126,18 +126,18 @@ struct if_stats {
 #endif /* HAVE_PROC_NET_DEV */
 
 /* Here are "non-official" architectural constants. */
-#define TE_EXT_MASK             0x00FFFFFF
-#define TE_EXT_ANORMAL          0x80000000
-#define LOSS_PRECISION          0.000003
+#define TE_EXT_MASK    0x00FFFFFF
+#define TE_EXT_ANORMAL 0x80000000
+#define LOSS_PRECISION 0.000003
 /* TE_MEGA_BIT and TE_BYTE are utilized to convert TE bandwidth */
-#define TE_MEGA_BIT             1000000
-#define TE_BYTE                 8
+#define TE_MEGA_BIT 1000000
+#define TE_BYTE	    8
 /* Default TE bandwidth when no value in config.
  * The value is in Mbps (will be multiplied by TE_BYTE)
  */
 #define DEFAULT_BANDWIDTH 10
-#define MAX_CLASS_TYPE          8
-#define MAX_PKT_LOSS            50.331642
+#define MAX_CLASS_TYPE	  8
+#define MAX_PKT_LOSS	  50.331642
 
 enum affinity_mode {
 	/* RFC7308 Extended Administrative group */
@@ -153,28 +153,28 @@ enum affinity_mode {
  *  equal to 0: unset
  *  different from 0: set
  */
-#define LP_UNSET                0x0000
-#define LP_TE_METRIC            0x0001
-#define LP_MAX_BW               0x0002
-#define LP_MAX_RSV_BW           0x0004
-#define LP_UNRSV_BW             0x0008
-#define LP_ADM_GRP              0x0010
-#define LP_RMT_AS               0x0020
-#define LP_DELAY                0x0040
-#define LP_MM_DELAY             0x0080
-#define LP_DELAY_VAR            0x0100
-#define LP_PKT_LOSS             0x0200
-#define LP_RES_BW               0x0400
-#define LP_AVA_BW               0x0800
-#define LP_USE_BW               0x1000
+#define LP_UNSET	  0x0000
+#define LP_TE_METRIC	  0x0001
+#define LP_MAX_BW	  0x0002
+#define LP_MAX_RSV_BW	  0x0004
+#define LP_UNRSV_BW	  0x0008
+#define LP_ADM_GRP	  0x0010
+#define LP_RMT_AS	  0x0020
+#define LP_DELAY	  0x0040
+#define LP_MM_DELAY	  0x0080
+#define LP_DELAY_VAR	  0x0100
+#define LP_PKT_LOSS	  0x0200
+#define LP_RES_BW	  0x0400
+#define LP_AVA_BW	  0x0800
+#define LP_USE_BW	  0x1000
 #define LP_EXTEND_ADM_GRP 0x2000
 
 #define IS_PARAM_UNSET(lp, st) !(lp->lp_status & st)
-#define IS_PARAM_SET(lp, st) (lp->lp_status & st)
+#define IS_PARAM_SET(lp, st)   (lp->lp_status & st)
 #define IS_LINK_PARAMS_SET(lp) (lp->lp_status != LP_UNSET)
 
-#define SET_PARAM(lp, st) (lp->lp_status) |= (st)
-#define UNSET_PARAM(lp, st) (lp->lp_status) &= ~(st)
+#define SET_PARAM(lp, st)    (lp->lp_status) |= (st)
+#define UNSET_PARAM(lp, st)  (lp->lp_status) &= ~(st)
 #define RESET_LINK_PARAM(lp) (lp->lp_status = LP_UNSET)
 
 /* Link Parameters for Traffic Engineering
@@ -191,20 +191,20 @@ struct if_link_params {
 					   (8) */
 	uint32_t admin_grp; /* RFC5305/RFC5329 Administrative group */
 	struct admin_group ext_admin_grp; /* RFC7308 Extended Admin group */
-	uint32_t rmt_as;		/* Remote AS number */
-	struct in_addr rmt_ip;		/* Remote IP address */
-	uint32_t av_delay;		/* Link Average Delay */
-	uint32_t min_delay;		/* Link Min Delay */
-	uint32_t max_delay;		/* Link Max Delay */
-	uint32_t delay_var;		/* Link Delay Variation */
-	float pkt_loss;			/* Link Packet Loss */
-	float res_bw;			/* Residual Bandwidth */
-	float ava_bw;			/* Available Bandwidth */
-	float use_bw;			/* Utilized Bandwidth */
+	uint32_t rmt_as;		  /* Remote AS number */
+	struct in_addr rmt_ip;		  /* Remote IP address */
+	uint32_t av_delay;		  /* Link Average Delay */
+	uint32_t min_delay;		  /* Link Min Delay */
+	uint32_t max_delay;		  /* Link Max Delay */
+	uint32_t delay_var;		  /* Link Delay Variation */
+	float pkt_loss;			  /* Link Packet Loss */
+	float res_bw;			  /* Residual Bandwidth */
+	float ava_bw;			  /* Available Bandwidth */
+	float use_bw;			  /* Utilized Bandwidth */
 };
 
-#define INTERFACE_LINK_PARAMS_SIZE   sizeof(struct if_link_params)
-#define HAS_LINK_PARAMS(ifp)  ((ifp)->link_params != NULL)
+#define INTERFACE_LINK_PARAMS_SIZE sizeof(struct if_link_params)
+#define HAS_LINK_PARAMS(ifp)	   ((ifp)->link_params != NULL)
 
 /* Interface structure */
 struct interface {
@@ -234,14 +234,14 @@ struct interface {
 	 * ifindex of parent interface, if any
 	 */
 	ifindex_t link_ifindex;
-#define IFINDEX_INTERNAL	0
+#define IFINDEX_INTERNAL 0
 
 	/* Zebra internal interface status */
 	uint8_t status;
-#define ZEBRA_INTERFACE_ACTIVE     (1 << 0)
-#define ZEBRA_INTERFACE_SUB        (1 << 1)
+#define ZEBRA_INTERFACE_ACTIVE	      (1 << 0)
+#define ZEBRA_INTERFACE_SUB	      (1 << 1)
 #define ZEBRA_INTERFACE_LINKDETECTION (1 << 2)
-#define ZEBRA_INTERFACE_VRF_LOOPBACK (1 << 3)
+#define ZEBRA_INTERFACE_VRF_LOOPBACK  (1 << 3)
 
 	/* Interface flags. */
 	uint64_t flags;
@@ -254,8 +254,7 @@ struct interface {
 
 	/* Interface MTU. */
 	unsigned int mtu; /* IPv4 MTU */
-	unsigned int
-		mtu6; /* IPv6 MTU - probably, but not necessarily same as mtu
+	unsigned int mtu6; /* IPv6 MTU - probably, but not necessarily same as mtu
 		       */
 
 	/* Link-layer information and hardware address */
@@ -315,57 +314,53 @@ RB_HEAD(if_index_head, interface);
 RB_PROTOTYPE(if_index_head, interface, index_entry, if_cmp_index_func)
 DECLARE_QOBJ_TYPE(interface);
 
-#define IFNAME_RB_INSERT(v, ifp)                                                      \
-	({                                                                            \
-		struct interface *_iz =                                               \
-			RB_INSERT(if_name_head, &v->ifaces_by_name, (ifp));           \
-		if (_iz)                                                              \
-			flog_err(                                                     \
-				EC_LIB_INTERFACE,                                     \
-				"%s(%s): corruption detected -- interface with this " \
-				"name exists already in VRF %s!",                     \
-				__func__, (ifp)->name, (ifp)->vrf->name);             \
-		_iz;                                                                  \
+#define IFNAME_RB_INSERT(v, ifp)                                                       \
+	({                                                                             \
+		struct interface *_iz =                                                \
+			RB_INSERT(if_name_head, &v->ifaces_by_name, (ifp));            \
+		if (_iz)                                                               \
+			flog_err(EC_LIB_INTERFACE,                                     \
+				 "%s(%s): corruption detected -- interface with this " \
+				 "name exists already in VRF %s!",                     \
+				 __func__, (ifp)->name, (ifp)->vrf->name);             \
+		_iz;                                                                   \
 	})
 
-#define IFNAME_RB_REMOVE(v, ifp)                                                      \
-	({                                                                            \
-		struct interface *_iz =                                               \
-			RB_REMOVE(if_name_head, &v->ifaces_by_name, (ifp));           \
-		if (_iz == NULL)                                                      \
-			flog_err(                                                     \
-				EC_LIB_INTERFACE,                                     \
-				"%s(%s): corruption detected -- interface with this " \
-				"name doesn't exist in VRF %s!",                      \
-				__func__, (ifp)->name, (ifp)->vrf->name);             \
-		_iz;                                                                  \
+#define IFNAME_RB_REMOVE(v, ifp)                                                       \
+	({                                                                             \
+		struct interface *_iz =                                                \
+			RB_REMOVE(if_name_head, &v->ifaces_by_name, (ifp));            \
+		if (_iz == NULL)                                                       \
+			flog_err(EC_LIB_INTERFACE,                                     \
+				 "%s(%s): corruption detected -- interface with this " \
+				 "name doesn't exist in VRF %s!",                      \
+				 __func__, (ifp)->name, (ifp)->vrf->name);             \
+		_iz;                                                                   \
 	})
 
 
-#define IFINDEX_RB_INSERT(v, ifp)                                                     \
-	({                                                                            \
-		struct interface *_iz =                                               \
-			RB_INSERT(if_index_head, &v->ifaces_by_index, (ifp));         \
-		if (_iz)                                                              \
-			flog_err(                                                     \
-				EC_LIB_INTERFACE,                                     \
-				"%s(%u): corruption detected -- interface with this " \
-				"ifindex exists already in VRF %s!",                  \
-				__func__, (ifp)->ifindex, (ifp)->vrf->name);          \
-		_iz;                                                                  \
+#define IFINDEX_RB_INSERT(v, ifp)                                                      \
+	({                                                                             \
+		struct interface *_iz =                                                \
+			RB_INSERT(if_index_head, &v->ifaces_by_index, (ifp));          \
+		if (_iz)                                                               \
+			flog_err(EC_LIB_INTERFACE,                                     \
+				 "%s(%u): corruption detected -- interface with this " \
+				 "ifindex exists already in VRF %s!",                  \
+				 __func__, (ifp)->ifindex, (ifp)->vrf->name);          \
+		_iz;                                                                   \
 	})
 
-#define IFINDEX_RB_REMOVE(v, ifp)                                                     \
-	({                                                                            \
-		struct interface *_iz =                                               \
-			RB_REMOVE(if_index_head, &v->ifaces_by_index, (ifp));         \
-		if (_iz == NULL)                                                      \
-			flog_err(                                                     \
-				EC_LIB_INTERFACE,                                     \
-				"%s(%u): corruption detected -- interface with this " \
-				"ifindex doesn't exist in VRF %s!",                   \
-				__func__, (ifp)->ifindex, (ifp)->vrf->name);          \
-		_iz;                                                                  \
+#define IFINDEX_RB_REMOVE(v, ifp)                                                      \
+	({                                                                             \
+		struct interface *_iz =                                                \
+			RB_REMOVE(if_index_head, &v->ifaces_by_index, (ifp));          \
+		if (_iz == NULL)                                                       \
+			flog_err(EC_LIB_INTERFACE,                                     \
+				 "%s(%u): corruption detected -- interface with this " \
+				 "ifindex doesn't exist in VRF %s!",                   \
+				 __func__, (ifp)->ifindex, (ifp)->vrf->name);          \
+		_iz;                                                                   \
 	})
 
 #define FOR_ALL_INTERFACES(vrf, ifp)                                           \
@@ -395,10 +390,10 @@ struct connected {
 
 	/* Flags for configuration. */
 	uint8_t conf;
-#define ZEBRA_IFC_REAL         (1 << 0)
-#define ZEBRA_IFC_CONFIGURED   (1 << 1)
-#define ZEBRA_IFC_QUEUED       (1 << 2)
-#define ZEBRA_IFC_DOWN         (1 << 3)
+#define ZEBRA_IFC_REAL	     (1 << 0)
+#define ZEBRA_IFC_CONFIGURED (1 << 1)
+#define ZEBRA_IFC_QUEUED     (1 << 2)
+#define ZEBRA_IFC_DOWN	     (1 << 3)
 	/*
 	   The ZEBRA_IFC_REAL flag should be set if and only if this address
 	   exists in the kernel and is actually usable. (A case where it exists
@@ -414,9 +409,9 @@ struct connected {
 
 	/* Flags for connected address. */
 	uint8_t flags;
-#define ZEBRA_IFA_SECONDARY    (1 << 0)
-#define ZEBRA_IFA_PEER         (1 << 1)
-#define ZEBRA_IFA_UNNUMBERED   (1 << 2)
+#define ZEBRA_IFA_SECONDARY  (1 << 0)
+#define ZEBRA_IFA_PEER	     (1 << 1)
+#define ZEBRA_IFA_UNNUMBERED (1 << 2)
 	/* N.B. the ZEBRA_IFA_PEER flag should be set if and only if
 	   a peer address has been configured.  If this flag is set,
 	   the destination field must contain the peer address.
@@ -577,8 +572,8 @@ extern ifindex_t ifname2ifindex(const char *ifname, vrf_id_t vrf_id);
 extern struct connected *connected_new(void);
 extern void connected_free(struct connected **connected);
 extern void connected_add(struct interface *, struct connected *);
-extern struct connected *
-connected_add_by_prefix(struct interface *, struct prefix *, struct prefix *);
+extern struct connected *connected_add_by_prefix(struct interface *,
+						 struct prefix *, struct prefix *);
 extern struct connected *connected_delete_by_prefix(struct interface *,
 						    struct prefix *);
 extern struct connected *connected_lookup_prefix(struct interface *,
@@ -592,10 +587,8 @@ struct nbr_connected *nbr_connected_check(struct interface *, struct prefix *);
 struct connected *connected_get_linklocal(struct interface *ifp);
 
 /* link parameters */
-bool if_link_params_cmp(struct if_link_params *iflp1,
-			struct if_link_params *iflp2);
-void if_link_params_copy(struct if_link_params *dst,
-			 struct if_link_params *src);
+bool if_link_params_cmp(struct if_link_params *iflp1, struct if_link_params *iflp2);
+void if_link_params_copy(struct if_link_params *dst, struct if_link_params *src);
 struct if_link_params *if_link_params_get(struct interface *);
 struct if_link_params *if_link_params_enable(struct interface *ifp);
 struct if_link_params *if_link_params_init(struct interface *ifp);

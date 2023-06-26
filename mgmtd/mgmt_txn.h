@@ -13,15 +13,15 @@
 #include "mgmtd/mgmt.h"
 #include "mgmtd/mgmt_ds.h"
 
-#define MGMTD_TXN_PROC_DELAY_MSEC 5
-#define MGMTD_TXN_PROC_DELAY_USEC 10
-#define MGMTD_TXN_MAX_NUM_SETCFG_PROC 128
-#define MGMTD_TXN_MAX_NUM_GETCFG_PROC 128
+#define MGMTD_TXN_PROC_DELAY_MSEC      5
+#define MGMTD_TXN_PROC_DELAY_USEC      10
+#define MGMTD_TXN_MAX_NUM_SETCFG_PROC  128
+#define MGMTD_TXN_MAX_NUM_GETCFG_PROC  128
 #define MGMTD_TXN_MAX_NUM_GETDATA_PROC 128
 
 #define MGMTD_TXN_SEND_CFGVALIDATE_DELAY_MSEC 100
-#define MGMTD_TXN_SEND_CFGAPPLY_DELAY_MSEC 100
-#define MGMTD_TXN_CFG_COMMIT_MAX_DELAY_MSEC 30000 /* 30 seconds */
+#define MGMTD_TXN_SEND_CFGAPPLY_DELAY_MSEC    100
+#define MGMTD_TXN_CFG_COMMIT_MAX_DELAY_MSEC   30000 /* 30 seconds */
 
 #define MGMTD_TXN_CLEANUP_DELAY_MSEC 100
 #define MGMTD_TXN_CLEANUP_DELAY_USEC 10
@@ -134,12 +134,12 @@ extern void mgmt_destroy_txn(uint64_t *txn_id);
  *    0 on success, -1 on failures.
  */
 extern int mgmt_txn_send_set_config_req(uint64_t txn_id, uint64_t req_id,
-					 Mgmtd__DatastoreId ds_id,
-					 struct mgmt_ds_ctx *ds_ctx,
-					 Mgmtd__YangCfgDataReq **cfg_req,
-					 size_t num_req, bool implicit_commit,
-					 Mgmtd__DatastoreId dst_ds_id,
-					 struct mgmt_ds_ctx *dst_ds_ctx);
+					Mgmtd__DatastoreId ds_id,
+					struct mgmt_ds_ctx *ds_ctx,
+					Mgmtd__YangCfgDataReq **cfg_req,
+					size_t num_req, bool implicit_commit,
+					Mgmtd__DatastoreId dst_ds_id,
+					struct mgmt_ds_ctx *dst_ds_ctx);
 
 /*
  * Send commit-config request to be processed later in transaction.
@@ -193,48 +193,42 @@ extern int mgmt_txn_send_get_config_req(uint64_t txn_id, uint64_t req_id,
  * Similar to get-config request, but here data is fetched from backedn client.
  */
 extern int mgmt_txn_send_get_data_req(uint64_t txn_id, uint64_t req_id,
-				       Mgmtd__DatastoreId ds_id,
-				       Mgmtd__YangGetDataReq **data_req,
-				       size_t num_reqs);
+				      Mgmtd__DatastoreId ds_id,
+				      Mgmtd__YangGetDataReq **data_req,
+				      size_t num_reqs);
 
 /*
  * Notifiy backend adapter on connection.
  */
-extern int
-mgmt_txn_notify_be_adapter_conn(struct mgmt_be_client_adapter *adapter,
-				    bool connect);
+extern int mgmt_txn_notify_be_adapter_conn(struct mgmt_be_client_adapter *adapter,
+					   bool connect);
 
 /*
  * Reply to backend adapter about transaction create/delete.
  */
-extern int
-mgmt_txn_notify_be_txn_reply(uint64_t txn_id, bool create, bool success,
-				  struct mgmt_be_client_adapter *adapter);
+extern int mgmt_txn_notify_be_txn_reply(uint64_t txn_id, bool create, bool success,
+					struct mgmt_be_client_adapter *adapter);
 
 /*
  * Reply to backend adapater with config data create request.
  */
-extern int
-mgmt_txn_notify_be_cfgdata_reply(uint64_t txn_id, uint64_t batch_id,
-				     bool success, char *error_if_any,
-				     struct mgmt_be_client_adapter *adapter);
+extern int mgmt_txn_notify_be_cfgdata_reply(uint64_t txn_id, uint64_t batch_id,
+					    bool success, char *error_if_any,
+					    struct mgmt_be_client_adapter *adapter);
 
 /*
  * Reply to backend adapater with config data validate request.
  */
 extern int mgmt_txn_notify_be_cfg_validate_reply(
-	uint64_t txn_id, bool success, uint64_t batch_ids[],
-	size_t num_batch_ids, char *error_if_any,
-	struct mgmt_be_client_adapter *adapter);
+	uint64_t txn_id, bool success, uint64_t batch_ids[], size_t num_batch_ids,
+	char *error_if_any, struct mgmt_be_client_adapter *adapter);
 
 /*
  * Reply to backend adapater with config data apply request.
  */
-extern int
-mgmt_txn_notify_be_cfg_apply_reply(uint64_t txn_id, bool success,
-				       uint64_t batch_ids[],
-				       size_t num_batch_ids, char *error_if_any,
-				       struct mgmt_be_client_adapter *adapter);
+extern int mgmt_txn_notify_be_cfg_apply_reply(
+	uint64_t txn_id, bool success, uint64_t batch_ids[], size_t num_batch_ids,
+	char *error_if_any, struct mgmt_be_client_adapter *adapter);
 
 /*
  * Dump transaction status to vty.
@@ -246,7 +240,6 @@ extern void mgmt_txn_status_write(struct vty *vty);
  *
  * Creates a new transaction and commit request for rollback.
  */
-extern int
-mgmt_txn_rollback_trigger_cfg_apply(struct mgmt_ds_ctx *src_ds_ctx,
-				     struct mgmt_ds_ctx *dst_ds_ctx);
+extern int mgmt_txn_rollback_trigger_cfg_apply(struct mgmt_ds_ctx *src_ds_ctx,
+					       struct mgmt_ds_ctx *dst_ds_ctx);
 #endif /* _FRR_MGMTD_TXN_H_ */

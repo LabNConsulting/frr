@@ -287,8 +287,7 @@ int ptm_lib_find_key_in_msg(void *ctxt, const char *key, char *val)
 	}
 	drec = csv_record_iter_next(hrec);
 	val[0] = '\0';
-	for (hstr = csv_field_iter(hrec, &hfld),
-	    dstr = csv_field_iter(drec, &dfld);
+	for (hstr = csv_field_iter(hrec, &hfld), dstr = csv_field_iter(drec, &dfld);
 	     (hstr && dstr); hstr = csv_field_iter_next(&hfld),
 	    dstr = csv_field_iter_next(&dfld)) {
 		if (!strncmp(hstr, key, csv_field_len(hfld))) {
@@ -309,8 +308,7 @@ static int _ptm_lib_read_ptm_socket(int fd, char *buf, int len)
 		rc = recv(fd, (void *)(buf + bytes_read), (len - bytes_read),
 			  MSG_DONTWAIT);
 		if (rc <= 0) {
-			if (errno && (errno != EAGAIN)
-			    && (errno != EWOULDBLOCK)) {
+			if (errno && (errno != EAGAIN) && (errno != EWOULDBLOCK)) {
 				ERRLOG("fatal recv error(%s), closing connection, rc %d\n",
 				       strerror(errno), rc);
 				return (rc);
@@ -364,9 +362,9 @@ int ptm_lib_process_msg(ptm_lib_handle_t *hdl, int fd, char *inbuf, int inlen,
 		 * it
 		 */
 		if (len == PTMLIB_MSG_HDR_LEN) {
-			len += _ptm_lib_read_ptm_socket(
-				fd, (inbuf + PTMLIB_MSG_HDR_LEN),
-				inlen - PTMLIB_MSG_HDR_LEN);
+			len += _ptm_lib_read_ptm_socket(fd,
+							(inbuf + PTMLIB_MSG_HDR_LEN),
+							inlen - PTMLIB_MSG_HDR_LEN);
 			if (len <= 0)
 				return (len);
 		}
@@ -387,7 +385,6 @@ int ptm_lib_process_msg(ptm_lib_handle_t *hdl, int fd, char *inbuf, int inlen,
 		ptm_lib_append_msg(hdl, p_ctxt, "cmd", PTMLIB_CMD_GET_STATUS);
 
 	} else {
-
 		if (msglen > inlen) {
 			DLOG("msglen [%d] > inlen [%d]\n", msglen, inlen);
 			return -1;

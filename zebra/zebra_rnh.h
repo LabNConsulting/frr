@@ -18,8 +18,7 @@ extern void zebra_rnh_init(void);
 
 extern struct rnh *zebra_add_rnh(struct prefix *p, vrf_id_t vrfid, safi_t safi,
 				 bool *exists);
-extern struct rnh *zebra_lookup_rnh(struct prefix *p, vrf_id_t vrfid,
-				    safi_t safi);
+extern struct rnh *zebra_lookup_rnh(struct prefix *p, vrf_id_t vrfid, safi_t safi);
 extern void zebra_free_rnh(struct rnh *rnh);
 extern void zebra_add_rnh_client(struct rnh *rnh, struct zserv *client,
 				 vrf_id_t vrfid);

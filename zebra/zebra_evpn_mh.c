@@ -82,12 +82,11 @@ esi_t zero_esi_buf, *zero_esi = &zero_esi_buf;
 
 /* compare ES-IDs for the ES-EVI RB tree maintained per-EVPN */
 static int zebra_es_evi_rb_cmp(const struct zebra_evpn_es_evi *es_evi1,
-		const struct zebra_evpn_es_evi *es_evi2)
+			       const struct zebra_evpn_es_evi *es_evi2)
 {
 	return memcmp(&es_evi1->es->esi, &es_evi2->es->esi, ESI_BYTES);
 }
-RB_GENERATE(zebra_es_evi_rb_head, zebra_evpn_es_evi,
-		rb_node, zebra_es_evi_rb_cmp);
+RB_GENERATE(zebra_es_evi_rb_head, zebra_evpn_es_evi, rb_node, zebra_es_evi_rb_cmp);
 
 /* allocate a new ES-EVI and insert it into the per-L2-VNI and per-ES
  * tables.
@@ -110,8 +109,8 @@ static struct zebra_evpn_es_evi *zebra_evpn_es_evi_new(struct zebra_evpn_es *es,
 	listnode_add(es->es_evi_list, &es_evi->es_listnode);
 
 	if (IS_ZEBRA_DEBUG_EVPN_MH_ES)
-		zlog_debug("es %s evi %d new",
-				es_evi->es->esi_str, es_evi->zevpn->vni);
+		zlog_debug("es %s evi %d new", es_evi->es->esi_str,
+			   es_evi->zevpn->vni);
 
 	return es_evi;
 }
@@ -121,8 +120,7 @@ static struct zebra_evpn_es_evi *zebra_evpn_es_evi_new(struct zebra_evpn_es *es,
  * 2. If it is not ready a del is sent (if the ES had been previously added
  *   to BGP).
  */
-static void zebra_evpn_es_evi_re_eval_send_to_client(
-		struct zebra_evpn_es_evi *es_evi)
+static void zebra_evpn_es_evi_re_eval_send_to_client(struct zebra_evpn_es_evi *es_evi)
 {
 	bool old_ready;
 	bool new_ready;
@@ -131,8 +129,8 @@ static void zebra_evpn_es_evi_re_eval_send_to_client(
 
 	/* ES and L2-VNI have to be individually ready for BGP */
 	if ((es_evi->flags & ZEBRA_EVPNES_EVI_LOCAL) &&
-			(es_evi->es->flags & ZEBRA_EVPNES_READY_FOR_BGP) &&
-			zebra_evpn_send_to_client_ok(es_evi->zevpn))
+	    (es_evi->es->flags & ZEBRA_EVPNES_READY_FOR_BGP) &&
+	    zebra_evpn_send_to_client_ok(es_evi->zevpn))
 		es_evi->flags |= ZEBRA_EVPNES_EVI_READY_FOR_BGP;
 	else
 		es_evi->flags &= ~ZEBRA_EVPNES_EVI_READY_FOR_BGP;
@@ -144,10 +142,10 @@ static void zebra_evpn_es_evi_re_eval_send_to_client(
 
 	if (new_ready)
 		zebra_evpn_es_evi_send_to_client(es_evi->es, es_evi->zevpn,
-				true /* add */);
+						 true /* add */);
 	else
 		zebra_evpn_es_evi_send_to_client(es_evi->es, es_evi->zevpn,
-				false /* add */);
+						 false /* add */);
 }
 
 /* remove the ES-EVI from the per-L2-VNI and per-ES tables and free
@@ -159,8 +157,8 @@ static void zebra_evpn_es_evi_free(struct zebra_evpn_es_evi *es_evi)
 	struct zebra_evpn *zevpn = es_evi->zevpn;
 
 	if (IS_ZEBRA_DEBUG_EVPN_MH_ES)
-		zlog_debug("es %s evi %d free",
-				es_evi->es->esi_str, es_evi->zevpn->vni);
+		zlog_debug("es %s evi %d free", es_evi->es->esi_str,
+			   es_evi->zevpn->vni);
 
 	/* remove from the ES's VNI list */
 	list_delete_node(es->es_evi_list, &es_evi->es_listnode);
@@ -190,18 +188,17 @@ static void zebra_evpn_local_es_evi_do_del(struct zebra_evpn_es_evi *es_evi)
 		return;
 
 	if (IS_ZEBRA_DEBUG_EVPN_MH_ES)
-		zlog_debug("local es %s evi %d del",
-				es_evi->es->esi_str, es_evi->zevpn->vni);
+		zlog_debug("local es %s evi %d del", es_evi->es->esi_str,
+			   es_evi->zevpn->vni);
 
 	if (es_evi->flags & ZEBRA_EVPNES_EVI_READY_FOR_BGP) {
 		/* send a del only if add was sent for it earlier */
-		zebra_evpn_es_evi_send_to_client(es_evi->es,
-				es_evi->zevpn, false /* add */);
+		zebra_evpn_es_evi_send_to_client(es_evi->es, es_evi->zevpn,
+						 false /* add */);
 	}
 
 	/* delete it from the EVPN's local list */
-	list_delete_node(es_evi->zevpn->local_es_evi_list,
-			&es_evi->l2vni_listnode);
+	list_delete_node(es_evi->zevpn->local_es_evi_list, &es_evi->l2vni_listnode);
 
 	es_evi->flags &= ~ZEBRA_EVPNES_EVI_LOCAL;
 	zebra_evpn_es_evi_free(es_evi);
@@ -258,7 +255,7 @@ static void zebra_evpn_local_es_evi_add(struct zebra_evpn_es *es,
 
 		if (IS_ZEBRA_DEBUG_EVPN_MH_ES)
 			zlog_debug("local es %s evi %d add",
-					es_evi->es->esi_str, es_evi->zevpn->vni);
+				   es_evi->es->esi_str, es_evi->zevpn->vni);
 		es_evi->flags |= ZEBRA_EVPNES_EVI_LOCAL;
 		/* add to the EVPN's local list */
 		listnode_init(&es_evi->l2vni_listnode, es_evi);
@@ -299,16 +296,14 @@ static void zebra_evpn_es_evi_show_entry(struct vty *vty,
 		if (es_evi->flags & ZEBRA_EVPNES_EVI_LOCAL)
 			strlcat(type_str, "L", sizeof(type_str));
 
-		vty_out(vty, "%-8d %-30s %-4s\n",
-				es_evi->zevpn->vni, es_evi->es->esi_str,
-				type_str);
+		vty_out(vty, "%-8d %-30s %-4s\n", es_evi->zevpn->vni,
+			es_evi->es->esi_str, type_str);
 	}
 }
 
-static void
-zebra_evpn_es_evi_show_entry_detail(struct vty *vty,
-				    struct zebra_evpn_es_evi *es_evi,
-				    json_object *json_array)
+static void zebra_evpn_es_evi_show_entry_detail(struct vty *vty,
+						struct zebra_evpn_es_evi *es_evi,
+						json_object *json_array)
 {
 	char type_str[4];
 
@@ -321,15 +316,13 @@ zebra_evpn_es_evi_show_entry_detail(struct vty *vty,
 
 		json_object_string_add(json, "esi", es_evi->es->esi_str);
 		json_object_int_add(json, "vni", es_evi->zevpn->vni);
-		if (es_evi->flags
-		    & (ZEBRA_EVPNES_EVI_LOCAL
-		       | ZEBRA_EVPNES_EVI_READY_FOR_BGP)) {
+		if (es_evi->flags &
+		    (ZEBRA_EVPNES_EVI_LOCAL | ZEBRA_EVPNES_EVI_READY_FOR_BGP)) {
 			json_flags = json_object_new_array();
 			if (es_evi->flags & ZEBRA_EVPNES_EVI_LOCAL)
 				json_array_string_add(json_flags, "local");
 			if (es_evi->flags & ZEBRA_EVPNES_EVI_READY_FOR_BGP)
-				json_array_string_add(json_flags,
-						      "readyForBgp");
+				json_array_string_add(json_flags, "readyForBgp");
 			json_object_object_add(json, "flags", json_flags);
 		}
 
@@ -340,13 +333,12 @@ zebra_evpn_es_evi_show_entry_detail(struct vty *vty,
 		if (es_evi->flags & ZEBRA_EVPNES_EVI_LOCAL)
 			strlcat(type_str, "L", sizeof(type_str));
 
-		vty_out(vty, "VNI %d ESI: %s\n",
-				es_evi->zevpn->vni, es_evi->es->esi_str);
+		vty_out(vty, "VNI %d ESI: %s\n", es_evi->zevpn->vni,
+			es_evi->es->esi_str);
 		vty_out(vty, " Type: %s\n", type_str);
 		vty_out(vty, " Ready for BGP: %s\n",
-				(es_evi->flags &
-				 ZEBRA_EVPNES_EVI_READY_FOR_BGP) ?
-				"yes" : "no");
+			(es_evi->flags & ZEBRA_EVPNES_EVI_READY_FOR_BGP) ? "yes"
+									 : "no");
 		vty_out(vty, "\n");
 	}
 }
@@ -357,7 +349,7 @@ static void zebra_evpn_es_evi_show_one_evpn(struct zebra_evpn *zevpn,
 {
 	struct zebra_evpn_es_evi *es_evi;
 
-	RB_FOREACH(es_evi, zebra_es_evi_rb_head, &zevpn->es_evi_rb_tree) {
+	RB_FOREACH (es_evi, zebra_es_evi_rb_head, &zevpn->es_evi_rb_tree) {
 		if (detail)
 			zebra_evpn_es_evi_show_entry_detail(vty, es_evi,
 							    json_array);
@@ -373,13 +365,12 @@ struct evpn_mh_show_ctx {
 };
 
 static void zebra_evpn_es_evi_show_one_evpn_hash_cb(struct hash_bucket *bucket,
-		void *ctxt)
+						    void *ctxt)
 {
 	struct zebra_evpn *zevpn = (struct zebra_evpn *)bucket->data;
 	struct evpn_mh_show_ctx *wctx = (struct evpn_mh_show_ctx *)ctxt;
 
-	zebra_evpn_es_evi_show_one_evpn(zevpn, wctx->vty,
-			wctx->json, wctx->detail);
+	zebra_evpn_es_evi_show_one_evpn(zevpn, wctx->vty, wctx->json, wctx->detail);
 }
 
 void zebra_evpn_es_evi_show(struct vty *vty, bool uj, int detail)
@@ -403,7 +394,7 @@ void zebra_evpn_es_evi_show(struct vty *vty, bool uj, int detail)
 	}
 	/* Display all L2-VNIs */
 	hash_iterate(zvrf->evpn_table, zebra_evpn_es_evi_show_one_evpn_hash_cb,
-			&wctx);
+		     &wctx);
 
 	if (uj)
 		vty_json(vty, json_array);
@@ -452,8 +443,8 @@ void zebra_evpn_es_evi_cleanup(struct zebra_evpn *zevpn)
 	struct zebra_evpn_es_evi *es_evi;
 	struct zebra_evpn_es_evi *es_evi_next;
 
-	RB_FOREACH_SAFE(es_evi, zebra_es_evi_rb_head,
-			&zevpn->es_evi_rb_tree, es_evi_next) {
+	RB_FOREACH_SAFE (es_evi, zebra_es_evi_rb_head, &zevpn->es_evi_rb_tree,
+			 es_evi_next) {
 		zebra_evpn_local_es_evi_do_del(es_evi);
 	}
 
@@ -486,14 +477,13 @@ void zebra_evpn_update_all_es(struct zebra_evpn *zevpn)
 	vxlan_if = zevpn->vxlan_if;
 	if (vxlan_if) {
 		vxlan_zif = vxlan_if->info;
-		if (if_is_operative(vxlan_if)
-		    && vxlan_zif->brslave_info.br_if) {
+		if (if_is_operative(vxlan_if) && vxlan_zif->brslave_info.br_if) {
 			vni = zebra_vxlan_if_vni_find(vxlan_zif, zevpn->vni);
 			/* VLAN-VNI mappings may not exist */
 			if (vni) {
-				vlan_if = zvni_map_to_svi(
-					vni->access_vlan,
-					vxlan_zif->brslave_info.br_if);
+				vlan_if =
+					zvni_map_to_svi(vni->access_vlan,
+							vxlan_zif->brslave_info.br_if);
 				if (vlan_if)
 					zebra_evpn_acc_bd_svi_mac_add(vlan_if);
 			}
@@ -535,8 +525,8 @@ static bool zebra_evpn_acc_vl_cmp(const void *p1, const void *p2)
 }
 
 /* Lookup VLAN based broadcast domain */
-struct zebra_evpn_access_bd *
-zebra_evpn_acc_vl_find_index(vlanid_t vid, ifindex_t bridge_ifindex)
+struct zebra_evpn_access_bd *zebra_evpn_acc_vl_find_index(vlanid_t vid,
+							  ifindex_t bridge_ifindex)
 {
 	struct zebra_evpn_access_bd *acc_bd;
 	struct zebra_evpn_access_bd tmp;
@@ -558,8 +548,8 @@ struct zebra_evpn_access_bd *zebra_evpn_acc_vl_find(vlanid_t vid,
 /* A new broadcast domain can be created when a VLAN member or VLAN<=>VxLAN_IF
  * mapping is added.
  */
-static struct zebra_evpn_access_bd *
-zebra_evpn_acc_vl_new(vlanid_t vid, struct interface *br_if)
+static struct zebra_evpn_access_bd *zebra_evpn_acc_vl_new(vlanid_t vid,
+							  struct interface *br_if)
 {
 	struct zebra_evpn_access_bd *acc_bd;
 	struct interface *vlan_if;
@@ -695,8 +685,7 @@ void zebra_evpn_acc_bd_svi_set(struct zebra_if *vlan_zif,
  */
 void zebra_evpn_acc_bd_svi_mac_add(struct interface *vlan_if)
 {
-	zebra_evpn_acc_bd_svi_set(vlan_if->info, NULL,
-				  if_is_operative(vlan_if));
+	zebra_evpn_acc_bd_svi_set(vlan_if->info, NULL, if_is_operative(vlan_if));
 }
 
 /* called when a EVPN-L2VNI is set or cleared against a BD */
@@ -708,9 +697,8 @@ static void zebra_evpn_acc_bd_evpn_set(struct zebra_evpn_access_bd *acc_bd,
 	struct listnode *node;
 
 	if (IS_ZEBRA_DEBUG_EVPN_MH_ES)
-		zlog_debug("access vlan %d bridge %s l2-vni %u set",
-			   acc_bd->vid, acc_bd->bridge_zif->ifp->name,
-			   zevpn ? zevpn->vni : 0);
+		zlog_debug("access vlan %d bridge %s l2-vni %u set", acc_bd->vid,
+			   acc_bd->bridge_zif->ifp->name, zevpn ? zevpn->vni : 0);
 
 	for (ALL_LIST_ELEMENTS_RO(acc_bd->mbr_zifs, node, zif)) {
 		if (!zif->es_info.es)
@@ -727,14 +715,12 @@ static void zebra_evpn_acc_bd_evpn_set(struct zebra_evpn_access_bd *acc_bd,
 			zebra_evpn_mac_svi_add(acc_bd->vlan_zif->ifp,
 					       acc_bd->zevpn);
 		else if (old_zevpn && old_zevpn->mac_table)
-			zebra_evpn_mac_svi_del(acc_bd->vlan_zif->ifp,
-					       old_zevpn);
+			zebra_evpn_mac_svi_del(acc_bd->vlan_zif->ifp, old_zevpn);
 	}
 }
 
 /* handle VLAN->VxLAN_IF association */
-void zebra_evpn_vl_vxl_ref(uint16_t vid, vni_t vni_id,
-			   struct zebra_if *vxlan_zif)
+void zebra_evpn_vl_vxl_ref(uint16_t vid, vni_t vni_id, struct zebra_if *vxlan_zif)
 {
 	vni_t old_vni;
 	struct zebra_evpn_access_bd *acc_bd;
@@ -780,8 +766,7 @@ void zebra_evpn_vl_vxl_ref(uint16_t vid, vni_t vni_id,
 }
 
 /* handle VLAN->VxLAN_IF deref */
-void zebra_evpn_vl_vxl_deref(uint16_t vid, vni_t vni_id,
-			     struct zebra_if *vxlan_zif)
+void zebra_evpn_vl_vxl_deref(uint16_t vid, vni_t vni_id, struct zebra_if *vxlan_zif)
 {
 	struct interface *br_if;
 	struct zebra_evpn_access_bd *acc_bd;
@@ -949,8 +934,7 @@ void zebra_evpn_vl_mbr_deref(uint16_t vid, struct zebra_if *zif)
 	zebra_evpn_acc_bd_free_on_deref(acc_bd);
 }
 
-static void zebra_evpn_acc_vl_adv_svi_mac_cb(struct hash_bucket *bucket,
-					     void *ctxt)
+static void zebra_evpn_acc_vl_adv_svi_mac_cb(struct hash_bucket *bucket, void *ctxt)
 {
 	struct zebra_evpn_access_bd *acc_bd = bucket->data;
 
@@ -988,8 +972,7 @@ static void zebra_evpn_acc_vl_json_fill(struct zebra_evpn_access_bd *acc_bd,
 		json_mbrs = json_object_new_array();
 		for (ALL_LIST_ELEMENTS_RO(acc_bd->mbr_zifs, node, zif)) {
 			json_mbr = json_object_new_object();
-			json_object_string_add(json_mbr, "ifName",
-					       zif->ifp->name);
+			json_object_string_add(json_mbr, "ifName", zif->ifp->name);
 			json_object_array_add(json_mbrs, json_mbr);
 		}
 		json_object_object_add(json, "members", json_mbrs);
@@ -997,10 +980,11 @@ static void zebra_evpn_acc_vl_json_fill(struct zebra_evpn_access_bd *acc_bd,
 }
 
 static void zebra_evpn_acc_vl_show_entry_detail(struct vty *vty,
-		struct zebra_evpn_access_bd *acc_bd, json_object *json)
+						struct zebra_evpn_access_bd *acc_bd,
+						json_object *json)
 {
 	struct zebra_if *zif;
-	struct listnode	*node;
+	struct listnode *node;
 
 	if (json) {
 		zebra_evpn_acc_vl_json_fill(acc_bd, json, true);
@@ -1008,8 +992,7 @@ static void zebra_evpn_acc_vl_show_entry_detail(struct vty *vty,
 		vty_out(vty, "VLAN: %s.%u\n", acc_bd->bridge_zif->ifp->name,
 			acc_bd->vid);
 		vty_out(vty, " VxLAN Interface: %s\n",
-				acc_bd->vxlan_zif ?
-				acc_bd->vxlan_zif->ifp->name : "-");
+			acc_bd->vxlan_zif ? acc_bd->vxlan_zif->ifp->name : "-");
 		vty_out(vty, " SVI: %s\n",
 			acc_bd->vlan_zif ? acc_bd->vlan_zif->ifp->name : "-");
 		if (acc_bd->zevpn)
@@ -1018,8 +1001,7 @@ static void zebra_evpn_acc_vl_show_entry_detail(struct vty *vty,
 			vty_out(vty, " L2-VNI: 0\n");
 			vty_out(vty, " L3-VNI: %d\n", acc_bd->vni);
 		}
-		vty_out(vty, " Member Count: %d\n",
-				listcount(acc_bd->mbr_zifs));
+		vty_out(vty, " Member Count: %d\n", listcount(acc_bd->mbr_zifs));
 		vty_out(vty, " Members: \n");
 		for (ALL_LIST_ELEMENTS_RO(acc_bd->mbr_zifs, node, zif))
 			vty_out(vty, "    %s\n", zif->ifp->name);
@@ -1028,7 +1010,8 @@ static void zebra_evpn_acc_vl_show_entry_detail(struct vty *vty,
 }
 
 static void zebra_evpn_acc_vl_show_entry(struct vty *vty,
-		struct zebra_evpn_access_bd *acc_bd, json_object *json)
+					 struct zebra_evpn_access_bd *acc_bd,
+					 json_object *json)
 {
 	if (json) {
 		zebra_evpn_acc_vl_json_fill(acc_bd, json, false);
@@ -1075,8 +1058,7 @@ void zebra_evpn_acc_vl_show(struct vty *vty, bool uj)
 		vty_out(vty, "%-12s %-15s %-8s %-15s %s\n", "VLAN", "SVI",
 			"L2-VNI", "VXLAN-IF", "# Members");
 
-	hash_iterate(zmh_info->evpn_vlan_table, zebra_evpn_acc_vl_show_hash,
-			&wctx);
+	hash_iterate(zmh_info->evpn_vlan_table, zebra_evpn_acc_vl_show_hash, &wctx);
 
 	if (uj)
 		vty_json(vty, json_array);
@@ -1094,8 +1076,7 @@ void zebra_evpn_acc_vl_show_detail(struct vty *vty, bool uj)
 	wctx.json = json_array;
 	wctx.detail = true;
 
-	hash_iterate(zmh_info->evpn_vlan_table, zebra_evpn_acc_vl_show_hash,
-			&wctx);
+	hash_iterate(zmh_info->evpn_vlan_table, zebra_evpn_acc_vl_show_hash, &wctx);
 
 	if (uj)
 		vty_json(vty, json_array);
@@ -1115,8 +1096,7 @@ void zebra_evpn_acc_vl_show_vid(struct vty *vty, bool uj, vlanid_t vid,
 		zebra_evpn_acc_vl_show_entry_detail(vty, acc_bd, json);
 	} else {
 		if (!json)
-			vty_out(vty, "VLAN %s.%u not present\n", br_if->name,
-				vid);
+			vty_out(vty, "VLAN %s.%u not present\n", br_if->name, vid);
 	}
 
 	if (uj)
@@ -1262,8 +1242,7 @@ static struct zebra_evpn_es *zebra_evpn_nhg_find(uint32_t nhg_id)
 }
 
 /* Returns TRUE if the NHG is associated with a local ES */
-bool zebra_evpn_nhg_is_local_es(uint32_t nhg_id,
-				struct zebra_evpn_es **local_es)
+bool zebra_evpn_nhg_is_local_es(uint32_t nhg_id, struct zebra_evpn_es **local_es)
 {
 	struct zebra_evpn_es *es;
 
@@ -1287,33 +1266,30 @@ static void zebra_evpn_nhg_mac_update(struct zebra_evpn_es *es)
 	local_via_nw = zebra_evpn_es_local_mac_via_network_port(es);
 	if (IS_ZEBRA_DEBUG_EVPN_MH_ES || IS_ZEBRA_DEBUG_EVPN_MH_MAC)
 		zlog_debug("mac update on es %s nhg %s", es->esi_str,
-			   (es->flags & ZEBRA_EVPNES_NHG_ACTIVE)
-				   ? "activate"
-				   : "de-activate");
+			   (es->flags & ZEBRA_EVPNES_NHG_ACTIVE) ? "activate"
+								 : "de-activate");
 
 	for (ALL_LIST_ELEMENTS_RO(es->mac_list, node, mac)) {
-		if (CHECK_FLAG(mac->flags, ZEBRA_MAC_REMOTE)
-		    || (local_via_nw && CHECK_FLAG(mac->flags, ZEBRA_MAC_LOCAL)
-			&& zebra_evpn_mac_is_static(mac))) {
+		if (CHECK_FLAG(mac->flags, ZEBRA_MAC_REMOTE) ||
+		    (local_via_nw && CHECK_FLAG(mac->flags, ZEBRA_MAC_LOCAL) &&
+		     zebra_evpn_mac_is_static(mac))) {
 			if (es->flags & ZEBRA_EVPNES_NHG_ACTIVE) {
 				if (IS_ZEBRA_DEBUG_EVPN_MH_MAC)
-					zlog_debug(
-						"%smac %pEA install via es %s nhg 0x%x",
-						(mac->flags & ZEBRA_MAC_REMOTE)
-							? "rem"
-							: "local-nw",
-						&mac->macaddr, es->esi_str,
-						es->nhg_id);
-				zebra_evpn_rem_mac_install(
-					mac->zevpn, mac, false /*was_static*/);
+					zlog_debug("%smac %pEA install via es %s nhg 0x%x",
+						   (mac->flags & ZEBRA_MAC_REMOTE)
+							   ? "rem"
+							   : "local-nw",
+						   &mac->macaddr, es->esi_str,
+						   es->nhg_id);
+				zebra_evpn_rem_mac_install(mac->zevpn, mac,
+							   false /*was_static*/);
 			} else {
 				if (IS_ZEBRA_DEBUG_EVPN_MH_MAC)
-					zlog_debug(
-						"%smac %pEA un-install es %s",
-						(mac->flags & ZEBRA_MAC_REMOTE)
-							? "rem"
-							: "local-nw",
-						&mac->macaddr, es->esi_str);
+					zlog_debug("%smac %pEA un-install es %s",
+						   (mac->flags & ZEBRA_MAC_REMOTE)
+							   ? "rem"
+							   : "local-nw",
+						   &mac->macaddr, es->esi_str);
 				zebra_evpn_rem_mac_uninstall(mac->zevpn, mac,
 							     true /*force*/);
 			}
@@ -1327,7 +1303,7 @@ static void zebra_evpn_nhg_update(struct zebra_evpn_es *es)
 	uint32_t nh_cnt = 0;
 	struct nh_grp nh_ids[ES_VTEP_MAX_CNT];
 	struct zebra_evpn_es_vtep *es_vtep;
-	struct listnode	*node;
+	struct listnode *node;
 
 	if (!es->nhg_id)
 		return;
@@ -1365,8 +1341,7 @@ static void zebra_evpn_nhg_update(struct zebra_evpn_es *es)
 			es->flags |= ZEBRA_EVPNES_NHG_ACTIVE;
 			/* add backup NHG to the br-port */
 			if ((es->flags & ZEBRA_EVPNES_LOCAL))
-				zebra_evpn_es_br_port_dplane_update(es,
-								    __func__);
+				zebra_evpn_es_br_port_dplane_update(es, __func__);
 			zebra_evpn_nhg_mac_update(es);
 		}
 	} else {
@@ -1377,18 +1352,15 @@ static void zebra_evpn_nhg_update(struct zebra_evpn_es *es)
 			es->flags &= ~ZEBRA_EVPNES_NHG_ACTIVE;
 			/* remove backup NHG from the br-port */
 			if ((es->flags & ZEBRA_EVPNES_LOCAL))
-				zebra_evpn_es_br_port_dplane_update(es,
-								    __func__);
+				zebra_evpn_es_br_port_dplane_update(es, __func__);
 			zebra_evpn_nhg_mac_update(es);
 			kernel_del_mac_nhg(es->nhg_id);
 		}
 	}
-
 }
 
 static void zebra_evpn_es_l2_nh_show_entry(struct zebra_evpn_l2_nh *nh,
-					   struct vty *vty,
-					   json_object *json_array)
+					   struct vty *vty, json_object *json_array)
 {
 	if (json_array) {
 		json_object *json = NULL;
@@ -1514,9 +1486,8 @@ static void zebra_evpn_l2_nh_es_vtep_deref(struct zebra_evpn_es_vtep *es_vtep)
 		--nh->ref_cnt;
 
 	if (IS_ZEBRA_DEBUG_EVPN_MH_NH)
-		zlog_debug("es %s vtep %pI4 nh %u deref %u",
-			   es_vtep->es->esi_str, &es_vtep->vtep_ip, nh->nh_id,
-			   nh->ref_cnt);
+		zlog_debug("es %s vtep %pI4 nh %u deref %u", es_vtep->es->esi_str,
+			   &es_vtep->vtep_ip, nh->nh_id, nh->ref_cnt);
 
 	/* remove the NH from the parent NHG */
 	zebra_evpn_nhg_update(es_vtep->es);
@@ -1550,8 +1521,8 @@ static int zebra_evpn_es_vtep_cmp(void *p1, void *p2)
 	return es_vtep1->vtep_ip.s_addr - es_vtep2->vtep_ip.s_addr;
 }
 
-static struct zebra_evpn_es_vtep *zebra_evpn_es_vtep_new(
-		struct zebra_evpn_es *es, struct in_addr vtep_ip)
+static struct zebra_evpn_es_vtep *zebra_evpn_es_vtep_new(struct zebra_evpn_es *es,
+							 struct in_addr vtep_ip)
 {
 	struct zebra_evpn_es_vtep *es_vtep;
 
@@ -1577,8 +1548,8 @@ static void zebra_evpn_es_vtep_free(struct zebra_evpn_es_vtep *es_vtep)
 
 
 /* check if VTEP is already part of the list */
-static struct zebra_evpn_es_vtep *zebra_evpn_es_vtep_find(
-		struct zebra_evpn_es *es, struct in_addr vtep_ip)
+static struct zebra_evpn_es_vtep *zebra_evpn_es_vtep_find(struct zebra_evpn_es *es,
+							  struct in_addr vtep_ip)
 {
 	struct listnode *node = NULL;
 	struct zebra_evpn_es_vtep *es_vtep;
@@ -1607,12 +1578,11 @@ static bool zebra_evpn_es_br_port_dplane_clear(struct zebra_evpn_es *es)
 	return true;
 }
 
-static inline bool
-zebra_evpn_es_br_port_dplane_update_needed(struct zebra_evpn_es *es)
+static inline bool zebra_evpn_es_br_port_dplane_update_needed(struct zebra_evpn_es *es)
 {
-	return (es->flags & ZEBRA_EVPNES_NON_DF)
-	       || (es->flags & ZEBRA_EVPNES_NHG_ACTIVE)
-	       || listcount(es->es_vtep_list);
+	return (es->flags & ZEBRA_EVPNES_NON_DF) ||
+	       (es->flags & ZEBRA_EVPNES_NHG_ACTIVE) ||
+	       listcount(es->es_vtep_list);
 }
 
 /* returns TRUE if dplane entry was updated */
@@ -1642,19 +1612,16 @@ static bool zebra_evpn_es_br_port_dplane_update(struct zebra_evpn_es *es,
 	memset(&sph_filters, 0, sizeof(sph_filters));
 	if (es->flags & ZEBRA_EVPNES_BYPASS) {
 		if (IS_ZEBRA_DEBUG_EVPN_MH_ES)
-			zlog_debug(
-				"es %s SPH filter disabled as it is in bypass",
-				es->esi_str);
+			zlog_debug("es %s SPH filter disabled as it is in bypass",
+				   es->esi_str);
 	} else {
 		if (listcount(es->es_vtep_list) > ES_VTEP_MAX_CNT) {
 			zlog_warn("es %s vtep count %d exceeds filter cnt %d",
 				  es->esi_str, listcount(es->es_vtep_list),
 				  ES_VTEP_MAX_CNT);
 		} else {
-			for (ALL_LIST_ELEMENTS_RO(es->es_vtep_list, node,
-						  es_vtep)) {
-				if (es_vtep->flags
-				    & ZEBRA_EVPNES_VTEP_DEL_IN_PROG)
+			for (ALL_LIST_ELEMENTS_RO(es->es_vtep_list, node, es_vtep)) {
+				if (es_vtep->flags & ZEBRA_EVPNES_VTEP_DEL_IN_PROG)
 					continue;
 				sph_filters[sph_filter_cnt] = es_vtep->vtep_ip;
 				++sph_filter_cnt;
@@ -1705,11 +1672,9 @@ static bool zebra_evpn_es_run_df_election(struct zebra_evpn_es *es,
 	/* If the ES is not ready (i.e. not completely configured) there
 	 * is no need to setup the BUM block filter
 	 */
-	if (!(es->flags & ZEBRA_EVPNES_LOCAL)
-	    || (es->flags & ZEBRA_EVPNES_BYPASS)
-	    || !zmh_info->es_originator_ip.s_addr)
-		return zebra_evpn_es_df_change(es, new_non_df, caller,
-					       "not-ready");
+	if (!(es->flags & ZEBRA_EVPNES_LOCAL) ||
+	    (es->flags & ZEBRA_EVPNES_BYPASS) || !zmh_info->es_originator_ip.s_addr)
+		return zebra_evpn_es_df_change(es, new_non_df, caller, "not-ready");
 
 	/* if oper-state is down DF filtering must be on. when the link comes
 	 * up again dataplane should block BUM till FRR has had the chance
@@ -1717,8 +1682,7 @@ static bool zebra_evpn_es_run_df_election(struct zebra_evpn_es *es,
 	 */
 	if (!(es->flags & ZEBRA_EVPNES_OPER_UP)) {
 		new_non_df = true;
-		return zebra_evpn_es_df_change(es, new_non_df, caller,
-					       "oper-down");
+		return zebra_evpn_es_df_change(es, new_non_df, caller, "oper-down");
 	}
 
 	/* ES was just created; we need to wait for the peers to rx the
@@ -1727,8 +1691,7 @@ static bool zebra_evpn_es_run_df_election(struct zebra_evpn_es *es,
 	 */
 	if (es->df_delay_timer) {
 		new_non_df = true;
-		return zebra_evpn_es_df_change(es, new_non_df, caller,
-					       "df-delay");
+		return zebra_evpn_es_df_change(es, new_non_df, caller, "df-delay");
 	}
 
 	for (ALL_LIST_ELEMENTS_RO(es->es_vtep_list, node, es_vtep)) {
@@ -1751,10 +1714,9 @@ static bool zebra_evpn_es_run_df_election(struct zebra_evpn_es *es,
 		 * the peer-VTEP has higher preference (or)
 		 * the pref is the same but peer's IP address is lower
 		 */
-		if ((es_vtep->df_pref > es->df_pref)
-		    || ((es_vtep->df_pref == es->df_pref)
-			&& (es_vtep->vtep_ip.s_addr
-			    < zmh_info->es_originator_ip.s_addr))) {
+		if ((es_vtep->df_pref > es->df_pref) ||
+		    ((es_vtep->df_pref == es->df_pref) &&
+		     (es_vtep->vtep_ip.s_addr < zmh_info->es_originator_ip.s_addr))) {
 			new_non_df = true;
 			break;
 		}
@@ -1775,16 +1737,15 @@ static void zebra_evpn_es_vtep_add(struct zebra_evpn_es *es,
 
 	if (!es_vtep) {
 		if (IS_ZEBRA_DEBUG_EVPN_MH_ES)
-			zlog_debug("es %s vtep %pI4 add",
-					es->esi_str, &vtep_ip);
+			zlog_debug("es %s vtep %pI4 add", es->esi_str, &vtep_ip);
 		es_vtep = zebra_evpn_es_vtep_new(es, vtep_ip);
 		/* update the L2-NHG associated with the ES */
 		zebra_evpn_l2_nh_es_vtep_ref(es_vtep);
 	}
 
 	old_esr_rxed = !!(es_vtep->flags & ZEBRA_EVPNES_VTEP_RXED_ESR);
-	if ((old_esr_rxed != esr_rxed) || (es_vtep->df_alg != df_alg)
-	    || (es_vtep->df_pref != df_pref)) {
+	if ((old_esr_rxed != esr_rxed) || (es_vtep->df_alg != df_alg) ||
+	    (es_vtep->df_pref != df_pref)) {
 		/* If any of the DF election params changed we need to re-run
 		 * DF election
 		 */
@@ -1801,8 +1762,7 @@ static void zebra_evpn_es_vtep_add(struct zebra_evpn_es *es,
 		zebra_evpn_es_br_port_dplane_update(es, __func__);
 }
 
-static void zebra_evpn_es_vtep_del(struct zebra_evpn_es *es,
-		struct in_addr vtep_ip)
+static void zebra_evpn_es_vtep_del(struct zebra_evpn_es *es, struct in_addr vtep_ip)
 {
 	struct zebra_evpn_es_vtep *es_vtep;
 	bool dplane_updated = false;
@@ -1811,8 +1771,7 @@ static void zebra_evpn_es_vtep_del(struct zebra_evpn_es *es,
 
 	if (es_vtep) {
 		if (IS_ZEBRA_DEBUG_EVPN_MH_ES)
-			zlog_debug("es %s vtep %pI4 del",
-					es->esi_str, &vtep_ip);
+			zlog_debug("es %s vtep %pI4 del", es->esi_str, &vtep_ip);
 		es_vtep->flags |= ZEBRA_EVPNES_VTEP_DEL_IN_PROG;
 		if (es_vtep->flags & ZEBRA_EVPNES_VTEP_RXED_ESR) {
 			es_vtep->flags &= ~ZEBRA_EVPNES_VTEP_RXED_ESR;
@@ -1828,7 +1787,7 @@ static void zebra_evpn_es_vtep_del(struct zebra_evpn_es *es,
 
 /* compare ES-IDs for the global ES RB tree */
 static int zebra_es_rb_cmp(const struct zebra_evpn_es *es1,
-		const struct zebra_evpn_es *es2)
+			   const struct zebra_evpn_es *es2)
 {
 	return memcmp(&es1->esi, &es2->esi, ESI_BYTES);
 }
@@ -1897,7 +1856,7 @@ static void zebra_evpn_es_free(struct zebra_evpn_es **esp)
 	 * it.
 	 */
 	if ((es->flags & (ZEBRA_EVPNES_LOCAL | ZEBRA_EVPNES_REMOTE)) ||
-			listcount(es->mac_list))
+	    listcount(es->mac_list))
 		return;
 
 	if (IS_ZEBRA_DEBUG_EVPN_MH_ES)
@@ -1951,11 +1910,10 @@ static int zebra_evpn_es_send_add_to_client(struct zebra_evpn_es *es)
 	stream_putw_at(s, 0, stream_get_endp(s));
 
 	if (IS_ZEBRA_DEBUG_EVPN_MH_ES)
-		zlog_debug(
-			"send add local es %s %pI4 active %u df_pref %u%s to %s",
-			es->esi_str, &zmh_info->es_originator_ip, oper_up,
-			es->df_pref, bypass ? " bypass" : "",
-			zebra_route_string(client->proto));
+		zlog_debug("send add local es %s %pI4 active %u df_pref %u%s to %s",
+			   es->esi_str, &zmh_info->es_originator_ip, oper_up,
+			   es->df_pref, bypass ? " bypass" : "",
+			   zebra_route_string(client->proto));
 
 	client->local_es_add_cnt++;
 	return zserv_send_message(client, s);
@@ -1983,14 +1941,14 @@ static int zebra_evpn_es_send_del_to_client(struct zebra_evpn_es *es)
 
 	if (IS_ZEBRA_DEBUG_EVPN_MH_ES)
 		zlog_debug("send del local es %s to %s", es->esi_str,
-				zebra_route_string(client->proto));
+			   zebra_route_string(client->proto));
 
 	client->local_es_del_cnt++;
 	return zserv_send_message(client, s);
 }
 
 static void zebra_evpn_es_re_eval_send_to_client(struct zebra_evpn_es *es,
-		bool es_evi_re_reval)
+						 bool es_evi_re_reval)
 {
 	bool old_ready;
 	bool new_ready;
@@ -1999,8 +1957,7 @@ static void zebra_evpn_es_re_eval_send_to_client(struct zebra_evpn_es *es,
 
 	old_ready = !!(es->flags & ZEBRA_EVPNES_READY_FOR_BGP);
 
-	if ((es->flags & ZEBRA_EVPNES_LOCAL) &&
-			zmh_info->es_originator_ip.s_addr)
+	if ((es->flags & ZEBRA_EVPNES_LOCAL) && zmh_info->es_originator_ip.s_addr)
 		es->flags |= ZEBRA_EVPNES_READY_FOR_BGP;
 	else
 		es->flags &= ~ZEBRA_EVPNES_READY_FOR_BGP;
@@ -2038,20 +1995,17 @@ void zebra_evpn_es_send_all_to_client(bool add)
 		if (es->flags & ZEBRA_EVPNES_READY_FOR_BGP) {
 			if (add)
 				zebra_evpn_es_send_add_to_client(es);
-			for (ALL_LIST_ELEMENTS_RO(es->es_evi_list,
-						evi_node, es_evi)) {
-				if (!(es_evi->flags &
-					ZEBRA_EVPNES_EVI_READY_FOR_BGP))
+			for (ALL_LIST_ELEMENTS_RO(es->es_evi_list, evi_node,
+						  es_evi)) {
+				if (!(es_evi->flags & ZEBRA_EVPNES_EVI_READY_FOR_BGP))
 					continue;
 
 				if (add)
 					zebra_evpn_es_evi_send_to_client(
-						es, es_evi->zevpn,
-						true /* add */);
+						es, es_evi->zevpn, true /* add */);
 				else
 					zebra_evpn_es_evi_send_to_client(
-						es, es_evi->zevpn,
-						false /* add */);
+						es, es_evi->zevpn, false /* add */);
 			}
 			if (!add)
 				zebra_evpn_es_send_del_to_client(es);
@@ -2072,15 +2026,15 @@ static void zebra_evpn_es_setup_evis(struct zebra_evpn_es *es)
 	if (!bf_is_inited(zif->vlan_bitmap))
 		return;
 
-	bf_for_each_set_bit(zif->vlan_bitmap, vid, IF_VLAN_BITMAP_MAX) {
+	bf_for_each_set_bit(zif->vlan_bitmap, vid, IF_VLAN_BITMAP_MAX)
+	{
 		acc_bd = zebra_evpn_acc_vl_find(vid, zif->brslave_info.br_if);
 		if (acc_bd->zevpn)
 			zebra_evpn_local_es_evi_add(es, acc_bd->zevpn);
 	}
 }
 
-static void zebra_evpn_flush_local_mac(struct zebra_mac *mac,
-				       struct interface *ifp)
+static void zebra_evpn_flush_local_mac(struct zebra_mac *mac, struct interface *ifp)
 {
 	vlanid_t vid;
 	struct zebra_if *zif;
@@ -2110,7 +2064,7 @@ static void zebra_evpn_es_flush_local_macs(struct zebra_evpn_es *es,
 					   struct interface *ifp, bool add)
 {
 	struct zebra_mac *mac;
-	struct listnode	*node;
+	struct listnode *node;
 	struct listnode *nnode;
 
 	for (ALL_LIST_ELEMENTS(es->mac_list, node, nnode, mac)) {
@@ -2122,9 +2076,8 @@ static void zebra_evpn_es_flush_local_macs(struct zebra_evpn_es *es,
 		 * over */
 		if (IS_ZEBRA_DEBUG_EVPN_MH_MAC)
 			zlog_debug("VNI %u mac %pEA update; local ES %s %s",
-				   mac->zevpn->vni,
-				   &mac->macaddr,
-				   es->esi_str, add ? "add" : "del");
+				   mac->zevpn->vni, &mac->macaddr, es->esi_str,
+				   add ? "add" : "del");
 		zebra_evpn_flush_local_mac(mac, ifp);
 	}
 }
@@ -2170,10 +2123,9 @@ static void zebra_evpn_mh_dup_addr_detect_off(void)
 
 	if (old_detect && !new_detect) {
 		if (IS_ZEBRA_DEBUG_EVPN_MH_ES)
-			zlog_debug(
-				"evpn-mh config caused DAD addr detect chg from %s to %s",
-				old_detect ? "on" : "off",
-				new_detect ? "on" : "off");
+			zlog_debug("evpn-mh config caused DAD addr detect chg from %s to %s",
+				   old_detect ? "on" : "off",
+				   new_detect ? "on" : "off");
 		zebra_vxlan_clear_dup_detect_vni_all(zvrf);
 	}
 }
@@ -2233,7 +2185,7 @@ static void zebra_evpn_mh_on_first_local_es(void)
 }
 
 static void zebra_evpn_es_local_info_set(struct zebra_evpn_es *es,
-		struct zebra_if *zif)
+					 struct zebra_if *zif)
 {
 	if (es->flags & ZEBRA_EVPNES_LOCAL)
 		return;
@@ -2273,13 +2225,12 @@ static void zebra_evpn_es_local_info_set(struct zebra_evpn_es *es,
 	else
 		/* send notification to bgp */
 		zebra_evpn_es_re_eval_send_to_client(es,
-			false /* es_evi_re_reval */);
+						     false /* es_evi_re_reval */);
 
 	/* Start the DF delay timer on the local ES */
 	if (!es->df_delay_timer)
-		event_add_timer(zrouter.master, zebra_evpn_es_df_delay_exp_cb,
-				es, ZEBRA_EVPN_MH_DF_DELAY_TIME,
-				&es->df_delay_timer);
+		event_add_timer(zrouter.master, zebra_evpn_es_df_delay_exp_cb, es,
+				ZEBRA_EVPN_MH_DF_DELAY_TIME, &es->df_delay_timer);
 
 	/* See if the local VTEP can function as DF on the ES */
 	if (!zebra_evpn_es_run_df_election(es, __func__)) {
@@ -2339,8 +2290,8 @@ static void zebra_evpn_es_local_info_clear(struct zebra_evpn_es **esp)
 	es->zif = NULL;
 
 	/* clear all local flags associated with the ES */
-	es->flags &= ~(ZEBRA_EVPNES_OPER_UP | ZEBRA_EVPNES_BR_PORT
-		       | ZEBRA_EVPNES_BYPASS);
+	es->flags &= ~(ZEBRA_EVPNES_OPER_UP | ZEBRA_EVPNES_BR_PORT |
+		       ZEBRA_EVPNES_BYPASS);
 
 	/* remove from the ES list */
 	list_delete_node(zmh_info->local_es_list, &es->local_es_listnode);
@@ -2497,15 +2448,14 @@ int zebra_evpn_remote_es_del(const esi_t *esi, struct in_addr vtep_ip)
 static void zebra_evpn_remote_es_flush(struct zebra_evpn_es **esp)
 {
 	struct zebra_evpn_es_vtep *es_vtep;
-	struct listnode	*node;
-	struct listnode	*nnode;
+	struct listnode *node;
+	struct listnode *nnode;
 	struct zebra_evpn_es *es = *esp;
 
 	for (ALL_LIST_ELEMENTS(es->es_vtep_list, node, nnode, es_vtep)) {
 		if (IS_ZEBRA_DEBUG_EVPN_MH_ES)
-			zlog_debug("es %s vtep %pI4 flush",
-					es->esi_str,
-					&es_vtep->vtep_ip);
+			zlog_debug("es %s vtep %pI4 flush", es->esi_str,
+				   &es_vtep->vtep_ip);
 		zebra_evpn_es_vtep_free(es_vtep);
 	}
 	zebra_evpn_es_remote_info_re_eval(esp);
@@ -2519,26 +2469,23 @@ int zebra_evpn_remote_es_add(const esi_t *esi, struct in_addr vtep_ip,
 
 	if (IS_ZEBRA_DEBUG_EVPN_MH_ES)
 		zlog_debug("remote es %s vtep %pI4 add %s df_alg %d df_pref %d",
-			   esi_to_str(esi, buf, sizeof(buf)),
-			   &vtep_ip, esr_rxed ? "esr" : "", df_alg,
-			   df_pref);
+			   esi_to_str(esi, buf, sizeof(buf)), &vtep_ip,
+			   esr_rxed ? "esr" : "", df_alg, df_pref);
 
 	es = zebra_evpn_es_find(esi);
 	if (!es) {
 		es = zebra_evpn_es_new(esi);
 		if (!es) {
-			zlog_warn(
-				"remote es %s vtep %pI4 add failed, es missing",
-				esi_to_str(esi, buf, sizeof(buf)), &vtep_ip);
+			zlog_warn("remote es %s vtep %pI4 add failed, es missing",
+				  esi_to_str(esi, buf, sizeof(buf)), &vtep_ip);
 			return -1;
 		}
 	}
 
 	if (df_alg != EVPN_MH_DF_ALG_PREF)
-		zlog_warn(
-			"remote es %s vtep %pI4 add %s with unsupported df_alg %d",
-			esi_to_str(esi, buf, sizeof(buf)), &vtep_ip,
-			esr_rxed ? "esr" : "", df_alg);
+		zlog_warn("remote es %s vtep %pI4 add %s with unsupported df_alg %d",
+			  esi_to_str(esi, buf, sizeof(buf)), &vtep_ip,
+			  esr_rxed ? "esr" : "", df_alg);
 
 	zebra_evpn_es_vtep_add(es, vtep_ip, esr_rxed, df_alg, df_pref);
 	zebra_evpn_es_remote_info_re_eval(&es);
@@ -2553,9 +2500,8 @@ void zebra_evpn_proc_remote_es(ZAPI_HANDLER_ARGS)
 	esi_t esi;
 
 	if (!is_evpn_enabled()) {
-		zlog_debug(
-			"%s: EVPN not enabled yet we received a es_add zapi call",
-			__func__);
+		zlog_debug("%s: EVPN not enabled yet we received a es_add zapi call",
+			   __func__);
 		return;
 	}
 
@@ -2572,8 +2518,7 @@ void zebra_evpn_proc_remote_es(ZAPI_HANDLER_ARGS)
 		bool esr_rxed;
 
 		STREAM_GETL(s, zapi_flags);
-		esr_rxed = (zapi_flags & ZAPI_ES_VTEP_FLAG_ESR_RXED) ? true
-								     : false;
+		esr_rxed = (zapi_flags & ZAPI_ES_VTEP_FLAG_ESR_RXED) ? true : false;
 		STREAM_GETC(s, df_alg);
 		STREAM_GETW(s, df_pref);
 		zebra_rib_queue_evpn_rem_es_add(&esi, &vtep_ip, esr_rxed,
@@ -2602,8 +2547,7 @@ void zebra_evpn_es_mac_deref_entry(struct zebra_mac *mac)
 /* Associate a MAC entry with a local or remote ES. Returns false if there
  * was no ES change.
  */
-bool zebra_evpn_es_mac_ref_entry(struct zebra_mac *mac,
-				 struct zebra_evpn_es *es)
+bool zebra_evpn_es_mac_ref_entry(struct zebra_mac *mac, struct zebra_evpn_es *es)
 {
 	if (mac->es == es)
 		return false;
@@ -2653,9 +2597,8 @@ static int zebra_evpn_es_evi_send_to_client(struct zebra_evpn_es *es,
 
 	s = stream_new(ZEBRA_MAX_PACKET_SIZ);
 
-	zclient_create_header(s,
-			add ? ZEBRA_LOCAL_ES_EVI_ADD : ZEBRA_LOCAL_ES_EVI_DEL,
-			zebra_vrf_get_evpn_id());
+	zclient_create_header(s, add ? ZEBRA_LOCAL_ES_EVI_ADD : ZEBRA_LOCAL_ES_EVI_DEL,
+			      zebra_vrf_get_evpn_id());
 	stream_put(s, &es->esi, sizeof(esi_t));
 	stream_putl(s, zevpn->vni);
 
@@ -2664,17 +2607,15 @@ static int zebra_evpn_es_evi_send_to_client(struct zebra_evpn_es *es,
 
 	if (IS_ZEBRA_DEBUG_EVPN_MH_ES)
 		zlog_debug("send %s local es %s evi %u to %s",
-				add ? "add" : "del",
-				es->esi_str, zevpn->vni,
-				zebra_route_string(client->proto));
+			   add ? "add" : "del", es->esi_str, zevpn->vni,
+			   zebra_route_string(client->proto));
 
 	client->local_es_add_cnt++;
 	return zserv_send_message(client, s);
 }
 
 /* sysmac part of a local ESI has changed */
-static int zebra_evpn_es_sys_mac_update(struct zebra_if *zif,
-		struct ethaddr *sysmac)
+static int zebra_evpn_es_sys_mac_update(struct zebra_if *zif, struct ethaddr *sysmac)
 {
 	int rv;
 
@@ -2718,8 +2659,7 @@ void zebra_evpn_es_cleanup(void)
 	struct zebra_evpn_es *es;
 	struct zebra_evpn_es *es_next;
 
-	RB_FOREACH_SAFE(es, zebra_es_rb_head,
-			&zmh_info->es_rb_tree, es_next) {
+	RB_FOREACH_SAFE (es, zebra_es_rb_head, &zmh_info->es_rb_tree, es_next) {
 		zebra_evpn_local_es_del(&es);
 		if (es)
 			zebra_evpn_remote_es_flush(&es);
@@ -2772,10 +2712,8 @@ static void zebra_evpn_es_bypass_update_macs(struct zebra_evpn_es *es,
 
 		if (IS_ZEBRA_DEBUG_EVPN_MH_MAC)
 			zlog_debug("VNI %u mac %pEA %s update es %s",
-				   mac->zevpn->vni,
-				   &mac->macaddr,
-				   bypass ? "bypass" : "non-bypass",
-				   es->esi_str);
+				   mac->zevpn->vni, &mac->macaddr,
+				   bypass ? "bypass" : "non-bypass", es->esi_str);
 		zebra_evpn_flush_local_mac(mac, ifp);
 	}
 
@@ -2792,8 +2730,7 @@ static void zebra_evpn_es_bypass_update_macs(struct zebra_evpn_es *es,
 
 		if (IS_ZEBRA_DEBUG_EVPN_MH_MAC)
 			zlog_debug("VNI %u mac %pEA %s update ifp %s",
-				   mac->zevpn->vni,
-				   &mac->macaddr,
+				   mac->zevpn->vni, &mac->macaddr,
 				   bypass ? "bypass" : "non-bypass", ifp->name);
 		zebra_evpn_flush_local_mac(mac, ifp);
 	}
@@ -2828,8 +2765,8 @@ void zebra_evpn_es_bypass_update(struct zebra_evpn_es *es,
 	dplane_updated = zebra_evpn_es_run_df_election(es, __func__);
 
 	/* disable SPH filter */
-	if (!dplane_updated && (es->flags & ZEBRA_EVPNES_LOCAL)
-	    && (listcount(es->es_vtep_list) > ES_VTEP_MAX_CNT))
+	if (!dplane_updated && (es->flags & ZEBRA_EVPNES_LOCAL) &&
+	    (listcount(es->es_vtep_list) > ES_VTEP_MAX_CNT))
 		zebra_evpn_es_br_port_dplane_update(es, __func__);
 }
 
@@ -2867,8 +2804,7 @@ bool zebra_evpn_is_if_es_capable(struct zebra_if *zif)
 	return false;
 }
 
-void zebra_evpn_if_es_print(struct vty *vty, json_object *json,
-			    struct zebra_if *zif)
+void zebra_evpn_if_es_print(struct vty *vty, json_object *json, struct zebra_if *zif)
 {
 	char buf[ETHER_ADDR_STRLEN];
 	char esi_buf[ESI_STR_LEN];
@@ -2880,27 +2816,22 @@ void zebra_evpn_if_es_print(struct vty *vty, json_object *json,
 		json_object_object_add(json, "evpnMh", json_evpn);
 
 		if (zif->es_info.lid || !is_zero_mac(&zif->es_info.sysmac)) {
-			json_object_int_add(json_evpn, "esId",
-					    zif->es_info.lid);
-			json_object_string_add(
-				json_evpn, "esSysmac",
-				prefix_mac2str(&zif->es_info.sysmac, buf,
-					       sizeof(buf)));
-		} else if (memcmp(&zif->es_info.esi, zero_esi,
-				  sizeof(*zero_esi))) {
+			json_object_int_add(json_evpn, "esId", zif->es_info.lid);
+			json_object_string_add(json_evpn, "esSysmac",
+					       prefix_mac2str(&zif->es_info.sysmac,
+							      buf, sizeof(buf)));
+		} else if (memcmp(&zif->es_info.esi, zero_esi, sizeof(*zero_esi))) {
 			json_object_string_add(json_evpn, "esId",
-					       esi_to_str(&zif->es_info.esi,
-							  esi_buf,
+					       esi_to_str(&zif->es_info.esi, esi_buf,
 							  sizeof(esi_buf)));
 		}
 
 		if (zif->flags & ZIF_FLAG_EVPN_MH_UPLINK)
-			json_object_string_add(
-				json_evpn, "uplink",
-				CHECK_FLAG(zif->flags,
-					   ZIF_FLAG_EVPN_MH_UPLINK_OPER_UP)
-					? "up"
-					: "down");
+			json_object_string_add(json_evpn, "uplink",
+					       CHECK_FLAG(zif->flags,
+							  ZIF_FLAG_EVPN_MH_UPLINK_OPER_UP)
+						       ? "up"
+						       : "down");
 	} else {
 		char mh_buf[80];
 		bool vty_print = false;
@@ -2914,12 +2845,10 @@ void zebra_evpn_if_es_print(struct vty *vty, json_object *json,
 				 " ES id %u ES sysmac %s", zif->es_info.lid,
 				 prefix_mac2str(&zif->es_info.sysmac, buf,
 						sizeof(buf)));
-		} else if (memcmp(&zif->es_info.esi, zero_esi,
-				  sizeof(*zero_esi))) {
+		} else if (memcmp(&zif->es_info.esi, zero_esi, sizeof(*zero_esi))) {
 			vty_print = true;
 			snprintf(mh_buf + strnlen(mh_buf, sizeof(mh_buf)),
-				 sizeof(mh_buf)
-					 - strnlen(mh_buf, sizeof(mh_buf)),
+				 sizeof(mh_buf) - strnlen(mh_buf, sizeof(mh_buf)),
 				 " ES id %s",
 				 esi_to_str(&zif->es_info.esi, esi_buf,
 					    sizeof(esi_buf)));
@@ -2930,8 +2859,7 @@ void zebra_evpn_if_es_print(struct vty *vty, json_object *json,
 			if (zif->flags & ZIF_FLAG_EVPN_MH_UPLINK_OPER_UP)
 				strlcat(mh_buf, " uplink (up)", sizeof(mh_buf));
 			else
-				strlcat(mh_buf, " uplink (down)",
-					sizeof(mh_buf));
+				strlcat(mh_buf, " uplink (down)", sizeof(mh_buf));
 		}
 
 		if (vty_print)
@@ -2956,25 +2884,22 @@ static void zebra_evpn_local_mac_oper_state_change(struct zebra_evpn_es *es)
 			   (es->flags & ZEBRA_EVPNES_OPER_UP) ? "up" : "down");
 
 	for (ALL_LIST_ELEMENTS_RO(es->mac_list, node, mac)) {
-		if (!(mac->flags & ZEBRA_MAC_LOCAL)
-		    || !zebra_evpn_mac_is_static(mac))
+		if (!(mac->flags & ZEBRA_MAC_LOCAL) ||
+		    !zebra_evpn_mac_is_static(mac))
 			continue;
 
 		if (es->flags & ZEBRA_EVPNES_OPER_UP) {
 			if (IS_ZEBRA_DEBUG_EVPN_MH_MAC)
-				zlog_debug(
-					"VNI %u mac %pEA move to acc %s es %s %s ",
-					mac->zevpn->vni,
-					&mac->macaddr,
-					es->zif->ifp->name, es->esi_str,
-					(es->flags & ZEBRA_EVPNES_OPER_UP)
-						? "up"
-						: "down");
+				zlog_debug("VNI %u mac %pEA move to acc %s es %s %s ",
+					   mac->zevpn->vni, &mac->macaddr,
+					   es->zif->ifp->name, es->esi_str,
+					   (es->flags & ZEBRA_EVPNES_OPER_UP)
+						   ? "up"
+						   : "down");
 			/* switch the local macs to access port */
-			if (zebra_evpn_sync_mac_dp_install(
-				    mac, false /*set_inactive*/,
-				    false /*force_clear_static*/, __func__)
-			    < 0)
+			if (zebra_evpn_sync_mac_dp_install(mac, false /*set_inactive*/,
+							   false /*force_clear_static*/,
+							   __func__) < 0)
 				/* if the local mac install fails get rid of the
 				 * old rem entry
 				 */
@@ -2988,14 +2913,12 @@ static void zebra_evpn_local_mac_oper_state_change(struct zebra_evpn_es *es)
 			if (!(es->flags & ZEBRA_EVPNES_NHG_ACTIVE))
 				continue;
 			if (IS_ZEBRA_DEBUG_EVPN_MH_MAC)
-				zlog_debug(
-					"VNI %u mac %pEA move to nhg %u es %s %s ",
-					mac->zevpn->vni,
-					&mac->macaddr,
-					es->nhg_id, es->esi_str,
-					(es->flags & ZEBRA_EVPNES_OPER_UP)
-						? "up"
-						: "down");
+				zlog_debug("VNI %u mac %pEA move to nhg %u es %s %s ",
+					   mac->zevpn->vni, &mac->macaddr,
+					   es->nhg_id, es->esi_str,
+					   (es->flags & ZEBRA_EVPNES_OPER_UP)
+						   ? "up"
+						   : "down");
 			zebra_evpn_rem_mac_install(mac->zevpn, mac,
 						   true /*was_static*/);
 		}
@@ -3011,9 +2934,8 @@ void zebra_evpn_es_if_oper_state_change(struct zebra_if *zif, bool up)
 		return;
 
 	if (IS_ZEBRA_DEBUG_EVPN_MH_ES)
-		zlog_debug("es %s state changed to %s ",
-				es->esi_str,
-				up ? "up" : "down");
+		zlog_debug("es %s state changed to %s ", es->esi_str,
+			   up ? "up" : "down");
 	if (up)
 		es->flags |= ZEBRA_EVPNES_OPER_UP;
 	else
@@ -3031,7 +2953,7 @@ static char *zebra_evpn_es_vtep_str(char *vtep_str, struct zebra_evpn_es *es,
 				    uint8_t vtep_str_size)
 {
 	struct zebra_evpn_es_vtep *zvtep;
-	struct listnode	*node;
+	struct listnode *node;
 	bool first = true;
 	char ip_buf[INET6_ADDRSTRLEN];
 
@@ -3067,10 +2989,10 @@ static void zebra_evpn_es_json_vtep_fill(struct zebra_evpn_es *es,
 		json_object_string_addf(json_vtep_entry, "vtep", "%pI4",
 					&es_vtep->vtep_ip);
 		if (es_vtep->flags & ZEBRA_EVPNES_VTEP_RXED_ESR) {
-			json_object_string_add(
-				json_vtep_entry, "dfAlgorithm",
-				evpn_es_df_alg2str(es_vtep->df_alg, alg_buf,
-						   sizeof(alg_buf)));
+			json_object_string_add(json_vtep_entry, "dfAlgorithm",
+					       evpn_es_df_alg2str(es_vtep->df_alg,
+								  alg_buf,
+								  sizeof(alg_buf)));
 			json_object_int_add(json_vtep_entry, "dfPreference",
 					    es_vtep->df_pref);
 		}
@@ -3095,9 +3017,8 @@ static void zebra_evpn_es_show_entry(struct vty *vty, struct zebra_evpn_es *es,
 		json = json_object_new_object();
 		json_object_string_add(json, "esi", es->esi_str);
 
-		if (es->flags
-		    & (ZEBRA_EVPNES_LOCAL | ZEBRA_EVPNES_REMOTE
-		       | ZEBRA_EVPNES_NON_DF)) {
+		if (es->flags & (ZEBRA_EVPNES_LOCAL | ZEBRA_EVPNES_REMOTE |
+				 ZEBRA_EVPNES_NON_DF)) {
 			json_flags = json_object_new_array();
 			if (es->flags & ZEBRA_EVPNES_LOCAL)
 				json_array_string_add(json_flags, "local");
@@ -3133,20 +3054,19 @@ static void zebra_evpn_es_show_entry(struct vty *vty, struct zebra_evpn_es *es,
 
 		zebra_evpn_es_vtep_str(vtep_str, es, sizeof(vtep_str));
 
-		vty_out(vty, "%-30s %-4s %-21s %s\n",
-				es->esi_str, type_str,
-				es->zif ? es->zif->ifp->name : "-",
-				vtep_str);
+		vty_out(vty, "%-30s %-4s %-21s %s\n", es->esi_str, type_str,
+			es->zif ? es->zif->ifp->name : "-", vtep_str);
 	}
 }
 
 static void zebra_evpn_es_show_entry_detail(struct vty *vty,
-		struct zebra_evpn_es *es, json_object *json)
+					    struct zebra_evpn_es *es,
+					    json_object *json)
 {
 	char type_str[80];
 	char alg_buf[EVPN_DF_ALG_STR_LEN];
 	struct zebra_evpn_es_vtep *es_vtep;
-	struct listnode	*node;
+	struct listnode *node;
 	char thread_buf[EVENT_TIMER_STRLEN];
 
 	if (json) {
@@ -3173,8 +3093,7 @@ static void zebra_evpn_es_show_entry_detail(struct vty *vty,
 			if (es->flags & ZEBRA_EVPNES_BYPASS)
 				json_array_string_add(json_flags, "bypass");
 			if (es->flags & ZEBRA_EVPNES_READY_FOR_BGP)
-				json_array_string_add(json_flags,
-						      "readyForBgp");
+				json_array_string_add(json_flags, "readyForBgp");
 			if (es->flags & ZEBRA_EVPNES_BR_PORT)
 				json_array_string_add(json_flags, "bridgePort");
 			if (es->flags & ZEBRA_EVPNES_OPER_UP)
@@ -3185,15 +3104,13 @@ static void zebra_evpn_es_show_entry_detail(struct vty *vty,
 			json_object_object_add(json, "flags", json_flags);
 		}
 
-		json_object_int_add(json, "vniCount",
-				    listcount(es->es_evi_list));
+		json_object_int_add(json, "vniCount", listcount(es->es_evi_list));
 		json_object_int_add(json, "macCount", listcount(es->mac_list));
 		json_object_int_add(json, "dfPreference", es->df_pref);
 		if (es->df_delay_timer)
 			json_object_string_add(
 				json, "dfDelayTimer",
-				event_timer_to_hhmmss(thread_buf,
-						      sizeof(thread_buf),
+				event_timer_to_hhmmss(thread_buf, sizeof(thread_buf),
 						      es->df_delay_timer));
 		json_object_int_add(json, "nexthopGroup", es->nhg_id);
 		if (listcount(es->es_vtep_list)) {
@@ -3214,19 +3131,15 @@ static void zebra_evpn_es_show_entry_detail(struct vty *vty,
 		vty_out(vty, "ESI: %s\n", es->esi_str);
 		vty_out(vty, " Type: %s\n", type_str);
 		vty_out(vty, " Interface: %s\n",
-				(es->zif) ?
-				es->zif->ifp->name : "-");
+			(es->zif) ? es->zif->ifp->name : "-");
 		if (es->flags & ZEBRA_EVPNES_LOCAL) {
 			vty_out(vty, " State: %s\n",
-				(es->flags & ZEBRA_EVPNES_OPER_UP) ? "up"
-								   : "down");
+				(es->flags & ZEBRA_EVPNES_OPER_UP) ? "up" : "down");
 			vty_out(vty, " Bridge port: %s\n",
-				(es->flags & ZEBRA_EVPNES_BR_PORT) ? "yes"
-								   : "no");
+				(es->flags & ZEBRA_EVPNES_BR_PORT) ? "yes" : "no");
 		}
 		vty_out(vty, " Ready for BGP: %s\n",
-				(es->flags & ZEBRA_EVPNES_READY_FOR_BGP) ?
-				"yes" : "no");
+			(es->flags & ZEBRA_EVPNES_READY_FOR_BGP) ? "yes" : "no");
 		if (es->flags & ZEBRA_EVPNES_BYPASS)
 			vty_out(vty, " LACP bypass: on\n");
 		vty_out(vty, " VNI Count: %d\n", listcount(es->es_evi_list));
@@ -3237,19 +3150,16 @@ static void zebra_evpn_es_show_entry_detail(struct vty *vty,
 								  : "df");
 		if (es->df_delay_timer)
 			vty_out(vty, " DF delay: %s\n",
-				event_timer_to_hhmmss(thread_buf,
-						      sizeof(thread_buf),
+				event_timer_to_hhmmss(thread_buf, sizeof(thread_buf),
 						      es->df_delay_timer));
 		vty_out(vty, " DF preference: %u\n", es->df_pref);
 		vty_out(vty, " Nexthop group: %u\n", es->nhg_id);
 		vty_out(vty, " VTEPs:\n");
 		for (ALL_LIST_ELEMENTS_RO(es->es_vtep_list, node, es_vtep)) {
-			vty_out(vty, "     %pI4",
-					&es_vtep->vtep_ip);
+			vty_out(vty, "     %pI4", &es_vtep->vtep_ip);
 			if (es_vtep->flags & ZEBRA_EVPNES_VTEP_RXED_ESR)
 				vty_out(vty, " df_alg: %s df_pref: %d",
-					evpn_es_df_alg2str(es_vtep->df_alg,
-							   alg_buf,
+					evpn_es_df_alg2str(es_vtep->df_alg, alg_buf,
 							   sizeof(alg_buf)),
 					es_vtep->df_pref);
 			vty_out(vty, " nh: %u\n",
@@ -3269,11 +3179,11 @@ void zebra_evpn_es_show(struct vty *vty, bool uj)
 		json_array = json_object_new_array();
 	} else {
 		vty_out(vty, "Type: B bypass, L local, R remote, N non-DF\n");
-		vty_out(vty, "%-30s %-4s %-21s %s\n",
-				"ESI", "Type", "ES-IF", "VTEPs");
+		vty_out(vty, "%-30s %-4s %-21s %s\n", "ESI", "Type", "ES-IF",
+			"VTEPs");
 	}
 
-	RB_FOREACH(es, zebra_es_rb_head, &zmh_info->es_rb_tree)
+	RB_FOREACH (es, zebra_es_rb_head, &zmh_info->es_rb_tree)
 		zebra_evpn_es_show_entry(vty, es, json_array);
 
 	if (uj)
@@ -3340,15 +3250,13 @@ int zebra_evpn_mh_if_write(struct vty *vty, struct interface *ifp)
 
 	if (!is_zero_mac(&zif->es_info.sysmac)) {
 		vty_out(vty, " evpn mh es-sys-mac %s\n",
-				prefix_mac2str(&zif->es_info.sysmac,
-					buf, sizeof(buf)));
+			prefix_mac2str(&zif->es_info.sysmac, buf, sizeof(buf)));
 		type_3_esi = true;
 	}
 
-	if (!type_3_esi
-	    && memcmp(&zif->es_info.esi, zero_esi, sizeof(*zero_esi)))
+	if (!type_3_esi && memcmp(&zif->es_info.esi, zero_esi, sizeof(*zero_esi)))
 		vty_out(vty, " evpn mh es-id %s\n",
-				esi_to_str(&zif->es_info.esi, esi_buf, sizeof(esi_buf)));
+			esi_to_str(&zif->es_info.esi, esi_buf, sizeof(esi_buf)));
 
 	if (zif->es_info.df_pref)
 		vty_out(vty, " evpn mh es-df-pref %u\n", zif->es_info.df_pref);
@@ -3361,8 +3269,7 @@ int zebra_evpn_mh_if_write(struct vty *vty, struct interface *ifp)
 
 #include "zebra/zebra_evpn_mh_clippy.c"
 /* CLI for setting an ES in bypass mode */
-DEFPY_HIDDEN(zebra_evpn_es_bypass, zebra_evpn_es_bypass_cmd,
-	     "[no] evpn mh bypass",
+DEFPY_HIDDEN(zebra_evpn_es_bypass, zebra_evpn_es_bypass_cmd, "[no] evpn mh bypass",
 	     NO_STR "EVPN\n" EVPN_MH_VTY_STR "set bypass mode\n")
 {
 	VTY_DECLVAR_CONTEXT(interface, ifp);
@@ -3386,8 +3293,7 @@ DEFPY_HIDDEN(zebra_evpn_es_bypass, zebra_evpn_es_bypass_cmd,
 /* CLI for configuring DF preference part for an ES */
 DEFPY(zebra_evpn_es_pref, zebra_evpn_es_pref_cmd,
       "[no$no] evpn mh es-df-pref [(1-65535)$df_pref]",
-      NO_STR "EVPN\n" EVPN_MH_VTY_STR
-	     "preference value used for DF election\n"
+      NO_STR "EVPN\n" EVPN_MH_VTY_STR "preference value used for DF election\n"
 	     "pref\n")
 {
 	VTY_DECLVAR_CONTEXT(interface, ifp);
@@ -3409,15 +3315,9 @@ DEFPY(zebra_evpn_es_pref, zebra_evpn_es_pref_cmd,
 }
 
 /* CLI for setting up sysmac part of ESI on an access port */
-DEFPY(zebra_evpn_es_sys_mac,
-      zebra_evpn_es_sys_mac_cmd,
+DEFPY(zebra_evpn_es_sys_mac, zebra_evpn_es_sys_mac_cmd,
       "[no$no] evpn mh es-sys-mac [X:X:X:X:X:X$mac]",
-      NO_STR
-      "EVPN\n"
-      EVPN_MH_VTY_STR
-      "Ethernet segment system MAC\n"
-      MAC_STR
-)
+      NO_STR "EVPN\n" EVPN_MH_VTY_STR "Ethernet segment system MAC\n" MAC_STR)
 {
 	VTY_DECLVAR_CONTEXT(interface, ifp);
 	struct zebra_if *zif;
@@ -3434,14 +3334,13 @@ DEFPY(zebra_evpn_es_sys_mac,
 			return CMD_WARNING;
 		}
 	} else {
-
 		if (!zebra_evpn_is_if_es_capable(zif)) {
 			vty_out(vty,
 				"%% ESI cannot be associated with this interface type\n");
 			return CMD_WARNING;
 		}
 
-		if  (!mac || is_zero_mac(&mac->eth_addr)) {
+		if (!mac || is_zero_mac(&mac->eth_addr)) {
 			vty_out(vty, "%% ES sysmac value is invalid\n");
 			return CMD_WARNING;
 		}
@@ -3457,16 +3356,11 @@ DEFPY(zebra_evpn_es_sys_mac,
 }
 
 /* CLI for setting up local-ID part of ESI on an access port */
-DEFPY(zebra_evpn_es_id,
-      zebra_evpn_es_id_cmd,
+DEFPY(zebra_evpn_es_id, zebra_evpn_es_id_cmd,
       "[no$no] evpn mh es-id [(1-16777215)$es_lid | NAME$esi_str]",
-      NO_STR
-      "EVPN\n"
-      EVPN_MH_VTY_STR
-      "Ethernet segment identifier\n"
-      "local discriminator\n"
-      "10-byte ID - 00:AA:BB:CC:DD:EE:FF:GG:HH:II\n"
-)
+      NO_STR "EVPN\n" EVPN_MH_VTY_STR "Ethernet segment identifier\n"
+	     "local discriminator\n"
+	     "10-byte ID - 00:AA:BB:CC:DD:EE:FF:GG:HH:II\n")
 {
 	VTY_DECLVAR_CONTEXT(interface, ifp);
 	struct zebra_if *zif;
@@ -3538,12 +3432,10 @@ void zebra_evpn_mh_json(json_object *json)
 	json_object_int_add(json, "macHoldtime", zmh_info->mac_hold_time);
 	json_object_int_add(json, "neighHoldtime", zmh_info->neigh_hold_time);
 	json_object_int_add(json, "startupDelay", zmh_info->startup_delay_time);
-	json_object_string_add(
-		json, "startupDelayTimer",
-		event_timer_to_hhmmss(thread_buf, sizeof(thread_buf),
-				      zmh_info->startup_delay_timer));
-	json_object_int_add(json, "uplinkConfigCount",
-			    zmh_info->uplink_cfg_cnt);
+	json_object_string_add(json, "startupDelayTimer",
+			       event_timer_to_hhmmss(thread_buf, sizeof(thread_buf),
+						     zmh_info->startup_delay_timer));
+	json_object_int_add(json, "uplinkConfigCount", zmh_info->uplink_cfg_cnt);
 	json_object_int_add(json, "uplinkActiveCount",
 			    zmh_info->uplink_oper_up_cnt);
 
@@ -3551,14 +3443,12 @@ void zebra_evpn_mh_json(json_object *json)
 		json_array = json_object_new_array();
 		if (CHECK_FLAG(zmh_info->protodown_rc,
 			       ZEBRA_PROTODOWN_EVPN_STARTUP_DELAY))
-			json_object_array_add(
-				json_array,
-				json_object_new_string("startupDelay"));
+			json_object_array_add(json_array, json_object_new_string(
+								  "startupDelay"));
 		if (CHECK_FLAG(zmh_info->protodown_rc,
 			       ZEBRA_PROTODOWN_EVPN_UPLINK_DOWN))
-			json_object_array_add(
-				json_array,
-				json_object_new_string("uplinkDown"));
+			json_object_array_add(json_array, json_object_new_string(
+								  "uplinkDown"));
 		json_object_object_add(json, "protodownReasons", json_array);
 	}
 }
@@ -3606,14 +3496,13 @@ void zebra_evpn_es_set_base_evpn(struct zebra_evpn *zevpn)
 			return;
 
 		if (IS_ZEBRA_DEBUG_EVPN_MH_ES)
-			zlog_debug("es base vni set to %d",
-					zevpn->vni);
+			zlog_debug("es base vni set to %d", zevpn->vni);
 		zmh_info->es_base_evpn = zevpn;
 	}
 
 	/* update local VTEP-IP */
 	if (zmh_info->es_originator_ip.s_addr ==
-			zmh_info->es_base_evpn->local_vtep_ip.s_addr)
+	    zmh_info->es_base_evpn->local_vtep_ip.s_addr)
 		return;
 
 	zmh_info->es_originator_ip.s_addr =
@@ -3621,7 +3510,7 @@ void zebra_evpn_es_set_base_evpn(struct zebra_evpn *zevpn)
 
 	if (IS_ZEBRA_DEBUG_EVPN_MH_ES)
 		zlog_debug("es originator ip set to %pI4",
-			&zmh_info->es_base_evpn->local_vtep_ip);
+			   &zmh_info->es_base_evpn->local_vtep_ip);
 
 	/* if originator ip changes we need to update bgp */
 	for (ALL_LIST_ELEMENTS_RO(zmh_info->local_es_list, node, es)) {
@@ -3631,7 +3520,7 @@ void zebra_evpn_es_set_base_evpn(struct zebra_evpn *zevpn)
 			zebra_evpn_es_send_add_to_client(es);
 		else
 			zebra_evpn_es_re_eval_send_to_client(es,
-					true /* es_evi_re_reval */);
+							     true /* es_evi_re_reval */);
 	}
 }
 
@@ -3659,7 +3548,7 @@ void zebra_evpn_es_clear_base_evpn(struct zebra_evpn *zevpn)
 		/* lost originator ip */
 		for (ALL_LIST_ELEMENTS_RO(zmh_info->local_es_list, node, es)) {
 			zebra_evpn_es_re_eval_send_to_client(es,
-					true /* es_evi_re_reval */);
+							     true /* es_evi_re_reval */);
 		}
 	}
 }
@@ -3703,9 +3592,8 @@ bool zebra_evpn_is_es_bond_member(struct interface *ifp)
 {
 	struct zebra_if *zif = ifp->info;
 
-	return IS_ZEBRA_IF_BOND_SLAVE(zif->ifp) && zif->bondslave_info.bond_if
-	       && ((struct zebra_if *)zif->bondslave_info.bond_if->info)
-			  ->es_info.es;
+	return IS_ZEBRA_IF_BOND_SLAVE(zif->ifp) && zif->bondslave_info.bond_if &&
+	       ((struct zebra_if *)zif->bondslave_info.bond_if->info)->es_info.es;
 }
 
 void zebra_evpn_mh_update_protodown_bond_mbr(struct zebra_if *zif, bool clear,
@@ -3729,10 +3617,9 @@ void zebra_evpn_mh_update_protodown_bond_mbr(struct zebra_if *zif, bool clear,
 	new_protodown = !!new_protodown_rc;
 
 	if (IS_ZEBRA_DEBUG_EVPN_MH_ES && (new_protodown_rc != old_protodown_rc))
-		zlog_debug(
-			"%s bond mbr %s protodown_rc changed; old 0x%x new 0x%x",
-			caller, zif->ifp->name, old_protodown_rc,
-			new_protodown_rc);
+		zlog_debug("%s bond mbr %s protodown_rc changed; old 0x%x new 0x%x",
+			   caller, zif->ifp->name, old_protodown_rc,
+			   new_protodown_rc);
 
 	if (zebra_if_update_protodown_rc(zif->ifp, new_protodown,
 					 new_protodown_rc) == 0) {
@@ -3769,22 +3656,19 @@ static void zebra_evpn_mh_update_protodown_es(struct zebra_evpn_es *es,
 	 * ES bond in that case we would need to ensure that the
 	 * dplane is really in sync with zebra
 	 */
-	if (!resync_dplane
-	    && (zif->protodown_rc & ZEBRA_PROTODOWN_EVPN_ALL)
-		       == (zmh_info->protodown_rc & ZEBRA_PROTODOWN_EVPN_ALL))
+	if (!resync_dplane &&
+	    (zif->protodown_rc & ZEBRA_PROTODOWN_EVPN_ALL) ==
+		    (zmh_info->protodown_rc & ZEBRA_PROTODOWN_EVPN_ALL))
 		return;
 
 	old_protodown_rc = zif->protodown_rc;
 	zif->protodown_rc &= ~ZEBRA_PROTODOWN_EVPN_ALL;
-	zif->protodown_rc |=
-		(zmh_info->protodown_rc & ZEBRA_PROTODOWN_EVPN_ALL);
+	zif->protodown_rc |= (zmh_info->protodown_rc & ZEBRA_PROTODOWN_EVPN_ALL);
 
-	if (IS_ZEBRA_DEBUG_EVPN_MH_ES
-	    && (old_protodown_rc != zif->protodown_rc))
-		zlog_debug(
-			"es %s ifp %s protodown_rc changed; old 0x%x new 0x%x",
-			es->esi_str, zif->ifp->name, old_protodown_rc,
-			zif->protodown_rc);
+	if (IS_ZEBRA_DEBUG_EVPN_MH_ES && (old_protodown_rc != zif->protodown_rc))
+		zlog_debug("es %s ifp %s protodown_rc changed; old 0x%x new 0x%x",
+			   es->esi_str, zif->ifp->name, old_protodown_rc,
+			   zif->protodown_rc);
 
 	/* update dataplane with the new protodown setting */
 	zebra_evpn_mh_update_protodown_bond(zif);
@@ -3803,10 +3687,9 @@ static void zebra_evpn_mh_clear_protodown_es(struct zebra_evpn_es *es)
 	zif->protodown_rc &= ~ZEBRA_PROTODOWN_EVPN_ALL;
 
 	if (IS_ZEBRA_DEBUG_EVPN_MH_ES)
-		zlog_debug(
-			"clear: es %s ifp %s protodown_rc cleared; old 0x%x new 0x%x",
-			es->esi_str, zif->ifp->name, old_protodown_rc,
-			zif->protodown_rc);
+		zlog_debug("clear: es %s ifp %s protodown_rc cleared; old 0x%x new 0x%x",
+			   es->esi_str, zif->ifp->name, old_protodown_rc,
+			   zif->protodown_rc);
 
 	/* update dataplane with the new protodown setting */
 	zebra_evpn_mh_update_protodown_bond(zif);
@@ -3847,8 +3730,7 @@ static inline bool zebra_evpn_mh_is_all_uplinks_down(void)
 	return zmh_info->uplink_cfg_cnt && !zmh_info->uplink_oper_up_cnt;
 }
 
-static void zebra_evpn_mh_uplink_oper_flags_update(struct zebra_if *zif,
-						   bool set)
+static void zebra_evpn_mh_uplink_oper_flags_update(struct zebra_if *zif, bool set)
 {
 	if (set && if_is_operative(zif->ifp)) {
 		if (!(zif->flags & ZIF_FLAG_EVPN_MH_UPLINK_OPER_UP)) {
@@ -3890,10 +3772,10 @@ static void zebra_evpn_mh_uplink_cfg_update(struct zebra_if *zif, bool set)
 		return;
 
 	if (IS_ZEBRA_DEBUG_EVPN_MH_ES)
-		zlog_debug(
-			"mh-uplink-cfg-chg on if %s/%d %s uplinks cfg %u up %u",
-			zif->ifp->name, zif->ifp->ifindex, set ? "set" : "down",
-			zmh_info->uplink_cfg_cnt, zmh_info->uplink_oper_up_cnt);
+		zlog_debug("mh-uplink-cfg-chg on if %s/%d %s uplinks cfg %u up %u",
+			   zif->ifp->name, zif->ifp->ifindex,
+			   set ? "set" : "down", zmh_info->uplink_cfg_cnt,
+			   zmh_info->uplink_oper_up_cnt);
 
 	zebra_evpn_mh_update_protodown(ZEBRA_PROTODOWN_EVPN_UPLINK_DOWN,
 				       new_protodown);
@@ -3907,11 +3789,10 @@ void zebra_evpn_mh_uplink_oper_update(struct zebra_if *zif)
 	zebra_evpn_mh_uplink_oper_flags_update(zif, true /*set*/);
 
 	if (IS_ZEBRA_DEBUG_EVPN_MH_ES)
-		zlog_debug(
-			"mh-uplink-oper-chg on if %s/%d %s; uplinks cfg %u up %u",
-			zif->ifp->name, zif->ifp->ifindex,
-			if_is_operative(zif->ifp) ? "up" : "down",
-			zmh_info->uplink_cfg_cnt, zmh_info->uplink_oper_up_cnt);
+		zlog_debug("mh-uplink-oper-chg on if %s/%d %s; uplinks cfg %u up %u",
+			   zif->ifp->name, zif->ifp->ifindex,
+			   if_is_operative(zif->ifp) ? "up" : "down",
+			   zmh_info->uplink_cfg_cnt, zmh_info->uplink_oper_up_cnt);
 
 	new_protodown = zebra_evpn_mh_is_all_uplinks_down();
 	if (old_protodown == new_protodown)
@@ -3947,18 +3828,16 @@ static void zebra_evpn_mh_startup_delay_timer_start(const char *rc)
 
 	if (zmh_info->startup_delay_time) {
 		if (IS_ZEBRA_DEBUG_EVPN_MH_ES)
-			zlog_debug(
-				"startup-delay timer started for %d sec on %s",
-				zmh_info->startup_delay_time, rc);
-		event_add_timer(zrouter.master,
-				zebra_evpn_mh_startup_delay_exp_cb, NULL,
-				zmh_info->startup_delay_time,
+			zlog_debug("startup-delay timer started for %d sec on %s",
+				   zmh_info->startup_delay_time, rc);
+		event_add_timer(zrouter.master, zebra_evpn_mh_startup_delay_exp_cb,
+				NULL, zmh_info->startup_delay_time,
 				&zmh_info->startup_delay_timer);
-		zebra_evpn_mh_update_protodown(
-			ZEBRA_PROTODOWN_EVPN_STARTUP_DELAY, true /* set */);
+		zebra_evpn_mh_update_protodown(ZEBRA_PROTODOWN_EVPN_STARTUP_DELAY,
+					       true /* set */);
 	} else {
-		zebra_evpn_mh_update_protodown(
-			ZEBRA_PROTODOWN_EVPN_STARTUP_DELAY, false /* set */);
+		zebra_evpn_mh_update_protodown(ZEBRA_PROTODOWN_EVPN_STARTUP_DELAY,
+					       false /* set */);
 	}
 }
 
@@ -4002,9 +3881,8 @@ void zebra_evpn_proc_remote_nh(ZAPI_HANDLER_ARGS)
 	if (hdr->command == ZEBRA_EVPN_REMOTE_NH_ADD) {
 		stream_get(&rmac, s, sizeof(rmac));
 		if (IS_ZEBRA_DEBUG_EVPN_MH_ES)
-			zlog_debug(
-				"evpn remote nh %d %pIA rmac %pEA add pfx %pFX",
-				vrf_id, &nh, &rmac, &dummy_prefix);
+			zlog_debug("evpn remote nh %d %pIA rmac %pEA add pfx %pFX",
+				   vrf_id, &nh, &rmac, &dummy_prefix);
 		zebra_rib_queue_evpn_route_add(vrf_id, &rmac, &nh,
 					       (struct prefix *)&dummy_prefix);
 	} else {
@@ -4020,8 +3898,7 @@ void zebra_evpn_proc_remote_nh(ZAPI_HANDLER_ARGS)
 void zebra_evpn_mh_config_write(struct vty *vty)
 {
 	if (zmh_info->mac_hold_time != ZEBRA_EVPN_MH_MAC_HOLD_TIME_DEF)
-		vty_out(vty, "evpn mh mac-holdtime %d\n",
-			zmh_info->mac_hold_time);
+		vty_out(vty, "evpn mh mac-holdtime %d\n", zmh_info->mac_hold_time);
 
 	if (zmh_info->neigh_hold_time != ZEBRA_EVPN_MH_NEIGH_HOLD_TIME_DEF)
 		vty_out(vty, "evpn mh neigh-holdtime %d\n",
@@ -4035,8 +3912,8 @@ void zebra_evpn_mh_config_write(struct vty *vty)
 		vty_out(vty, "evpn mh redirect-off\n");
 }
 
-int zebra_evpn_mh_neigh_holdtime_update(struct vty *vty,
-		uint32_t duration, bool set_default)
+int zebra_evpn_mh_neigh_holdtime_update(struct vty *vty, uint32_t duration,
+					bool set_default)
 {
 	if (set_default)
 		duration = ZEBRA_EVPN_MH_NEIGH_HOLD_TIME_DEF;
@@ -4046,8 +3923,8 @@ int zebra_evpn_mh_neigh_holdtime_update(struct vty *vty,
 	return 0;
 }
 
-int zebra_evpn_mh_mac_holdtime_update(struct vty *vty,
-		uint32_t duration, bool set_default)
+int zebra_evpn_mh_mac_holdtime_update(struct vty *vty, uint32_t duration,
+				      bool set_default)
 {
 	if (set_default)
 		duration = ZEBRA_EVPN_MH_MAC_HOLD_TIME_DEF;
@@ -4111,13 +3988,14 @@ void zebra_evpn_mh_init(void)
 	bf_assign_zero_index(zmh_info->nh_id_bitmap);
 	zmh_info->nhg_table = hash_create(zebra_evpn_nhg_hash_keymake,
 					  zebra_evpn_nhg_cmp, "l2 NHG table");
-	zmh_info->nh_ip_table =
-		hash_create(zebra_evpn_nh_ip_hash_keymake, zebra_evpn_nh_ip_cmp,
-			    "l2 NH IP table");
+	zmh_info->nh_ip_table = hash_create(zebra_evpn_nh_ip_hash_keymake,
+					    zebra_evpn_nh_ip_cmp,
+					    "l2 NH IP table");
 
 	/* setup broadcast domain tables */
 	zmh_info->evpn_vlan_table = hash_create(zebra_evpn_acc_vl_hash_keymake,
-			zebra_evpn_acc_vl_cmp, "access VLAN hash table");
+						zebra_evpn_acc_vl_cmp,
+						"access VLAN hash table");
 
 	zmh_info->startup_delay_time = ZEBRA_EVPN_MH_STARTUP_DELAY_DEF;
 	zebra_evpn_mh_startup_delay_timer_start("init");
@@ -4127,8 +4005,8 @@ void zebra_evpn_mh_terminate(void)
 {
 	list_delete(&zmh_info->local_es_list);
 
-	hash_iterate(zmh_info->evpn_vlan_table,
-			zebra_evpn_acc_vl_cleanup_all, NULL);
+	hash_iterate(zmh_info->evpn_vlan_table, zebra_evpn_acc_vl_cleanup_all,
+		     NULL);
 	hash_free(zmh_info->evpn_vlan_table);
 	hash_free(zmh_info->nhg_table);
 	hash_free(zmh_info->nh_ip_table);

@@ -20,7 +20,7 @@
 #include "mgmtd/mgmt_txn.h"
 #include "mgmtd/mgmt_ds.h"
 
-#define MGMTD_VTY_PORT 2622
+#define MGMTD_VTY_PORT	      2622
 #define MGMTD_SOCKET_BUF_SIZE 65535
 #define MGMTD_MAX_COMMIT_LIST 10
 
@@ -29,9 +29,9 @@ extern struct debug mgmt_debug_ds;
 extern struct debug mgmt_debug_fe;
 extern struct debug mgmt_debug_txn;
 
-#define MGMT_DEBUG_BE_CHECK() DEBUG_MODE_CHECK(&mgmt_debug_be, DEBUG_MODE_ALL)
-#define MGMT_DEBUG_DS_CHECK() DEBUG_MODE_CHECK(&mgmt_debug_ds, DEBUG_MODE_ALL)
-#define MGMT_DEBUG_FE_CHECK() DEBUG_MODE_CHECK(&mgmt_debug_fe, DEBUG_MODE_ALL)
+#define MGMT_DEBUG_BE_CHECK()  DEBUG_MODE_CHECK(&mgmt_debug_be, DEBUG_MODE_ALL)
+#define MGMT_DEBUG_DS_CHECK()  DEBUG_MODE_CHECK(&mgmt_debug_ds, DEBUG_MODE_ALL)
+#define MGMT_DEBUG_FE_CHECK()  DEBUG_MODE_CHECK(&mgmt_debug_fe, DEBUG_MODE_ALL)
 #define MGMT_DEBUG_TXN_CHECK() DEBUG_MODE_CHECK(&mgmt_debug_tx, DEBUG_MODE_ALL)
 
 struct mgmt_txn_ctx;
@@ -72,8 +72,8 @@ extern struct mgmt_master *mm;
 /* Inline functions */
 static inline unsigned long timeval_elapsed(struct timeval a, struct timeval b)
 {
-	return (((a.tv_sec - b.tv_sec) * TIMER_SECOND_MICRO)
-		+ (a.tv_usec - b.tv_usec));
+	return (((a.tv_sec - b.tv_sec) * TIMER_SECOND_MICRO) +
+		(a.tv_usec - b.tv_usec));
 }
 
 /*

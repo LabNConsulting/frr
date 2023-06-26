@@ -39,8 +39,7 @@ DECLARE_RBTREE_UNIQ(nhg_connected_tree, struct nhg_connected, tree_item,
 /* nhg connected tree direct access functions */
 extern void nhg_connected_tree_init(struct nhg_connected_tree_head *head);
 extern void nhg_connected_tree_free(struct nhg_connected_tree_head *head);
-extern bool
-nhg_connected_tree_is_empty(const struct nhg_connected_tree_head *head);
+extern bool nhg_connected_tree_is_empty(const struct nhg_connected_tree_head *head);
 extern struct nhg_connected *
 nhg_connected_tree_root(struct nhg_connected_tree_head *head);
 

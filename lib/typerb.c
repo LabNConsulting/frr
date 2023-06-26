@@ -16,18 +16,18 @@
 #include <string.h>
 #include "typerb.h"
 
-#define RB_BLACK	0
-#define RB_RED		1
+#define RB_BLACK 0
+#define RB_RED	 1
 
-#define rb_entry		typed_rb_entry
-#define rbt_tree		typed_rb_root
+#define rb_entry typed_rb_entry
+#define rbt_tree typed_rb_root
 
-#define RBE_LEFT(_rbe)		(_rbe)->rbt_left
-#define RBE_RIGHT(_rbe)		(_rbe)->rbt_right
-#define RBE_PARENT(_rbe)	(_rbe)->rbt_parent
-#define RBE_COLOR(_rbe)		(_rbe)->rbt_color
+#define RBE_LEFT(_rbe)	 (_rbe)->rbt_left
+#define RBE_RIGHT(_rbe)	 (_rbe)->rbt_right
+#define RBE_PARENT(_rbe) (_rbe)->rbt_parent
+#define RBE_COLOR(_rbe)	 (_rbe)->rbt_color
 
-#define RBH_ROOT(_rbt)		(_rbt)->rbt_root
+#define RBH_ROOT(_rbt) (_rbt)->rbt_root
 
 static inline void rbe_set(struct rb_entry *rbe, struct rb_entry *parent)
 {
@@ -36,8 +36,7 @@ static inline void rbe_set(struct rb_entry *rbe, struct rb_entry *parent)
 	RBE_COLOR(rbe) = RB_RED;
 }
 
-static inline void rbe_set_blackred(struct rb_entry *black,
-				    struct rb_entry *red)
+static inline void rbe_set_blackred(struct rb_entry *black, struct rb_entry *red)
 {
 	RBE_COLOR(black) = RB_BLACK;
 	RBE_COLOR(red) = RB_RED;
@@ -97,8 +96,7 @@ static inline void rbe_insert_color(struct rbt_tree *rbt, struct rb_entry *rbe)
 
 	rbt->count++;
 
-	while ((parent = RBE_PARENT(rbe)) != NULL
-	       && RBE_COLOR(parent) == RB_RED) {
+	while ((parent = RBE_PARENT(rbe)) != NULL && RBE_COLOR(parent) == RB_RED) {
 		gparent = RBE_PARENT(parent);
 
 		if (parent == RBE_LEFT(gparent)) {
@@ -144,13 +142,12 @@ static inline void rbe_insert_color(struct rbt_tree *rbt, struct rb_entry *rbe)
 }
 
 static inline void rbe_remove_color(struct rbt_tree *rbt,
-				    struct rb_entry *parent,
-				    struct rb_entry *rbe)
+				    struct rb_entry *parent, struct rb_entry *rbe)
 {
 	struct rb_entry *tmp;
 
-	while ((rbe == NULL || RBE_COLOR(rbe) == RB_BLACK)
-	       && rbe != RBH_ROOT(rbt) && parent) {
+	while ((rbe == NULL || RBE_COLOR(rbe) == RB_BLACK) &&
+	       rbe != RBH_ROOT(rbt) && parent) {
 		if (RBE_LEFT(parent) == rbe) {
 			tmp = RBE_RIGHT(parent);
 			if (RBE_COLOR(tmp) == RB_RED) {
@@ -158,16 +155,16 @@ static inline void rbe_remove_color(struct rbt_tree *rbt,
 				rbe_rotate_left(rbt, parent);
 				tmp = RBE_RIGHT(parent);
 			}
-			if ((RBE_LEFT(tmp) == NULL
-			     || RBE_COLOR(RBE_LEFT(tmp)) == RB_BLACK)
-			    && (RBE_RIGHT(tmp) == NULL
-				|| RBE_COLOR(RBE_RIGHT(tmp)) == RB_BLACK)) {
+			if ((RBE_LEFT(tmp) == NULL ||
+			     RBE_COLOR(RBE_LEFT(tmp)) == RB_BLACK) &&
+			    (RBE_RIGHT(tmp) == NULL ||
+			     RBE_COLOR(RBE_RIGHT(tmp)) == RB_BLACK)) {
 				RBE_COLOR(tmp) = RB_RED;
 				rbe = parent;
 				parent = RBE_PARENT(rbe);
 			} else {
-				if (RBE_RIGHT(tmp) == NULL
-				    || RBE_COLOR(RBE_RIGHT(tmp)) == RB_BLACK) {
+				if (RBE_RIGHT(tmp) == NULL ||
+				    RBE_COLOR(RBE_RIGHT(tmp)) == RB_BLACK) {
 					struct rb_entry *oleft;
 
 					oleft = RBE_LEFT(tmp);
@@ -196,16 +193,16 @@ static inline void rbe_remove_color(struct rbt_tree *rbt,
 				tmp = RBE_LEFT(parent);
 			}
 
-			if ((RBE_LEFT(tmp) == NULL
-			     || RBE_COLOR(RBE_LEFT(tmp)) == RB_BLACK)
-			    && (RBE_RIGHT(tmp) == NULL
-				|| RBE_COLOR(RBE_RIGHT(tmp)) == RB_BLACK)) {
+			if ((RBE_LEFT(tmp) == NULL ||
+			     RBE_COLOR(RBE_LEFT(tmp)) == RB_BLACK) &&
+			    (RBE_RIGHT(tmp) == NULL ||
+			     RBE_COLOR(RBE_RIGHT(tmp)) == RB_BLACK)) {
 				RBE_COLOR(tmp) = RB_RED;
 				rbe = parent;
 				parent = RBE_PARENT(rbe);
 			} else {
-				if (RBE_LEFT(tmp) == NULL
-				    || RBE_COLOR(RBE_LEFT(tmp)) == RB_BLACK) {
+				if (RBE_LEFT(tmp) == NULL ||
+				    RBE_COLOR(RBE_LEFT(tmp)) == RB_BLACK) {
 					struct rb_entry *oright;
 
 					oright = RBE_RIGHT(tmp);
@@ -233,8 +230,7 @@ static inline void rbe_remove_color(struct rbt_tree *rbt,
 		RBE_COLOR(rbe) = RB_BLACK;
 }
 
-static inline struct rb_entry *
-rbe_remove(struct rbt_tree *rbt, struct rb_entry *rbe)
+static inline struct rb_entry *rbe_remove(struct rbt_tree *rbt, struct rb_entry *rbe)
 {
 	struct rb_entry *child, *parent, *old = rbe;
 	unsigned int color;
@@ -303,16 +299,14 @@ color:
 	return (old);
 }
 
-struct typed_rb_entry *typed_rb_remove(struct rbt_tree *rbt,
-				       struct rb_entry *rbe)
+struct typed_rb_entry *typed_rb_remove(struct rbt_tree *rbt, struct rb_entry *rbe)
 {
 	return rbe_remove(rbt, rbe);
 }
 
-struct typed_rb_entry *typed_rb_insert(struct rbt_tree *rbt,
-		struct rb_entry *rbe, int (*cmpfn)(
-			const struct typed_rb_entry *a,
-			const struct typed_rb_entry *b))
+struct typed_rb_entry *typed_rb_insert(struct rbt_tree *rbt, struct rb_entry *rbe,
+				       int (*cmpfn)(const struct typed_rb_entry *a,
+						    const struct typed_rb_entry *b))
 {
 	struct rb_entry *tmp;
 	struct rb_entry *parent = NULL;
@@ -348,10 +342,9 @@ struct typed_rb_entry *typed_rb_insert(struct rbt_tree *rbt,
 
 /* Finds the node with the same key as elm */
 const struct rb_entry *typed_rb_find(const struct rbt_tree *rbt,
-		const struct rb_entry *key,
-		int (*cmpfn)(
-			const struct typed_rb_entry *a,
-			const struct typed_rb_entry *b))
+				     const struct rb_entry *key,
+				     int (*cmpfn)(const struct typed_rb_entry *a,
+						  const struct typed_rb_entry *b))
 {
 	const struct rb_entry *tmp = RBH_ROOT(rbt);
 	int comp;
@@ -369,11 +362,10 @@ const struct rb_entry *typed_rb_find(const struct rbt_tree *rbt,
 	return NULL;
 }
 
-const struct rb_entry *typed_rb_find_gteq(const struct rbt_tree *rbt,
-		const struct rb_entry *key,
-		int (*cmpfn)(
-			const struct typed_rb_entry *a,
-			const struct typed_rb_entry *b))
+const struct rb_entry *
+typed_rb_find_gteq(const struct rbt_tree *rbt, const struct rb_entry *key,
+		   int (*cmpfn)(const struct typed_rb_entry *a,
+				const struct typed_rb_entry *b))
 {
 	const struct rb_entry *tmp = RBH_ROOT(rbt), *best = NULL;
 	int comp;
@@ -392,11 +384,10 @@ const struct rb_entry *typed_rb_find_gteq(const struct rbt_tree *rbt,
 	return best;
 }
 
-const struct rb_entry *typed_rb_find_lt(const struct rbt_tree *rbt,
-		const struct rb_entry *key,
-		int (*cmpfn)(
-			const struct typed_rb_entry *a,
-			const struct typed_rb_entry *b))
+const struct rb_entry *
+typed_rb_find_lt(const struct rbt_tree *rbt, const struct rb_entry *key,
+		 int (*cmpfn)(const struct typed_rb_entry *a,
+			      const struct typed_rb_entry *b))
 {
 	const struct rb_entry *tmp = RBH_ROOT(rbt), *best = NULL;
 	int comp;
@@ -426,8 +417,8 @@ struct rb_entry *typed_rb_next(const struct rb_entry *rbe_const)
 		if (RBE_PARENT(rbe) && (rbe == RBE_LEFT(RBE_PARENT(rbe))))
 			rbe = RBE_PARENT(rbe);
 		else {
-			while (RBE_PARENT(rbe)
-			       && (rbe == RBE_RIGHT(RBE_PARENT(rbe))))
+			while (RBE_PARENT(rbe) &&
+			       (rbe == RBE_RIGHT(RBE_PARENT(rbe))))
 				rbe = RBE_PARENT(rbe);
 			rbe = RBE_PARENT(rbe);
 		}
@@ -448,8 +439,8 @@ struct rb_entry *typed_rb_prev(const struct rb_entry *rbe_const)
 		if (RBE_PARENT(rbe) && (rbe == RBE_RIGHT(RBE_PARENT(rbe))))
 			rbe = RBE_PARENT(rbe);
 		else {
-			while (RBE_PARENT(rbe)
-			       && (rbe == RBE_LEFT(RBE_PARENT(rbe))))
+			while (RBE_PARENT(rbe) &&
+			       (rbe == RBE_LEFT(RBE_PARENT(rbe))))
 				rbe = RBE_PARENT(rbe);
 			rbe = RBE_PARENT(rbe);
 		}

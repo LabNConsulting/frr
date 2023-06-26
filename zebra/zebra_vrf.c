@@ -34,8 +34,7 @@
 #include "zebra/zebra_vrf_clippy.c"
 #include "zebra/table_manager.h"
 
-static void zebra_vrf_table_create(struct zebra_vrf *zvrf, afi_t afi,
-				   safi_t safi);
+static void zebra_vrf_table_create(struct zebra_vrf *zvrf, afi_t afi, safi_t safi);
 static void zebra_rnhtable_node_cleanup(struct route_table *table,
 					struct route_node *node);
 
@@ -216,8 +215,7 @@ static int zebra_vrf_disable(struct vrf *vrf)
 		 * we no-longer need this pointer.
 		 */
 		for (safi = SAFI_UNICAST; safi <= SAFI_MULTICAST; safi++) {
-			zebra_router_release_table(zvrf, zvrf->table_id, afi,
-						   safi);
+			zebra_router_release_table(zvrf, zvrf->table_id, afi, safi);
 			zvrf->table[afi][safi] = NULL;
 		}
 	}
@@ -232,8 +230,7 @@ static int zebra_vrf_delete(struct vrf *vrf)
 
 	assert(zvrf);
 	if (IS_ZEBRA_DEBUG_EVENT)
-		zlog_debug("VRF %s id %u deleted", zvrf_name(zvrf),
-			   zvrf_id(zvrf));
+		zlog_debug("VRF %s id %u deleted", zvrf_name(zvrf), zvrf_id(zvrf));
 
 	table_manager_disable(zvrf);
 
@@ -246,8 +243,8 @@ static int zebra_vrf_delete(struct vrf *vrf)
 
 	otable = otable_pop(&zvrf->other_tables);
 	while (otable) {
-		zebra_router_release_table(zvrf, otable->table_id,
-					   otable->afi, otable->safi);
+		zebra_router_release_table(zvrf, otable->table_id, otable->afi,
+					   otable->safi);
 		XFREE(MTYPE_OTHER_TABLE, otable);
 
 		otable = otable_pop(&zvrf->other_tables);
@@ -310,8 +307,7 @@ struct route_table *zebra_vrf_get_table_with_table_id(afi_t afi, safi_t safi,
 	struct other_route_table *otable;
 	struct route_table *table;
 
-	table = zebra_vrf_lookup_table_with_table_id(afi, safi, vrf_id,
-						     table_id);
+	table = zebra_vrf_lookup_table_with_table_id(afi, safi, vrf_id, table_id);
 
 	if (table)
 		goto done;
@@ -340,8 +336,7 @@ static void zebra_rnhtable_node_cleanup(struct route_table *table,
 /*
  * Create a routing table for the specific AFI/SAFI in the given VRF.
  */
-static void zebra_vrf_table_create(struct zebra_vrf *zvrf, afi_t afi,
-				   safi_t safi)
+static void zebra_vrf_table_create(struct zebra_vrf *zvrf, afi_t afi, safi_t safi)
 {
 	struct route_node *rn;
 	struct prefix p;
@@ -425,8 +420,7 @@ static int vrf_config_write(struct vty *vty)
 		if (zvrf_id(zvrf) == VRF_DEFAULT) {
 			if (zvrf->l3vni)
 				vty_out(vty, "vni %u%s\n", zvrf->l3vni,
-					is_l3vni_for_prefix_routes_only(
-						zvrf->l3vni)
+					is_l3vni_for_prefix_routes_only(zvrf->l3vni)
 						? " prefix-routes-only"
 						: "");
 			if (zvrf->zebra_rnh_ip_default_route)
@@ -435,17 +429,15 @@ static int vrf_config_write(struct vty *vty)
 			if (zvrf->zebra_rnh_ipv6_default_route)
 				vty_out(vty, "ipv6 nht resolve-via-default\n");
 
-			if (zvrf->tbl_mgr
-			    && (zvrf->tbl_mgr->start || zvrf->tbl_mgr->end))
+			if (zvrf->tbl_mgr &&
+			    (zvrf->tbl_mgr->start || zvrf->tbl_mgr->end))
 				vty_out(vty, "ip table range %u %u\n",
-					zvrf->tbl_mgr->start,
-					zvrf->tbl_mgr->end);
+					zvrf->tbl_mgr->start, zvrf->tbl_mgr->end);
 		} else {
 			vty_frame(vty, "vrf %s\n", zvrf_name(zvrf));
 			if (zvrf->l3vni)
 				vty_out(vty, " vni %u%s\n", zvrf->l3vni,
-					is_l3vni_for_prefix_routes_only(
-						zvrf->l3vni)
+					is_l3vni_for_prefix_routes_only(zvrf->l3vni)
 						? " prefix-routes-only"
 						: "");
 			zebra_ns_config_write(vty, (struct ns *)vrf->ns_ctxt);
@@ -455,11 +447,10 @@ static int vrf_config_write(struct vty *vty)
 			if (zvrf->zebra_rnh_ipv6_default_route)
 				vty_out(vty, " ipv6 nht resolve-via-default\n");
 
-			if (zvrf->tbl_mgr && vrf_is_backend_netns()
-			    && (zvrf->tbl_mgr->start || zvrf->tbl_mgr->end))
+			if (zvrf->tbl_mgr && vrf_is_backend_netns() &&
+			    (zvrf->tbl_mgr->start || zvrf->tbl_mgr->end))
 				vty_out(vty, " ip table range %u %u\n",
-					zvrf->tbl_mgr->start,
-					zvrf->tbl_mgr->end);
+					zvrf->tbl_mgr->start, zvrf->tbl_mgr->end);
 		}
 
 
@@ -474,11 +465,9 @@ static int vrf_config_write(struct vty *vty)
 	return 0;
 }
 
-DEFPY (vrf_netns,
-       vrf_netns_cmd,
-       "netns NAME$netns_name",
-       "Attach VRF to a Namespace\n"
-       "The file name in " NS_RUN_DIR ", or a full pathname\n")
+DEFPY(vrf_netns, vrf_netns_cmd, "netns NAME$netns_name",
+      "Attach VRF to a Namespace\n"
+      "The file name in " NS_RUN_DIR ", or a full pathname\n")
 {
 	char *pathname = ns_netns_pathname(vty, netns_name);
 	int ret;
@@ -488,20 +477,17 @@ DEFPY (vrf_netns,
 	if (!pathname)
 		return CMD_WARNING_CONFIG_FAILED;
 
-	frr_with_privs(&zserv_privs) {
-		ret = zebra_vrf_netns_handler_create(
-			vty, vrf, pathname, NS_UNKNOWN, NS_UNKNOWN, NS_UNKNOWN);
+	frr_with_privs (&zserv_privs) {
+		ret = zebra_vrf_netns_handler_create(vty, vrf, pathname, NS_UNKNOWN,
+						     NS_UNKNOWN, NS_UNKNOWN);
 	}
 
 	return ret;
 }
 
-DEFUN (no_vrf_netns,
-       no_vrf_netns_cmd,
-       "no netns [NAME]",
-       NO_STR
-       "Detach VRF from a Namespace\n"
-       "The file name in " NS_RUN_DIR ", or a full pathname\n")
+DEFUN(no_vrf_netns, no_vrf_netns_cmd, "no netns [NAME]",
+      NO_STR "Detach VRF from a Namespace\n"
+	     "The file name in " NS_RUN_DIR ", or a full pathname\n")
 {
 	struct ns *ns = NULL;
 
@@ -553,8 +539,7 @@ static void vrf_update_vrf_id(ns_id_t ns_id, void *opaqueptr)
 
 int zebra_vrf_netns_handler_create(struct vty *vty, struct vrf *vrf,
 				   char *pathname, ns_id_t ns_id,
-				   ns_id_t internal_ns_id,
-				   ns_id_t rel_def_ns_id)
+				   ns_id_t internal_ns_id, ns_id_t rel_def_ns_id)
 {
 	struct ns *ns = NULL;
 
@@ -562,8 +547,7 @@ int zebra_vrf_netns_handler_create(struct vty *vty, struct vrf *vrf,
 		return CMD_WARNING_CONFIG_FAILED;
 	if (vrf->vrf_id != VRF_UNKNOWN && vrf->ns_ctxt == NULL) {
 		if (vty)
-			vty_out(vty,
-				"VRF %u is already configured with VRF %s\n",
+			vty_out(vty, "VRF %u is already configured with VRF %s\n",
 				vrf->vrf_id, vrf->name);
 		else
 			zlog_info("VRF %u is already configured with VRF %s",
@@ -578,9 +562,8 @@ int zebra_vrf_netns_handler_create(struct vty *vty, struct vrf *vrf,
 					"VRF %u already configured with NETNS %s\n",
 					vrf->vrf_id, ns->name);
 			else
-				zlog_info(
-					"VRF %u already configured with NETNS %s",
-					vrf->vrf_id, ns->name);
+				zlog_info("VRF %u already configured with NETNS %s",
+					  vrf->vrf_id, ns->name);
 			return CMD_WARNING;
 		}
 	}

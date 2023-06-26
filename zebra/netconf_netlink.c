@@ -30,11 +30,11 @@ static struct rtattr *netconf_rta(struct netconfmsg *ncm)
  * Handle netconf update about a single interface: create dplane
  * context, and enqueue for processing in the main zebra pthread.
  */
-static int
-netlink_netconf_dplane_update(ns_id_t ns_id, afi_t afi, ifindex_t ifindex,
-			      enum dplane_netconf_status_e mpls_on,
-			      enum dplane_netconf_status_e mcast_on,
-			      enum dplane_netconf_status_e linkdown_on)
+static int netlink_netconf_dplane_update(ns_id_t ns_id, afi_t afi,
+					 ifindex_t ifindex,
+					 enum dplane_netconf_status_e mpls_on,
+					 enum dplane_netconf_status_e mcast_on,
+					 enum dplane_netconf_status_e linkdown_on)
 {
 	struct zebra_dplane_ctx *ctx;
 
@@ -67,8 +67,7 @@ int netlink_netconf_change(struct nlmsghdr *h, ns_id_t ns_id, int startup)
 	afi_t afi;
 	enum dplane_netconf_status_e mpls_on = DPLANE_NETCONF_STATUS_UNKNOWN;
 	enum dplane_netconf_status_e mcast_on = DPLANE_NETCONF_STATUS_UNKNOWN;
-	enum dplane_netconf_status_e linkdown_on =
-		DPLANE_NETCONF_STATUS_UNKNOWN;
+	enum dplane_netconf_status_e linkdown_on = DPLANE_NETCONF_STATUS_UNKNOWN;
 
 	if (h->nlmsg_type != RTM_NEWNETCONF && h->nlmsg_type != RTM_DELNETCONF)
 		return 0;
@@ -132,9 +131,8 @@ int netlink_netconf_change(struct nlmsghdr *h, ns_id_t ns_id, int startup)
 	}
 
 	if (IS_ZEBRA_DEBUG_KERNEL)
-		zlog_debug(
-			"%s: interface %u is mpls on: %d multicast on: %d linkdown: %d",
-			__func__, ifindex, mpls_on, mcast_on, linkdown_on);
+		zlog_debug("%s: interface %u is mpls on: %d multicast on: %d linkdown: %d",
+			   __func__, ifindex, mpls_on, mcast_on, linkdown_on);
 
 	/* Create a dplane context and pass it along for processing */
 	netlink_netconf_dplane_update(ns_id, afi, ifindex, mpls_on, mcast_on,
@@ -195,21 +193,19 @@ enum netlink_msg_status netlink_put_intf_netconfig(struct nl_batch *bth,
 	else if (mpls_on == DPLANE_NETCONF_STATUS_DISABLED)
 		snprintf(set, sizeof(set), "0\n");
 	else {
-		flog_err_sys(
-			EC_LIB_DEVELOPMENT,
-			"%s: Expected interface %s to be set to ENABLED or DISABLED was %d",
-			__func__, ifname, mpls_on);
+		flog_err_sys(EC_LIB_DEVELOPMENT,
+			     "%s: Expected interface %s to be set to ENABLED or DISABLED was %d",
+			     __func__, ifname, mpls_on);
 		return ret;
 	}
 
 	frr_with_privs (&zserv_privs) {
 		fd = open(mpls_proc, O_WRONLY);
 		if (fd < 0) {
-			flog_err_sys(
-				EC_LIB_SOCKET,
-				"%s: Unable to open %s for writing: %s(%d)",
-				__func__, mpls_proc, safe_strerror(errno),
-				errno);
+			flog_err_sys(EC_LIB_SOCKET,
+				     "%s: Unable to open %s for writing: %s(%d)",
+				     __func__, mpls_proc, safe_strerror(errno),
+				     errno);
 			return ret;
 		}
 		if (write(fd, set, 2) == 2)
@@ -224,4 +220,4 @@ enum netlink_msg_status netlink_put_intf_netconfig(struct nl_batch *bth,
 	return ret;
 }
 
-#endif	/* HAVE_NETLINK */
+#endif /* HAVE_NETLINK */

@@ -57,8 +57,7 @@ struct zlog_live_cfg {
 	/* nothing else here */
 };
 
-extern void zlog_live_open(struct zlog_live_cfg *cfg, int prio_min,
-			   int *other_fd);
+extern void zlog_live_open(struct zlog_live_cfg *cfg, int prio_min, int *other_fd);
 extern void zlog_live_open_fd(struct zlog_live_cfg *cfg, int prio_min, int fd);
 
 static inline bool zlog_live_is_null(struct zlog_live_cfg *cfg)

@@ -21,8 +21,7 @@
  *         -2 if a label was inside the reserved range (0-15)
  *         -3 if the number of labels given exceeds MPLS_MAX_LABELS
  */
-int mpls_str2label(const char *label_str, uint8_t *num_labels,
-		   mpls_label_t *labels)
+int mpls_str2label(const char *label_str, uint8_t *num_labels, mpls_label_t *labels)
 {
 	char *ostr;			  // copy of label string (start)
 	char *lstr;			  // copy of label string
@@ -77,13 +76,11 @@ char *mpls_label2str(uint8_t num_labels, const mpls_label_t *labels, char *buf,
 		if (i != 0)
 			strlcat(buf, "/", len);
 		if (pretty)
-			label2str(labels[i], type, label_buf,
-				  sizeof(label_buf));
+			label2str(labels[i], type, label_buf, sizeof(label_buf));
 		else
 			snprintf(label_buf, sizeof(label_buf), "%u",
-				 ((type == ZEBRA_LSP_EVPN)
-					  ? label2vni(&labels[i])
-					  : labels[i]));
+				 ((type == ZEBRA_LSP_EVPN) ? label2vni(&labels[i])
+							   : labels[i]));
 
 		strlcat(buf, label_buf, len);
 	}

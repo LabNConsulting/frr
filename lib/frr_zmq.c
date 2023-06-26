@@ -60,8 +60,8 @@ static void frrzmq_read_msg(struct event *t)
 		return;
 
 	while (1) {
-		zmq_pollitem_t polli = {.socket = cb->zmqsock,
-					.events = ZMQ_POLLIN};
+		zmq_pollitem_t polli = { .socket = cb->zmqsock,
+					 .events = ZMQ_POLLIN };
 		ret = zmq_poll(&polli, 1, 0);
 
 		if (ret < 0)
@@ -78,8 +78,7 @@ static void frrzmq_read_msg(struct event *t)
 			read = 1;
 
 			if (cb->read.cancelled) {
-				frrzmq_check_events(cbp, &cb->write,
-						    ZMQ_POLLOUT);
+				frrzmq_check_events(cbp, &cb->write, ZMQ_POLLOUT);
 				cb->read.thread = NULL;
 				if (cb->write.cancelled && !cb->write.thread)
 					XFREE(MTYPE_ZEROMQ_CB, *cbp);
@@ -104,14 +103,12 @@ static void frrzmq_read_msg(struct event *t)
 			read = 1;
 
 			cb->in_cb = true;
-			cb->read.cb_part(cb->read.arg, cb->zmqsock, &msg,
-					 partno);
+			cb->read.cb_part(cb->read.arg, cb->zmqsock, &msg, partno);
 			cb->in_cb = false;
 
 			if (cb->read.cancelled) {
 				zmq_msg_close(&msg);
-				frrzmq_check_events(cbp, &cb->write,
-						    ZMQ_POLLOUT);
+				frrzmq_check_events(cbp, &cb->write, ZMQ_POLLOUT);
 				cb->read.thread = NULL;
 				if (cb->write.cancelled && !cb->write.thread)
 					XFREE(MTYPE_ZEROMQ_CB, *cbp);
@@ -138,13 +135,11 @@ static void frrzmq_read_msg(struct event *t)
 	if (read)
 		frrzmq_check_events(cbp, &cb->write, ZMQ_POLLOUT);
 
-	event_add_read(t->master, frrzmq_read_msg, cbp, cb->fd,
-		       &cb->read.thread);
+	event_add_read(t->master, frrzmq_read_msg, cbp, cb->fd, &cb->read.thread);
 	return;
 
 out_err:
-	flog_err(EC_LIB_ZMQ, "ZeroMQ read error: %s(%d)", strerror(errno),
-		 errno);
+	flog_err(EC_LIB_ZMQ, "ZeroMQ read error: %s(%d)", strerror(errno), errno);
 	if (cb->read.cb_error)
 		cb->read.cb_error(cb->read.arg, cb->zmqsock);
 }
@@ -192,11 +187,9 @@ int _frrzmq_event_add_read(const struct xref_eventsched *xref,
 	if (events & ZMQ_POLLIN) {
 		event_cancel(&cb->read.thread);
 
-		event_add_event(master, frrzmq_read_msg, cbp, fd,
-				&cb->read.thread);
+		event_add_event(master, frrzmq_read_msg, cbp, fd, &cb->read.thread);
 	} else
-		event_add_read(master, frrzmq_read_msg, cbp, fd,
-			       &cb->read.thread);
+		event_add_read(master, frrzmq_read_msg, cbp, fd, &cb->read.thread);
 	return 0;
 }
 
@@ -214,8 +207,8 @@ static void frrzmq_write_msg(struct event *t)
 		return;
 
 	while (1) {
-		zmq_pollitem_t polli = {.socket = cb->zmqsock,
-					.events = ZMQ_POLLOUT};
+		zmq_pollitem_t polli = { .socket = cb->zmqsock,
+					 .events = ZMQ_POLLOUT };
 		ret = zmq_poll(&polli, 1, 0);
 
 		if (ret < 0)
@@ -251,8 +244,7 @@ static void frrzmq_write_msg(struct event *t)
 	return;
 
 out_err:
-	flog_err(EC_LIB_ZMQ, "ZeroMQ write error: %s(%d)", strerror(errno),
-		 errno);
+	flog_err(EC_LIB_ZMQ, "ZeroMQ write error: %s(%d)", strerror(errno), errno);
 	if (cb->write.cb_error)
 		cb->write.cb_error(cb->write.arg, cb->zmqsock);
 }
@@ -320,13 +312,12 @@ void frrzmq_thread_cancel(struct frrzmq_cb **cb, struct cb_core *core)
 		return;
 
 	/* Ok to free the callback context if no more ... context. */
-	if ((*cb)->read.cancelled && !(*cb)->read.thread
-	    && (*cb)->write.cancelled && ((*cb)->write.thread == NULL))
+	if ((*cb)->read.cancelled && !(*cb)->read.thread &&
+	    (*cb)->write.cancelled && ((*cb)->write.thread == NULL))
 		XFREE(MTYPE_ZEROMQ_CB, *cb);
 }
 
-void frrzmq_check_events(struct frrzmq_cb **cbp, struct cb_core *core,
-			 int event)
+void frrzmq_check_events(struct frrzmq_cb **cbp, struct cb_core *core, int event)
 {
 	struct frrzmq_cb *cb;
 	int events;

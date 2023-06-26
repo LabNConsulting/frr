@@ -14,25 +14,29 @@ extern "C" {
 #include "openbsd-queue.h"
 
 /* Try to map FreeBSD implementation to OpenBSD one. */
-#define STAILQ_HEAD(name, type)				SIMPLEQ_HEAD(name, type)
-#define STAILQ_HEAD_INITIALIZER(head)			SIMPLEQ_HEAD_INITIALIZER(head)
-#define STAILQ_ENTRY(entry)				SIMPLEQ_ENTRY(entry)
+#define STAILQ_HEAD(name, type)	      SIMPLEQ_HEAD(name, type)
+#define STAILQ_HEAD_INITIALIZER(head) SIMPLEQ_HEAD_INITIALIZER(head)
+#define STAILQ_ENTRY(entry)	      SIMPLEQ_ENTRY(entry)
 
-#define STAILQ_CONCAT(head1, head2)			SIMPLEQ_CONCAT(head1, head2)
-#define STAILQ_EMPTY(head)				SIMPLEQ_EMPTY(head)
-#define STAILQ_FIRST(head)				SIMPLEQ_FIRST(head)
-#define STAILQ_FOREACH(var, head, field)		SIMPLEQ_FOREACH(var, head, field)
-#define STAILQ_FOREACH_SAFE(var, head, field, tvar)	SIMPLEQ_FOREACH_SAFE(var, head, field, tvar)
-#define STAILQ_INIT(head)				SIMPLEQ_INIT(head)
-#define STAILQ_INSERT_AFTER(head, tqelm, elm, field)	SIMPLEQ_INSERT_AFTER(head, tqelm, elm, field)
-#define STAILQ_INSERT_HEAD(head, elm, field)		SIMPLEQ_INSERT_HEAD(head, elm, field)
-#define STAILQ_INSERT_TAIL(head, elm, field)		SIMPLEQ_INSERT_TAIL(head, elm, field)
+#define STAILQ_CONCAT(head1, head2)	 SIMPLEQ_CONCAT(head1, head2)
+#define STAILQ_EMPTY(head)		 SIMPLEQ_EMPTY(head)
+#define STAILQ_FIRST(head)		 SIMPLEQ_FIRST(head)
+#define STAILQ_FOREACH(var, head, field) SIMPLEQ_FOREACH (var, head, field)
+#define STAILQ_FOREACH_SAFE(var, head, field, tvar)                            \
+	SIMPLEQ_FOREACH_SAFE (var, head, field, tvar)
+#define STAILQ_INIT(head) SIMPLEQ_INIT(head)
+#define STAILQ_INSERT_AFTER(head, tqelm, elm, field)                           \
+	SIMPLEQ_INSERT_AFTER(head, tqelm, elm, field)
+#define STAILQ_INSERT_HEAD(head, elm, field)                                   \
+	SIMPLEQ_INSERT_HEAD(head, elm, field)
+#define STAILQ_INSERT_TAIL(head, elm, field)                                   \
+	SIMPLEQ_INSERT_TAIL(head, elm, field)
 #define STAILQ_LAST(head, type, field)                                         \
 	(SIMPLEQ_EMPTY((head))                                                 \
 		 ? NULL                                                        \
-		 : ((struct type *)(void *)((char *)((head)->sqh_last)         \
-					    - offsetof(struct type, field))))
-#define STAILQ_NEXT(elm, field)				SIMPLEQ_NEXT(elm, field)
+		 : ((struct type *)(void *)((char *)((head)->sqh_last) -       \
+					    offsetof(struct type, field))))
+#define STAILQ_NEXT(elm, field) SIMPLEQ_NEXT(elm, field)
 #define STAILQ_REMOVE(head, elm, type, field)                                  \
 	do {                                                                   \
 		if (SIMPLEQ_FIRST((head)) == (elm)) {                          \
@@ -44,8 +48,9 @@ extern "C" {
 			SIMPLEQ_REMOVE_AFTER(head, curelm, field);             \
 		}                                                              \
 	} while (0)
-#define STAILQ_REMOVE_AFTER(head, elm, field)		SIMPLEQ_REMOVE_AFTER(head, elm, field)
-#define STAILQ_REMOVE_HEAD(head, field)			SIMPLEQ_REMOVE_HEAD(head, field)
+#define STAILQ_REMOVE_AFTER(head, elm, field)                                  \
+	SIMPLEQ_REMOVE_AFTER(head, elm, field)
+#define STAILQ_REMOVE_HEAD(head, field) SIMPLEQ_REMOVE_HEAD(head, field)
 #define STAILQ_SWAP(head1, head2, type)                                        \
 	do {                                                                   \
 		struct type *swap_first = STAILQ_FIRST(head1);                 \
@@ -65,15 +70,18 @@ extern "C" {
 
 #ifndef TAILQ_POP_FIRST
 #define TAILQ_POP_FIRST(head, field)                                           \
-	({  typeof((head)->tqh_first) _elm = TAILQ_FIRST(head);                \
-	    if (_elm) {                                                        \
-		if ((TAILQ_NEXT((_elm), field)) != NULL)                       \
-			TAILQ_NEXT((_elm), field)->field.tqe_prev =            \
-				&TAILQ_FIRST(head);                            \
-		else                                                           \
-			(head)->tqh_last = &TAILQ_FIRST(head);                 \
-		TAILQ_FIRST(head) = TAILQ_NEXT((_elm), field);                 \
-	}; _elm; })
+	({                                                                     \
+		typeof((head)->tqh_first) _elm = TAILQ_FIRST(head);            \
+		if (_elm) {                                                    \
+			if ((TAILQ_NEXT((_elm), field)) != NULL)               \
+				TAILQ_NEXT((_elm), field)->field.tqe_prev =    \
+					&TAILQ_FIRST(head);                    \
+			else                                                   \
+				(head)->tqh_last = &TAILQ_FIRST(head);         \
+			TAILQ_FIRST(head) = TAILQ_NEXT((_elm), field);         \
+		};                                                             \
+		_elm;                                                          \
+	})
 #endif
 
 #ifdef __cplusplus

@@ -17,48 +17,47 @@ extern "C" {
 #endif
 
 /* Structures here are mostly compatible with UCD SNMP 4.1.1 */
-#define MATCH_FAILED     (-1)
-#define MATCH_SUCCEEDED  0
+#define MATCH_FAILED	(-1)
+#define MATCH_SUCCEEDED 0
 
 /* SYNTAX TruthValue from SNMPv2-TC. */
 #define SNMP_TRUE  1
 #define SNMP_FALSE 2
 
 /* SYNTAX RowStatus from SNMPv2-TC. */
-#define SNMP_VALID  1
+#define SNMP_VALID   1
 #define SNMP_INVALID 2
 
-#define IN_ADDR_SIZE sizeof(struct in_addr)
+#define IN_ADDR_SIZE  sizeof(struct in_addr)
 #define IN6_ADDR_SIZE sizeof(struct in6_addr)
 
 /* IANAipRouteProtocol */
-#define IANAIPROUTEPROTOCOLOTHER 1
-#define IANAIPROUTEPROTOCOLLOCAL 2
-#define IANAIPROUTEPROTOCOLNETMGMT 3
-#define IANAIPROUTEPROTOCOLICMP 4
-#define IANAIPROUTEPROTOCOLEGP 5
-#define IANAIPROUTEPROTOCOLGGP 6
-#define IANAIPROUTEPROTOCOLHELLO 7
-#define IANAIPROUTEPROTOCOLRIP 8
-#define IANAIPROUTEPROTOCOLISIS 9
-#define IANAIPROUTEPROTOCOLESIS 10
-#define IANAIPROUTEPROTOCOLCISCOIGRP 11
-#define IANAIPROUTEPROTOCOLBBNSPFIGP 12
-#define IANAIPROUTEPROTOCOLOSPF 13
-#define IANAIPROUTEPROTOCOLBGP 14
-#define IANAIPROUTEPROTOCOLIDPR 15
+#define IANAIPROUTEPROTOCOLOTHER      1
+#define IANAIPROUTEPROTOCOLLOCAL      2
+#define IANAIPROUTEPROTOCOLNETMGMT    3
+#define IANAIPROUTEPROTOCOLICMP	      4
+#define IANAIPROUTEPROTOCOLEGP	      5
+#define IANAIPROUTEPROTOCOLGGP	      6
+#define IANAIPROUTEPROTOCOLHELLO      7
+#define IANAIPROUTEPROTOCOLRIP	      8
+#define IANAIPROUTEPROTOCOLISIS	      9
+#define IANAIPROUTEPROTOCOLESIS	      10
+#define IANAIPROUTEPROTOCOLCISCOIGRP  11
+#define IANAIPROUTEPROTOCOLBBNSPFIGP  12
+#define IANAIPROUTEPROTOCOLOSPF	      13
+#define IANAIPROUTEPROTOCOLBGP	      14
+#define IANAIPROUTEPROTOCOLIDPR	      15
 #define IANAIPROUTEPROTOCOLCISCOEIGRP 16
-#define IANAIPROUTEPROTOCOLDVMRP 17
+#define IANAIPROUTEPROTOCOLDVMRP      17
 
 #define INETADDRESSTYPEUNKNOWN 0
-#define INETADDRESSTYPEIPV4 1
-#define INETADDRESSTYPEIPV6 2
+#define INETADDRESSTYPEIPV4    1
+#define INETADDRESSTYPEIPV6    2
 
 #undef REGISTER_MIB
-#define REGISTER_MIB(descr, var, vartype, theoid)                              \
-	smux_register_mib(descr, (struct variable *)var,                       \
-			  sizeof(struct vartype),                              \
-			  sizeof(var) / sizeof(struct vartype), theoid,        \
+#define REGISTER_MIB(descr, var, vartype, theoid)                                \
+	smux_register_mib(descr, (struct variable *)var, sizeof(struct vartype), \
+			  sizeof(var) / sizeof(struct vartype), theoid,          \
 			  sizeof(theoid) / sizeof(oid))
 
 struct trap_object {
@@ -80,8 +79,8 @@ struct index_oid {
 	(*var_len = sizeof(snmp_int_val), snmp_int_val = V,                    \
 	 (uint8_t *)&snmp_int_val)
 
-#define SNMP_OCTET(V)							\
-	(*var_len = sizeof(snmp_octet_val), snmp_octet_val = V,                    \
+#define SNMP_OCTET(V)                                                          \
+	(*var_len = sizeof(snmp_octet_val), snmp_octet_val = V,                \
 	 (uint8_t *)&snmp_octet_val)
 
 #define SNMP_STRING(V)                                                         \

@@ -17,8 +17,7 @@ extern "C" {
 #endif
 
 /* Parse and handle a NETCONF message. */
-extern int netlink_netconf_change(struct nlmsghdr *h, ns_id_t ns_id,
-				  int startup);
+extern int netlink_netconf_change(struct nlmsghdr *h, ns_id_t ns_id, int startup);
 /* Request info from the host OS. */
 int netlink_request_netconf(int sockfd);
 
@@ -31,6 +30,6 @@ netlink_put_intf_netconfig(struct nl_batch *bth, struct zebra_dplane_ctx *ctx);
 }
 #endif
 
-#endif	/* HAVE_NETLINK */
+#endif /* HAVE_NETLINK */
 
-#endif	/* NETCONF_NETLINK_H */
+#endif /* NETCONF_NETLINK_H */

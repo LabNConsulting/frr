@@ -1099,12 +1099,10 @@ next_rta:
 	case RTA_PREFSRC:
 		switch (plen) {
 		case sizeof(struct in_addr):
-			zlog_debug("      %pI4",
-				   (struct in_addr *)RTA_DATA(rta));
+			zlog_debug("      %pI4", (struct in_addr *)RTA_DATA(rta));
 			break;
 		case sizeof(struct in6_addr):
-			zlog_debug("      %pI6",
-				   (struct in6_addr *)RTA_DATA(rta));
+			zlog_debug("      %pI6", (struct in6_addr *)RTA_DATA(rta));
 			break;
 		default:
 			break;
@@ -1142,8 +1140,7 @@ static void nlneigh_dump(struct ndmsg *ndm, size_t msglen)
 #ifndef NDA_RTA
 #define NDA_RTA(ndm)                                                           \
 	/* struct ndmsg *ndm; */                                               \
-	((struct rtattr *)(((uint8_t *)(ndm))                                  \
-			   + NLMSG_ALIGN(sizeof(struct ndmsg))))
+	((struct rtattr *)(((uint8_t *)(ndm)) + NLMSG_ALIGN(sizeof(struct ndmsg))))
 #endif /* NDA_RTA */
 
 	/* Get the first attribute and go from there. */
@@ -1176,12 +1173,10 @@ next_rta:
 	case NDA_DST:
 		switch (plen) {
 		case sizeof(struct in_addr):
-			zlog_debug("      %pI4",
-				   (struct in_addr *)RTA_DATA(rta));
+			zlog_debug("      %pI4", (struct in_addr *)RTA_DATA(rta));
 			break;
 		case sizeof(struct in6_addr):
-			zlog_debug("      %pI6",
-				   (struct in6_addr *)RTA_DATA(rta));
+			zlog_debug("      %pI6", (struct in6_addr *)RTA_DATA(rta));
 			break;
 		default:
 			break;
@@ -1234,12 +1229,10 @@ next_rta:
 	case IFA_BROADCAST:
 		switch (plen) {
 		case 4:
-			zlog_debug("      %pI4",
-				   (struct in_addr *)RTA_DATA(rta));
+			zlog_debug("      %pI4", (struct in_addr *)RTA_DATA(rta));
 			break;
 		case 16:
-			zlog_debug("      %pI6",
-				   (struct in6_addr *)RTA_DATA(rta));
+			zlog_debug("      %pI6", (struct in6_addr *)RTA_DATA(rta));
 			break;
 		default:
 			break;
@@ -1278,9 +1271,8 @@ next_attr:
 
 	memset(ttb, 0, sizeof(ttb));
 
-	netlink_parse_rtattr_flags(ttb, VXLAN_VNIFILTER_ENTRY_MAX,
-				   RTA_DATA(attr), RTA_PAYLOAD(attr),
-				   NLA_F_NESTED);
+	netlink_parse_rtattr_flags(ttb, VXLAN_VNIFILTER_ENTRY_MAX, RTA_DATA(attr),
+				   RTA_PAYLOAD(attr), NLA_F_NESTED);
 
 	if (ttb[VXLAN_VNIFILTER_ENTRY_START])
 		vni_start =
@@ -1360,8 +1352,7 @@ next_rta:
 	case NHA_GROUP:
 		nhgrp = (struct nexthop_grp *)RTA_DATA(rta);
 		count = (RTA_PAYLOAD(rta) / sizeof(*nhgrp));
-		if (count == 0
-		    || (count * sizeof(*nhgrp)) != RTA_PAYLOAD(rta)) {
+		if (count == 0 || (count * sizeof(*nhgrp)) != RTA_PAYLOAD(rta)) {
 			zlog_debug("      invalid nexthop group received");
 			return;
 		}
@@ -1388,12 +1379,10 @@ next_rta:
 	case NHA_GATEWAY:
 		switch (nhm->nh_family) {
 		case AF_INET:
-			zlog_debug("      %pI4",
-				   (struct in_addr *)RTA_DATA(rta));
+			zlog_debug("      %pI4", (struct in_addr *)RTA_DATA(rta));
 			break;
 		case AF_INET6:
-			zlog_debug("      %pI6",
-				   (struct in6_addr *)RTA_DATA(rta));
+			zlog_debug("      %pI6", (struct in6_addr *)RTA_DATA(rta));
 			break;
 
 		default:
@@ -1447,12 +1436,10 @@ next_rta:
 	case FRA_SRC:
 		switch (plen) {
 		case sizeof(struct in_addr):
-			zlog_debug("      %pI4",
-				   (struct in_addr *)RTA_DATA(rta));
+			zlog_debug("      %pI4", (struct in_addr *)RTA_DATA(rta));
 			break;
 		case sizeof(struct in6_addr):
-			zlog_debug("      %pI6",
-				   (struct in6_addr *)RTA_DATA(rta));
+			zlog_debug("      %pI6", (struct in6_addr *)RTA_DATA(rta));
 			break;
 		default:
 			break;
@@ -1549,8 +1536,7 @@ static void nlncm_dump(const struct netconfmsg *ncm, size_t msglen)
 	size_t plen;
 	uint32_t ival;
 
-	rta = (void *)((const char *)ncm +
-		       NLMSG_ALIGN(sizeof(struct netconfmsg)));
+	rta = (void *)((const char *)ncm + NLMSG_ALIGN(sizeof(struct netconfmsg)));
 
 next_rta:
 	/* Check the attr header for valid length. */
@@ -1608,12 +1594,11 @@ void nl_dump(void *msg, size_t msglen)
 	char ibuf[128];
 
 next_header:
-	zlog_debug(
-		"nlmsghdr [len=%u type=(%d) %s flags=(0x%04x) {%s} seq=%u pid=%u]",
-		nlmsg->nlmsg_len, nlmsg->nlmsg_type,
-		nlmsg_type2str(nlmsg->nlmsg_type), nlmsg->nlmsg_flags,
-		nlmsg_flags2str(nlmsg->nlmsg_flags, fbuf, sizeof(fbuf)),
-		nlmsg->nlmsg_seq, nlmsg->nlmsg_pid);
+	zlog_debug("nlmsghdr [len=%u type=(%d) %s flags=(0x%04x) {%s} seq=%u pid=%u]",
+		   nlmsg->nlmsg_len, nlmsg->nlmsg_type,
+		   nlmsg_type2str(nlmsg->nlmsg_type), nlmsg->nlmsg_flags,
+		   nlmsg_flags2str(nlmsg->nlmsg_flags, fbuf, sizeof(fbuf)),
+		   nlmsg->nlmsg_seq, nlmsg->nlmsg_pid);
 
 	switch (nlmsg->nlmsg_type) {
 	/* Generic. */
@@ -1634,12 +1619,11 @@ next_header:
 	case RTM_DELLINK:
 	case RTM_SETLINK:
 		ifi = NLMSG_DATA(nlmsg);
-		zlog_debug(
-			"  ifinfomsg [family=%d type=(%d) %s index=%d flags=0x%04x {%s}]",
-			ifi->ifi_family, ifi->ifi_type,
-			ifi_type2str(ifi->ifi_type), ifi->ifi_index,
-			ifi->ifi_flags,
-			if_flags2str(ifi->ifi_flags, ibuf, sizeof(ibuf)));
+		zlog_debug("  ifinfomsg [family=%d type=(%d) %s index=%d flags=0x%04x {%s}]",
+			   ifi->ifi_family, ifi->ifi_type,
+			   ifi_type2str(ifi->ifi_type), ifi->ifi_index,
+			   ifi->ifi_flags,
+			   if_flags2str(ifi->ifi_flags, ibuf, sizeof(ibuf)));
 		nllink_dump(ifi, nlmsg->nlmsg_len - NLMSG_LENGTH(sizeof(*ifi)));
 		break;
 	case RTM_GETLINK:
@@ -1652,43 +1636,37 @@ next_header:
 	case RTM_DELROUTE:
 	case RTM_GETROUTE:
 		rtm = NLMSG_DATA(nlmsg);
-		zlog_debug(
-			"  rtmsg [family=(%d) %s dstlen=%d srclen=%d tos=%d table=%d protocol=(%d) %s scope=(%d) %s type=(%d) %s flags=0x%04x {%s}]",
-			rtm->rtm_family, af_type2str(rtm->rtm_family),
-			rtm->rtm_dst_len, rtm->rtm_src_len, rtm->rtm_tos,
-			rtm->rtm_table, rtm->rtm_protocol,
-			rtm_protocol2str(rtm->rtm_protocol), rtm->rtm_scope,
-			rtm_scope2str(rtm->rtm_scope), rtm->rtm_type,
-			rtm_type2str(rtm->rtm_type), rtm->rtm_flags,
-			rtm_flags2str(rtm->rtm_flags, fbuf, sizeof(fbuf)));
-		nlroute_dump(rtm,
-			     nlmsg->nlmsg_len - NLMSG_LENGTH(sizeof(*rtm)));
+		zlog_debug("  rtmsg [family=(%d) %s dstlen=%d srclen=%d tos=%d table=%d protocol=(%d) %s scope=(%d) %s type=(%d) %s flags=0x%04x {%s}]",
+			   rtm->rtm_family, af_type2str(rtm->rtm_family),
+			   rtm->rtm_dst_len, rtm->rtm_src_len, rtm->rtm_tos,
+			   rtm->rtm_table, rtm->rtm_protocol,
+			   rtm_protocol2str(rtm->rtm_protocol), rtm->rtm_scope,
+			   rtm_scope2str(rtm->rtm_scope), rtm->rtm_type,
+			   rtm_type2str(rtm->rtm_type), rtm->rtm_flags,
+			   rtm_flags2str(rtm->rtm_flags, fbuf, sizeof(fbuf)));
+		nlroute_dump(rtm, nlmsg->nlmsg_len - NLMSG_LENGTH(sizeof(*rtm)));
 		break;
 
 	case RTM_NEWNEIGH:
 	case RTM_DELNEIGH:
 		ndm = NLMSG_DATA(nlmsg);
-		zlog_debug(
-			"  ndm [family=%d (%s) ifindex=%d state=0x%04x {%s} flags=0x%04x {%s} type=%d (%s)]",
-			ndm->ndm_family, af_type2str(ndm->ndm_family),
-			ndm->ndm_ifindex, ndm->ndm_state,
-			neigh_state2str(ndm->ndm_state, ibuf, sizeof(ibuf)),
-			ndm->ndm_flags,
-			neigh_flags2str(ndm->ndm_flags, fbuf, sizeof(fbuf)),
-			ndm->ndm_type, rtm_type2str(ndm->ndm_type));
-		nlneigh_dump(ndm,
-			     nlmsg->nlmsg_len - NLMSG_LENGTH(sizeof(*ndm)));
+		zlog_debug("  ndm [family=%d (%s) ifindex=%d state=0x%04x {%s} flags=0x%04x {%s} type=%d (%s)]",
+			   ndm->ndm_family, af_type2str(ndm->ndm_family),
+			   ndm->ndm_ifindex, ndm->ndm_state,
+			   neigh_state2str(ndm->ndm_state, ibuf, sizeof(ibuf)),
+			   ndm->ndm_flags,
+			   neigh_flags2str(ndm->ndm_flags, fbuf, sizeof(fbuf)),
+			   ndm->ndm_type, rtm_type2str(ndm->ndm_type));
+		nlneigh_dump(ndm, nlmsg->nlmsg_len - NLMSG_LENGTH(sizeof(*ndm)));
 		break;
 
 	case RTM_NEWRULE:
 	case RTM_DELRULE:
 		frh = NLMSG_DATA(nlmsg);
-		zlog_debug(
-			"  frh [family=%d (%s) dst_len=%d src_len=%d tos=%d table=%d res1=%d res2=%d action=%d (%s) flags=0x%x]",
-			frh->family, af_type2str(frh->family), frh->dst_len,
-			frh->src_len, frh->tos, frh->table, frh->res1,
-			frh->res2, frh->action, frh_action2str(frh->action),
-			frh->flags);
+		zlog_debug("  frh [family=%d (%s) dst_len=%d src_len=%d tos=%d table=%d res1=%d res2=%d action=%d (%s) flags=0x%x]",
+			   frh->family, af_type2str(frh->family), frh->dst_len,
+			   frh->src_len, frh->tos, frh->table, frh->res1, frh->res2,
+			   frh->action, frh_action2str(frh->action), frh->flags);
 		nlrule_dump(frh, nlmsg->nlmsg_len - NLMSG_LENGTH(sizeof(*frh)));
 		break;
 
@@ -1696,12 +1674,11 @@ next_header:
 	case RTM_NEWADDR:
 	case RTM_DELADDR:
 		ifa = NLMSG_DATA(nlmsg);
-		zlog_debug(
-			"  ifa [family=(%d) %s prefixlen=%d flags=0x%04x {%s} scope=%d index=%u]",
-			ifa->ifa_family, af_type2str(ifa->ifa_family),
-			ifa->ifa_prefixlen, ifa->ifa_flags,
-			if_flags2str(ifa->ifa_flags, fbuf, sizeof(fbuf)),
-			ifa->ifa_scope, ifa->ifa_index);
+		zlog_debug("  ifa [family=(%d) %s prefixlen=%d flags=0x%04x {%s} scope=%d index=%u]",
+			   ifa->ifa_family, af_type2str(ifa->ifa_family),
+			   ifa->ifa_prefixlen, ifa->ifa_flags,
+			   if_flags2str(ifa->ifa_flags, fbuf, sizeof(fbuf)),
+			   ifa->ifa_scope, ifa->ifa_index);
 		nlifa_dump(ifa, nlmsg->nlmsg_len - NLMSG_LENGTH(sizeof(*ifa)));
 		break;
 
@@ -1709,13 +1686,12 @@ next_header:
 	case RTM_DELNEXTHOP:
 	case RTM_GETNEXTHOP:
 		nhm = NLMSG_DATA(nlmsg);
-		zlog_debug(
-			"  nhm [family=(%d) %s scope=(%d) %s protocol=(%d) %s flags=0x%08x {%s}]",
-			nhm->nh_family, af_type2str(nhm->nh_family),
-			nhm->nh_scope, rtm_scope2str(nhm->nh_scope),
-			nhm->nh_protocol, rtm_protocol2str(nhm->nh_protocol),
-			nhm->nh_flags,
-			nh_flags2str(nhm->nh_flags, fbuf, sizeof(fbuf)));
+		zlog_debug("  nhm [family=(%d) %s scope=(%d) %s protocol=(%d) %s flags=0x%08x {%s}]",
+			   nhm->nh_family, af_type2str(nhm->nh_family),
+			   nhm->nh_scope, rtm_scope2str(nhm->nh_scope),
+			   nhm->nh_protocol, rtm_protocol2str(nhm->nh_protocol),
+			   nhm->nh_flags,
+			   nh_flags2str(nhm->nh_flags, fbuf, sizeof(fbuf)));
 		nlnh_dump(nhm, nlmsg->nlmsg_len - NLMSG_LENGTH(sizeof(*nhm)));
 		break;
 
@@ -1725,9 +1701,8 @@ next_header:
 		tnlm = NLMSG_DATA(nlmsg);
 		zlog_debug("  tnlm [family=(%d) %s ifindex=%d ", tnlm->family,
 			   af_type2str(tnlm->family), tnlm->ifindex);
-		nltnl_dump(tnlm,
-			   nlmsg->nlmsg_len -
-				   NLMSG_LENGTH(sizeof(struct tunnel_msg)));
+		nltnl_dump(tnlm, nlmsg->nlmsg_len -
+					 NLMSG_LENGTH(sizeof(struct tunnel_msg)));
 		break;
 
 
@@ -1746,12 +1721,11 @@ next_header:
 	case RTM_NEWTFILTER:
 	case RTM_DELTFILTER:
 		tcm = NLMSG_DATA(nlmsg);
-		zlog_debug(
-			" tcm [type=%s family=%s (%d) ifindex=%d handle=%04x:%04x]",
-			tcm_nltype2str(nlmsg->nlmsg_type),
-			af_type2str(tcm->tcm_family), tcm->tcm_family,
-			tcm->tcm_ifindex, tcm->tcm_handle >> 16,
-			tcm->tcm_handle & 0xffff);
+		zlog_debug(" tcm [type=%s family=%s (%d) ifindex=%d handle=%04x:%04x]",
+			   tcm_nltype2str(nlmsg->nlmsg_type),
+			   af_type2str(tcm->tcm_family), tcm->tcm_family,
+			   tcm->tcm_ifindex, tcm->tcm_handle >> 16,
+			   tcm->tcm_handle & 0xffff);
 		break;
 
 	default:

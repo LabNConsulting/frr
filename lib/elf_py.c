@@ -79,8 +79,7 @@ static PyObject *ELFAccessError;
 /* most objects can only be created as return values from one of the methods */
 static PyObject *refuse_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-	PyErr_SetString(PyExc_ValueError,
-			"cannot create instances of this type");
+	PyErr_SetString(PyExc_ValueError, "cannot create instances of this type");
 	return NULL;
 }
 
@@ -103,7 +102,7 @@ PREDECL_HASH(elfrelocs);
 struct elffile {
 	PyObject_HEAD
 
-	char *filename;
+		char *filename;
 	char *mmap, *mmend;
 	size_t len;
 	Elf *elf;
@@ -140,7 +139,7 @@ struct elffile {
 struct elfsect {
 	PyObject_HEAD
 
-	const char *name;
+		const char *name;
 	struct elffile *ef;
 
 	GElf_Shdr _shdr, *shdr;
@@ -165,7 +164,7 @@ struct elfsect {
 struct elfreloc {
 	PyObject_HEAD
 
-	struct elfrelocs_item elfrelocs_item;
+		struct elfrelocs_item elfrelocs_item;
 
 	struct elfsect *es;
 	struct elffile *ef;
@@ -186,8 +185,8 @@ struct elfreloc {
 static int elfreloc_cmp(const struct elfreloc *a, const struct elfreloc *b);
 static uint32_t elfreloc_hash(const struct elfreloc *reloc);
 
-DECLARE_HASH(elfrelocs, struct elfreloc, elfrelocs_item,
-	     elfreloc_cmp, elfreloc_hash);
+DECLARE_HASH(elfrelocs, struct elfreloc, elfrelocs_item, elfreloc_cmp,
+	     elfreloc_hash);
 
 static Elf_Scn *elf_find_addr(struct elffile *ef, uint64_t addr, size_t *idx);
 static PyObject *elffile_secbyidx(struct elffile *w, Elf_Scn *scn, size_t idx);
@@ -200,26 +199,23 @@ static PyObject *elfreloc_getaddend(PyObject *obj, void *closure);
  * class ELFReloc:
  */
 
-static const char elfreloc_doc[] =
-	"Represents an ELF relocation record\n"
-	"\n"
-	"(struct elfreloc * in elf_py.c)";
+static const char elfreloc_doc[] = "Represents an ELF relocation record\n"
+				   "\n"
+				   "(struct elfreloc * in elf_py.c)";
 
-#define member(name, type, doc)                                                \
-	{                                                                      \
-		(char *)#name, type, offsetof(struct elfreloc, name), READONLY,\
-		(char *)doc "\n\n(\"" #name "\", " #type " in elf_py.c)"       \
+#define member(name, type, doc)                                                  \
+	{                                                                        \
+		(char *)#name, type, offsetof(struct elfreloc, name), READONLY,  \
+			(char *)doc "\n\n(\"" #name "\", " #type " in elf_py.c)" \
 	}
 static PyMemberDef members_elfreloc[] = {
 	member(symname, T_STRING,
 	       "Name of symbol this relocation refers to.\n"
 	       "\n"
-	       "Will frequently be `None` in executables and shared libraries."
-	),
+	       "Will frequently be `None` in executables and shared libraries."),
 	member(symvalid, T_BOOL,
 	       "Target symbol has a valid type, i.e. not STT_NOTYPE"),
-	member(unresolved, T_BOOL,
-	       "Target symbol refers to an existing section"),
+	member(unresolved, T_BOOL, "Target symbol refers to an existing section"),
 	member(relative, T_BOOL,
 	       "Relocation is a REL (not RELA) record and thus relative."),
 	member(st_value, T_ULONGLONG,
@@ -229,18 +225,17 @@ static PyMemberDef members_elfreloc[] = {
 };
 #undef member
 
-static PyGetSetDef getset_elfreloc[] = {
-	{ .name = (char *)"r_addend", .get = elfreloc_getaddend, .doc =
-		(char *)"Relocation addend value"},
-	{}
-};
+static PyGetSetDef getset_elfreloc[] = { { .name = (char *)"r_addend",
+					   .get = elfreloc_getaddend,
+					   .doc = (char *)"Relocation addend value" },
+					 {} };
 
 static PyMethodDef methods_elfreloc[] = {
-	{"getsection", elfreloc_getsection, METH_VARARGS,
-		"Find relocation target's ELF section\n\n"
-		"Args: address of relocatee (TODO: fix/remove?)\n"
-		"Returns: ELFSection or None\n\n"
-		"Not possible if section headers have been stripped."},
+	{ "getsection", elfreloc_getsection, METH_VARARGS,
+	  "Find relocation target's ELF section\n\n"
+	  "Args: address of relocatee (TODO: fix/remove?)\n"
+	  "Returns: ELFSection or None\n\n"
+	  "Not possible if section headers have been stripped." },
 	{}
 };
 
@@ -259,8 +254,7 @@ static uint32_t elfreloc_hash(const struct elfreloc *reloc)
 		     0xc9a2b7f4);
 }
 
-static struct elfreloc *elfrelocs_get(struct elfrelocs_head *head,
-				      GElf_Addr offset)
+static struct elfreloc *elfrelocs_get(struct elfrelocs_head *head, GElf_Addr offset)
 {
 	struct elfreloc dummy;
 
@@ -307,7 +301,7 @@ static PyObject *elfreloc_repr(PyObject *arg)
 	return PyUnicode_FromFormat("<ELFReloc @%lu %s+%lu>",
 				    (unsigned long)w->rela->r_offset,
 				    (w->symname && w->symname[0]) ? w->symname
-						: "[0]",
+								  : "[0]",
 				    (unsigned long)w->rela->r_addend);
 }
 
@@ -346,25 +340,23 @@ static const char elfsect_doc[] =
 
 static PyObject *elfsect_getaddr(PyObject *self, void *closure);
 
-#define member(name, type, doc)                                                \
-	{                                                                      \
-		(char *)#name, type, offsetof(struct elfsect, name), READONLY, \
-		(char *)doc "\n\n(\"" #name "\", " #type " in elf_py.c)"       \
+#define member(name, type, doc)                                                  \
+	{                                                                        \
+		(char *)#name, type, offsetof(struct elfsect, name), READONLY,   \
+			(char *)doc "\n\n(\"" #name "\", " #type " in elf_py.c)" \
 	}
 static PyMemberDef members_elfsect[] = {
-	member(name, T_STRING,
-	       "Section name, e.g. \".text\""),
-	member(idx, T_ULONG,
-	       "Section index in file"),
-	member(len, T_ULONG,
-	       "Section length in bytes"),
+	member(name, T_STRING, "Section name, e.g. \".text\""),
+	member(idx, T_ULONG, "Section index in file"),
+	member(len, T_ULONG, "Section length in bytes"),
 	{},
 };
 #undef member
 
 static PyGetSetDef getset_elfsect[] = {
-	{ .name = (char *)"sh_addr", .get = elfsect_getaddr, .doc =
-		(char *)"Section virtual address (mapped program view)"},
+	{ .name = (char *)"sh_addr",
+	  .get = elfsect_getaddr,
+	  .doc = (char *)"Section virtual address (mapped program view)" },
 	{}
 };
 
@@ -396,10 +388,10 @@ static PyObject *elfsect_getreloc(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef methods_elfsect[] = {
-	{"getreloc", elfsect_getreloc, METH_VARARGS,
-		"Check for / get relocation at offset into section\n\n"
-		"Args: byte offset into section to check\n"
-		"Returns: ELFReloc or None"},
+	{ "getreloc", elfsect_getreloc, METH_VARARGS,
+	  "Check for / get relocation at offset into section\n\n"
+	  "Args: byte offset into section to check\n"
+	  "Returns: ELFReloc or None" },
 	{}
 };
 
@@ -417,8 +409,8 @@ static PyObject *elfsect_subscript(PyObject *self, PyObject *key)
 	}
 	slice = (PySliceObject *)key;
 	if (PyLong_Check(slice->stop)) {
-		if (PySlice_GetIndicesEx(key, w->shdr->sh_size,
-					 &start, &stop, &step, &sllen))
+		if (PySlice_GetIndicesEx(key, w->shdr->sh_size, &start, &stop,
+					 &step, &sllen))
 			return NULL;
 
 		if (step != 1) {
@@ -436,8 +428,8 @@ static PyObject *elfsect_subscript(PyObject *self, PyObject *key)
 		offs = start;
 		len = sllen;
 	} else {
-		if (slice->stop != (void *)&PyUnicode_Type
-		    || !PyLong_Check(slice->start)) {
+		if (slice->stop != (void *)&PyUnicode_Type ||
+		    !PyLong_Check(slice->start)) {
 			PyErr_SetString(PyExc_IndexError, "invalid slice");
 			return NULL;
 		}
@@ -449,8 +441,8 @@ static PyObject *elfsect_subscript(PyObject *self, PyObject *key)
 	offs += w->shdr->sh_offset;
 	if (offs > w->ef->len) {
 		PyErr_Format(ELFAccessError,
-			     "access (%lu) beyond end of file (%lu)",
-			     offs, w->ef->len);
+			     "access (%lu) beyond end of file (%lu)", offs,
+			     w->ef->len);
 		return NULL;
 	}
 	if (len == ~0UL)
@@ -513,8 +505,8 @@ static void elfsect_add_relocations(struct elfsect *w, Elf_Scn *rel,
 		GElf_Rela *rela;
 		GElf_Sym *sym;
 
-		relw = (struct elfreloc *)typeobj_elfreloc.tp_alloc(
-				&typeobj_elfreloc, 0);
+		relw = (struct elfreloc *)typeobj_elfreloc.tp_alloc(&typeobj_elfreloc,
+								    0);
 		relw->es = w;
 
 		if (relhdr->sh_type == SHT_REL) {
@@ -530,8 +522,8 @@ static void elfsect_add_relocations(struct elfsect *w, Elf_Scn *rel,
 			relw->rela = gelf_getrela(reldata, i, &relw->_rela);
 
 		rela = relw->rela;
-		if (rela->r_offset < w->shdr->sh_addr
-		    || rela->r_offset >= w->shdr->sh_addr + w->shdr->sh_size)
+		if (rela->r_offset < w->shdr->sh_addr ||
+		    rela->r_offset >= w->shdr->sh_addr + w->shdr->sh_size)
 			continue;
 
 		symidx = relw->symidx = GELF_R_SYM(rela->r_info);
@@ -539,8 +531,7 @@ static void elfsect_add_relocations(struct elfsect *w, Elf_Scn *rel,
 		if (sym) {
 			relw->symname = elf_strptr(w->ef->elf, symhdr->sh_link,
 						   sym->st_name);
-			relw->symvalid = GELF_ST_TYPE(sym->st_info)
-					!= STT_NOTYPE;
+			relw->symvalid = GELF_ST_TYPE(sym->st_info) != STT_NOTYPE;
 			relw->unresolved = sym->st_shndx == SHN_UNDEF;
 			relw->st_value = sym->st_value;
 		} else {
@@ -594,8 +585,7 @@ static PyObject *elfsect_wrap(struct elffile *ef, Elf_Scn *scn, size_t idx,
 	return (PyObject *)w;
 }
 
-static Elf_Scn *elf_find_section(struct elffile *ef, const char *name,
-		size_t *idx)
+static Elf_Scn *elf_find_section(struct elffile *ef, const char *name, size_t *idx)
 {
 	size_t i;
 	const char *secname;
@@ -604,8 +594,7 @@ static Elf_Scn *elf_find_section(struct elffile *ef, const char *name,
 		Elf_Scn *scn = elf_getscn(ef->elf, i);
 		GElf_Shdr _shdr, *shdr = gelf_getshdr(scn, &_shdr);
 
-		secname = elf_strptr(ef->elf, ef->ehdr->e_shstrndx,
-				     shdr->sh_name);
+		secname = elf_strptr(ef->elf, ef->ehdr->e_shstrndx, shdr->sh_name);
 		if (strcmp(secname, name))
 			continue;
 		if (idx)
@@ -626,8 +615,7 @@ static Elf_Scn *elf_find_addr(struct elffile *ef, uint64_t addr, size_t *idx)
 		/* virtual address is kinda meaningless for TLS sections */
 		if (shdr->sh_flags & SHF_TLS)
 			continue;
-		if (addr < shdr->sh_addr ||
-		    addr >= shdr->sh_addr + shdr->sh_size)
+		if (addr < shdr->sh_addr || addr >= shdr->sh_addr + shdr->sh_size)
 			continue;
 
 		if (idx)
@@ -653,14 +641,13 @@ static const char elffile_doc[] =
 	"(struct elffile * in elf_py.c)";
 
 
-#define member(name, type, doc)                                                \
-	{                                                                      \
-		(char *)#name, type, offsetof(struct elffile, name), READONLY, \
-		(char *)doc "\n\n(\"" #name "\", " #type " in elf_py.c)"       \
+#define member(name, type, doc)                                                  \
+	{                                                                        \
+		(char *)#name, type, offsetof(struct elffile, name), READONLY,   \
+			(char *)doc "\n\n(\"" #name "\", " #type " in elf_py.c)" \
 	}
 static PyMemberDef members_elffile[] = {
-	member(filename, T_STRING,
-	       "Original file name as given when opening"),
+	member(filename, T_STRING, "Original file name as given when opening"),
 	member(elfclass, T_INT,
 	       "ELF class (architecture bit size)\n\n"
 	       "Either 32 or 64, straight integer."),
@@ -669,8 +656,7 @@ static PyMemberDef members_elffile[] = {
 	       "All internal ELF structures are automatically converted."),
 	member(has_symbols, T_BOOL,
 	       "A symbol section is present\n\n"
-	       "Note: only refers to .symtab/SHT_SYMTAB section, not DT_SYMTAB"
-	),
+	       "Note: only refers to .symtab/SHT_SYMTAB section, not DT_SYMTAB"),
 	{},
 };
 #undef member
@@ -764,7 +750,7 @@ static PyObject *elffile_get_symbol(PyObject *self, PyObject *args)
 			Py_INCREF(pysect);
 		}
 		return Py_BuildValue("sKN", symname,
-				(unsigned long long)sym->st_value, pysect);
+				     (unsigned long long)sym->st_value, pysect);
 	}
 	Py_RETURN_NONE;
 }
@@ -825,8 +811,8 @@ static PyObject *elffile_find_note(PyObject *self, PyObject *args)
 		size_t nameoffs, dataoffs;
 
 		offset = 0;
-		while ((offset = gelf_getnote(notedata, offset, nhdr,
-					      &nameoffs, &dataoffs))) {
+		while ((offset = gelf_getnote(notedata, offset, nhdr, &nameoffs,
+					      &dataoffs))) {
 			if (phdr->p_offset + nameoffs >= w->len)
 				continue;
 
@@ -839,8 +825,7 @@ static PyObject *elffile_find_note(PyObject *self, PyObject *args)
 
 			PyObject *s, *e;
 
-			s = PyLong_FromUnsignedLongLong(
-				phdr->p_vaddr + dataoffs);
+			s = PyLong_FromUnsignedLongLong(phdr->p_vaddr + dataoffs);
 			e = PyLong_FromUnsignedLongLong(
 				phdr->p_vaddr + dataoffs + nhdr->n_descsz);
 			return PySlice_New(s, e, NULL);
@@ -851,8 +836,7 @@ static PyObject *elffile_find_note(PyObject *self, PyObject *args)
 }
 
 #ifdef HAVE_ELF_GETDATA_RAWCHUNK
-static bool elffile_virt2file(struct elffile *w, GElf_Addr virt,
-			      GElf_Addr *offs)
+static bool elffile_virt2file(struct elffile *w, GElf_Addr virt, GElf_Addr *offs)
 {
 	*offs = 0;
 
@@ -862,8 +846,7 @@ static bool elffile_virt2file(struct elffile *w, GElf_Addr virt,
 		if (phdr->p_type != PT_LOAD)
 			continue;
 
-		if (virt < phdr->p_vaddr
-		    || virt >= phdr->p_vaddr + phdr->p_memsz)
+		if (virt < phdr->p_vaddr || virt >= phdr->p_vaddr + phdr->p_memsz)
 			continue;
 
 		if (virt >= phdr->p_vaddr + phdr->p_filesz)
@@ -907,8 +890,8 @@ static PyObject *elffile_subscript(PyObject *self, PyObject *key)
 				return NULL;
 		}
 	} else {
-		if (slice->stop != (void *)&PyUnicode_Type
-		    || !PyLong_Check(slice->start)) {
+		if (slice->stop != (void *)&PyUnicode_Type ||
+		    !PyLong_Check(slice->start)) {
 			PyErr_SetString(PyExc_IndexError, "invalid slice");
 			return NULL;
 		}
@@ -930,16 +913,14 @@ static PyObject *elffile_subscript(PyObject *self, PyObject *key)
 		if (phdr->p_type != PT_LOAD)
 			continue;
 
-		if (xstart < phdr->p_vaddr
-		    || xstart >= phdr->p_vaddr + phdr->p_memsz)
+		if (xstart < phdr->p_vaddr || xstart >= phdr->p_vaddr + phdr->p_memsz)
 			continue;
-		if (!str && (xstop < phdr->p_vaddr
-		    || xstop > phdr->p_vaddr + phdr->p_memsz)) {
+		if (!str && (xstop < phdr->p_vaddr ||
+			     xstop > phdr->p_vaddr + phdr->p_memsz)) {
 			PyErr_Format(ELFAccessError,
 				     "access (%llu) beyond end of program header (%llu)",
 				     (long long)xstop,
-				     (long long)(phdr->p_vaddr +
-						 phdr->p_memsz));
+				     (long long)(phdr->p_vaddr + phdr->p_memsz));
 			return NULL;
 		}
 
@@ -965,23 +946,18 @@ static PyObject *elffile_subscript(PyObject *self, PyObject *key)
 }
 
 static PyMethodDef methods_elffile[] = {
-	{"find_note", elffile_find_note, METH_VARARGS,
-		"find specific note entry"},
-	{"getreloc", elffile_getreloc, METH_VARARGS,
-		"find relocation"},
-	{"get_symbol", elffile_get_symbol, METH_VARARGS,
-		"find symbol by name"},
-	{"get_section", elffile_get_section, METH_VARARGS,
-		"find section by name"},
-	{"get_section_addr", elffile_get_section_addr, METH_VARARGS,
-		"find section by address"},
-	{"get_section_idx", elffile_get_section_idx, METH_VARARGS,
-		"find section by index"},
+	{ "find_note", elffile_find_note, METH_VARARGS, "find specific note entry" },
+	{ "getreloc", elffile_getreloc, METH_VARARGS, "find relocation" },
+	{ "get_symbol", elffile_get_symbol, METH_VARARGS, "find symbol by name" },
+	{ "get_section", elffile_get_section, METH_VARARGS, "find section by name" },
+	{ "get_section_addr", elffile_get_section_addr, METH_VARARGS,
+	  "find section by address" },
+	{ "get_section_idx", elffile_get_section_idx, METH_VARARGS,
+	  "find section by index" },
 	{}
 };
 
-static PyObject *elffile_load(PyTypeObject *type, PyObject *args,
-			     PyObject *kwds);
+static PyObject *elffile_load(PyTypeObject *type, PyObject *args, PyObject *kwds);
 
 static void elffile_free(void *arg)
 {
@@ -1036,8 +1012,8 @@ static void elffile_add_dynreloc(struct elffile *w, Elf_Data *reldata,
 		GElf_Sym *sym;
 		GElf_Addr rel_offs = 0;
 
-		relw = (struct elfreloc *)typeobj_elfreloc.tp_alloc(
-				&typeobj_elfreloc, 0);
+		relw = (struct elfreloc *)typeobj_elfreloc.tp_alloc(&typeobj_elfreloc,
+								    0);
 		relw->ef = w;
 
 		if (typ == ELF_T_REL) {
@@ -1090,8 +1066,7 @@ static void elffile_add_dynreloc(struct elffile *w, Elf_Data *reldata,
 		sym = relw->sym = gelf_getsym(symdata, symidx, &relw->_sym);
 		if (sym) {
 			relw->symname = elfdata_strptr(strdata, sym->st_name);
-			relw->symvalid = GELF_ST_TYPE(sym->st_info)
-					!= STT_NOTYPE;
+			relw->symvalid = GELF_ST_TYPE(sym->st_info) != STT_NOTYPE;
 			relw->unresolved = sym->st_shndx == SHN_UNDEF;
 			relw->st_value = sym->st_value;
 		} else {
@@ -1114,16 +1089,14 @@ static void elffile_add_dynreloc(struct elffile *w, Elf_Data *reldata,
 
 		elfrelocs_add(&w->dynrelocs, relw);
 	}
-
 }
 #endif /* HAVE_ELF_GETDATA_RAWCHUNK */
 
 /* primary (only, really) entry point to anything in this module */
-static PyObject *elffile_load(PyTypeObject *type, PyObject *args,
-			      PyObject *kwds)
+static PyObject *elffile_load(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	const char *filename;
-	static const char * const kwnames[] = {"filename", NULL};
+	static const char *const kwnames[] = { "filename", NULL };
 	struct elffile *w;
 	struct stat st;
 	int fd, err;
@@ -1211,8 +1184,9 @@ static PyObject *elffile_load(PyTypeObject *type, PyObject *args,
 		if (phdr->p_type != PT_DYNAMIC)
 			continue;
 
-		Elf_Data *dyndata = elf_getdata_rawchunk(w->elf,
-				phdr->p_offset, phdr->p_filesz, ELF_T_DYN);
+		Elf_Data *dyndata = elf_getdata_rawchunk(w->elf, phdr->p_offset,
+							 phdr->p_filesz,
+							 ELF_T_DYN);
 
 		GElf_Addr dynrela = 0, dynrel = 0, symtab = 0, strtab = 0;
 		size_t dynrelasz = 0, dynrelaent = 0;
@@ -1265,16 +1239,15 @@ static PyObject *elffile_load(PyTypeObject *type, PyObject *args,
 
 		if (elffile_virt2file(w, symtab, &offset))
 			symdata = elf_getdata_rawchunk(w->elf, offset,
-						       w->len - offset,
-						       ELF_T_SYM);
+						       w->len - offset, ELF_T_SYM);
 		if (elffile_virt2file(w, strtab, &offset))
-			strdata = elf_getdata_rawchunk(w->elf, offset,
-						       strsz, ELF_T_BYTE);
+			strdata = elf_getdata_rawchunk(w->elf, offset, strsz,
+						       ELF_T_BYTE);
 
 		size_t c;
 
-		if (dynrela && dynrelasz && dynrelaent
-		    && elffile_virt2file(w, dynrela, &offset)) {
+		if (dynrela && dynrelasz && dynrelaent &&
+		    elffile_virt2file(w, dynrela, &offset)) {
 			Elf_Data *reladata = NULL;
 
 			debugf("dynrela @%llx/%llx+%llx\n", (long long)dynrela,
@@ -1288,8 +1261,8 @@ static PyObject *elffile_load(PyTypeObject *type, PyObject *args,
 					     ELF_T_RELA);
 		}
 
-		if (dynrel && dynrelsz && dynrelent
-		    && elffile_virt2file(w, dynrel, &offset)) {
+		if (dynrel && dynrelsz && dynrelent &&
+		    elffile_virt2file(w, dynrel, &offset)) {
 			Elf_Data *reldata = NULL;
 
 			debugf("dynrel @%llx/%llx+%llx\n", (long long)dynrel,
@@ -1313,8 +1286,7 @@ static PyObject *elffile_load(PyTypeObject *type, PyObject *args,
 out_elferr:
 	err = elf_errno();
 
-	PyErr_Format(ELFFormatError, "libelf error %d: %s",
-		     err, elf_errmsg(err));
+	PyErr_Format(ELFFormatError, "libelf error %d: %s", err, elf_errmsg(err));
 out:
 	if (w->elf)
 		elf_end(w->elf);
@@ -1334,10 +1306,9 @@ static PyObject *elfpy_debug(PyObject *self, PyObject *args)
 	Py_RETURN_NONE;
 }
 
-static PyMethodDef methods_elfpy[] = {
-	{"elfpy_debug", elfpy_debug, METH_VARARGS, "switch debuging on/off"},
-	{}
-};
+static PyMethodDef methods_elfpy[] = { { "elfpy_debug", elfpy_debug,
+					 METH_VARARGS, "switch debuging on/off" },
+				       {} };
 
 bool elf_py_init(PyObject *pymod)
 {

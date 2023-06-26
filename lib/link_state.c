@@ -43,13 +43,12 @@ int ls_node_id_same(struct ls_node_id i1, struct ls_node_id i2)
 		return 1;
 
 	if (i1.origin == ISIS_L1 || i1.origin == ISIS_L2) {
-		if (memcmp(i1.id.iso.sys_id, i2.id.iso.sys_id, ISO_SYS_ID_LEN)
-			    != 0
-		    || (i1.id.iso.level != i2.id.iso.level))
+		if (memcmp(i1.id.iso.sys_id, i2.id.iso.sys_id, ISO_SYS_ID_LEN) != 0 ||
+		    (i1.id.iso.level != i2.id.iso.level))
 			return 0;
 	} else {
-		if (!IPV4_ADDR_SAME(&i1.id.ip.addr, &i2.id.ip.addr)
-		    || !IPV4_ADDR_SAME(&i1.id.ip.area_id, &i2.id.ip.area_id))
+		if (!IPV4_ADDR_SAME(&i1.id.ip.addr, &i2.id.ip.addr) ||
+		    !IPV4_ADDR_SAME(&i1.id.ip.area_id, &i2.id.ip.area_id))
 			return 1;
 	}
 
@@ -70,8 +69,8 @@ struct ls_node *ls_node_new(struct ls_node_id adv, struct in_addr rid,
 		new->router_id = rid;
 		SET_FLAG(new->flags, LS_NODE_ROUTER_ID);
 	} else {
-		if (adv.origin == OSPFv2 || adv.origin == STATIC
-		    || adv.origin == DIRECT) {
+		if (adv.origin == OSPFv2 || adv.origin == STATIC ||
+		    adv.origin == DIRECT) {
 			new->router_id = adv.id.ip.addr;
 			SET_FLAG(new->flags, LS_NODE_ROUTER_ID);
 		}
@@ -108,34 +107,32 @@ int ls_node_same(struct ls_node *n1, struct ls_node *n2)
 		return 0;
 
 	/* Finally, check each individual parameters that are valid */
-	if (CHECK_FLAG(n1->flags, LS_NODE_NAME)
-	    && (strncmp(n1->name, n2->name, MAX_NAME_LENGTH) != 0))
+	if (CHECK_FLAG(n1->flags, LS_NODE_NAME) &&
+	    (strncmp(n1->name, n2->name, MAX_NAME_LENGTH) != 0))
 		return 0;
-	if (CHECK_FLAG(n1->flags, LS_NODE_ROUTER_ID)
-	    && !IPV4_ADDR_SAME(&n1->router_id, &n2->router_id))
+	if (CHECK_FLAG(n1->flags, LS_NODE_ROUTER_ID) &&
+	    !IPV4_ADDR_SAME(&n1->router_id, &n2->router_id))
 		return 0;
-	if (CHECK_FLAG(n1->flags, LS_NODE_ROUTER_ID6)
-	    && !IPV6_ADDR_SAME(&n1->router_id6, &n2->router_id6))
+	if (CHECK_FLAG(n1->flags, LS_NODE_ROUTER_ID6) &&
+	    !IPV6_ADDR_SAME(&n1->router_id6, &n2->router_id6))
 		return 0;
-	if (CHECK_FLAG(n1->flags, LS_NODE_FLAG)
-	    && (n1->node_flag != n2->node_flag))
+	if (CHECK_FLAG(n1->flags, LS_NODE_FLAG) && (n1->node_flag != n2->node_flag))
 		return 0;
 	if (CHECK_FLAG(n1->flags, LS_NODE_TYPE) && (n1->type != n2->type))
 		return 0;
-	if (CHECK_FLAG(n1->flags, LS_NODE_AS_NUMBER)
-	    && (n1->as_number != n2->as_number))
+	if (CHECK_FLAG(n1->flags, LS_NODE_AS_NUMBER) &&
+	    (n1->as_number != n2->as_number))
 		return 0;
 	if (CHECK_FLAG(n1->flags, LS_NODE_SR)) {
-		if (n1->srgb.flag != n2->srgb.flag
-		    || n1->srgb.lower_bound != n2->srgb.lower_bound
-		    || n1->srgb.range_size != n2->srgb.range_size)
+		if (n1->srgb.flag != n2->srgb.flag ||
+		    n1->srgb.lower_bound != n2->srgb.lower_bound ||
+		    n1->srgb.range_size != n2->srgb.range_size)
 			return 0;
-		if ((n1->algo[0] != n2->algo[0])
-		    || (n1->algo[1] != n2->algo[1]))
+		if ((n1->algo[0] != n2->algo[0]) || (n1->algo[1] != n2->algo[1]))
 			return 0;
-		if (CHECK_FLAG(n1->flags, LS_NODE_SRLB)
-		    && ((n1->srlb.lower_bound != n2->srlb.lower_bound
-			 || n1->srlb.range_size != n2->srlb.range_size)))
+		if (CHECK_FLAG(n1->flags, LS_NODE_SRLB) &&
+		    ((n1->srlb.lower_bound != n2->srlb.lower_bound ||
+		      n1->srlb.range_size != n2->srlb.range_size)))
 			return 0;
 		if (CHECK_FLAG(n1->flags, LS_NODE_MSD) && (n1->msd != n2->msd))
 			return 0;
@@ -148,10 +145,8 @@ int ls_node_same(struct ls_node *n1, struct ls_node *n2)
 /**
  *  Link State Attributes management functions
  */
-struct ls_attributes *ls_attributes_new(struct ls_node_id adv,
-					struct in_addr local,
-					struct in6_addr local6,
-					uint32_t local_id)
+struct ls_attributes *ls_attributes_new(struct ls_node_id adv, struct in_addr local,
+					struct in6_addr local6, uint32_t local_id)
 {
 	struct ls_attributes *new;
 
@@ -174,8 +169,8 @@ struct ls_attributes *ls_attributes_new(struct ls_node_id adv,
 	}
 
 	/* Check that almost one identifier is set */
-	if (!CHECK_FLAG(new->flags, LS_ATTR_LOCAL_ADDR | LS_ATTR_LOCAL_ADDR6
-	    | LS_ATTR_LOCAL_ID)) {
+	if (!CHECK_FLAG(new->flags, LS_ATTR_LOCAL_ADDR | LS_ATTR_LOCAL_ADDR6 |
+					    LS_ATTR_LOCAL_ID)) {
 		XFREE(MTYPE_LS_DB, new);
 		return NULL;
 	}
@@ -227,104 +222,99 @@ int ls_attributes_same(struct ls_attributes *l1, struct ls_attributes *l2)
 		return 0;
 
 	/* Finally, check each individual parameters that are valid */
-	if (CHECK_FLAG(l1->flags, LS_ATTR_NAME)
-	    && strncmp(l1->name, l2->name, MAX_NAME_LENGTH) != 0)
+	if (CHECK_FLAG(l1->flags, LS_ATTR_NAME) &&
+	    strncmp(l1->name, l2->name, MAX_NAME_LENGTH) != 0)
 		return 0;
 	if (CHECK_FLAG(l1->flags, LS_ATTR_METRIC) && (l1->metric != l2->metric))
 		return 0;
-	if (CHECK_FLAG(l1->flags, LS_ATTR_TE_METRIC)
-	    && (l1->standard.te_metric != l2->standard.te_metric))
+	if (CHECK_FLAG(l1->flags, LS_ATTR_TE_METRIC) &&
+	    (l1->standard.te_metric != l2->standard.te_metric))
 		return 0;
-	if (CHECK_FLAG(l1->flags, LS_ATTR_ADM_GRP)
-	    && (l1->standard.admin_group != l2->standard.admin_group))
+	if (CHECK_FLAG(l1->flags, LS_ATTR_ADM_GRP) &&
+	    (l1->standard.admin_group != l2->standard.admin_group))
 		return 0;
 	if (CHECK_FLAG(l1->flags, LS_ATTR_EXT_ADM_GRP) &&
 	    !admin_group_cmp(&l1->ext_admin_group, &l2->ext_admin_group))
 		return 0;
-	if (CHECK_FLAG(l1->flags, LS_ATTR_LOCAL_ADDR)
-	    && !IPV4_ADDR_SAME(&l1->standard.local, &l2->standard.local))
+	if (CHECK_FLAG(l1->flags, LS_ATTR_LOCAL_ADDR) &&
+	    !IPV4_ADDR_SAME(&l1->standard.local, &l2->standard.local))
 		return 0;
-	if (CHECK_FLAG(l1->flags, LS_ATTR_NEIGH_ADDR)
-	    && !IPV4_ADDR_SAME(&l1->standard.remote, &l2->standard.remote))
+	if (CHECK_FLAG(l1->flags, LS_ATTR_NEIGH_ADDR) &&
+	    !IPV4_ADDR_SAME(&l1->standard.remote, &l2->standard.remote))
 		return 0;
-	if (CHECK_FLAG(l1->flags, LS_ATTR_LOCAL_ADDR6)
-	    && !IPV6_ADDR_SAME(&l1->standard.local6, &l2->standard.local6))
+	if (CHECK_FLAG(l1->flags, LS_ATTR_LOCAL_ADDR6) &&
+	    !IPV6_ADDR_SAME(&l1->standard.local6, &l2->standard.local6))
 		return 0;
-	if (CHECK_FLAG(l1->flags, LS_ATTR_NEIGH_ADDR6)
-	    && !IPV6_ADDR_SAME(&l1->standard.remote6, &l2->standard.remote6))
+	if (CHECK_FLAG(l1->flags, LS_ATTR_NEIGH_ADDR6) &&
+	    !IPV6_ADDR_SAME(&l1->standard.remote6, &l2->standard.remote6))
 		return 0;
-	if (CHECK_FLAG(l1->flags, LS_ATTR_LOCAL_ID)
-	    && (l1->standard.local_id != l2->standard.local_id))
+	if (CHECK_FLAG(l1->flags, LS_ATTR_LOCAL_ID) &&
+	    (l1->standard.local_id != l2->standard.local_id))
 		return 0;
-	if (CHECK_FLAG(l1->flags, LS_ATTR_NEIGH_ID)
-	    && (l1->standard.remote_id != l2->standard.remote_id))
+	if (CHECK_FLAG(l1->flags, LS_ATTR_NEIGH_ID) &&
+	    (l1->standard.remote_id != l2->standard.remote_id))
 		return 0;
-	if (CHECK_FLAG(l1->flags, LS_ATTR_MAX_BW)
-	    && (l1->standard.max_bw != l2->standard.max_bw))
+	if (CHECK_FLAG(l1->flags, LS_ATTR_MAX_BW) &&
+	    (l1->standard.max_bw != l2->standard.max_bw))
 		return 0;
-	if (CHECK_FLAG(l1->flags, LS_ATTR_MAX_RSV_BW)
-	    && (l1->standard.max_rsv_bw != l2->standard.max_rsv_bw))
+	if (CHECK_FLAG(l1->flags, LS_ATTR_MAX_RSV_BW) &&
+	    (l1->standard.max_rsv_bw != l2->standard.max_rsv_bw))
 		return 0;
-	if (CHECK_FLAG(l1->flags, LS_ATTR_UNRSV_BW)
-	    && memcmp(&l1->standard.unrsv_bw, &l2->standard.unrsv_bw, 32) != 0)
+	if (CHECK_FLAG(l1->flags, LS_ATTR_UNRSV_BW) &&
+	    memcmp(&l1->standard.unrsv_bw, &l2->standard.unrsv_bw, 32) != 0)
 		return 0;
-	if (CHECK_FLAG(l1->flags, LS_ATTR_REMOTE_AS)
-	    && (l1->standard.remote_as != l2->standard.remote_as))
+	if (CHECK_FLAG(l1->flags, LS_ATTR_REMOTE_AS) &&
+	    (l1->standard.remote_as != l2->standard.remote_as))
 		return 0;
-	if (CHECK_FLAG(l1->flags, LS_ATTR_REMOTE_ADDR)
-	    && !IPV4_ADDR_SAME(&l1->standard.remote_addr,
-			       &l2->standard.remote_addr))
+	if (CHECK_FLAG(l1->flags, LS_ATTR_REMOTE_ADDR) &&
+	    !IPV4_ADDR_SAME(&l1->standard.remote_addr, &l2->standard.remote_addr))
 		return 0;
-	if (CHECK_FLAG(l1->flags, LS_ATTR_REMOTE_ADDR6)
-	    && !IPV6_ADDR_SAME(&l1->standard.remote_addr6,
-			       &l2->standard.remote_addr6))
+	if (CHECK_FLAG(l1->flags, LS_ATTR_REMOTE_ADDR6) &&
+	    !IPV6_ADDR_SAME(&l1->standard.remote_addr6, &l2->standard.remote_addr6))
 		return 0;
-	if (CHECK_FLAG(l1->flags, LS_ATTR_DELAY)
-	    && (l1->extended.delay != l2->extended.delay))
+	if (CHECK_FLAG(l1->flags, LS_ATTR_DELAY) &&
+	    (l1->extended.delay != l2->extended.delay))
 		return 0;
-	if (CHECK_FLAG(l1->flags, LS_ATTR_MIN_MAX_DELAY)
-	    && ((l1->extended.min_delay != l2->extended.min_delay)
-		|| (l1->extended.max_delay != l2->extended.max_delay)))
+	if (CHECK_FLAG(l1->flags, LS_ATTR_MIN_MAX_DELAY) &&
+	    ((l1->extended.min_delay != l2->extended.min_delay) ||
+	     (l1->extended.max_delay != l2->extended.max_delay)))
 		return 0;
-	if (CHECK_FLAG(l1->flags, LS_ATTR_JITTER)
-	    && (l1->extended.jitter != l2->extended.jitter))
+	if (CHECK_FLAG(l1->flags, LS_ATTR_JITTER) &&
+	    (l1->extended.jitter != l2->extended.jitter))
 		return 0;
-	if (CHECK_FLAG(l1->flags, LS_ATTR_PACKET_LOSS)
-	    && (l1->extended.pkt_loss != l2->extended.pkt_loss))
+	if (CHECK_FLAG(l1->flags, LS_ATTR_PACKET_LOSS) &&
+	    (l1->extended.pkt_loss != l2->extended.pkt_loss))
 		return 0;
-	if (CHECK_FLAG(l1->flags, LS_ATTR_AVA_BW)
-	    && (l1->extended.ava_bw != l2->extended.ava_bw))
+	if (CHECK_FLAG(l1->flags, LS_ATTR_AVA_BW) &&
+	    (l1->extended.ava_bw != l2->extended.ava_bw))
 		return 0;
-	if (CHECK_FLAG(l1->flags, LS_ATTR_RSV_BW)
-	    && (l1->extended.rsv_bw != l2->extended.rsv_bw))
+	if (CHECK_FLAG(l1->flags, LS_ATTR_RSV_BW) &&
+	    (l1->extended.rsv_bw != l2->extended.rsv_bw))
 		return 0;
-	if (CHECK_FLAG(l1->flags, LS_ATTR_USE_BW)
-	    && (l1->extended.used_bw != l2->extended.used_bw))
+	if (CHECK_FLAG(l1->flags, LS_ATTR_USE_BW) &&
+	    (l1->extended.used_bw != l2->extended.used_bw))
 		return 0;
 	for (int i = 0; i < LS_ADJ_MAX; i++) {
 		if (!CHECK_FLAG(l1->flags, (LS_ATTR_ADJ_SID << i)))
 			continue;
-		if ((l1->adj_sid[i].sid != l2->adj_sid[i].sid)
-		    || (l1->adj_sid[i].flags != l2->adj_sid[i].flags)
-		    || (l1->adj_sid[i].weight != l2->adj_sid[i].weight))
+		if ((l1->adj_sid[i].sid != l2->adj_sid[i].sid) ||
+		    (l1->adj_sid[i].flags != l2->adj_sid[i].flags) ||
+		    (l1->adj_sid[i].weight != l2->adj_sid[i].weight))
 			return 0;
-		if (((l1->adv.origin == ISIS_L1) || (l1->adv.origin == ISIS_L2))
-		    && (memcmp(&l1->adj_sid[i].neighbor.sysid,
-			       &l2->adj_sid[i].neighbor.sysid, ISO_SYS_ID_LEN)
-			!= 0))
+		if (((l1->adv.origin == ISIS_L1) || (l1->adv.origin == ISIS_L2)) &&
+		    (memcmp(&l1->adj_sid[i].neighbor.sysid,
+			    &l2->adj_sid[i].neighbor.sysid, ISO_SYS_ID_LEN) != 0))
 			return 0;
-		if (((l1->adv.origin == OSPFv2) || (l1->adv.origin == STATIC)
-		     || (l1->adv.origin == DIRECT))
-		    && (i < ADJ_PRI_IPV6)
-		    && (!IPV4_ADDR_SAME(&l1->adj_sid[i].neighbor.addr,
-					&l2->adj_sid[i].neighbor.addr)))
+		if (((l1->adv.origin == OSPFv2) || (l1->adv.origin == STATIC) ||
+		     (l1->adv.origin == DIRECT)) &&
+		    (i < ADJ_PRI_IPV6) &&
+		    (!IPV4_ADDR_SAME(&l1->adj_sid[i].neighbor.addr,
+				     &l2->adj_sid[i].neighbor.addr)))
 			return 0;
 	}
-	if (CHECK_FLAG(l1->flags, LS_ATTR_SRLG)
-	    && ((l1->srlg_len != l2->srlg_len)
-		|| memcmp(l1->srlgs, l2->srlgs,
-			  l1->srlg_len * sizeof(uint32_t))
-			   != 0))
+	if (CHECK_FLAG(l1->flags, LS_ATTR_SRLG) &&
+	    ((l1->srlg_len != l2->srlg_len) ||
+	     memcmp(l1->srlgs, l2->srlgs, l1->srlg_len * sizeof(uint32_t)) != 0))
 		return 0;
 
 	/* OK, l1 & l2 are equal */
@@ -375,20 +365,20 @@ int ls_prefix_same(struct ls_prefix *p1, struct ls_prefix *p2)
 	/* Finally, check each individual parameters that are valid */
 	if (prefix_same(&p1->pref, &p2->pref) == 0)
 		return 0;
-	if (CHECK_FLAG(p1->flags, LS_PREF_IGP_FLAG)
-	    && (p1->igp_flag != p2->igp_flag))
+	if (CHECK_FLAG(p1->flags, LS_PREF_IGP_FLAG) &&
+	    (p1->igp_flag != p2->igp_flag))
 		return 0;
-	if (CHECK_FLAG(p1->flags, LS_PREF_ROUTE_TAG)
-	    && (p1->route_tag != p2->route_tag))
+	if (CHECK_FLAG(p1->flags, LS_PREF_ROUTE_TAG) &&
+	    (p1->route_tag != p2->route_tag))
 		return 0;
-	if (CHECK_FLAG(p1->flags, LS_PREF_EXTENDED_TAG)
-	    && (p1->extended_tag != p2->extended_tag))
+	if (CHECK_FLAG(p1->flags, LS_PREF_EXTENDED_TAG) &&
+	    (p1->extended_tag != p2->extended_tag))
 		return 0;
 	if (CHECK_FLAG(p1->flags, LS_PREF_METRIC) && (p1->metric != p2->metric))
 		return 0;
 	if (CHECK_FLAG(p1->flags, LS_PREF_SR)) {
-		if ((p1->sr.algo != p2->sr.algo) || (p1->sr.sid != p2->sr.sid)
-		    || (p1->sr.sid_flag != p2->sr.sid_flag))
+		if ((p1->sr.algo != p2->sr.algo) || (p1->sr.sid != p2->sr.sid) ||
+		    (p1->sr.sid_flag != p2->sr.sid_flag))
 			return 0;
 	}
 
@@ -431,8 +421,7 @@ struct ls_vertex *ls_vertex_add(struct ls_ted *ted, struct ls_node *node)
 	case OSPFv2:
 	case STATIC:
 	case DIRECT:
-		key = ((uint64_t)ntohl(node->adv.id.ip.addr.s_addr))
-		      & 0xffffffff;
+		key = ((uint64_t)ntohl(node->adv.id.ip.addr.s_addr)) & 0xffffffff;
 		break;
 	case ISIS_L1:
 	case ISIS_L2:
@@ -542,8 +531,7 @@ struct ls_vertex *ls_find_vertex_by_key(struct ls_ted *ted, const uint64_t key)
 	return vertices_find(&ted->vertices, &vertex);
 }
 
-struct ls_vertex *ls_find_vertex_by_id(struct ls_ted *ted,
-				       struct ls_node_id nid)
+struct ls_vertex *ls_find_vertex_by_id(struct ls_ted *ted, struct ls_node_id nid)
 {
 	struct ls_vertex vertex = {};
 
@@ -552,8 +540,7 @@ struct ls_vertex *ls_find_vertex_by_id(struct ls_ted *ted,
 	case OSPFv2:
 	case STATIC:
 	case DIRECT:
-		vertex.key =
-			((uint64_t)ntohl(nid.id.ip.addr.s_addr)) & 0xffffffff;
+		vertex.key = ((uint64_t)ntohl(nid.id.ip.addr.s_addr)) & 0xffffffff;
 		break;
 	case ISIS_L1:
 	case ISIS_L2:
@@ -646,14 +633,13 @@ static void ls_edge_connect_to(struct ls_ted *ted, struct ls_edge *edge)
 	struct ls_vertex *vertex = NULL;
 	struct ls_node *node;
 	struct ls_edge *dst;
-	const struct in_addr inaddr_any = {.s_addr = INADDR_ANY};
+	const struct in_addr inaddr_any = { .s_addr = INADDR_ANY };
 
 	/* First, search if there is a Vertex that correspond to the Node ID */
 	vertex = ls_find_vertex_by_id(ted, edge->attributes->adv);
 	if (vertex == NULL) {
 		/* Create a new temporary Node & Vertex if not found */
-		node = ls_node_new(edge->attributes->adv, inaddr_any,
-				   in6addr_any);
+		node = ls_node_new(edge->attributes->adv, inaddr_any, in6addr_any);
 		vertex = ls_vertex_add(ted, node);
 	}
 	/* and attach the edge as source to the vertex */
@@ -675,7 +661,7 @@ static void ls_edge_connect_to(struct ls_ted *ted, struct ls_edge *edge)
 
 static struct ls_edge_key get_edge_key(struct ls_attributes *attr, bool dst)
 {
-	struct ls_edge_key key = {.family = AF_UNSPEC};
+	struct ls_edge_key key = { .family = AF_UNSPEC };
 	struct ls_standard *std;
 
 	if (!attr)
@@ -695,9 +681,8 @@ static struct ls_edge_key get_edge_key(struct ls_attributes *attr, bool dst)
 		} else if (CHECK_FLAG(attr->flags, LS_ATTR_NEIGH_ID)) {
 			/* or Remote identifier if IP addr. are not defined */
 			key.family = AF_LOCAL;
-			key.k.link_id =
-				(((uint64_t)std->remote_id) & 0xffffffff) |
-				((uint64_t)std->local_id << 32);
+			key.k.link_id = (((uint64_t)std->remote_id) & 0xffffffff) |
+					((uint64_t)std->local_id << 32);
 		}
 	} else {
 		if (CHECK_FLAG(attr->flags, LS_ATTR_LOCAL_ADDR)) {
@@ -711,17 +696,15 @@ static struct ls_edge_key get_edge_key(struct ls_attributes *attr, bool dst)
 		} else if (CHECK_FLAG(attr->flags, LS_ATTR_LOCAL_ID)) {
 			/* or Remote identifier if IP addr. are not defined */
 			key.family = AF_LOCAL;
-			key.k.link_id =
-				(((uint64_t)std->local_id) & 0xffffffff) |
-				((uint64_t)std->remote_id << 32);
+			key.k.link_id = (((uint64_t)std->local_id) & 0xffffffff) |
+					((uint64_t)std->remote_id << 32);
 		}
 	}
 
 	return key;
 }
 
-struct ls_edge *ls_edge_add(struct ls_ted *ted,
-			    struct ls_attributes *attributes)
+struct ls_edge *ls_edge_add(struct ls_ted *ted, struct ls_attributes *attributes)
 {
 	struct ls_edge *new;
 	struct ls_edge_key key;
@@ -748,8 +731,7 @@ struct ls_edge *ls_edge_add(struct ls_ted *ted,
 	return new;
 }
 
-struct ls_edge *ls_find_edge_by_key(struct ls_ted *ted,
-				    const struct ls_edge_key key)
+struct ls_edge *ls_find_edge_by_key(struct ls_ted *ted, const struct ls_edge_key key)
 {
 	struct ls_edge edge = {};
 
@@ -790,8 +772,7 @@ struct ls_edge *ls_find_edge_by_destination(struct ls_ted *ted,
 	return edges_find(&ted->edges, &edge);
 }
 
-struct ls_edge *ls_edge_update(struct ls_ted *ted,
-			       struct ls_attributes *attributes)
+struct ls_edge *ls_edge_update(struct ls_ted *ted, struct ls_attributes *attributes)
 {
 	struct ls_edge *old;
 
@@ -857,13 +838,12 @@ void ls_edge_del_all(struct ls_ted *ted, struct ls_edge *edge)
 /**
  * Link State Subnet Management functions.
  */
-struct ls_subnet *ls_subnet_add(struct ls_ted *ted,
-				struct ls_prefix *ls_pref)
+struct ls_subnet *ls_subnet_add(struct ls_ted *ted, struct ls_prefix *ls_pref)
 {
 	struct ls_subnet *new;
 	struct ls_vertex *vertex;
 	struct ls_node *node;
-	const struct in_addr inaddr_any = {.s_addr = INADDR_ANY};
+	const struct in_addr inaddr_any = { .s_addr = INADDR_ANY };
 
 	if (ls_pref == NULL)
 		return NULL;
@@ -950,8 +930,7 @@ void ls_subnet_del_all(struct ls_ted *ted, struct ls_subnet *subnet)
 	ls_subnet_del(ted, subnet);
 }
 
-struct ls_subnet *ls_find_subnet(struct ls_ted *ted,
-				 const struct prefix *prefix)
+struct ls_subnet *ls_find_subnet(struct ls_ted *ted, const struct prefix *prefix)
 {
 	struct ls_subnet subnet = {};
 
@@ -965,8 +944,7 @@ struct ls_subnet *ls_find_subnet(struct ls_ted *ted,
 /**
  * Link State TED management functions
  */
-struct ls_ted *ls_ted_new(const uint32_t key, const char *name,
-			  uint32_t as_number)
+struct ls_ted *ls_ted_new(const uint32_t key, const char *name, uint32_t as_number)
 {
 	struct ls_ted *new;
 
@@ -991,8 +969,8 @@ void ls_ted_del(struct ls_ted *ted)
 		return;
 
 	/* Check that TED is empty */
-	if (vertices_count(&ted->vertices) || edges_count(&ted->edges)
-	    || subnets_count(&ted->subnets))
+	if (vertices_count(&ted->vertices) || edges_count(&ted->edges) ||
+	    subnets_count(&ted->subnets))
 		return;
 
 	/* Release RB Tree */
@@ -1048,7 +1026,6 @@ void ls_ted_clean(struct ls_ted *ted)
 	frr_each_safe (subnets, &ted->subnets, subnet)
 		if (subnet->status == ORPHAN)
 			ls_subnet_del_all(ted, subnet);
-
 }
 
 void ls_connect(struct ls_vertex *vertex, struct ls_edge *edge, bool source)
@@ -1067,7 +1044,6 @@ void ls_connect(struct ls_vertex *vertex, struct ls_edge *edge, bool source)
 
 void ls_disconnect(struct ls_vertex *vertex, struct ls_edge *edge, bool source)
 {
-
 	if (vertex == NULL || edge == NULL)
 		return;
 
@@ -1142,8 +1118,7 @@ int ls_request_sync(struct zclient *zclient)
 	uint16_t flags = 0;
 
 	/* Check buffer size */
-	if (STREAM_SIZE(zclient->obuf)
-	    < (ZEBRA_HEADER_SIZE + 3 * sizeof(uint32_t)))
+	if (STREAM_SIZE(zclient->obuf) < (ZEBRA_HEADER_SIZE + 3 * sizeof(uint32_t)))
 		return -1;
 
 	s = zclient->obuf;
@@ -1312,7 +1287,7 @@ static struct ls_attributes *ls_parse_attributes(struct stream *s)
 	}
 	if (CHECK_FLAG(attr->flags, LS_ATTR_SRLG)) {
 		STREAM_GETC(s, len);
-		attr->srlgs = XCALLOC(MTYPE_LS_DB, len*sizeof(uint32_t));
+		attr->srlgs = XCALLOC(MTYPE_LS_DB, len * sizeof(uint32_t));
 		attr->srlg_len = len;
 		for (len = 0; len < attr->srlg_len; len++)
 			STREAM_GETL(s, attr->srlgs[len]);
@@ -1321,14 +1296,12 @@ static struct ls_attributes *ls_parse_attributes(struct stream *s)
 	return attr;
 
 stream_failure:
-	zlog_err("LS(%s): Could not parse Link State Attributes. Abort!",
-		 __func__);
+	zlog_err("LS(%s): Could not parse Link State Attributes. Abort!", __func__);
 	/* Clean memory allocation */
 	if (attr->srlgs != NULL)
 		XFREE(MTYPE_LS_DB, attr->srlgs);
 	XFREE(MTYPE_LS_DB, attr);
 	return NULL;
-
 }
 
 static struct ls_prefix *ls_parse_prefix(struct stream *s)
@@ -1393,8 +1366,8 @@ struct ls_message *ls_parse_msg(struct stream *s)
 		goto stream_failure;
 	}
 
-	if (msg->data.node == NULL || msg->data.attr == NULL
-	    || msg->data.prefix == NULL)
+	if (msg->data.node == NULL || msg->data.attr == NULL ||
+	    msg->data.prefix == NULL)
 		goto stream_failure;
 
 	return msg;
@@ -1472,8 +1445,8 @@ static int ls_format_attributes(struct stream *s, struct ls_attributes *attr)
 		nb_ext_adm_grp = admin_group_nb_words(&attr->ext_admin_group);
 		stream_putc(s, nb_ext_adm_grp);
 		for (size_t i = 0; i < nb_ext_adm_grp; i++)
-			stream_putl(s, admin_group_get_offset(
-					       &attr->ext_admin_group, i));
+			stream_putl(s, admin_group_get_offset(&attr->ext_admin_group,
+							      i));
 	}
 	if (CHECK_FLAG(attr->flags, LS_ATTR_LOCAL_ADDR))
 		stream_put_ipv4(s, attr->standard.local.s_addr);
@@ -1520,15 +1493,13 @@ static int ls_format_attributes(struct stream *s, struct ls_attributes *attr)
 		stream_putl(s, attr->adj_sid[ADJ_PRI_IPV4].sid);
 		stream_putc(s, attr->adj_sid[ADJ_PRI_IPV4].flags);
 		stream_putc(s, attr->adj_sid[ADJ_PRI_IPV4].weight);
-		stream_put_ipv4(
-			s, attr->adj_sid[ADJ_PRI_IPV4].neighbor.addr.s_addr);
+		stream_put_ipv4(s, attr->adj_sid[ADJ_PRI_IPV4].neighbor.addr.s_addr);
 	}
 	if (CHECK_FLAG(attr->flags, LS_ATTR_BCK_ADJ_SID)) {
 		stream_putl(s, attr->adj_sid[ADJ_BCK_IPV4].sid);
 		stream_putc(s, attr->adj_sid[ADJ_BCK_IPV4].flags);
 		stream_putc(s, attr->adj_sid[ADJ_BCK_IPV4].weight);
-		stream_put_ipv4(
-			s, attr->adj_sid[ADJ_BCK_IPV4].neighbor.addr.s_addr);
+		stream_put_ipv4(s, attr->adj_sid[ADJ_BCK_IPV4].neighbor.addr.s_addr);
 	}
 	if (CHECK_FLAG(attr->flags, LS_ATTR_ADJ_SID6)) {
 		stream_putl(s, attr->adj_sid[ADJ_PRI_IPV6].sid);
@@ -1585,7 +1556,6 @@ static int ls_format_prefix(struct stream *s, struct ls_prefix *ls_pref)
 
 static int ls_format_msg(struct stream *s, struct ls_message *msg)
 {
-
 	/* Prepare Link State header */
 	stream_putc(s, msg->event);
 	stream_putc(s, msg->type);
@@ -1652,8 +1622,7 @@ int ls_send_msg(struct zclient *zclient, struct ls_message *msg,
 
 	return zclient_send_message(zclient);
 }
-struct ls_message *ls_vertex2msg(struct ls_message *msg,
-				 struct ls_vertex *vertex)
+struct ls_message *ls_vertex2msg(struct ls_message *msg, struct ls_vertex *vertex)
 {
 	/* Allocate space if needed */
 	if (msg == NULL)
@@ -1722,8 +1691,7 @@ struct ls_message *ls_edge2msg(struct ls_message *msg, struct ls_edge *edge)
 	return msg;
 }
 
-struct ls_message *ls_subnet2msg(struct ls_message *msg,
-				 struct ls_subnet *subnet)
+struct ls_message *ls_subnet2msg(struct ls_message *msg, struct ls_subnet *subnet)
 {
 	/* Allocate space if needed */
 	if (msg == NULL)
@@ -1796,8 +1764,7 @@ struct ls_vertex *ls_msg2vertex(struct ls_ted *ted, struct ls_message *msg,
 	return vertex;
 }
 
-struct ls_edge *ls_msg2edge(struct ls_ted *ted, struct ls_message *msg,
-			    bool delete)
+struct ls_edge *ls_msg2edge(struct ls_ted *ted, struct ls_message *msg, bool delete)
 {
 	struct ls_attributes *attr = (struct ls_attributes *)msg->data.attr;
 	struct ls_edge *edge = NULL;
@@ -1876,8 +1843,7 @@ struct ls_subnet *ls_msg2subnet(struct ls_ted *ted, struct ls_message *msg,
 	return subnet;
 }
 
-struct ls_element *ls_msg2ted(struct ls_ted *ted, struct ls_message *msg,
-			       bool delete)
+struct ls_element *ls_msg2ted(struct ls_ted *ted, struct ls_message *msg, bool delete)
 {
 	struct ls_element *lse = NULL;
 
@@ -1899,8 +1865,7 @@ struct ls_element *ls_msg2ted(struct ls_ted *ted, struct ls_message *msg,
 	return lse;
 }
 
-struct ls_element *ls_stream2ted(struct ls_ted *ted, struct stream *s,
-				  bool delete)
+struct ls_element *ls_stream2ted(struct ls_ted *ted, struct stream *s, bool delete)
 {
 	struct ls_message *msg;
 	struct ls_element *lse = NULL;
@@ -1945,15 +1910,15 @@ int ls_sync_ted(struct ls_ted *ted, struct zclient *zclient,
 	struct ls_message msg;
 
 	/* Loop TED, start sending Node, then Attributes and finally Prefix */
-	frr_each(vertices, &ted->vertices, vertex) {
+	frr_each (vertices, &ted->vertices, vertex) {
 		ls_vertex2msg(&msg, vertex);
 		ls_send_msg(zclient, &msg, dst);
 	}
-	frr_each(edges, &ted->edges, edge) {
+	frr_each (edges, &ted->edges, edge) {
 		ls_edge2msg(&msg, edge);
 		ls_send_msg(zclient, &msg, dst);
 	}
-	frr_each(subnets, &ted->subnets, subnet) {
+	frr_each (subnets, &ted->subnets, subnet) {
 		ls_subnet2msg(&msg, subnet);
 		ls_send_msg(zclient, &msg, dst);
 	}
@@ -1963,35 +1928,16 @@ int ls_sync_ted(struct ls_ted *ted, struct zclient *zclient,
 /**
  *  Link State Show functions
  */
-static const char *const origin2txt[] = {
-	"Unknown",
-	"ISIS_L1",
-	"ISIS_L2",
-	"OSPFv2",
-	"Direct",
-	"Static"
-};
+static const char *const origin2txt[] = { "Unknown", "ISIS_L1", "ISIS_L2",
+					  "OSPFv2",  "Direct",	"Static" };
 
-static const char *const type2txt[] = {
-	"Unknown",
-	"Standard",
-	"ABR",
-	"ASBR",
-	"Remote ASBR",
-	"Pseudo"
-};
+static const char *const type2txt[] = { "Unknown", "Standard",	  "ABR",
+					"ASBR",	   "Remote ASBR", "Pseudo" };
 
-static const char *const status2txt[] = {
-	"Unknown",
-	"New",
-	"Update",
-	"Delete",
-	"Sync",
-	"Orphan"
-};
+static const char *const status2txt[] = { "Unknown", "New",  "Update",
+					  "Delete",  "Sync", "Orphan" };
 
-static const char *ls_node_id_to_text(struct ls_node_id lnid, char *str,
-				      size_t size)
+static const char *ls_node_id_to_text(struct ls_node_id lnid, char *str, size_t size)
 {
 	if (lnid.origin == ISIS_L1 || lnid.origin == ISIS_L2)
 		snprintfrr(str, size, "%pSY", lnid.id.iso.sys_id);
@@ -2025,12 +1971,11 @@ static void ls_show_vertex_vty(struct ls_vertex *vertex, struct vty *vty,
 	sbuf_push(&sbuf, 0, "\tOrigin: %s", origin2txt[lsn->adv.origin]);
 	sbuf_push(&sbuf, 0, "\tStatus: %s\n", status2txt[vertex->status]);
 	if (!verbose) {
-		sbuf_push(
-			&sbuf, 0,
-			"\t%d Outgoing Edges, %d Incoming Edges, %d Subnets\n",
-			listcount(vertex->outgoing_edges),
-			listcount(vertex->incoming_edges),
-			listcount(vertex->prefixes));
+		sbuf_push(&sbuf, 0,
+			  "\t%d Outgoing Edges, %d Incoming Edges, %d Subnets\n",
+			  listcount(vertex->outgoing_edges),
+			  listcount(vertex->incoming_edges),
+			  listcount(vertex->prefixes));
 		goto end;
 	}
 
@@ -2041,11 +1986,9 @@ static void ls_show_vertex_vty(struct ls_vertex *vertex, struct vty *vty,
 	if (CHECK_FLAG(lsn->flags, LS_NODE_SR)) {
 		sbuf_push(&sbuf, 4, "Segment Routing Capabilities:\n");
 		upper = lsn->srgb.lower_bound + lsn->srgb.range_size - 1;
-		sbuf_push(&sbuf, 8, "SRGB: [%d/%d]", lsn->srgb.lower_bound,
-			  upper);
+		sbuf_push(&sbuf, 8, "SRGB: [%d/%d]", lsn->srgb.lower_bound, upper);
 		if (CHECK_FLAG(lsn->flags, LS_NODE_SRLB)) {
-			upper = lsn->srlb.lower_bound + lsn->srlb.range_size
-				- 1;
+			upper = lsn->srlb.lower_bound + lsn->srlb.range_size - 1;
 			sbuf_push(&sbuf, 0, "\tSRLB: [%d/%d]",
 				  lsn->srlb.lower_bound, upper);
 		}
@@ -2054,8 +1997,7 @@ static void ls_show_vertex_vty(struct ls_vertex *vertex, struct vty *vty,
 			if (lsn->algo[i] == 255)
 				continue;
 
-			sbuf_push(&sbuf, 0,
-				  lsn->algo[i] == 0 ? "SPF " : "S-SPF ");
+			sbuf_push(&sbuf, 0, lsn->algo[i] == 0 ? "SPF " : "S-SPF ");
 		}
 		if (CHECK_FLAG(lsn->flags, LS_NODE_MSD))
 			sbuf_push(&sbuf, 0, "\tMSD: %d", lsn->msd);
@@ -2075,12 +2017,10 @@ static void ls_show_vertex_vty(struct ls_vertex *vertex, struct vty *vty,
 		attr = edge->attributes;
 		if ((CHECK_FLAG(attr->flags, LS_ATTR_LOCAL_ADDR)))
 			sbuf_push(&sbuf, 0, "\tLocal:  %pI4\tRemote: %pI4\n",
-				  &attr->standard.local,
-				  &attr->standard.remote);
+				  &attr->standard.local, &attr->standard.remote);
 		else if ((CHECK_FLAG(attr->flags, LS_ATTR_LOCAL_ADDR6)))
 			sbuf_push(&sbuf, 0, "\tLocal:  %pI6\tRemote: %pI6\n",
-				  &attr->standard.local6,
-				  &attr->standard.remote6);
+				  &attr->standard.local6, &attr->standard.remote6);
 	}
 
 	sbuf_push(&sbuf, 4, "Incoming Edges: %d\n",
@@ -2096,12 +2036,10 @@ static void ls_show_vertex_vty(struct ls_vertex *vertex, struct vty *vty,
 		attr = edge->attributes;
 		if ((CHECK_FLAG(attr->flags, LS_ATTR_LOCAL_ADDR)))
 			sbuf_push(&sbuf, 0, "\tLocal:  %pI4\tRemote: %pI4\n",
-				  &attr->standard.local,
-				  &attr->standard.remote);
+				  &attr->standard.local, &attr->standard.remote);
 		else if ((CHECK_FLAG(attr->flags, LS_ATTR_LOCAL_ADDR6)))
 			sbuf_push(&sbuf, 0, "\tLocal:  %pI6\tRemote: %pI6\n",
-				  &attr->standard.local6,
-				  &attr->standard.remote6);
+				  &attr->standard.local6, &attr->standard.remote6);
 	}
 
 	sbuf_push(&sbuf, 4, "Subnets: %d\n", listcount(vertex->prefixes));
@@ -2113,8 +2051,7 @@ end:
 	sbuf_free(&sbuf);
 }
 
-static void ls_show_vertex_json(struct ls_vertex *vertex,
-				struct json_object *json)
+static void ls_show_vertex_json(struct ls_vertex *vertex, struct json_object *json)
 {
 	struct ls_node *lsn;
 	json_object *jsr, *jalgo, *jobj;
@@ -2140,8 +2077,7 @@ static void ls_show_vertex_json(struct ls_vertex *vertex,
 		json_object_string_add(json, "router-id-v6", buf);
 	}
 	if (CHECK_FLAG(lsn->flags, LS_NODE_TYPE))
-		json_object_string_add(json, "vertex-type",
-				       type2txt[lsn->type]);
+		json_object_string_add(json, "vertex-type", type2txt[lsn->type]);
 	if (CHECK_FLAG(lsn->flags, LS_NODE_AS_NUMBER))
 		json_object_int_add(json, "asn", lsn->as_number);
 	if (CHECK_FLAG(lsn->flags, LS_NODE_SR)) {
@@ -2157,13 +2093,12 @@ static void ls_show_vertex_json(struct ls_vertex *vertex,
 			jobj = json_object_new_object();
 
 			snprintfrr(buf, 2, "%u", i);
-			json_object_string_add(
-				jobj, buf, lsn->algo[i] == 0 ? "SPF" : "S-SPF");
+			json_object_string_add(jobj, buf,
+					       lsn->algo[i] == 0 ? "SPF" : "S-SPF");
 			json_object_array_add(jalgo, jobj);
 		}
 		if (CHECK_FLAG(lsn->flags, LS_NODE_SRLB)) {
-			json_object_int_add(jsr, "srlb-size",
-					    lsn->srlb.range_size);
+			json_object_int_add(jsr, "srlb-size", lsn->srlb.range_size);
 			json_object_int_add(jsr, "srlb-lower",
 					    lsn->srlb.lower_bound);
 		}
@@ -2229,8 +2164,7 @@ static const char *edge_key_to_text(struct ls_edge_key key)
 	return rv;
 }
 
-static void ls_show_edge_vty(struct ls_edge *edge, struct vty *vty,
-			     bool verbose)
+static void ls_show_edge_vty(struct ls_edge *edge, struct vty *vty, bool verbose)
 {
 	char admin_group_buf[ADMIN_GROUP_PRINT_MAX_SIZE];
 	struct ls_attributes *attr;
@@ -2261,8 +2195,7 @@ static void ls_show_edge_vty(struct ls_edge *edge, struct vty *vty,
 	if (CHECK_FLAG(attr->flags, LS_ATTR_NAME))
 		sbuf_push(&sbuf, 4, "Name: %s\n", attr->name);
 	if (CHECK_FLAG(attr->flags, LS_ATTR_TE_METRIC))
-		sbuf_push(&sbuf, 4, "TE Metric: %u\n",
-			  attr->standard.te_metric);
+		sbuf_push(&sbuf, 4, "TE Metric: %u\n", attr->standard.te_metric);
 	if (CHECK_FLAG(attr->flags, LS_ATTR_ADM_GRP))
 		sbuf_push(&sbuf, 4, "Admin Group: 0x%x\n",
 			  attr->standard.admin_group);
@@ -2270,13 +2203,13 @@ static void ls_show_edge_vty(struct ls_edge *edge, struct vty *vty,
 	    admin_group_nb_words(&attr->ext_admin_group) != 0) {
 		indent = 4;
 		sbuf_push(&sbuf, indent, "Ext Admin Group: %s\n",
-			  admin_group_string(
-				  admin_group_buf, ADMIN_GROUP_PRINT_MAX_SIZE,
-				  indent + strlen("Ext Admin Group: "),
-				  &attr->ext_admin_group));
+			  admin_group_string(admin_group_buf,
+					     ADMIN_GROUP_PRINT_MAX_SIZE,
+					     indent + strlen("Ext Admin Group: "),
+					     &attr->ext_admin_group));
 		if (admin_group_buf[0] != '\0' &&
-		    (sbuf.pos + strlen(admin_group_buf) +
-		     SBUF_DEFAULT_SIZE / 2) < sbuf.size)
+		    (sbuf.pos + strlen(admin_group_buf) + SBUF_DEFAULT_SIZE / 2) <
+			    sbuf.size)
 			sbuf_push(&sbuf, indent + 2, "Bit positions: %s\n",
 				  admin_group_buf);
 	}
@@ -2302,8 +2235,7 @@ static void ls_show_edge_vty(struct ls_edge *edge, struct vty *vty,
 		sbuf_push(&sbuf, 4, "Maximum Bandwidth: %g (Bytes/s)\n",
 			  attr->standard.max_bw);
 	if (CHECK_FLAG(attr->flags, LS_ATTR_MAX_RSV_BW))
-		sbuf_push(&sbuf, 4,
-			  "Maximum Reservable Bandwidth: %g (Bytes/s)\n",
+		sbuf_push(&sbuf, 4, "Maximum Reservable Bandwidth: %g (Bytes/s)\n",
 			  attr->standard.max_rsv_bw);
 	if (CHECK_FLAG(attr->flags, LS_ATTR_UNRSV_BW)) {
 		sbuf_push(&sbuf, 4, "Unreserved Bandwidth per Class Type\n");
@@ -2314,8 +2246,7 @@ static void ls_show_edge_vty(struct ls_edge *edge, struct vty *vty,
 				  attr->standard.unrsv_bw[i + 1]);
 	}
 	if (CHECK_FLAG(attr->flags, LS_ATTR_REMOTE_AS))
-		sbuf_push(&sbuf, 4, "Remote AS: %u\n",
-			  attr->standard.remote_as);
+		sbuf_push(&sbuf, 4, "Remote AS: %u\n", attr->standard.remote_as);
 	if (CHECK_FLAG(attr->flags, LS_ATTR_REMOTE_ADDR))
 		sbuf_push(&sbuf, 4, "Remote ASBR IPv4 address: %pI4\n",
 			  &attr->standard.remote_addr);
@@ -2418,8 +2349,7 @@ static void ls_show_edge_json(struct ls_edge *edge, struct json_object *json)
 	if (CHECK_FLAG(attr->flags, LS_ATTR_TE_METRIC))
 		json_object_int_add(jte, "te-metric", attr->standard.te_metric);
 	if (CHECK_FLAG(attr->flags, LS_ATTR_ADM_GRP))
-		json_object_int_add(jte, "admin-group",
-				    attr->standard.admin_group);
+		json_object_int_add(jte, "admin-group", attr->standard.admin_group);
 	if (CHECK_FLAG(attr->flags, LS_ATTR_EXT_ADM_GRP)) {
 		js_ext_ag = json_object_new_object();
 		json_object_object_add(jte, "extAdminGroup", js_ext_ag);
@@ -2428,10 +2358,8 @@ static void ls_show_edge_json(struct ls_edge *edge, struct json_object *json)
 		js_ext_ag_arr_bit = json_object_new_array();
 		json_object_object_add(js_ext_ag, "bitPositions",
 				       js_ext_ag_arr_bit);
-		for (i = 0; i < admin_group_nb_words(&attr->ext_admin_group);
-		     i++) {
-			bitmap = admin_group_get_offset(&attr->ext_admin_group,
-							i);
+		for (i = 0; i < admin_group_nb_words(&attr->ext_admin_group); i++) {
+			bitmap = admin_group_get_offset(&attr->ext_admin_group, i);
 			snprintf(buf_ag, sizeof(buf_ag), "0x%08x", bitmap);
 			json_object_array_add(js_ext_ag_arr_word,
 					      json_object_new_string(buf_ag));
@@ -2484,16 +2412,13 @@ static void ls_show_edge_json(struct ls_edge *edge, struct json_object *json)
 		}
 	}
 	if (CHECK_FLAG(attr->flags, LS_ATTR_REMOTE_AS))
-		json_object_int_add(jte, "remote-asn",
-				    attr->standard.remote_as);
+		json_object_int_add(jte, "remote-asn", attr->standard.remote_as);
 	if (CHECK_FLAG(attr->flags, LS_ATTR_REMOTE_ADDR)) {
-		snprintfrr(buf, INET6_BUFSIZ, "%pI4",
-			   &attr->standard.remote_addr);
+		snprintfrr(buf, INET6_BUFSIZ, "%pI4", &attr->standard.remote_addr);
 		json_object_string_add(jte, "remote-as-address", buf);
 	}
 	if (CHECK_FLAG(attr->flags, LS_ATTR_REMOTE_ADDR6)) {
-		snprintfrr(buf, INET6_BUFSIZ, "%pI6",
-			   &attr->standard.remote_addr6);
+		snprintfrr(buf, INET6_BUFSIZ, "%pI6", &attr->standard.remote_addr6);
 		json_object_string_add(jte, "remote-as-address-v6", buf);
 	}
 	if (CHECK_FLAG(attr->flags, LS_ATTR_DELAY))
@@ -2505,8 +2430,8 @@ static void ls_show_edge_json(struct ls_edge *edge, struct json_object *json)
 	if (CHECK_FLAG(attr->flags, LS_ATTR_JITTER))
 		json_object_int_add(jte, "jitter", attr->extended.jitter);
 	if (CHECK_FLAG(attr->flags, LS_ATTR_PACKET_LOSS))
-		json_object_double_add(
-			jte, "loss", attr->extended.pkt_loss * LOSS_PRECISION);
+		json_object_double_add(jte, "loss",
+				       attr->extended.pkt_loss * LOSS_PRECISION);
 	if (CHECK_FLAG(attr->flags, LS_ATTR_AVA_BW))
 		json_object_double_add(jte, "available-bandwidth",
 				       attr->extended.ava_bw);
@@ -2651,8 +2576,7 @@ end:
 	sbuf_free(&sbuf);
 }
 
-static void ls_show_subnet_json(struct ls_subnet *subnet,
-				struct json_object *json)
+static void ls_show_subnet_json(struct ls_subnet *subnet, struct json_object *json)
 {
 	struct ls_prefix *pref;
 	json_object *jsr;
@@ -2732,8 +2656,7 @@ void ls_show_ted(struct ls_ted *ted, struct vty *vty, struct json_object *json,
 		json_object_int_add(jted, "key", ted->key);
 		json_object_int_add(jted, "verticesCount",
 				    vertices_count(&ted->vertices));
-		json_object_int_add(jted, "edgesCount",
-				    edges_count(&ted->edges));
+		json_object_int_add(jted, "edgesCount", edges_count(&ted->edges));
 		json_object_int_add(jted, "subnetsCount",
 				    subnets_count(&ted->subnets));
 		ls_show_vertices(ted, NULL, jted, verbose);
@@ -2743,14 +2666,12 @@ void ls_show_ted(struct ls_ted *ted, struct vty *vty, struct json_object *json,
 	}
 
 	if (vty) {
-		vty_out(vty,
-			"\n\tTraffic Engineering Database: %s (key: %d)\n\n",
+		vty_out(vty, "\n\tTraffic Engineering Database: %s (key: %d)\n\n",
 			ted->name, ted->key);
 		ls_show_vertices(ted, vty, NULL, verbose);
 		ls_show_edges(ted, vty, NULL, verbose);
 		ls_show_subnets(ted, vty, NULL, verbose);
-		vty_out(vty,
-			"\n\tTotal: %zu Vertices, %zu Edges, %zu Subnets\n\n",
+		vty_out(vty, "\n\tTotal: %zu Vertices, %zu Edges, %zu Subnets\n\n",
 			vertices_count(&ted->vertices),
 			edges_count(&ted->edges), subnets_count(&ted->subnets));
 	}
@@ -2761,7 +2682,7 @@ void ls_dump_ted(struct ls_ted *ted)
 	struct ls_vertex *vertex;
 	struct ls_edge *edge;
 	struct ls_subnet *subnet;
-	const struct in_addr inaddr_any = {.s_addr = INADDR_ANY};
+	const struct in_addr inaddr_any = { .s_addr = INADDR_ANY };
 
 	zlog_debug("(%s) Ted init", __func__);
 
@@ -2777,21 +2698,19 @@ void ls_dump_ted(struct ls_ted *ted)
 
 		for (ALL_LIST_ELEMENTS_RO(vertex->incoming_edges, lst_node,
 					  vertex_edge)) {
-			zlog_debug(
-				"        inc edge key:%s attr key:%pI4 loc:(%pI4) rmt:(%pI4)",
-				edge_key_to_text(vertex_edge->key),
-				&vertex_edge->attributes->adv.id.ip.addr,
-				&vertex_edge->attributes->standard.local,
-				&vertex_edge->attributes->standard.remote);
+			zlog_debug("        inc edge key:%s attr key:%pI4 loc:(%pI4) rmt:(%pI4)",
+				   edge_key_to_text(vertex_edge->key),
+				   &vertex_edge->attributes->adv.id.ip.addr,
+				   &vertex_edge->attributes->standard.local,
+				   &vertex_edge->attributes->standard.remote);
 		}
 		for (ALL_LIST_ELEMENTS_RO(vertex->outgoing_edges, lst_node,
 					  vertex_edge)) {
-			zlog_debug(
-				"        out edge key:%s attr key:%pI4  loc:(%pI4) rmt:(%pI4)",
-				edge_key_to_text(vertex_edge->key),
-				&vertex_edge->attributes->adv.id.ip.addr,
-				&vertex_edge->attributes->standard.local,
-				&vertex_edge->attributes->standard.remote);
+			zlog_debug("        out edge key:%s attr key:%pI4  loc:(%pI4) rmt:(%pI4)",
+				   edge_key_to_text(vertex_edge->key),
+				   &vertex_edge->attributes->adv.id.ip.addr,
+				   &vertex_edge->attributes->standard.local,
+				   &vertex_edge->attributes->standard.remote);
 		}
 	}
 	frr_each (edges, &ted->edges, edge) {
@@ -2799,9 +2718,8 @@ void ls_dump_ted(struct ls_ted *ted)
 			   edge_key_to_text(edge->key),
 			   edge->source ? &edge->source->node->router_id
 					: &inaddr_any,
-			   edge->destination
-				   ? &edge->destination->node->router_id
-				   : &inaddr_any);
+			   edge->destination ? &edge->destination->node->router_id
+					     : &inaddr_any);
 	}
 	frr_each (subnets, &ted->subnets, subnet) {
 		zlog_debug("    Ted subnet key:%pFX vertex:%pI4",

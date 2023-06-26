@@ -77,9 +77,9 @@ DECLARE_LIST(mgmt_be_adapters, struct mgmt_be_client_adapter, list_linkage);
  * MGMT_SUBSCR_OPER_OWN :: the client owns the given oeprational state
  */
 #define MGMT_SUBSCR_VALIDATE_CFG 0x1
-#define MGMT_SUBSCR_NOTIFY_CFG 0x2
-#define MGMT_SUBSCR_OPER_OWN 0x4
-#define MGMT_SUBSCR_ALL 0x7
+#define MGMT_SUBSCR_NOTIFY_CFG	 0x2
+#define MGMT_SUBSCR_OPER_OWN	 0x4
+#define MGMT_SUBSCR_ALL		 0x7
 
 struct mgmt_be_client_subscr_info {
 	uint xpath_subscr[MGMTD_BE_CLIENT_ID_MAX];
@@ -98,12 +98,10 @@ extern void mgmt_be_adapter_lock(struct mgmt_be_client_adapter *adapter);
 extern void mgmt_be_adapter_unlock(struct mgmt_be_client_adapter **adapter);
 
 /* Create backend adapter. */
-extern struct msg_conn *mgmt_be_create_adapter(int conn_fd,
-					       union sockunion *su);
+extern struct msg_conn *mgmt_be_create_adapter(int conn_fd, union sockunion *su);
 
 /* Fetch backend adapter given an adapter name. */
-extern struct mgmt_be_client_adapter *
-mgmt_be_get_adapter_by_name(const char *name);
+extern struct mgmt_be_client_adapter *mgmt_be_get_adapter_by_name(const char *name);
 
 /* Fetch backend adapter given an client ID. */
 extern struct mgmt_be_client_adapter *
@@ -187,7 +185,6 @@ extern void mgmt_be_get_subscr_info_for_xpath(
 /*
  * Dump backend client information for a given xpath to vty.
  */
-extern void mgmt_be_xpath_subscr_info_write(struct vty *vty,
-					       const char *xpath);
+extern void mgmt_be_xpath_subscr_info_write(struct vty *vty, const char *xpath);
 
 #endif /* _FRR_MGMTD_BE_ADAPTER_H_ */

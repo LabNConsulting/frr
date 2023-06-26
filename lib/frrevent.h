@@ -108,10 +108,10 @@ struct event {
 	enum event_types add_type; /* event type */
 	struct event_list_item eventitem;
 	struct event_timer_list_item timeritem;
-	struct event **ref;	      /* external reference (if given) */
-	struct event_loop *master;    /* pointer to the struct event_loop */
+	struct event **ref;	       /* external reference (if given) */
+	struct event_loop *master;     /* pointer to the struct event_loop */
 	void (*func)(struct event *e); /* event function */
-	void *arg;		      /* event argument */
+	void *arg;		       /* event argument */
 	union {
 		int val;	      /* second argument of the event. */
 		int fd;		      /* file descriptor in case of r/w */
@@ -154,7 +154,7 @@ struct cpu_event_history {
 
 /* Macros. */
 #define EVENT_ARG(X) ((X)->arg)
-#define EVENT_FD(X) ((X)->u.fd)
+#define EVENT_FD(X)  ((X)->u.fd)
 #define EVENT_VAL(X) ((X)->u.val)
 
 /*
@@ -172,17 +172,16 @@ struct cpu_event_history {
  */
 #include "lib/xref.h"
 
-#define _xref_t_a(addfn, type, m, f, a, v, t)                                  \
-	({                                                                     \
-		static const struct xref_eventsched _xref __attribute__(       \
-			(used)) = {                                            \
-			.xref = XREF_INIT(XREFT_EVENTSCHED, NULL, __func__),   \
-			.funcname = #f,                                        \
-			.dest = #t,                                            \
-			.event_type = EVENT_##type,                            \
-		};                                                             \
-		XREF_LINK(_xref.xref);                                         \
-		_event_add_##addfn(&_xref, m, f, a, v, t);                     \
+#define _xref_t_a(addfn, type, m, f, a, v, t)                                       \
+	({                                                                          \
+		static const struct xref_eventsched _xref __attribute__((used)) = { \
+			.xref = XREF_INIT(XREFT_EVENTSCHED, NULL, __func__),        \
+			.funcname = #f,                                             \
+			.dest = #t,                                                 \
+			.event_type = EVENT_##type,                                 \
+		};                                                                  \
+		XREF_LINK(_xref.xref);                                              \
+		_event_add_##addfn(&_xref, m, f, a, v, t);                          \
 	}) /* end */
 
 #define event_add_read(m, f, a, v, t) _xref_t_a(read_write, READ, m, f, a, v, t)
@@ -195,17 +194,16 @@ struct cpu_event_history {
 	_xref_t_a(timer_tv, TIMER, m, f, a, v, t)
 #define event_add_event(m, f, a, v, t) _xref_t_a(event, EVENT, m, f, a, v, t)
 
-#define event_execute(m, f, a, v)                                              \
-	({                                                                     \
-		static const struct xref_eventsched _xref __attribute__(       \
-			(used)) = {                                            \
-			.xref = XREF_INIT(XREFT_EVENTSCHED, NULL, __func__),   \
-			.funcname = #f,                                        \
-			.dest = NULL,                                          \
-			.event_type = EVENT_EXECUTE,                           \
-		};                                                             \
-		XREF_LINK(_xref.xref);                                         \
-		_event_execute(&_xref, m, f, a, v);                            \
+#define event_execute(m, f, a, v)                                                   \
+	({                                                                          \
+		static const struct xref_eventsched _xref __attribute__((used)) = { \
+			.xref = XREF_INIT(XREFT_EVENTSCHED, NULL, __func__),        \
+			.funcname = #f,                                             \
+			.dest = NULL,                                               \
+			.event_type = EVENT_EXECUTE,                                \
+		};                                                                  \
+		XREF_LINK(_xref.xref);                                              \
+		_event_execute(&_xref, m, f, a, v);                                 \
 	}) /* end */
 
 /* Prototypes. */
@@ -220,9 +218,8 @@ extern void _event_add_read_write(const struct xref_eventsched *xref,
 				  struct event **tref);
 
 extern void _event_add_timer(const struct xref_eventsched *xref,
-			     struct event_loop *master,
-			     void (*fn)(struct event *), void *arg, long t,
-			     struct event **tref);
+			     struct event_loop *master, void (*fn)(struct event *),
+			     void *arg, long t, struct event **tref);
 
 extern void _event_add_timer_msec(const struct xref_eventsched *xref,
 				  struct event_loop *master,
@@ -235,9 +232,8 @@ extern void _event_add_timer_tv(const struct xref_eventsched *xref,
 				struct timeval *tv, struct event **tref);
 
 extern void _event_add_event(const struct xref_eventsched *xref,
-			     struct event_loop *master,
-			     void (*fn)(struct event *), void *arg, int val,
-			     struct event **tref);
+			     struct event_loop *master, void (*fn)(struct event *),
+			     void *arg, int val, struct event **tref);
 
 extern void _event_execute(const struct xref_eventsched *xref,
 			   struct event_loop *master,
@@ -269,8 +265,7 @@ extern unsigned long event_consumed_time(RUSAGE_T *after, RUSAGE_T *before,
 
 /* only for use in logging functions! */
 extern pthread_key_t thread_current;
-extern char *event_timer_to_hhmmss(char *buf, int buf_size,
-				   struct event *t_timer);
+extern char *event_timer_to_hhmmss(char *buf, int buf_size, struct event *t_timer);
 
 static inline bool event_is_scheduled(struct event *thread)
 {

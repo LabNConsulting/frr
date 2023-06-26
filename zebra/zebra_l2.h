@@ -18,15 +18,15 @@
 extern "C" {
 #endif
 
-#define ZEBRA_BRIDGE_NO_ACTION (0)
+#define ZEBRA_BRIDGE_NO_ACTION	       (0)
 #define ZEBRA_BRIDGE_MASTER_MAC_CHANGE (1 << 1)
-#define ZEBRA_BRIDGE_MASTER_UP (1 << 2)
+#define ZEBRA_BRIDGE_MASTER_UP	       (1 << 2)
 
 /* zebra L2 interface information - bridge slave (linkage to bridge) */
 struct zebra_l2info_brslave {
 	ifindex_t bridge_ifindex; /* Bridge Master */
 	struct interface *br_if;  /* Pointer to master */
-	ns_id_t ns_id; /* network namespace where bridge is */
+	ns_id_t ns_id;		  /* network namespace where bridge is */
 };
 
 struct zebra_l2info_bond {
@@ -66,7 +66,7 @@ struct zebra_l2info_vlan {
 
 /* zebra L2 interface information - GRE interface */
 struct zebra_l2info_gre {
-	struct in_addr vtep_ip; /* IFLA_GRE_LOCAL */
+	struct in_addr vtep_ip;	       /* IFLA_GRE_LOCAL */
 	struct in_addr vtep_ip_remote; /* IFLA_GRE_REMOTE */
 	uint32_t ikey;
 	uint32_t okey;
@@ -102,8 +102,7 @@ struct zebra_vxlan_if_update_ctx {
 struct zebra_vxlan_if_ctx {
 	/* input */
 	struct zebra_if *zif;
-	int (*func)(struct zebra_if *zif, struct zebra_vxlan_vni *vni,
-		    void *arg);
+	int (*func)(struct zebra_if *zif, struct zebra_vxlan_vni *vni, void *arg);
 
 	/* input-output */
 	void *arg;
@@ -113,8 +112,7 @@ struct zebra_vxlan_vni_info {
 	int iftype;
 	union {
 		struct zebra_vxlan_vni vni; /* per vni vxlan device vni info */
-		struct hash
-			*vni_table; /* table of vni's assocated with this if */
+		struct hash *vni_table; /* table of vni's assocated with this if */
 	};
 };
 
@@ -129,7 +127,7 @@ struct zebra_l2info_vxlan {
 };
 
 struct zebra_l2info_bondslave {
-	ifindex_t bond_ifindex;    /* Bridge Master */
+	ifindex_t bond_ifindex;	   /* Bridge Master */
 	struct interface *bond_if; /* Pointer to master */
 };
 
@@ -157,8 +155,7 @@ union zebra_l2if_info {
 
 extern void zebra_l2_map_slave_to_bridge(struct zebra_l2info_brslave *br_slave,
 					 struct zebra_ns *zns);
-extern void
-zebra_l2_unmap_slave_from_bridge(struct zebra_l2info_brslave *br_slave);
+extern void zebra_l2_unmap_slave_from_bridge(struct zebra_l2info_brslave *br_slave);
 extern void zebra_l2_bridge_add_update(struct interface *ifp,
 				       struct zebra_l2info_bridge *bridge_info,
 				       int add);
@@ -181,10 +178,9 @@ extern void zebra_l2if_update_bridge_slave(struct interface *ifp,
 
 extern void zebra_l2if_update_bond_slave(struct interface *ifp,
 					 ifindex_t bond_ifindex, bool bypass);
-extern void zebra_vlan_bitmap_compute(struct interface *ifp,
-		uint32_t vid_start, uint16_t vid_end);
-extern void zebra_vlan_mbr_re_eval(struct interface *ifp,
-		bitfield_t vlan_bitmap);
+extern void zebra_vlan_bitmap_compute(struct interface *ifp, uint32_t vid_start,
+				      uint16_t vid_end);
+extern void zebra_vlan_mbr_re_eval(struct interface *ifp, bitfield_t vlan_bitmap);
 extern void zebra_l2if_update_bond(struct interface *ifp, bool add);
 extern void zebra_l2if_update_bridge(struct interface *ifp, uint8_t chgflags);
 

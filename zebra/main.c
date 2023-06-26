@@ -74,25 +74,25 @@ uint32_t rcvbufsize = 128 * 1024;
 
 /* Command line options. */
 const struct option longopts[] = {
-	{"batch", no_argument, NULL, 'b'},
-	{"allow_delete", no_argument, NULL, 'a'},
-	{"socket", required_argument, NULL, 'z'},
-	{"ecmp", required_argument, NULL, 'e'},
-	{"retain", no_argument, NULL, 'r'},
-	{"graceful_restart", required_argument, NULL, 'K'},
-	{"asic-offload", optional_argument, NULL, OPTION_ASIC_OFFLOAD},
+	{ "batch", no_argument, NULL, 'b' },
+	{ "allow_delete", no_argument, NULL, 'a' },
+	{ "socket", required_argument, NULL, 'z' },
+	{ "ecmp", required_argument, NULL, 'e' },
+	{ "retain", no_argument, NULL, 'r' },
+	{ "graceful_restart", required_argument, NULL, 'K' },
+	{ "asic-offload", optional_argument, NULL, OPTION_ASIC_OFFLOAD },
 #ifdef HAVE_NETLINK
-	{"vrfwnetns", no_argument, NULL, 'n'},
-	{"nl-bufsize", required_argument, NULL, 's'},
-	{"v6-rr-semantics", no_argument, NULL, OPTION_V6_RR_SEMANTICS},
+	{ "vrfwnetns", no_argument, NULL, 'n' },
+	{ "nl-bufsize", required_argument, NULL, 's' },
+	{ "v6-rr-semantics", no_argument, NULL, OPTION_V6_RR_SEMANTICS },
 #endif /* HAVE_NETLINK */
-	{0}};
+	{ 0 }
+};
 
-zebra_capabilities_t _caps_p[] = {ZCAP_NET_ADMIN, ZCAP_SYS_ADMIN,
-				  ZCAP_NET_RAW,
+zebra_capabilities_t _caps_p[] = {
+	ZCAP_NET_ADMIN, ZCAP_SYS_ADMIN,	  ZCAP_NET_RAW,
 #ifdef HAVE_DPDK
-				  ZCAP_IPC_LOCK,  ZCAP_READ_SEARCH,
-				  ZCAP_SYS_RAWIO
+	ZCAP_IPC_LOCK,	ZCAP_READ_SEARCH, ZCAP_SYS_RAWIO
 #endif
 };
 
@@ -107,7 +107,8 @@ struct zebra_privs_t zserv_privs = {
 #endif
 	.caps_p = _caps_p,
 	.cap_num_p = array_size(_caps_p),
-	.cap_num_i = 0};
+	.cap_num_i = 0
+};
 
 /* SIGHUP handler. */
 static void sighup(void)
@@ -134,8 +135,7 @@ static void sigint(void)
 
 	zlog_notice("Terminating on signal");
 
-	atomic_store_explicit(&zrouter.in_shutdown, true,
-			      memory_order_relaxed);
+	atomic_store_explicit(&zrouter.in_shutdown, true, memory_order_relaxed);
 
 	/* send RA lifetime of 0 before stopping. rfc4861/6.2.5 */
 	rtadv_stop_ra_all();
@@ -265,19 +265,16 @@ static const struct frr_yang_module_info *const zebra_yang_modules[] = {
 };
 /* clang-format on */
 
-FRR_DAEMON_INFO(
-	zebra, ZEBRA, .vty_port = ZEBRA_VTY_PORT, .flags = FRR_NO_ZCLIENT,
+FRR_DAEMON_INFO(zebra, ZEBRA, .vty_port = ZEBRA_VTY_PORT, .flags = FRR_NO_ZCLIENT,
 
-	.proghelp =
-		"Daemon which manages kernel routing table management and\nredistribution between different routing protocols.",
+		.proghelp = "Daemon which manages kernel routing table management and\nredistribution between different routing protocols.",
 
-	.signals = zebra_signals, .n_signals = array_size(zebra_signals),
+		.signals = zebra_signals, .n_signals = array_size(zebra_signals),
 
-	.privs = &zserv_privs,
+		.privs = &zserv_privs,
 
-	.yang_modules = zebra_yang_modules,
-	.n_yang_modules = array_size(zebra_yang_modules),
-);
+		.yang_modules = zebra_yang_modules,
+		.n_yang_modules = array_size(zebra_yang_modules), );
 
 /* Main startup routine. */
 int main(int argc, char **argv)
@@ -294,26 +291,25 @@ int main(int argc, char **argv)
 
 	frr_preinit(&zebra_di, argc, argv);
 
-	frr_opt_add(
-		"baz:e:rK:s:"
+	frr_opt_add("baz:e:rK:s:"
 #ifdef HAVE_NETLINK
-		"n"
+		    "n"
 #endif
-		,
-		longopts,
-		"  -b, --batch              Runs in batch mode\n"
-		"  -a, --allow_delete       Allow other processes to delete zebra routes\n"
-		"  -z, --socket             Set path of zebra socket\n"
-		"  -e, --ecmp               Specify ECMP to use.\n"
-		"  -r, --retain             When program terminates, retain added route by zebra.\n"
-		"  -K, --graceful_restart   Graceful restart at the kernel level, timer in seconds for expiration\n"
-		"  -A, --asic-offload       FRR is interacting with an asic underneath the linux kernel\n"
+		    ,
+		    longopts,
+		    "  -b, --batch              Runs in batch mode\n"
+		    "  -a, --allow_delete       Allow other processes to delete zebra routes\n"
+		    "  -z, --socket             Set path of zebra socket\n"
+		    "  -e, --ecmp               Specify ECMP to use.\n"
+		    "  -r, --retain             When program terminates, retain added route by zebra.\n"
+		    "  -K, --graceful_restart   Graceful restart at the kernel level, timer in seconds for expiration\n"
+		    "  -A, --asic-offload       FRR is interacting with an asic underneath the linux kernel\n"
 #ifdef HAVE_NETLINK
-		"  -s, --nl-bufsize         Set netlink receive buffer size\n"
-		"  -n, --vrfwnetns          Use NetNS as VRF backend\n"
-		"      --v6-rr-semantics    Use v6 RR semantics\n"
+		    "  -s, --nl-bufsize         Set netlink receive buffer size\n"
+		    "  -n, --vrfwnetns          Use NetNS as VRF backend\n"
+		    "      --v6-rr-semantics    Use v6 RR semantics\n"
 #else
-		"  -s,                      Set kernel socket receive buffer size\n"
+		    "  -s,                      Set kernel socket receive buffer size\n"
 #endif /* HAVE_NETLINK */
 	);
 
@@ -335,13 +331,12 @@ int main(int argc, char **argv)
 		case 'e': {
 			unsigned long int parsed_multipath =
 				strtoul(optarg, NULL, 10);
-			if (parsed_multipath == 0
-			    || parsed_multipath > MULTIPATH_NUM
-			    || parsed_multipath > UINT32_MAX) {
-				flog_err(
-					EC_ZEBRA_BAD_MULTIPATH_NUM,
-					"Multipath Number specified must be less than %u and greater than 0",
-					MULTIPATH_NUM);
+			if (parsed_multipath == 0 ||
+			    parsed_multipath > MULTIPATH_NUM ||
+			    parsed_multipath > UINT32_MAX) {
+				flog_err(EC_ZEBRA_BAD_MULTIPATH_NUM,
+					 "Multipath Number specified must be less than %u and greater than 0",
+					 MULTIPATH_NUM);
 				return 1;
 			}
 			zrouter.multipath_num = parsed_multipath;
@@ -350,8 +345,7 @@ int main(int argc, char **argv)
 		case 'z':
 			zserv_path = optarg;
 			if (!frr_zclient_addr(&dummy, &dummylen, optarg)) {
-				fprintf(stderr,
-					"Invalid zserv socket path: %s\n",
+				fprintf(stderr, "Invalid zserv socket path: %s\n",
 					optarg);
 				exit(1);
 			}

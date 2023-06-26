@@ -63,11 +63,11 @@ extern union _frrmod_runtime_u _frrmod_this_module;
 #define THIS_MODULE (&_frrmod_this_module.r)
 
 #define FRR_COREMOD_SETUP(...)                                                 \
-	static const struct frrmod_info _frrmod_info = {__VA_ARGS__};          \
-	DSO_LOCAL union _frrmod_runtime_u _frrmod_this_module = {{             \
+	static const struct frrmod_info _frrmod_info = { __VA_ARGS__ };        \
+	DSO_LOCAL union _frrmod_runtime_u _frrmod_this_module = { {            \
 		NULL,                                                          \
 		&_frrmod_info,                                                 \
-	}};                                                                    \
+	} };                                                                   \
 	XREF_SETUP();                                                          \
 	MACRO_REQUIRE_SEMICOLON() /* end */
 

@@ -141,8 +141,7 @@ static int zebra_ns_disable_internal(struct zebra_ns *zns, bool complete)
 /* During zebra shutdown, do partial cleanup while the async dataplane
  * is still running.
  */
-int zebra_ns_early_shutdown(struct ns *ns,
-			    void *param_in __attribute__((unused)),
+int zebra_ns_early_shutdown(struct ns *ns, void *param_in __attribute__((unused)),
 			    void **param_out __attribute__((unused)))
 {
 	struct zebra_ns *zns = ns->info;
@@ -157,8 +156,7 @@ int zebra_ns_early_shutdown(struct ns *ns,
 /* During zebra shutdown, do final cleanup
  * after all dataplane work is complete.
  */
-int zebra_ns_final_shutdown(struct ns *ns,
-			    void *param_in __attribute__((unused)),
+int zebra_ns_final_shutdown(struct ns *ns, void *param_in __attribute__((unused)),
 			    void **param_out __attribute__((unused)))
 {
 	struct zebra_ns *zns = ns->info;
@@ -178,7 +176,7 @@ int zebra_ns_init(void)
 	ns_id_t ns_id_external;
 	struct ns *ns;
 
-	frr_with_privs(&zserv_privs) {
+	frr_with_privs (&zserv_privs) {
 		ns_id = zebra_ns_id_get_default();
 	}
 	ns_id_external = ns_map_nsid_with_external(ns_id, true);

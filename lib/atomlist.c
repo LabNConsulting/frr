@@ -28,9 +28,9 @@ void atomlist_add_head(struct atomlist_head *h, struct atomlist_item *item)
 	 * release barrier: item + item->next writes must be completed
 	 */
 	while (!atomic_compare_exchange_weak_explicit(&h->first, &prevval, i,
-				memory_order_release, memory_order_relaxed))
-		atomic_store_explicit(&item->next, prevval,
-				memory_order_relaxed);
+						      memory_order_release,
+						      memory_order_relaxed))
+		atomic_store_explicit(&item->next, prevval, memory_order_relaxed);
 }
 
 void atomlist_add_tail(struct atomlist_head *h, struct atomlist_item *item)
@@ -57,8 +57,7 @@ void atomlist_add_tail(struct atomlist_head *h, struct atomlist_item *item)
 			prev = &atomlist_itemp(hint)->next;
 
 		do {
-			prevval = atomic_load_explicit(prev,
-					memory_order_consume);
+			prevval = atomic_load_explicit(prev, memory_order_consume);
 			prevptr = atomlist_itemp(prevval);
 			if (prevptr == NULL)
 				break;
@@ -74,8 +73,8 @@ void atomlist_add_tail(struct atomlist_head *h, struct atomlist_item *item)
 
 		/* no barrier - item->next is NULL and was so in xchg above */
 		if (!atomic_compare_exchange_strong_explicit(prev, &prevval, i,
-					memory_order_consume,
-					memory_order_consume)) {
+							     memory_order_consume,
+							     memory_order_consume)) {
 			hint = prevval;
 			continue;
 		}
@@ -83,10 +82,8 @@ void atomlist_add_tail(struct atomlist_head *h, struct atomlist_item *item)
 	}
 }
 
-static void atomlist_del_core(struct atomlist_head *h,
-			      struct atomlist_item *item,
-			      _Atomic atomptr_t *hint,
-			      atomptr_t next)
+static void atomlist_del_core(struct atomlist_head *h, struct atomlist_item *item,
+			      _Atomic atomptr_t *hint, atomptr_t next)
 {
 	_Atomic atomptr_t *prev = hint ? hint : &h->first, *upd;
 	atomptr_t prevval, updval;
@@ -94,9 +91,9 @@ static void atomlist_del_core(struct atomlist_head *h,
 
 	/* drop us off "last" if needed.  no r/w to barrier. */
 	prevval = atomptr_i(item);
-	atomic_compare_exchange_strong_explicit(&h->last, &prevval,
-			ATOMPTR_NULL,
-			memory_order_relaxed, memory_order_relaxed);
+	atomic_compare_exchange_strong_explicit(&h->last, &prevval, ATOMPTR_NULL,
+						memory_order_relaxed,
+						memory_order_relaxed);
 
 	atomic_fetch_sub_explicit(&h->count, 1, memory_order_relaxed);
 
@@ -108,8 +105,7 @@ static void atomlist_del_core(struct atomlist_head *h,
 		updval = ATOMPTR_LOCK;
 
 		do {
-			prevval = atomic_load_explicit(prev,
-					memory_order_consume);
+			prevval = atomic_load_explicit(prev, memory_order_consume);
 
 			/* track the beginning of a chain of deleted items
 			 * this is necessary to make this lock-free; we can
@@ -139,9 +135,9 @@ static void atomlist_del_core(struct atomlist_head *h,
 			continue;
 		}
 
-		if (!atomic_compare_exchange_strong_explicit(upd, &updval,
-					next, memory_order_consume,
-					memory_order_consume)) {
+		if (!atomic_compare_exchange_strong_explicit(upd, &updval, next,
+							     memory_order_consume,
+							     memory_order_consume)) {
 			/* prev doesn't point to item anymore, something
 			 * was inserted.  continue at same position forward.
 			 */
@@ -152,14 +148,14 @@ static void atomlist_del_core(struct atomlist_head *h,
 }
 
 void atomlist_del_hint(struct atomlist_head *h, struct atomlist_item *item,
-		_Atomic atomptr_t *hint)
+		       _Atomic atomptr_t *hint)
 {
 	atomptr_t next;
 
 	/* mark ourselves in-delete - full barrier */
 	next = atomic_fetch_or_explicit(&item->next, ATOMPTR_LOCK,
-				memory_order_acquire);
-	assert(!atomptr_l(next));	/* delete race on same item */
+					memory_order_acquire);
+	assert(!atomptr_l(next)); /* delete race on same item */
 
 	atomlist_del_core(h, item, hint, next);
 }
@@ -183,7 +179,7 @@ struct atomlist_item *atomlist_pop(struct atomlist_head *h)
 
 		/* try to mark deletion */
 		next = atomic_fetch_or_explicit(&item->next, ATOMPTR_LOCK,
-					memory_order_acquire);
+						memory_order_acquire);
 
 	} while (atomptr_l(next));
 	/* if loop is taken: delete race on same item (another pop or del)
@@ -195,9 +191,9 @@ struct atomlist_item *atomlist_pop(struct atomlist_head *h)
 }
 
 struct atomsort_item *atomsort_add(struct atomsort_head *h,
-		struct atomsort_item *item, int (*cmpfn)(
-			const struct atomsort_item *,
-			const struct atomsort_item *))
+				   struct atomsort_item *item,
+				   int (*cmpfn)(const struct atomsort_item *,
+						const struct atomsort_item *))
 {
 	_Atomic atomptr_t *prev;
 	atomptr_t prevval;
@@ -209,8 +205,7 @@ struct atomsort_item *atomsort_add(struct atomsort_head *h,
 		prev = &h->first;
 
 		do {
-			prevval = atomic_load_explicit(prev,
-					memory_order_acquire);
+			prevval = atomic_load_explicit(prev, memory_order_acquire);
 			previtem = atomptr_p(prevval);
 
 			if (!previtem || (cmpval = cmpfn(previtem, item)) > 0)
@@ -226,7 +221,8 @@ struct atomsort_item *atomsort_add(struct atomsort_head *h,
 
 		item->next = prevval;
 		if (atomic_compare_exchange_strong_explicit(prev, &prevval, i,
-				memory_order_release, memory_order_relaxed))
+							    memory_order_release,
+							    memory_order_relaxed))
 			break;
 	} while (1);
 
@@ -234,9 +230,8 @@ struct atomsort_item *atomsort_add(struct atomsort_head *h,
 	return NULL;
 }
 
-static void atomsort_del_core(struct atomsort_head *h,
-		struct atomsort_item *item, _Atomic atomptr_t *hint,
-		atomptr_t next)
+static void atomsort_del_core(struct atomsort_head *h, struct atomsort_item *item,
+			      _Atomic atomptr_t *hint, atomptr_t next)
 {
 	_Atomic atomptr_t *prev = hint ? hint : &h->first, *upd;
 	atomptr_t prevval, updval;
@@ -252,8 +247,7 @@ static void atomsort_del_core(struct atomsort_head *h,
 		updval = ATOMPTR_LOCK;
 
 		do {
-			prevval = atomic_load_explicit(prev,
-					memory_order_consume);
+			prevval = atomic_load_explicit(prev, memory_order_consume);
 
 			/* track the beginning of a chain of deleted items
 			 * this is necessary to make this lock-free; we can
@@ -283,9 +277,9 @@ static void atomsort_del_core(struct atomsort_head *h,
 			continue;
 		}
 
-		if (!atomic_compare_exchange_strong_explicit(upd, &updval,
-					next, memory_order_relaxed,
-					memory_order_relaxed)) {
+		if (!atomic_compare_exchange_strong_explicit(upd, &updval, next,
+							     memory_order_relaxed,
+							     memory_order_relaxed)) {
 			/* prev doesn't point to item anymore, something
 			 * was inserted.  continue at same position forward.
 			 */
@@ -296,14 +290,14 @@ static void atomsort_del_core(struct atomsort_head *h,
 }
 
 void atomsort_del_hint(struct atomsort_head *h, struct atomsort_item *item,
-		_Atomic atomptr_t *hint)
+		       _Atomic atomptr_t *hint)
 {
 	atomptr_t next;
 
 	/* mark ourselves in-delete - full barrier */
 	next = atomic_fetch_or_explicit(&item->next, ATOMPTR_LOCK,
-				memory_order_seq_cst);
-	assert(!atomptr_l(next));	/* delete race on same item */
+					memory_order_seq_cst);
+	assert(!atomptr_l(next)); /* delete race on same item */
 
 	atomsort_del_core(h, item, hint, next);
 }
@@ -327,7 +321,7 @@ struct atomsort_item *atomsort_pop(struct atomsort_head *h)
 
 		/* try to mark deletion */
 		next = atomic_fetch_or_explicit(&item->next, ATOMPTR_LOCK,
-					memory_order_acquire);
+						memory_order_acquire);
 
 	} while (atomptr_l(next));
 	/* if loop is taken: delete race on same item (another pop or del)

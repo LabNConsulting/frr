@@ -90,8 +90,8 @@ static void sockunion_normalise_mapped(union sockunion *su)
 {
 	struct sockaddr_in sin;
 
-	if (su->sa.sa_family == AF_INET6
-	    && IN6_IS_ADDR_V4MAPPED(&su->sin6.sin6_addr)) {
+	if (su->sa.sa_family == AF_INET6 &&
+	    IN6_IS_ADDR_V4MAPPED(&su->sin6.sin6_addr)) {
 		memset(&sin, 0, sizeof(sin));
 		sin.sin_family = AF_INET;
 		sin.sin_port = su->sin6.sin6_port;
@@ -101,8 +101,7 @@ static void sockunion_normalise_mapped(union sockunion *su)
 }
 
 /* return sockunion structure : this function should be revised. */
-static const char *sockunion_log(const union sockunion *su, char *buf,
-				 size_t len)
+static const char *sockunion_log(const union sockunion *su, char *buf, size_t len)
 {
 	switch (su->sa.sa_family) {
 	case AF_INET:
@@ -272,13 +271,11 @@ int sockopt_reuseaddr(int sock)
 	int ret;
 	int on = 1;
 
-	ret = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void *)&on,
-			 sizeof(on));
+	ret = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void *)&on, sizeof(on));
 	if (ret < 0) {
-		flog_err(
-			EC_LIB_SOCKET,
-			"can't set sockopt SO_REUSEADDR to socket %d errno=%d: %s",
-			sock, errno, safe_strerror(errno));
+		flog_err(EC_LIB_SOCKET,
+			 "can't set sockopt SO_REUSEADDR to socket %d errno=%d: %s",
+			 sock, errno, safe_strerror(errno));
 		return -1;
 	}
 	return 0;
@@ -290,8 +287,7 @@ int sockopt_reuseport(int sock)
 	int ret;
 	int on = 1;
 
-	ret = setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, (void *)&on,
-			 sizeof(on));
+	ret = setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, (void *)&on, sizeof(on));
 	if (ret < 0) {
 		flog_err(EC_LIB_SOCKET,
 			 "can't set sockopt SO_REUSEPORT to socket %d", sock);
@@ -327,10 +323,9 @@ int sockopt_ttl(int family, int sock, int ttl)
 		ret = setsockopt(sock, IPPROTO_IPV6, IPV6_UNICAST_HOPS,
 				 (void *)&ttl, sizeof(int));
 		if (ret < 0) {
-			flog_err(
-				EC_LIB_SOCKET,
-				"can't set sockopt IPV6_UNICAST_HOPS %d to socket %d",
-				ttl, sock);
+			flog_err(EC_LIB_SOCKET,
+				 "can't set sockopt IPV6_UNICAST_HOPS %d to socket %d",
+				 ttl, sock);
 			return -1;
 		}
 		return 0;
@@ -345,10 +340,9 @@ int sockopt_minttl(int family, int sock, int minttl)
 		int ret = setsockopt(sock, IPPROTO_IP, IP_MINTTL, &minttl,
 				     sizeof(minttl));
 		if (ret < 0)
-			flog_err(
-				EC_LIB_SOCKET,
-				"can't set sockopt IP_MINTTL to %d on socket %d: %s",
-				minttl, sock, safe_strerror(errno));
+			flog_err(EC_LIB_SOCKET,
+				 "can't set sockopt IP_MINTTL to %d on socket %d: %s",
+				 minttl, sock, safe_strerror(errno));
 		return ret;
 	}
 #endif /* IP_MINTTL */
@@ -357,10 +351,9 @@ int sockopt_minttl(int family, int sock, int minttl)
 		int ret = setsockopt(sock, IPPROTO_IPV6, IPV6_MINHOPCOUNT,
 				     &minttl, sizeof(minttl));
 		if (ret < 0)
-			flog_err(
-				EC_LIB_SOCKET,
-				"can't set sockopt IPV6_MINHOPCOUNT to %d on socket %d: %s",
-				minttl, sock, safe_strerror(errno));
+			flog_err(EC_LIB_SOCKET,
+				 "can't set sockopt IPV6_MINHOPCOUNT to %d on socket %d: %s",
+				 minttl, sock, safe_strerror(errno));
 		return ret;
 	}
 #endif
@@ -408,8 +401,8 @@ int sockunion_same(const union sockunion *su1, const union sockunion *su2)
 		if ((ret == 0) && IN6_IS_ADDR_LINKLOCAL(&su1->sin6.sin6_addr)) {
 			/* compare interface indices */
 			if (su1->sin6.sin6_scope_id && su2->sin6.sin6_scope_id)
-				ret = (su1->sin6.sin6_scope_id
-				       == su2->sin6.sin6_scope_id)
+				ret = (su1->sin6.sin6_scope_id ==
+				       su2->sin6.sin6_scope_id)
 					      ? 0
 					      : 1;
 		}
@@ -460,8 +453,7 @@ const uint8_t *sockunion_get_addr(const union sockunion *su)
 	return NULL;
 }
 
-void sockunion_set(union sockunion *su, int family, const uint8_t *addr,
-		   size_t bytes)
+void sockunion_set(union sockunion *su, int family, const uint8_t *addr, size_t bytes)
 {
 	if (family2addrsize(family) != bytes)
 		return;
@@ -513,10 +505,9 @@ union sockunion *sockunion_getsockname(int fd)
 		return su;
 	}
 
-	flog_err(
-		EC_LIB_SOCKET,
-		"Unexpected AFI received(%d) for sockunion_getsockname call for fd: %d",
-		name.sa.sa_family, fd);
+	flog_err(EC_LIB_SOCKET,
+		 "Unexpected AFI received(%d) for sockunion_getsockname call for fd: %d",
+		 name.sa.sa_family, fd);
 	return NULL;
 }
 
@@ -554,10 +545,9 @@ union sockunion *sockunion_getpeername(int fd)
 		return su;
 	}
 
-	flog_err(
-		EC_LIB_SOCKET,
-		"Unexpected AFI received(%d) for sockunion_getpeername call for fd: %d",
-		name.sa.sa_family, fd);
+	flog_err(EC_LIB_SOCKET,
+		 "Unexpected AFI received(%d) for sockunion_getpeername call for fd: %d",
+		 name.sa.sa_family, fd);
 	return NULL;
 }
 
@@ -628,8 +618,7 @@ int sockunion_cmp(const union sockunion *su1, const union sockunion *su2)
 /* Duplicate sockunion. */
 union sockunion *sockunion_dup(const union sockunion *su)
 {
-	union sockunion *dup =
-		XCALLOC(MTYPE_SOCKUNION, sizeof(union sockunion));
+	union sockunion *dup = XCALLOC(MTYPE_SOCKUNION, sizeof(union sockunion));
 	memcpy(dup, su, sizeof(union sockunion));
 	return dup;
 }
@@ -692,8 +681,7 @@ static ssize_t printfrr_psu(struct fbuf *buf, struct printfrr_eargs *ea,
 			ret += bprintfrr(buf, "%%%u",
 					 (unsigned int)su->sin6.sin6_scope_id);
 		if (include_port)
-			ret += bprintfrr(buf, "]:%d",
-					 ntohs(su->sin6.sin6_port));
+			ret += bprintfrr(buf, "]:%d", ntohs(su->sin6.sin6_port));
 		break;
 	case AF_UNIX: {
 		int len;
@@ -701,8 +689,7 @@ static ssize_t printfrr_psu(struct fbuf *buf, struct printfrr_eargs *ea,
 		if (su->sun.sun_path[0] == '\0' && su->sun.sun_path[1]) {
 			len = strnlen(su->sun.sun_path + 1,
 				      sizeof(su->sun.sun_path) - 1);
-			ret += bprintfrr(buf, "@%*pSE", len,
-					 su->sun.sun_path + 1);
+			ret += bprintfrr(buf, "@%*pSE", len, su->sun.sun_path + 1);
 			break;
 		}
 #endif
@@ -719,7 +706,7 @@ static ssize_t printfrr_psu(struct fbuf *buf, struct printfrr_eargs *ea,
 
 int sockunion_is_null(const union sockunion *su)
 {
-	unsigned char null_s6_addr[16] = {0};
+	unsigned char null_s6_addr[16] = { 0 };
 
 	switch (sockunion_family(su)) {
 	case AF_UNSPEC:

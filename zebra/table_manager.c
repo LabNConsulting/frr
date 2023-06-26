@@ -33,14 +33,14 @@
 #else
 /* Linux Systems
  */
-#define RT_TABLE_ID_LOCAL                  255
-#define RT_TABLE_ID_MAIN                   254
-#define RT_TABLE_ID_DEFAULT                253
-#define RT_TABLE_ID_COMPAT                 252
-#define RT_TABLE_ID_UNSPEC                 0
+#define RT_TABLE_ID_LOCAL   255
+#define RT_TABLE_ID_MAIN    254
+#define RT_TABLE_ID_DEFAULT 253
+#define RT_TABLE_ID_COMPAT  252
+#define RT_TABLE_ID_UNSPEC  0
 #endif /* !def(GNU_LINUX) */
-#define RT_TABLE_ID_UNRESERVED_MIN         1
-#define RT_TABLE_ID_UNRESERVED_MAX         0xffffffff
+#define RT_TABLE_ID_UNRESERVED_MIN 1
+#define RT_TABLE_ID_UNRESERVED_MAX 0xffffffff
 
 DEFINE_MGROUP(TABLE_MGR, "Table Manager");
 DEFINE_MTYPE_STATIC(TABLE_MGR, TM_CHUNK, "Table Manager Chunk");
@@ -56,11 +56,9 @@ static void delete_table_chunk(void *val)
  */
 void table_manager_enable(struct zebra_vrf *zvrf)
 {
-
 	if (zvrf->tbl_mgr)
 		return;
-	if (!vrf_is_backend_netns()
-	    && strcmp(zvrf_name(zvrf), VRF_DEFAULT_NAME)) {
+	if (!vrf_is_backend_netns() && strcmp(zvrf_name(zvrf), VRF_DEFAULT_NAME)) {
 		struct zebra_vrf *def = zebra_vrf_lookup_by_id(VRF_DEFAULT);
 
 		if (def)
@@ -97,8 +95,7 @@ struct table_manager_chunk *assign_table_chunk(uint8_t proto, uint16_t instance,
 
 	/* first check if there's one available */
 	for (ALL_LIST_ELEMENTS_RO(zvrf->tbl_mgr->lc_list, node, tmc)) {
-		if (tmc->proto == NO_PROTO
-		    && tmc->end - tmc->start + 1 == size) {
+		if (tmc->proto == NO_PROTO && tmc->end - tmc->start + 1 == size) {
 			tmc->proto = proto;
 			tmc->instance = instance;
 			return tmc;
@@ -123,22 +120,21 @@ struct table_manager_chunk *assign_table_chunk(uint8_t proto, uint16_t instance,
 	} else
 		start = ((struct table_manager_chunk *)listgetdata(
 				 listtail(zvrf->tbl_mgr->lc_list)))
-				->end
-			+ 1;
+				->end +
+			1;
 
 	if (!manual_conf) {
-
 #if !defined(GNU_LINUX)
 /* BSD systems
  */
 #else
-/* Linux Systems
+		/* Linux Systems
  */
 		/* if not enough room space between MIN and COMPAT,
 		 * then begin after LOCAL
 		 */
-		if (start < RT_TABLE_ID_COMPAT
-		    && (size > RT_TABLE_ID_COMPAT - RT_TABLE_ID_UNRESERVED_MIN))
+		if (start < RT_TABLE_ID_COMPAT &&
+		    (size > RT_TABLE_ID_COMPAT - RT_TABLE_ID_UNRESERVED_MIN))
 			start = RT_TABLE_ID_LOCAL + 1;
 #endif /* !def(GNU_LINUX) */
 		tmc->start = start;
@@ -244,9 +240,9 @@ int release_daemon_table_chunks(struct zserv *client)
 			continue;
 		for (ALL_LIST_ELEMENTS_RO(zvrf->tbl_mgr->lc_list, node, tmc)) {
 			if (tmc->proto == proto && tmc->instance == instance) {
-				ret = release_table_chunk(
-					tmc->proto, tmc->instance, tmc->start,
-					tmc->end, zvrf);
+				ret = release_table_chunk(tmc->proto, tmc->instance,
+							  tmc->start, tmc->end,
+							  zvrf);
 				if (ret == 0)
 					count++;
 			}
@@ -257,8 +253,7 @@ int release_daemon_table_chunks(struct zserv *client)
 	return count;
 }
 
-static void table_range_add(struct zebra_vrf *zvrf, uint32_t start,
-			    uint32_t end)
+static void table_range_add(struct zebra_vrf *zvrf, uint32_t start, uint32_t end)
 {
 	if (!zvrf->tbl_mgr)
 		return;
@@ -270,8 +265,7 @@ void table_manager_disable(struct zebra_vrf *zvrf)
 {
 	if (!zvrf->tbl_mgr)
 		return;
-	if (!vrf_is_backend_netns()
-	    && strcmp(zvrf_name(zvrf), VRF_DEFAULT_NAME)) {
+	if (!vrf_is_backend_netns() && strcmp(zvrf_name(zvrf), VRF_DEFAULT_NAME)) {
 		zvrf->tbl_mgr = NULL;
 		return;
 	}
@@ -304,23 +298,21 @@ int table_manager_range(struct vty *vty, bool add, struct zebra_vrf *zvrf,
 #else
 		/* Linux Systems
 		 */
-		if ((start >= RT_TABLE_ID_COMPAT && start <= RT_TABLE_ID_LOCAL)
-		    || (end >= RT_TABLE_ID_COMPAT
-			&& end <= RT_TABLE_ID_LOCAL)) {
+		if ((start >= RT_TABLE_ID_COMPAT && start <= RT_TABLE_ID_LOCAL) ||
+		    (end >= RT_TABLE_ID_COMPAT && end <= RT_TABLE_ID_LOCAL)) {
 			vty_out(vty, "%% Values forbidden in range [%u;%u]\n",
 				RT_TABLE_ID_COMPAT, RT_TABLE_ID_LOCAL);
 			return CMD_WARNING_CONFIG_FAILED;
 		}
 		if (start < RT_TABLE_ID_COMPAT && end > RT_TABLE_ID_LOCAL) {
-			vty_out(vty,
-				"%% Range overlaps range [%u;%u] forbidden\n",
+			vty_out(vty, "%% Range overlaps range [%u;%u] forbidden\n",
 				RT_TABLE_ID_COMPAT, RT_TABLE_ID_LOCAL);
 			return CMD_WARNING_CONFIG_FAILED;
 		}
 #endif
-		if (zvrf->tbl_mgr
-		    && ((zvrf->tbl_mgr->start && zvrf->tbl_mgr->start != start)
-			|| (zvrf->tbl_mgr->end && zvrf->tbl_mgr->end != end))) {
+		if (zvrf->tbl_mgr &&
+		    ((zvrf->tbl_mgr->start && zvrf->tbl_mgr->start != start) ||
+		     (zvrf->tbl_mgr->end && zvrf->tbl_mgr->end != end))) {
 			vty_out(vty,
 				"%% New range will be taken into account at restart\n");
 		}

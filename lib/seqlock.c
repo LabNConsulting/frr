@@ -39,12 +39,11 @@ static long sys_futex(void *addr1, int op, int val1,
 	return syscall(SYS_futex, addr1, op, val1, timeout, addr2, val3);
 }
 
-#define wait_once(sqlo, val)	\
+#define wait_once(sqlo, val)                                                   \
 	sys_futex((int *)&sqlo->pos, FUTEX_WAIT, (int)val, NULL, NULL, 0)
-#define wait_time(sqlo, val, time, reltime)	\
-	sys_futex((int *)&sqlo->pos, FUTEX_WAIT_BITSET, (int)val, time, \
-		  NULL, ~0U)
-#define wait_poke(sqlo)		\
+#define wait_time(sqlo, val, time, reltime)                                    \
+	sys_futex((int *)&sqlo->pos, FUTEX_WAIT_BITSET, (int)val, time, NULL, ~0U)
+#define wait_poke(sqlo)                                                        \
 	sys_futex((int *)&sqlo->pos, FUTEX_WAKE, INT_MAX, NULL, NULL, 0)
 
 /*
@@ -54,13 +53,13 @@ static long sys_futex(void *addr1, int op, int val1,
 #include <sys/syscall.h>
 #include <sys/futex.h>
 
-#define TIME_RELATIVE		1
+#define TIME_RELATIVE 1
 
-#define wait_once(sqlo, val)	\
+#define wait_once(sqlo, val)                                                   \
 	futex((int *)&sqlo->pos, FUTEX_WAIT, (int)val, NULL, NULL, 0)
-#define wait_time(sqlo, val, time, reltime)	\
+#define wait_time(sqlo, val, time, reltime)                                    \
 	futex((int *)&sqlo->pos, FUTEX_WAIT, (int)val, reltime, NULL, 0)
-#define wait_poke(sqlo)		\
+#define wait_poke(sqlo)                                                        \
 	futex((int *)&sqlo->pos, FUTEX_WAKE, INT_MAX, NULL, NULL, 0)
 
 /*
@@ -69,20 +68,19 @@ static long sys_futex(void *addr1, int op, int val1,
 #elif defined(HAVE_SYNC_UMTX_OP)
 #include <sys/umtx.h>
 
-#define wait_once(sqlo, val)	\
+#define wait_once(sqlo, val)                                                   \
 	_umtx_op((void *)&sqlo->pos, UMTX_OP_WAIT_UINT, val, NULL, NULL)
 static int wait_time(struct seqlock *sqlo, uint32_t val,
-		      const struct timespec *abstime,
-		      const struct timespec *reltime)
+		     const struct timespec *abstime, const struct timespec *reltime)
 {
 	struct _umtx_time t;
 	t._flags = UMTX_ABSTIME;
 	t._clockid = CLOCK_MONOTONIC;
 	memcpy(&t._timeout, abstime, sizeof(t._timeout));
 	return _umtx_op((void *)&sqlo->pos, UMTX_OP_WAIT_UINT, val,
-		 (void *)(uintptr_t) sizeof(t), &t);
+			(void *)(uintptr_t)sizeof(t), &t);
 }
-#define wait_poke(sqlo)		\
+#define wait_poke(sqlo)                                                        \
 	_umtx_op((void *)&sqlo->pos, UMTX_OP_WAKE, INT_MAX, NULL, NULL)
 
 /*
@@ -90,31 +88,32 @@ static int wait_time(struct seqlock *sqlo, uint32_t val,
  */
 #else
 
-#define TIME_ABS_REALTIME	1
+#define TIME_ABS_REALTIME 1
 
-#define wait_init(sqlo)		do { \
-		pthread_mutex_init(&sqlo->lock, NULL); \
-		pthread_cond_init(&sqlo->wake, NULL); \
+#define wait_init(sqlo)                                                        \
+	do {                                                                   \
+		pthread_mutex_init(&sqlo->lock, NULL);                         \
+		pthread_cond_init(&sqlo->wake, NULL);                          \
 	} while (0)
-#define wait_prep(sqlo)		pthread_mutex_lock(&sqlo->lock)
-#define wait_once(sqlo, val)	pthread_cond_wait(&sqlo->wake, &sqlo->lock)
-#define wait_time(sqlo, val, time, reltime) \
-				pthread_cond_timedwait(&sqlo->wake, \
-						       &sqlo->lock, time);
-#define wait_done(sqlo)		pthread_mutex_unlock(&sqlo->lock)
-#define wait_poke(sqlo)		do { \
-		pthread_mutex_lock(&sqlo->lock); \
-		pthread_cond_broadcast(&sqlo->wake); \
-		pthread_mutex_unlock(&sqlo->lock); \
+#define wait_prep(sqlo)	     pthread_mutex_lock(&sqlo->lock)
+#define wait_once(sqlo, val) pthread_cond_wait(&sqlo->wake, &sqlo->lock)
+#define wait_time(sqlo, val, time, reltime)                                    \
+	pthread_cond_timedwait(&sqlo->wake, &sqlo->lock, time);
+#define wait_done(sqlo) pthread_mutex_unlock(&sqlo->lock)
+#define wait_poke(sqlo)                                                        \
+	do {                                                                   \
+		pthread_mutex_lock(&sqlo->lock);                               \
+		pthread_cond_broadcast(&sqlo->wake);                           \
+		pthread_mutex_unlock(&sqlo->lock);                             \
 	} while (0)
 
 #endif
 
 #ifndef wait_init
-#define wait_init(sqlo)		/**/
-#define wait_prep(sqlo)		/**/
-#define wait_done(sqlo)		/**/
-#endif /* wait_init */
+#define wait_init(sqlo) /**/
+#define wait_prep(sqlo) /**/
+#define wait_done(sqlo) /**/
+#endif			/* wait_init */
 
 
 void seqlock_wait(struct seqlock *sqlo, seqlock_val_t val)
@@ -132,13 +131,14 @@ void seqlock_wait(struct seqlock *sqlo, seqlock_val_t val)
 		if (cal < 0x80000000)
 			break;
 
-		if ((cur & SEQLOCK_WAITERS)
-		    || atomic_compare_exchange_weak_explicit(
-				&sqlo->pos, &cur, cur | SEQLOCK_WAITERS,
-				memory_order_relaxed, memory_order_relaxed)) {
+		if ((cur & SEQLOCK_WAITERS) ||
+		    atomic_compare_exchange_weak_explicit(&sqlo->pos, &cur,
+							  cur | SEQLOCK_WAITERS,
+							  memory_order_relaxed,
+							  memory_order_relaxed)) {
 			wait_once(sqlo, cur | SEQLOCK_WAITERS);
 			cur = atomic_load_explicit(&sqlo->pos,
-				memory_order_relaxed);
+						   memory_order_relaxed);
 		}
 		/* else: we failed to swap in cur because it just changed */
 	}
@@ -178,7 +178,7 @@ bool seqlock_timedwait(struct seqlock *sqlo, seqlock_val_t val,
 
 #define time_arg1 abs_monotime_limit
 #define time_arg2 &reltime
-#define time_prep \
+#define time_prep                                                              \
 	clock_gettime(CLOCK_MONOTONIC, &reltime);                              \
 	reltime.tv_sec = abs_monotime_limit.tv_sec - reltime.tv_sec;           \
 	reltime.tv_nsec = abs_monotime_limit.tv_nsec - reltime.tv_nsec;        \
@@ -209,22 +209,23 @@ bool seqlock_timedwait(struct seqlock *sqlo, seqlock_val_t val,
 		if (cal < 0x80000000)
 			break;
 
-		if ((cur & SEQLOCK_WAITERS)
-		    || atomic_compare_exchange_weak_explicit(
-				&sqlo->pos, &cur, cur | SEQLOCK_WAITERS,
-				memory_order_relaxed, memory_order_relaxed)) {
+		if ((cur & SEQLOCK_WAITERS) ||
+		    atomic_compare_exchange_weak_explicit(&sqlo->pos, &cur,
+							  cur | SEQLOCK_WAITERS,
+							  memory_order_relaxed,
+							  memory_order_relaxed)) {
 			int rv;
 
 			time_prep
 
-			rv = wait_time(sqlo, cur | SEQLOCK_WAITERS, time_arg1,
-				       time_arg2);
+				rv = wait_time(sqlo, cur | SEQLOCK_WAITERS,
+					       time_arg1, time_arg2);
 			if (rv) {
 				ret = false;
 				break;
 			}
 			cur = atomic_load_explicit(&sqlo->pos,
-				memory_order_relaxed);
+						   memory_order_relaxed);
 		}
 	}
 	wait_done(sqlo);
@@ -275,8 +276,7 @@ void seqlock_init(struct seqlock *sqlo)
 
 seqlock_val_t seqlock_cur(struct seqlock *sqlo)
 {
-	return SEQLOCK_VAL(atomic_load_explicit(&sqlo->pos,
-						memory_order_relaxed));
+	return SEQLOCK_VAL(atomic_load_explicit(&sqlo->pos, memory_order_relaxed));
 }
 
 seqlock_val_t seqlock_bump(struct seqlock *sqlo)
@@ -289,7 +289,8 @@ seqlock_val_t seqlock_bump(struct seqlock *sqlo)
 	do {
 		val = SEQLOCK_VAL(cur) + SEQLOCK_INCR;
 	} while (!atomic_compare_exchange_weak_explicit(&sqlo->pos, &cur, val,
-			memory_order_relaxed, memory_order_relaxed));
+							memory_order_relaxed,
+							memory_order_relaxed));
 
 	if (cur & SEQLOCK_WAITERS)
 		wait_poke(sqlo);

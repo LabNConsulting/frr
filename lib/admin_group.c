@@ -98,8 +98,7 @@ char *admin_group_standard_print(char *out, int indent, uint32_t bitmap)
 			line_sz = 0;
 		}
 		ret = snprintf(&out[strlen(out)],
-			       ADMIN_GROUP_PRINT_MAX_SIZE - strlen(out), "%d",
-			       i);
+			       ADMIN_GROUP_PRINT_MAX_SIZE - strlen(out), "%d", i);
 		line_sz += ret;
 		first = false;
 	}
@@ -139,8 +138,7 @@ char *admin_group_print(char *out, int indent, const struct admin_group *ag)
 			line_sz = 0;
 		}
 		ret = snprintf(&out[strlen(out)],
-			       ADMIN_GROUP_PRINT_MAX_SIZE - strlen(out), "%d",
-			       i);
+			       ADMIN_GROUP_PRINT_MAX_SIZE - strlen(out), "%d", i);
 		line_sz += ret;
 		if (ret >= (ADMIN_GROUP_PRINT_MAX_SIZE - strlen(out))) {
 			out[0] = '\0';
@@ -152,8 +150,7 @@ char *admin_group_print(char *out, int indent, const struct admin_group *ag)
 	return out;
 }
 
-bool admin_group_cmp(const struct admin_group *ag1,
-		     const struct admin_group *ag2)
+bool admin_group_cmp(const struct admin_group *ag1, const struct admin_group *ag2)
 {
 	size_t i;
 
@@ -251,10 +248,8 @@ int admin_group_get(const struct admin_group *ag, size_t pos)
 	return oct_offset >> pos & 1;
 }
 
-void admin_group_bulk_set(struct admin_group *ag, uint32_t bitmap,
-			  size_t oct_offset)
+void admin_group_bulk_set(struct admin_group *ag, uint32_t bitmap, size_t oct_offset)
 {
-
 	if (bitmap == 0 && oct_offset == 0) {
 		admin_group_allow_explicit_zero(ag);
 		return;

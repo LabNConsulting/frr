@@ -158,11 +158,8 @@ static void work_queue_item_requeue(struct work_queue *wq,
 	work_queue_item_enqueue(wq, item);
 }
 
-DEFUN (show_work_queues,
-       show_work_queues_cmd,
-       "show work-queues",
-       SHOW_STR
-       "Work Queue information\n")
+DEFUN(show_work_queues, show_work_queues_cmd, "show work-queues",
+      SHOW_STR "Work Queue information\n")
 {
 	struct listnode *node;
 	struct work_queue *wq;
@@ -179,8 +176,7 @@ DEFUN (show_work_queues,
 			work_queue_item_count(wq), wq->spec.hold, wq->runs,
 			wq->yields, wq->cycles.best, wq->cycles.granularity,
 			wq->cycles.total,
-			(wq->runs) ? (unsigned int)(wq->cycles.total / wq->runs)
-				   : 0,
+			(wq->runs) ? (unsigned int)(wq->cycles.total / wq->runs) : 0,
 			wq->name);
 	}
 
@@ -265,8 +261,8 @@ void work_queue_run(struct event *thread)
 		do {
 			ret = wq->spec.workfunc(wq, item->data);
 			item->ran++;
-		} while ((ret == WQ_RETRY_NOW)
-			 && (item->ran < wq->spec.max_retries));
+		} while ((ret == WQ_RETRY_NOW) &&
+			 (item->ran < wq->spec.max_retries));
 
 		switch (ret) {
 		case WQ_QUEUE_BLOCKED: {
@@ -333,12 +329,11 @@ stats:
 
 		/* along with yielded check, provides hysteresis for granularity
 		 */
-		if (cycles > (wq->cycles.granularity * WQ_HYSTERESIS_FACTOR
-			      * WQ_HYSTERESIS_FACTOR))
+		if (cycles > (wq->cycles.granularity * WQ_HYSTERESIS_FACTOR *
+			      WQ_HYSTERESIS_FACTOR))
 			wq->cycles.granularity *=
 				WQ_HYSTERESIS_FACTOR; /* quick ramp-up */
-		else if (cycles
-			 > (wq->cycles.granularity * WQ_HYSTERESIS_FACTOR))
+		else if (cycles > (wq->cycles.granularity * WQ_HYSTERESIS_FACTOR))
 			wq->cycles.granularity += WQ_HYSTERESIS_FACTOR;
 	}
 #undef WQ_HYSTERIS_FACTOR
@@ -350,8 +345,7 @@ stats:
 
 	/* Is the queue done yet? If it is, call the completion callback. */
 	if (!work_queue_empty(wq)) {
-		if (ret == WQ_RETRY_LATER ||
-		    ret == WQ_QUEUE_BLOCKED)
+		if (ret == WQ_RETRY_LATER || ret == WQ_QUEUE_BLOCKED)
 			work_queue_schedule(wq, wq->spec.retry);
 		else
 			work_queue_schedule(wq, 0);

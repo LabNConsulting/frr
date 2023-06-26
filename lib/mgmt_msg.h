@@ -16,13 +16,13 @@ DECLARE_MTYPE(MSG_CONN);
 /*
  * Messages on the stream start with a marker that encodes a version octet.
  */
-#define MGMT_MSG_MARKER_PFX (0x23232300u) /* ASCII - "###\ooo"*/
-#define MGMT_MSG_IS_MARKER(x) (((x)&0xFFFFFF00u) == MGMT_MSG_MARKER_PFX)
-#define MGMT_MSG_MARKER(version) (MGMT_MSG_MARKER_PFX | (version))
+#define MGMT_MSG_MARKER_PFX	   (0x23232300u) /* ASCII - "###\ooo"*/
+#define MGMT_MSG_IS_MARKER(x)	   (((x)&0xFFFFFF00u) == MGMT_MSG_MARKER_PFX)
+#define MGMT_MSG_MARKER(version)   (MGMT_MSG_MARKER_PFX | (version))
 #define MGMT_MSG_MARKER_VERSION(x) (0xFF & (x))
 
 #define MGMT_MSG_VERSION_PROTOBUF 0
-#define MGMT_MSG_VERSION_NATIVE 1
+#define MGMT_MSG_VERSION_NATIVE	  1
 
 
 struct mgmt_msg_state {
@@ -30,12 +30,12 @@ struct mgmt_msg_state {
 	struct stream *outs;
 	struct stream_fifo inq;
 	struct stream_fifo outq;
-	uint64_t nrxm;		/* number of received messages */
-	uint64_t nrxb;		/* number of received bytes */
-	uint64_t ntxm;		/* number of sent messages */
-	uint64_t ntxb;		/* number of sent bytes */
-	size_t max_read_buf;	/* should replace with max time value */
-	size_t max_write_buf;	/* should replace with max time value */
+	uint64_t nrxm;	      /* number of received messages */
+	uint64_t nrxb;	      /* number of received bytes */
+	uint64_t ntxm;	      /* number of sent messages */
+	uint64_t ntxb;	      /* number of sent bytes */
+	size_t max_read_buf;  /* should replace with max time value */
+	size_t max_write_buf; /* should replace with max time value */
 	size_t max_msg_sz;
 	char *idtag; /* identifying tag for messages */
 };
@@ -52,9 +52,9 @@ enum mgmt_msg_rsched {
 };
 
 enum mgmt_msg_wsched {
-	MSW_SCHED_NONE,	      /* no scheduling required */
-	MSW_SCHED_STREAM,     /* schedule writing */
-	MSW_DISCONNECT,	      /* disconnect and start reconnecting */
+	MSW_SCHED_NONE,	  /* no scheduling required */
+	MSW_SCHED_STREAM, /* schedule writing */
+	MSW_DISCONNECT,	  /* disconnect and start reconnecting */
 };
 
 struct msg_conn;
@@ -98,7 +98,7 @@ struct msg_conn {
 			   struct msg_conn *conn);
 	void *user;
 	uint short_circuit_depth;
-	bool is_short_circuit;	/* true when the message being handled is SC */
+	bool is_short_circuit; /* true when the message being handled is SC */
 	bool is_client;
 	bool debug;
 };
@@ -111,9 +111,8 @@ struct msg_conn {
  */
 extern void msg_conn_cleanup(struct msg_conn *conn);
 extern void msg_conn_disconnect(struct msg_conn *conn, bool reconnect);
-extern int msg_conn_send_msg(struct msg_conn *client, uint8_t version,
-			     void *msg, size_t mlen,
-			     size_t (*packf)(void *, void *),
+extern int msg_conn_send_msg(struct msg_conn *client, uint8_t version, void *msg,
+			     size_t mlen, size_t (*packf)(void *, void *),
 			     bool short_circuit_ok);
 
 /*
@@ -140,15 +139,15 @@ extern void msg_client_cleanup(struct msg_client *client);
  * called for a client which is currently connected. The socket is closed
  * but there is no notification.
  */
-extern void
-msg_client_init(struct msg_client *client, struct event_loop *tm,
-		const char *sopath,
-		int (*notify_connect)(struct msg_client *client),
-		int (*notify_disconnect)(struct msg_conn *client),
-		void (*handle_msg)(uint8_t version, uint8_t *data, size_t len,
-				   struct msg_conn *client),
-		size_t max_read_buf, size_t max_write_buf, size_t max_msg_sz,
-		bool short_circuit_ok, const char *idtag, bool debug);
+extern void msg_client_init(struct msg_client *client, struct event_loop *tm,
+			    const char *sopath,
+			    int (*notify_connect)(struct msg_client *client),
+			    int (*notify_disconnect)(struct msg_conn *client),
+			    void (*handle_msg)(uint8_t version, uint8_t *data,
+					       size_t len, struct msg_conn *client),
+			    size_t max_read_buf, size_t max_write_buf,
+			    size_t max_msg_sz, bool short_circuit_ok,
+			    const char *idtag, bool debug);
 
 /*
  * Server-side Connections
@@ -170,8 +169,7 @@ struct msg_server {
 
 extern int msg_server_init(struct msg_server *server, const char *sopath,
 			   struct event_loop *loop,
-			   struct msg_conn *(*create)(int fd,
-						      union sockunion *su),
+			   struct msg_conn *(*create)(int fd, union sockunion *su),
 			   const char *idtag, struct debug *debug);
 extern void msg_server_cleanup(struct msg_server *server);
 

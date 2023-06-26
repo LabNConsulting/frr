@@ -44,8 +44,7 @@ extern bool zlog_file_set_filename(struct zlog_cfg_file *zcf, const char *name);
 extern bool zlog_file_set_fd(struct zlog_cfg_file *zcf, int fd);
 extern bool zlog_file_rotate(struct zlog_cfg_file *zcf);
 
-extern void zlog_fd(struct zlog_target *zt, struct zlog_msg *msgs[],
-		    size_t nmsgs);
+extern void zlog_fd(struct zlog_target *zt, struct zlog_msg *msgs[], size_t nmsgs);
 
 /* syslog is always limited to one target */
 

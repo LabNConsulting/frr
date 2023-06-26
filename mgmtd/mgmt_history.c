@@ -89,8 +89,7 @@ static struct mgmt_cmt_info_t *mgmt_history_create_cmt_rec(void)
 	return new;
 }
 
-static struct mgmt_cmt_info_t *
-mgmt_history_find_cmt_record(const char *cmtid_str)
+static struct mgmt_cmt_info_t *mgmt_history_find_cmt_record(const char *cmtid_str)
 {
 	struct mgmt_cmt_info_t *cmt_info;
 
@@ -132,9 +131,8 @@ static bool mgmt_history_read_cmt_record_index(void)
 			memcpy(new, &cmt_info, sizeof(struct mgmt_cmt_info_t));
 			mgmt_cmt_infos_add_tail(&mm->cmts, new);
 		} else {
-			zlog_warn(
-				"More records found in commit history file %s than expected",
-				MGMTD_COMMIT_INDEX_FILE_NAME);
+			zlog_warn("More records found in commit history file %s than expected",
+				  MGMTD_COMMIT_INDEX_FILE_NAME);
 			fclose(fp);
 			return false;
 		}
@@ -183,8 +181,8 @@ static bool mgmt_history_dump_cmt_record_index(void)
 }
 
 static int mgmt_history_rollback_to_cmt(struct vty *vty,
-				   struct mgmt_cmt_info_t *cmt_info,
-				   bool skip_file_load)
+					struct mgmt_cmt_info_t *cmt_info,
+					bool skip_file_load)
 {
 	struct mgmt_ds_ctx *src_ds_ctx;
 	struct mgmt_ds_ctx *dst_ds_ctx;
@@ -202,8 +200,7 @@ static int mgmt_history_rollback_to_cmt(struct vty *vty,
 
 	ret = mgmt_ds_lock(src_ds_ctx, vty->mgmt_session_id);
 	if (ret != 0) {
-		vty_out(vty,
-			"Failed to lock the DS %u for rollback Reason: %s!\n",
+		vty_out(vty, "Failed to lock the DS %u for rollback Reason: %s!\n",
 			MGMTD_DS_RUNNING, strerror(ret));
 		return -1;
 	}
@@ -211,15 +208,15 @@ static int mgmt_history_rollback_to_cmt(struct vty *vty,
 	ret = mgmt_ds_lock(dst_ds_ctx, vty->mgmt_session_id);
 	if (ret != 0) {
 		mgmt_ds_unlock(src_ds_ctx);
-		vty_out(vty,
-			"Failed to lock the DS %u for rollback Reason: %s!\n",
+		vty_out(vty, "Failed to lock the DS %u for rollback Reason: %s!\n",
 			MGMTD_DS_RUNNING, strerror(ret));
 		return -1;
 	}
 
 	if (!skip_file_load) {
-		ret = mgmt_ds_load_config_from_file(
-			src_ds_ctx, cmt_info->cmt_json_file, false);
+		ret = mgmt_ds_load_config_from_file(src_ds_ctx,
+						    cmt_info->cmt_json_file,
+						    false);
 		if (ret != 0) {
 			vty_out(vty,
 				"Error with parsing the file with error code %d\n",
@@ -278,8 +275,7 @@ int mgmt_history_rollback_by_id(struct vty *vty, const char *cmtid_str)
 
 	FOREACH_CMT_REC (mm, cmt_info) {
 		if (strcmp(cmt_info->cmtid_str, cmtid_str) == 0) {
-			ret = mgmt_history_rollback_to_cmt(vty, cmt_info,
-							   false);
+			ret = mgmt_history_rollback_to_cmt(vty, cmt_info, false);
 			return ret;
 		}
 
@@ -318,8 +314,7 @@ int mgmt_history_rollback_n(struct vty *vty, int num_cmts)
 
 	FOREACH_CMT_REC (mm, cmt_info) {
 		if (cnt == num_cmts) {
-			ret = mgmt_history_rollback_to_cmt(vty, cmt_info,
-							   false);
+			ret = mgmt_history_rollback_to_cmt(vty, cmt_info, false);
 			return ret;
 		}
 
@@ -370,7 +365,7 @@ void mgmt_history_destroy(void)
 {
 	struct mgmt_cmt_info_t *cmt_info;
 
-	FOREACH_CMT_REC(mm, cmt_info) {
+	FOREACH_CMT_REC (mm, cmt_info) {
 		mgmt_cmt_infos_del(&mm->cmts, cmt_info);
 		XFREE(MTYPE_MGMTD_CMT_INFO, cmt_info);
 	}

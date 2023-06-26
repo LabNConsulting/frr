@@ -59,7 +59,6 @@ static void zebra_redistribute_default(struct zserv *client, vrf_id_t vrf_id)
 	struct route_entry *newre;
 
 	for (afi = AFI_IP; afi <= AFI_IP6; afi++) {
-
 		if (!vrf_bitmap_check(client->redist_default[afi], vrf_id))
 			continue;
 
@@ -77,9 +76,8 @@ static void zebra_redistribute_default(struct zserv *client, vrf_id_t vrf_id)
 
 		RNODE_FOREACH_RE (rn, newre) {
 			if (CHECK_FLAG(newre->flags, ZEBRA_FLAG_SELECTED))
-				zsend_redistribute_route(
-					ZEBRA_REDISTRIBUTE_ROUTE_ADD, client,
-					rn, newre);
+				zsend_redistribute_route(ZEBRA_REDISTRIBUTE_ROUTE_ADD,
+							 client, rn, newre);
 		}
 
 		route_unlock_node(rn);
@@ -88,8 +86,7 @@ static void zebra_redistribute_default(struct zserv *client, vrf_id_t vrf_id)
 
 /* Redistribute routes. */
 static void zebra_redistribute(struct zserv *client, int type,
-			       unsigned short instance, vrf_id_t vrf_id,
-			       int afi)
+			       unsigned short instance, vrf_id_t vrf_id, int afi)
 {
 	struct route_entry *newre;
 	struct route_table *table;
@@ -102,24 +99,21 @@ static void zebra_redistribute(struct zserv *client, int type,
 	for (rn = route_top(table); rn; rn = srcdest_route_next(rn))
 		RNODE_FOREACH_RE (rn, newre) {
 			if (IS_ZEBRA_DEBUG_RIB)
-				zlog_debug(
-					"%s: client %s %pRN(%u:%u) checking: selected=%d, type=%s, instance=%u, distance=%d, metric=%d zebra_check_addr=%d",
-					__func__,
-					zebra_route_string(client->proto), rn,
-					vrf_id, newre->instance,
-					!!CHECK_FLAG(newre->flags,
-						     ZEBRA_FLAG_SELECTED),
-					zebra_route_string(newre->type),
-					newre->instance,
-					newre->distance,
-					newre->metric,
-					zebra_check_addr(&rn->p));
+				zlog_debug("%s: client %s %pRN(%u:%u) checking: selected=%d, type=%s, instance=%u, distance=%d, metric=%d zebra_check_addr=%d",
+					   __func__,
+					   zebra_route_string(client->proto),
+					   rn, vrf_id, newre->instance,
+					   !!CHECK_FLAG(newre->flags,
+							ZEBRA_FLAG_SELECTED),
+					   zebra_route_string(newre->type),
+					   newre->instance, newre->distance,
+					   newre->metric,
+					   zebra_check_addr(&rn->p));
 
 			if (!CHECK_FLAG(newre->flags, ZEBRA_FLAG_SELECTED))
 				continue;
-			if ((type != ZEBRA_ROUTE_ALL
-			     && (newre->type != type
-				 || newre->instance != instance)))
+			if ((type != ZEBRA_ROUTE_ALL &&
+			     (newre->type != type || newre->instance != instance)))
 				continue;
 			if (!zebra_check_addr(&rn->p))
 				continue;
@@ -179,19 +173,17 @@ static bool zebra_redistribute_check(const struct route_node *rn,
 
 /* Either advertise a route for redistribution to registered clients or */
 /* withdraw redistribution if add cannot be done for client */
-void redistribute_update(const struct route_node *rn,
-			 const struct route_entry *re,
+void redistribute_update(const struct route_node *rn, const struct route_entry *re,
 			 const struct route_entry *prev_re)
 {
 	struct listnode *node, *nnode;
 	struct zserv *client;
 
 	if (IS_ZEBRA_DEBUG_RIB)
-		zlog_debug(
-			"(%u:%u):%pRN(%u): Redist update re %p (%s), old %p (%s)",
-			re->vrf_id, re->table, rn, re->instance, re,
-			zebra_route_string(re->type), prev_re,
-			prev_re ? zebra_route_string(prev_re->type) : "None");
+		zlog_debug("(%u:%u):%pRN(%u): Redist update re %p (%s), old %p (%s)",
+			   re->vrf_id, re->table, rn, re->instance, re,
+			   zebra_route_string(re->type), prev_re,
+			   prev_re ? zebra_route_string(prev_re->type) : "None");
 
 	if (!zebra_check_addr(&rn->p)) {
 		if (IS_ZEBRA_DEBUG_RIB)
@@ -203,12 +195,11 @@ void redistribute_update(const struct route_node *rn,
 	for (ALL_LIST_ELEMENTS(zrouter.client_list, node, nnode, client)) {
 		if (zebra_redistribute_check(rn, re, client)) {
 			if (IS_ZEBRA_DEBUG_RIB) {
-				zlog_debug(
-					"%s: client %s %pRN(%u:%u), type=%d, distance=%d, metric=%d",
-					__func__,
-					zebra_route_string(client->proto), rn,
-					re->vrf_id, re->table, re->type,
-					re->distance, re->metric);
+				zlog_debug("%s: client %s %pRN(%u:%u), type=%d, distance=%d, metric=%d",
+					   __func__,
+					   zebra_route_string(client->proto),
+					   rn, re->vrf_id, re->table, re->type,
+					   re->distance, re->metric);
 			}
 			zsend_redistribute_route(ZEBRA_REDISTRIBUTE_ROUTE_ADD,
 						 client, rn, re);
@@ -256,20 +247,18 @@ void redistribute_delete(const struct route_node *rn,
 			table = new_re->table;
 		}
 
-		zlog_debug(
-			"%u:%u%pRN: Redist del: re %p (%u:%s), new re %p (%u:%s)",
-			vrfid, table, rn, old_re, old_inst,
-			old_re ? zebra_route_string(old_re->type) : "None",
-			new_re, new_inst,
-			new_re ? zebra_route_string(new_re->type) : "None");
+		zlog_debug("%u:%u%pRN: Redist del: re %p (%u:%s), new re %p (%u:%s)",
+			   vrfid, table, rn, old_re, old_inst,
+			   old_re ? zebra_route_string(old_re->type) : "None",
+			   new_re, new_inst,
+			   new_re ? zebra_route_string(new_re->type) : "None");
 	}
 
 	/* Skip invalid (e.g. linklocal) prefix */
 	if (!zebra_check_addr(&rn->p)) {
 		if (IS_ZEBRA_DEBUG_RIB) {
-			zlog_debug(
-				"%u:%pRN: Redist del old: skipping invalid prefix",
-				vrfid, rn);
+			zlog_debug("%u:%pRN: Redist del old: skipping invalid prefix",
+				   vrfid, rn);
 		}
 		return;
 	}
@@ -304,11 +293,10 @@ void zebra_redistribute_add(ZAPI_HANDLER_ARGS)
 	STREAM_GETW(msg, instance);
 
 	if (IS_ZEBRA_DEBUG_EVENT)
-		zlog_debug(
-			"%s: client proto %s afi=%d, wants %s, vrf %s(%u), instance=%d",
-			__func__, zebra_route_string(client->proto), afi,
-			zebra_route_string(type), VRF_LOGNAME(zvrf->vrf),
-			zvrf_id(zvrf), instance);
+		zlog_debug("%s: client proto %s afi=%d, wants %s, vrf %s(%u), instance=%d",
+			   __func__, zebra_route_string(client->proto), afi,
+			   zebra_route_string(type), VRF_LOGNAME(zvrf->vrf),
+			   zvrf_id(zvrf), instance);
 
 	if (afi == 0 || afi >= AFI_MAX) {
 		flog_warn(EC_ZEBRA_REDISTRIBUTE_UNKNOWN_AF,
@@ -323,23 +311,19 @@ void zebra_redistribute_add(ZAPI_HANDLER_ARGS)
 	}
 
 	if (instance) {
-		if (!redist_check_instance(&client->mi_redist[afi][type],
-					   instance)) {
+		if (!redist_check_instance(&client->mi_redist[afi][type], instance)) {
 			redist_add_instance(&client->mi_redist[afi][type],
 					    instance);
 			zebra_redistribute(client, type, instance,
 					   zvrf_id(zvrf), afi);
 		}
 	} else {
-		if (!vrf_bitmap_check(client->redist[afi][type],
-				      zvrf_id(zvrf))) {
+		if (!vrf_bitmap_check(client->redist[afi][type], zvrf_id(zvrf))) {
 			if (IS_ZEBRA_DEBUG_EVENT)
-				zlog_debug(
-					"%s: setting vrf %s(%u) redist bitmap",
-					__func__, VRF_LOGNAME(zvrf->vrf),
-					zvrf_id(zvrf));
-			vrf_bitmap_set(client->redist[afi][type],
-				       zvrf_id(zvrf));
+				zlog_debug("%s: setting vrf %s(%u) redist bitmap",
+					   __func__, VRF_LOGNAME(zvrf->vrf),
+					   zvrf_id(zvrf));
+			vrf_bitmap_set(client->redist[afi][type], zvrf_id(zvrf));
 			zebra_redistribute(client, type, 0, zvrf_id(zvrf), afi);
 		}
 	}
@@ -359,11 +343,10 @@ void zebra_redistribute_delete(ZAPI_HANDLER_ARGS)
 	STREAM_GETW(msg, instance);
 
 	if (IS_ZEBRA_DEBUG_EVENT)
-		zlog_debug(
-			"%s: client proto %s afi=%d, no longer wants %s, vrf %s(%u), instance=%d",
-			__func__, zebra_route_string(client->proto), afi,
-			zebra_route_string(type), VRF_LOGNAME(zvrf->vrf),
-			zvrf_id(zvrf), instance);
+		zlog_debug("%s: client proto %s afi=%d, no longer wants %s, vrf %s(%u), instance=%d",
+			   __func__, zebra_route_string(client->proto), afi,
+			   zebra_route_string(type), VRF_LOGNAME(zvrf->vrf),
+			   zvrf_id(zvrf), instance);
 
 
 	if (afi == 0 || afi >= AFI_MAX) {
@@ -441,16 +424,14 @@ void zebra_interface_up_update(struct interface *ifp)
 			   ifp->name, ifp->vrf->name, ifp->vrf->vrf_id);
 
 	if (ifp->ptm_status || !ifp->ptm_enable) {
-		for (ALL_LIST_ELEMENTS(zrouter.client_list, node, nnode,
-				       client)) {
+		for (ALL_LIST_ELEMENTS(zrouter.client_list, node, nnode, client)) {
 			/* Do not send unsolicited messages to synchronous
 			 * clients.
 			 */
 			if (client->synchronous)
 				continue;
 
-			zsend_interface_update(ZEBRA_INTERFACE_UP,
-					       client, ifp);
+			zsend_interface_update(ZEBRA_INTERFACE_UP, client, ifp);
 			zsend_interface_link_params(client, ifp);
 		}
 	}
@@ -516,22 +497,19 @@ void zebra_interface_delete_update(struct interface *ifp)
 }
 
 /* Interface address addition. */
-void zebra_interface_address_add_update(struct interface *ifp,
-					struct connected *ifc)
+void zebra_interface_address_add_update(struct interface *ifp, struct connected *ifc)
 {
 	struct listnode *node, *nnode;
 	struct zserv *client;
 
 	if (IS_ZEBRA_DEBUG_EVENT)
-		zlog_debug(
-			"MESSAGE: ZEBRA_INTERFACE_ADDRESS_ADD %pFX on %s vrf %s(%u)",
-			ifc->address, ifp->name, ifp->vrf->name,
-			ifp->vrf->vrf_id);
+		zlog_debug("MESSAGE: ZEBRA_INTERFACE_ADDRESS_ADD %pFX on %s vrf %s(%u)",
+			   ifc->address, ifp->name, ifp->vrf->name,
+			   ifp->vrf->vrf_id);
 
 	if (!CHECK_FLAG(ifc->conf, ZEBRA_IFC_REAL))
-		flog_warn(
-			EC_ZEBRA_ADVERTISING_UNUSABLE_ADDR,
-			"advertising address to clients that is not yet usable.");
+		flog_warn(EC_ZEBRA_ADVERTISING_UNUSABLE_ADDR,
+			  "advertising address to clients that is not yet usable.");
 
 	zebra_vxlan_add_del_gw_macip(ifp, ifc->address, 1);
 
@@ -562,10 +540,9 @@ void zebra_interface_address_delete_update(struct interface *ifp,
 	struct zserv *client;
 
 	if (IS_ZEBRA_DEBUG_EVENT)
-		zlog_debug(
-			"MESSAGE: ZEBRA_INTERFACE_ADDRESS_DELETE %pFX on %s vrf %s(%u)",
-			ifc->address, ifp->name, ifp->vrf->name,
-			ifp->vrf->vrf_id);
+		zlog_debug("MESSAGE: ZEBRA_INTERFACE_ADDRESS_DELETE %pFX on %s vrf %s(%u)",
+			   ifc->address, ifp->name, ifp->vrf->name,
+			   ifp->vrf->vrf_id);
 
 	zebra_vxlan_add_del_gw_macip(ifp, ifc->address, 0);
 
@@ -593,9 +570,8 @@ void zebra_interface_vrf_update_del(struct interface *ifp, vrf_id_t new_vrf_id)
 	struct zserv *client;
 
 	if (IS_ZEBRA_DEBUG_EVENT)
-		zlog_debug(
-			"MESSAGE: ZEBRA_INTERFACE_VRF_UPDATE/DEL %s VRF Id %u -> %u",
-			ifp->name, ifp->vrf->vrf_id, new_vrf_id);
+		zlog_debug("MESSAGE: ZEBRA_INTERFACE_VRF_UPDATE/DEL %s VRF Id %u -> %u",
+			   ifp->name, ifp->vrf->vrf_id, new_vrf_id);
 
 	for (ALL_LIST_ELEMENTS(zrouter.client_list, node, nnode, client)) {
 		/* Do not send unsolicited messages to synchronous clients. */
@@ -620,9 +596,8 @@ void zebra_interface_vrf_update_add(struct interface *ifp, vrf_id_t old_vrf_id)
 	struct zserv *client;
 
 	if (IS_ZEBRA_DEBUG_EVENT)
-		zlog_debug(
-			"MESSAGE: ZEBRA_INTERFACE_VRF_UPDATE/ADD %s VRF Id %u -> %u",
-			ifp->name, old_vrf_id, ifp->vrf->vrf_id);
+		zlog_debug("MESSAGE: ZEBRA_INTERFACE_VRF_UPDATE/ADD %s VRF Id %u -> %u",
+			   ifp->name, old_vrf_id, ifp->vrf->vrf_id);
 
 	for (ALL_LIST_ELEMENTS(zrouter.client_list, node, nnode, client)) {
 		/* Do not send unsolicited messages to synchronous clients. */
@@ -648,10 +623,11 @@ int zebra_add_import_table_entry(struct zebra_vrf *zvrf, struct route_node *rn,
 
 	afi = family2afi(rn->p.family);
 	if (rmap_name)
-		ret = zebra_import_table_route_map_check(
-			afi, re->type, re->instance, &rn->p,
-			re->nhe->nhg.nexthop,
-			zvrf->vrf->vrf_id, re->tag, rmap_name);
+		ret = zebra_import_table_route_map_check(afi, re->type,
+							 re->instance, &rn->p,
+							 re->nhe->nhg.nexthop,
+							 zvrf->vrf->vrf_id,
+							 re->tag, rmap_name);
 
 	if (ret != RMAP_PERMITMATCH) {
 		UNSET_FLAG(re->flags, ZEBRA_FLAG_SELECTED);
@@ -665,9 +641,8 @@ int zebra_add_import_table_entry(struct zebra_vrf *zvrf, struct route_node *rn,
 		if (CHECK_FLAG(same->status, ROUTE_ENTRY_REMOVED))
 			continue;
 
-		if (same->type == re->type && same->instance == re->instance
-		    && same->table == re->table
-		    && same->type != ZEBRA_ROUTE_CONNECT)
+		if (same->type == re->type && same->instance == re->instance &&
+		    same->table == re->table && same->type != ZEBRA_ROUTE_CONNECT)
 			break;
 	}
 
@@ -676,10 +651,11 @@ int zebra_add_import_table_entry(struct zebra_vrf *zvrf, struct route_node *rn,
 		zebra_del_import_table_entry(zvrf, rn, same);
 	}
 
-	newre = zebra_rib_route_entry_new(
-		0, ZEBRA_ROUTE_TABLE, re->table, re->flags, re->nhe_id,
-		zvrf->table_id, re->metric, re->mtu,
-		zebra_import_table_distance[afi][re->table], re->tag);
+	newre = zebra_rib_route_entry_new(0, ZEBRA_ROUTE_TABLE, re->table,
+					  re->flags, re->nhe_id, zvrf->table_id,
+					  re->metric, re->mtu,
+					  zebra_import_table_distance[afi][re->table],
+					  re->tag);
 
 	ng = nexthop_group_new();
 	copy_nexthops(&ng->nexthop, re->nhe->nhg.nexthop, NULL);
@@ -700,8 +676,7 @@ int zebra_del_import_table_entry(struct zebra_vrf *zvrf, struct route_node *rn,
 
 	rib_delete(afi, SAFI_UNICAST, zvrf->vrf->vrf_id, ZEBRA_ROUTE_TABLE,
 		   re->table, re->flags, &p, NULL, re->nhe->nhg.nexthop,
-		   re->nhe_id, zvrf->table_id, re->metric, re->distance,
-		   false);
+		   re->nhe_id, zvrf->table_id, re->metric, re->distance, false);
 
 	return 0;
 }
@@ -715,8 +690,7 @@ int zebra_import_table(afi_t afi, vrf_id_t vrf_id, uint32_t table_id,
 	struct route_node *rn;
 	struct zebra_vrf *zvrf = zebra_vrf_lookup_by_id(vrf_id);
 
-	if (!is_zebra_valid_kernel_table(table_id)
-	    || (table_id == RT_TABLE_MAIN))
+	if (!is_zebra_valid_kernel_table(table_id) || (table_id == RT_TABLE_MAIN))
 		return -1;
 
 	if (afi >= AFI_MAX)
@@ -733,11 +707,9 @@ int zebra_import_table(afi_t afi, vrf_id_t vrf_id, uint32_t table_id,
 
 	if (add) {
 		if (rmap_name)
-			zebra_add_import_table_route_map(afi, rmap_name,
-							 table_id);
+			zebra_add_import_table_route_map(afi, rmap_name, table_id);
 		else {
-			rmap_name =
-				zebra_get_import_table_route_map(afi, table_id);
+			rmap_name = zebra_get_import_table_route_map(afi, table_id);
 			if (rmap_name) {
 				zebra_del_import_table_route_map(afi, table_id);
 				rmap_name = NULL;
@@ -774,8 +746,8 @@ int zebra_import_table(afi_t afi, vrf_id_t vrf_id, uint32_t table_id,
 		if (!re)
 			continue;
 
-		if (((afi == AFI_IP) && (rn->p.family == AF_INET))
-		    || ((afi == AFI_IP6) && (rn->p.family == AF_INET6))) {
+		if (((afi == AFI_IP) && (rn->p.family == AF_INET)) ||
+		    ((afi == AFI_IP6) && (rn->p.family == AF_INET6))) {
 			if (add)
 				zebra_add_import_table_entry(zvrf, rn, re,
 							     rmap_name);
@@ -791,7 +763,7 @@ int zebra_import_table_config(struct vty *vty, vrf_id_t vrf_id)
 	int i;
 	afi_t afi;
 	int write = 0;
-	char afi_str[AFI_MAX][10] = {"", "ip", "ipv6", "ethernet"};
+	char afi_str[AFI_MAX][10] = { "", "ip", "ipv6", "ethernet" };
 	const char *rmap_name;
 
 	for (afi = AFI_IP; afi < AFI_MAX; afi++) {
@@ -799,14 +771,13 @@ int zebra_import_table_config(struct vty *vty, vrf_id_t vrf_id)
 			if (!is_zebra_import_table_enabled(afi, vrf_id, i))
 				continue;
 
-			if (zebra_import_table_distance[afi][i]
-			    != ZEBRA_TABLE_DISTANCE_DEFAULT) {
+			if (zebra_import_table_distance[afi][i] !=
+			    ZEBRA_TABLE_DISTANCE_DEFAULT) {
 				vty_out(vty, "%s import-table %d distance %d",
 					afi_str[afi], i,
 					zebra_import_table_distance[afi][i]);
 			} else {
-				vty_out(vty, "%s import-table %d", afi_str[afi],
-					i);
+				vty_out(vty, "%s import-table %d", afi_str[afi], i);
 			}
 
 			rmap_name = zebra_get_import_table_route_map(afi, i);
@@ -821,9 +792,8 @@ int zebra_import_table_config(struct vty *vty, vrf_id_t vrf_id)
 	return write;
 }
 
-static void zebra_import_table_rm_update_vrf_afi(struct zebra_vrf *zvrf,
-						 afi_t afi, int table_id,
-						 const char *rmap)
+static void zebra_import_table_rm_update_vrf_afi(struct zebra_vrf *zvrf, afi_t afi,
+						 int table_id, const char *rmap)
 {
 	struct route_table *table;
 	struct route_entry *re;
@@ -838,8 +808,7 @@ static void zebra_import_table_rm_update_vrf_afi(struct zebra_vrf *zvrf,
 						  zvrf->vrf->vrf_id, table_id);
 	if (!table) {
 		if (IS_ZEBRA_DEBUG_RIB_DETAILED)
-			zlog_debug("%s: Table id=%d not found", __func__,
-				   table_id);
+			zlog_debug("%s: Table id=%d not found", __func__, table_id);
 		return;
 	}
 
@@ -860,8 +829,8 @@ static void zebra_import_table_rm_update_vrf_afi(struct zebra_vrf *zvrf,
 		if (!re)
 			continue;
 
-		if (((afi == AFI_IP) && (rn->p.family == AF_INET))
-		    || ((afi == AFI_IP6) && (rn->p.family == AF_INET6)))
+		if (((afi == AFI_IP) && (rn->p.family == AF_INET)) ||
+		    ((afi == AFI_IP6) && (rn->p.family == AF_INET6)))
 			zebra_add_import_table_entry(zvrf, rn, re, rmap_name);
 	}
 
@@ -876,12 +845,11 @@ static void zebra_import_table_rm_update_vrf(struct zebra_vrf *zvrf,
 
 	for (afi = AFI_IP; afi < AFI_MAX; afi++) {
 		for (i = 1; i < ZEBRA_KERNEL_TABLE_MAX; i++) {
-			if (!is_zebra_import_table_enabled(
-				    afi, zvrf->vrf->vrf_id, i))
+			if (!is_zebra_import_table_enabled(afi,
+							   zvrf->vrf->vrf_id, i))
 				continue;
 
-			zebra_import_table_rm_update_vrf_afi(zvrf, afi, i,
-							     rmap);
+			zebra_import_table_rm_update_vrf_afi(zvrf, afi, i, rmap);
 		}
 	}
 }

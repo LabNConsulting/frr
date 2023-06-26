@@ -25,7 +25,6 @@ extern "C" {
 
 /* L3 VNI hash table */
 struct zebra_l3vni {
-
 	/* VNI key */
 	vni_t vni;
 
@@ -33,7 +32,7 @@ struct zebra_l3vni {
 	vrf_id_t vrf_id;
 
 	uint32_t filter;
-#define PREFIX_ROUTES_ONLY	(1 << 0) /* l3-vni used for prefix routes only */
+#define PREFIX_ROUTES_ONLY (1 << 0) /* l3-vni used for prefix routes only */
 
 	/* Corresponding Bridge information */
 	vlanid_t vid;
@@ -96,8 +95,7 @@ static inline const char *zl3vni_rmac2str(struct zebra_l3vni *zl3vni, char *buf,
 	}
 
 	if (zl3vni->mac_vlan_if)
-		snprintf(ptr, (ETHER_ADDR_STRLEN),
-			 "%02x:%02x:%02x:%02x:%02x:%02x",
+		snprintf(ptr, (ETHER_ADDR_STRLEN), "%02x:%02x:%02x:%02x:%02x:%02x",
 			 (uint8_t)zl3vni->mac_vlan_if->hw_addr[0],
 			 (uint8_t)zl3vni->mac_vlan_if->hw_addr[1],
 			 (uint8_t)zl3vni->mac_vlan_if->hw_addr[2],
@@ -105,8 +103,7 @@ static inline const char *zl3vni_rmac2str(struct zebra_l3vni *zl3vni, char *buf,
 			 (uint8_t)zl3vni->mac_vlan_if->hw_addr[4],
 			 (uint8_t)zl3vni->mac_vlan_if->hw_addr[5]);
 	else if (zl3vni->svi_if)
-		snprintf(ptr, (ETHER_ADDR_STRLEN),
-			 "%02x:%02x:%02x:%02x:%02x:%02x",
+		snprintf(ptr, (ETHER_ADDR_STRLEN), "%02x:%02x:%02x:%02x:%02x:%02x",
 			 (uint8_t)zl3vni->svi_if->hw_addr[0],
 			 (uint8_t)zl3vni->svi_if->hw_addr[1],
 			 (uint8_t)zl3vni->svi_if->hw_addr[2],
@@ -133,8 +130,7 @@ static inline const char *zl3vni_sysmac2str(struct zebra_l3vni *zl3vni,
 	}
 
 	if (zl3vni->svi_if)
-		snprintf(ptr, (ETHER_ADDR_STRLEN),
-			 "%02x:%02x:%02x:%02x:%02x:%02x",
+		snprintf(ptr, (ETHER_ADDR_STRLEN), "%02x:%02x:%02x:%02x:%02x:%02x",
 			 (uint8_t)zl3vni->svi_if->hw_addr[0],
 			 (uint8_t)zl3vni->svi_if->hw_addr[1],
 			 (uint8_t)zl3vni->svi_if->hw_addr[2],
@@ -157,9 +153,9 @@ static inline const char *zl3vni_sysmac2str(struct zebra_l3vni *zl3vni,
  */
 static inline int is_l3vni_oper_up(struct zebra_l3vni *zl3vni)
 {
-	return (is_evpn_enabled() && zl3vni && (zl3vni->vrf_id != VRF_UNKNOWN)
-		&& zl3vni->vxlan_if && if_is_operative(zl3vni->vxlan_if)
-		&& zl3vni->svi_if && if_is_operative(zl3vni->svi_if));
+	return (is_evpn_enabled() && zl3vni && (zl3vni->vrf_id != VRF_UNKNOWN) &&
+		zl3vni->vxlan_if && if_is_operative(zl3vni->vxlan_if) &&
+		zl3vni->svi_if && if_is_operative(zl3vni->svi_if));
 }
 
 static inline const char *zl3vni_state2str(struct zebra_l3vni *zl3vni)
@@ -196,14 +192,12 @@ static inline void zl3vni_get_svi_rmac(struct zebra_l3vni *zl3vni,
 
 /* context for neigh hash walk - update l3vni and rmac */
 struct neigh_l3info_walk_ctx {
-
 	struct zebra_evpn *zevpn;
 	struct zebra_l3vni *zl3vni;
 	int add;
 };
 
 struct nh_walk_ctx {
-
 	struct vty *vty;
 	struct json_object *json;
 };

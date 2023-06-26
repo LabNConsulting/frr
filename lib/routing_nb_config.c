@@ -13,7 +13,7 @@
 #include "routing_nb.h"
 
 
-DEFINE_HOOK(routing_conf_event, (struct nb_cb_create_args *args), (args));
+DEFINE_HOOK(routing_conf_event, (struct nb_cb_create_args * args), (args));
 
 /*
  * XPath: /frr-routing:routing/control-plane-protocols/control-plane-protocol
@@ -71,8 +71,7 @@ int routing_control_plane_protocols_control_plane_protocol_destroy(
 	return NB_OK;
 }
 
-static void vrf_to_control_plane_protocol(const struct lyd_node *dnode,
-					  char *xpath)
+static void vrf_to_control_plane_protocol(const struct lyd_node *dnode, char *xpath)
 {
 	const char *vrf;
 
@@ -81,8 +80,7 @@ static void vrf_to_control_plane_protocol(const struct lyd_node *dnode,
 	snprintf(xpath, XPATH_MAXLEN, FRR_ROUTING_KEY_XPATH_VRF, vrf);
 }
 
-static void control_plane_protocol_to_vrf(const struct lyd_node *dnode,
-					  char *xpath)
+static void control_plane_protocol_to_vrf(const struct lyd_node *dnode, char *xpath)
 {
 	const char *vrf;
 

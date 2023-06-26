@@ -39,8 +39,7 @@ struct nexthop_group {
 struct nexthop_group *nexthop_group_new(void);
 void nexthop_group_delete(struct nexthop_group **nhg);
 
-void nexthop_group_copy(struct nexthop_group *to,
-			const struct nexthop_group *from);
+void nexthop_group_copy(struct nexthop_group *to, const struct nexthop_group *from);
 
 /*
  * Copy a list of nexthops in 'nh' to an nhg, enforcing canonical sort order
@@ -56,8 +55,7 @@ uint32_t nexthop_group_hash(const struct nexthop_group *nhg);
 void nexthop_group_mark_duplicates(struct nexthop_group *nhg);
 
 /* Add a nexthop to a list, enforcing the canonical sort order. */
-void nexthop_group_add_sorted(struct nexthop_group *nhg,
-			      struct nexthop *nexthop);
+void nexthop_group_add_sorted(struct nexthop_group *nhg, struct nexthop *nexthop);
 
 /* The following for loop allows to iterate over the nexthop
  * structure of routes.
@@ -67,21 +65,20 @@ void nexthop_group_add_sorted(struct nexthop_group *nhg,
  * nexthop:   The pointer to the current nexthop, either in the
  *            top-level chain or in a resolved chain.
  */
-#define ALL_NEXTHOPS(head, nhop)					\
-	(nhop) = (head.nexthop);					\
-	(nhop);								\
+#define ALL_NEXTHOPS(head, nhop)                                               \
+	(nhop) = (head.nexthop);                                               \
+	(nhop);                                                                \
 	(nhop) = nexthop_next(nhop)
 
-#define ALL_NEXTHOPS_PTR(head, nhop)					\
-	(nhop) = ((head)->nexthop);					\
-	(nhop);								\
+#define ALL_NEXTHOPS_PTR(head, nhop)                                           \
+	(nhop) = ((head)->nexthop);                                            \
+	(nhop);                                                                \
 	(nhop) = nexthop_next(nhop)
 
 
 #define NHGC_NAME_SIZE 80
 
 struct nexthop_group_cmd {
-
 	RB_ENTRY(nexthop_group_cmd) nhgc_entry;
 
 	char name[NHGC_NAME_SIZE];
@@ -113,14 +110,13 @@ DECLARE_QOBJ_TYPE(nexthop_group_cmd);
  * del_nexthop - A nexthop is deleted from the NHG
  * destroy - The NHG is deleted
  */
-void nexthop_group_init(
-	void (*create)(const char *name),
-	void (*modify)(const struct nexthop_group_cmd *nhgc),
-	void (*add_nexthop)(const struct nexthop_group_cmd *nhgc,
-			    const struct nexthop *nhop),
-	void (*del_nexthop)(const struct nexthop_group_cmd *nhgc,
-			    const struct nexthop *nhop),
-	void (*destroy)(const char *name));
+void nexthop_group_init(void (*create)(const char *name),
+			void (*modify)(const struct nexthop_group_cmd *nhgc),
+			void (*add_nexthop)(const struct nexthop_group_cmd *nhgc,
+					    const struct nexthop *nhop),
+			void (*del_nexthop)(const struct nexthop_group_cmd *nhgc,
+					    const struct nexthop *nhop),
+			void (*destroy)(const char *name));
 
 void nexthop_group_enable_vrf(struct vrf *vrf);
 void nexthop_group_disable_vrf(struct vrf *vrf);
@@ -142,18 +138,14 @@ extern struct nexthop_group_cmd *nhgc_find(const char *name);
 extern void nexthop_group_write_nexthop_simple(struct vty *vty,
 					       const struct nexthop *nh,
 					       char *altifname);
-extern void nexthop_group_write_nexthop(struct vty *vty,
-					const struct nexthop *nh);
+extern void nexthop_group_write_nexthop(struct vty *vty, const struct nexthop *nh);
 
-extern void nexthop_group_json_nexthop(json_object *j,
-				       const struct nexthop *nh);
+extern void nexthop_group_json_nexthop(json_object *j, const struct nexthop *nh);
 
 /* Return the number of nexthops in this nhg */
 extern uint8_t nexthop_group_nexthop_num(const struct nexthop_group *nhg);
-extern uint8_t
-nexthop_group_nexthop_num_no_recurse(const struct nexthop_group *nhg);
-extern uint8_t
-nexthop_group_active_nexthop_num(const struct nexthop_group *nhg);
+extern uint8_t nexthop_group_nexthop_num_no_recurse(const struct nexthop_group *nhg);
+extern uint8_t nexthop_group_active_nexthop_num(const struct nexthop_group *nhg);
 extern uint8_t
 nexthop_group_active_nexthop_num_no_recurse(const struct nexthop_group *nhg);
 

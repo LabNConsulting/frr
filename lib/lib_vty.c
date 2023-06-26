@@ -56,10 +56,8 @@ static int show_memory_mallinfo(struct vty *vty)
 		mtype_memstr(buf, MTYPE_MEMSTR_LEN, minfo.fordblks));
 	vty_out(vty, "  Ordinary blocks:       %ld\n",
 		(unsigned long)minfo.ordblks);
-	vty_out(vty, "  Small blocks:          %ld\n",
-		(unsigned long)minfo.smblks);
-	vty_out(vty, "  Holding blocks:        %ld\n",
-		(unsigned long)minfo.hblks);
+	vty_out(vty, "  Small blocks:          %ld\n", (unsigned long)minfo.smblks);
+	vty_out(vty, "  Holding blocks:        %ld\n", (unsigned long)minfo.hblks);
 	vty_out(vty, "(see system documentation for 'mallinfo' for meaning)\n");
 	return 1;
 }
@@ -70,8 +68,8 @@ static int qmem_walker(void *arg, struct memgroup *mg, struct memtype *mt)
 	struct vty *vty = arg;
 	if (!mt) {
 		vty_out(vty, "--- qmem %s ---\n", mg->name);
-		vty_out(vty, "%-30s: %8s %-8s%s %8s %9s\n",
-			"Type", "Current#", "  Size",
+		vty_out(vty, "%-30s: %8s %-8s%s %8s %9s\n", "Type", "Current#",
+			"  Size",
 #ifdef HAVE_MALLOC_USABLE_SIZE
 			"     Total",
 #else
@@ -83,41 +81,35 @@ static int qmem_walker(void *arg, struct memgroup *mg, struct memtype *mt)
 #else
 			""
 #endif
-			);
+		);
 	} else {
 		if (mt->n_max != 0) {
 			char size[32];
 			snprintf(size, sizeof(size), "%6zu", mt->size);
 #ifdef HAVE_MALLOC_USABLE_SIZE
-#define TSTR " %9zu"
-#define TARG , mt->total
+#define TSTR  " %9zu"
+#define TARG  , mt->total
 #define TARG2 , mt->max_size
 #else
 #define TSTR ""
 #define TARG
 #define TARG2
 #endif
-			vty_out(vty, "%-30s: %8zu %-8s"TSTR" %8zu"TSTR"\n",
-				mt->name,
-				mt->n_alloc,
-				mt->size == 0 ? ""
-					      : mt->size == SIZE_VAR
-							? "variable"
-							: size
-				TARG,
-				mt->n_max
-				TARG2);
+			vty_out(vty, "%-30s: %8zu %-8s" TSTR " %8zu" TSTR "\n",
+				mt->name, mt->n_alloc,
+				mt->size == 0	       ? ""
+				: mt->size == SIZE_VAR ? "variable"
+						       : size TARG,
+				mt->n_max TARG2);
 		}
 	}
 	return 0;
 }
 
 
-DEFUN_NOSH (show_memory,
-	    show_memory_cmd,
-	    "show memory",
-	    "Show running system information\n"
-	    "Memory statistics\n")
+DEFUN_NOSH(show_memory, show_memory_cmd, "show memory",
+	   "Show running system information\n"
+	   "Memory statistics\n")
 {
 #ifdef HAVE_MALLINFO
 	show_memory_mallinfo(vty);
@@ -127,16 +119,13 @@ DEFUN_NOSH (show_memory,
 	return CMD_SUCCESS;
 }
 
-DEFUN_NOSH (show_modules,
-	    show_modules_cmd,
-	    "show modules",
-	    "Show running system information\n"
-	    "Loaded modules\n")
+DEFUN_NOSH(show_modules, show_modules_cmd, "show modules",
+	   "Show running system information\n"
+	   "Loaded modules\n")
 {
 	struct frrmod_runtime *plug = frrmod_list;
 
-	vty_out(vty, "%-12s %-25s %s\n\n", "Module Name", "Version",
-		"Description");
+	vty_out(vty, "%-12s %-25s %s\n\n", "Module Name", "Version", "Description");
 	while (plug) {
 		const struct frrmod_info *i = plug->info;
 
@@ -170,18 +159,17 @@ DEFUN_NOSH (show_modules,
 	return CMD_SUCCESS;
 }
 
-DEFUN (frr_defaults,
-       frr_defaults_cmd,
-       "frr defaults PROFILE...",
-       "FRRouting global parameters\n"
-       "set of configuration defaults used\n"
-       "profile string\n")
+DEFUN(frr_defaults, frr_defaults_cmd, "frr defaults PROFILE...",
+      "FRRouting global parameters\n"
+      "set of configuration defaults used\n"
+      "profile string\n")
 {
 	char *profile = argv_concat(argv, argc, 2);
 	int rv = CMD_SUCCESS;
 
 	if (!frr_defaults_profile_valid(profile)) {
-		vty_out(vty, "%% WARNING: profile %s is not known in this version\n",
+		vty_out(vty,
+			"%% WARNING: profile %s is not known in this version\n",
 			profile);
 		rv = CMD_WARNING;
 	}
@@ -190,12 +178,10 @@ DEFUN (frr_defaults,
 	return rv;
 }
 
-DEFUN (frr_version,
-       frr_version_cmd,
-       "frr version VERSION...",
-       "FRRouting global parameters\n"
-       "version configuration was written by\n"
-       "version string\n")
+DEFUN(frr_version, frr_version_cmd, "frr version VERSION...",
+      "FRRouting global parameters\n"
+      "version configuration was written by\n"
+      "version string\n")
 {
 	char *version = argv_concat(argv, argc, 2);
 
@@ -235,8 +221,7 @@ DEFUN_NOSH(end_config, end_config_cmd, "XFRR_end_configuration",
 	readin_time = monotime(NULL);
 	readin_time -= callback.readin_time;
 
-	frrtime_to_interval(readin_time, readin_time_str,
-			    sizeof(readin_time_str));
+	frrtime_to_interval(readin_time, readin_time_str, sizeof(readin_time_str));
 
 	vty->pending_allowed = 0;
 	ret = nb_cli_pending_commit_check(vty);
@@ -277,8 +262,8 @@ static void defaults_autocomplete(vector comps, struct cmd_token *token)
 }
 
 static const struct cmd_variable_handler default_var_handlers[] = {
-	{.tokenname = "PROFILE", .completions = defaults_autocomplete},
-	{.completions = NULL},
+	{ .tokenname = "PROFILE", .completions = defaults_autocomplete },
+	{ .completions = NULL },
 };
 
 void lib_cmd_init(void)

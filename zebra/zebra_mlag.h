@@ -15,10 +15,10 @@ extern "C" {
 #endif
 
 #define ZEBRA_MLAG_BUF_LIMIT 32768
-#define ZEBRA_MLAG_LEN_SIZE 4
+#define ZEBRA_MLAG_LEN_SIZE  4
 
-DECLARE_HOOK(zebra_mlag_private_write_data,
-	     (uint8_t *data, uint32_t len), (data, len));
+DECLARE_HOOK(zebra_mlag_private_write_data, (uint8_t * data, uint32_t len),
+	     (data, len));
 DECLARE_HOOK(zebra_mlag_private_monitor_state, (), ());
 DECLARE_HOOK(zebra_mlag_private_open_channel, (), ());
 DECLARE_HOOK(zebra_mlag_private_close_channel, (), ());
@@ -51,8 +51,7 @@ void zebra_mlag_process_mlag_data(uint8_t *data, uint32_t len);
 /*
  * ProtoBuffer Api's
  */
-int zebra_mlag_protobuf_encode_client_data(struct stream *s,
-					   uint32_t *msg_type);
+int zebra_mlag_protobuf_encode_client_data(struct stream *s, uint32_t *msg_type);
 int zebra_mlag_protobuf_decode_message(struct stream *s, uint8_t *data,
 				       uint32_t len);
 #ifdef __cplusplus

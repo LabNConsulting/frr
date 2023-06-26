@@ -50,8 +50,7 @@ struct resolver_fd {
 	struct event *t_read, *t_write;
 };
 
-static int resolver_fd_cmp(const struct resolver_fd *a,
-			   const struct resolver_fd *b)
+static int resolver_fd_cmp(const struct resolver_fd *a, const struct resolver_fd *b)
 {
 	return numcmp(a->fd, b->fd);
 }
@@ -64,12 +63,11 @@ static uint32_t resolver_fd_hash(const struct resolver_fd *item)
 DECLARE_HASH(resolver_fds, struct resolver_fd, itm, resolver_fd_cmp,
 	     resolver_fd_hash);
 
-static struct resolver_fds_head resfds[1] = {INIT_HASH(resfds[0])};
+static struct resolver_fds_head resfds[1] = { INIT_HASH(resfds[0]) };
 
-static struct resolver_fd *resolver_fd_get(int fd,
-					   struct resolver_state *newstate)
+static struct resolver_fd *resolver_fd_get(int fd, struct resolver_state *newstate)
 {
-	struct resolver_fd ref = {.fd = fd}, *res;
+	struct resolver_fd ref = { .fd = fd }, *res;
 
 	res = resolver_fds_find(resfds, &ref);
 	if (!res && newstate) {
@@ -152,8 +150,7 @@ static void resolver_update_timeouts(struct resolver_state *r)
 	}
 }
 
-static void ares_socket_cb(void *data, ares_socket_t fd, int readable,
-			   int writable)
+static void ares_socket_cb(void *data, ares_socket_t fd, int readable, int writable)
 {
 	struct resolver_state *r = (struct resolver_state *)data;
 	struct resolver_fd *resfd;
@@ -180,8 +177,7 @@ static void ares_socket_cb(void *data, ares_socket_t fd, int readable,
 }
 
 
-static void ares_address_cb(void *arg, int status, int timeouts,
-			    struct hostent *he)
+static void ares_address_cb(void *arg, int status, int timeouts, struct hostent *he)
 {
 	struct resolver_query *query = (struct resolver_query *)arg;
 	union sockunion addr[16];
@@ -194,8 +190,8 @@ static void ares_address_cb(void *arg, int status, int timeouts,
 
 	if (status != ARES_SUCCESS) {
 		if (resolver_debug)
-			zlog_debug("[%p] Resolving failed (%s)",
-				   query, ares_strerror(status));
+			zlog_debug("[%p] Resolving failed (%s)", query,
+				   ares_strerror(status));
 
 		callback(query, ares_strerror(status), -1, NULL);
 		return;
@@ -245,10 +241,9 @@ void resolver_resolve(struct resolver_query *query, int af, vrf_id_t vrf_id,
 		return;
 
 	if (query->callback != NULL) {
-		flog_err(
-			EC_LIB_RESOLVER,
-			"Trying to resolve '%s', but previous query was not finished yet",
-			hostname);
+		flog_err(EC_LIB_RESOLVER,
+			 "Trying to resolve '%s', but previous query was not finished yet",
+			 hostname);
 		return;
 	}
 
@@ -258,8 +253,8 @@ void resolver_resolve(struct resolver_query *query, int af, vrf_id_t vrf_id,
 	ret = str2sockunion(hostname, &query->literal_addr);
 	if (ret == 0) {
 		if (resolver_debug)
-			zlog_debug("[%p] Resolving '%s' (IP literal)",
-				   query, hostname);
+			zlog_debug("[%p] Resolving '%s' (IP literal)", query,
+				   hostname);
 
 		/* for consistency with proper name lookup, don't call the
 		 * callback immediately; defer to thread loop
@@ -281,18 +276,13 @@ void resolver_resolve(struct resolver_query *query, int af, vrf_id_t vrf_id,
 	ares_gethostbyname(state.channel, hostname, af, ares_address_cb, query);
 	ret = vrf_switchback_to_initial();
 	if (ret < 0)
-		flog_err_sys(EC_LIB_SOCKET,
-			     "%s: Can't switchback from VRF %u (%s)", __func__,
-			     vrf_id, safe_strerror(errno));
+		flog_err_sys(EC_LIB_SOCKET, "%s: Can't switchback from VRF %u (%s)",
+			     __func__, vrf_id, safe_strerror(errno));
 	resolver_update_timeouts(&state);
 }
 
-DEFUN(debug_resolver,
-      debug_resolver_cmd,
-      "[no] debug resolver",
-      NO_STR
-      DEBUG_STR
-      "Debug DNS resolver actions\n")
+DEFUN(debug_resolver, debug_resolver_cmd, "[no] debug resolver",
+      NO_STR DEBUG_STR "Debug DNS resolver actions\n")
 {
 	resolver_debug = (argc == 2);
 	return CMD_SUCCESS;
@@ -328,8 +318,8 @@ void resolver_init(struct event_loop *tm)
 	};
 
 	ares_init_options(&state.channel, &ares_opts,
-			  ARES_OPT_SOCK_STATE_CB | ARES_OPT_TIMEOUT
-				  | ARES_OPT_TRIES);
+			  ARES_OPT_SOCK_STATE_CB | ARES_OPT_TIMEOUT |
+				  ARES_OPT_TRIES);
 
 	install_node(&resolver_debug_node);
 	install_element(CONFIG_NODE, &debug_resolver_cmd);

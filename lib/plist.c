@@ -25,11 +25,11 @@ DEFINE_MTYPE_STATIC(LIB, PREFIX_LIST_ENTRY, "Prefix List Entry");
 DEFINE_MTYPE_STATIC(LIB, PREFIX_LIST_TRIE, "Prefix List Trie Table");
 
 /* not currently changeable, code assumes bytes further down */
-#define PLC_BITS	8
-#define PLC_LEN		(1 << PLC_BITS)
-#define PLC_MAXLEVELV4	2	/* /24 for IPv4 */
-#define PLC_MAXLEVELV6	4	/* /48 for IPv6 */
-#define PLC_MAXLEVEL	4	/* max(v4,v6) */
+#define PLC_BITS       8
+#define PLC_LEN	       (1 << PLC_BITS)
+#define PLC_MAXLEVELV4 2 /* /24 for IPv4 */
+#define PLC_MAXLEVELV6 4 /* /48 for IPv6 */
+#define PLC_MAXLEVEL   4 /* max(v4,v6) */
 
 struct pltrie_entry {
 	union {
@@ -67,22 +67,34 @@ DECLARE_RBTREE_UNIQ(plist, struct prefix_list, plist_item,
 
 /* Static structure of IPv4 prefix_list's master. */
 static struct prefix_master prefix_master_ipv4 = {
-	NULL, NULL, NULL, PLC_MAXLEVELV4,
+	NULL,
+	NULL,
+	NULL,
+	PLC_MAXLEVELV4,
 };
 
 /* Static structure of IPv6 prefix-list's master. */
 static struct prefix_master prefix_master_ipv6 = {
-	NULL, NULL, NULL, PLC_MAXLEVELV6,
+	NULL,
+	NULL,
+	NULL,
+	PLC_MAXLEVELV6,
 };
 
 /* Static structure of BGP ORF prefix_list's master. */
 static struct prefix_master prefix_master_orf_v4 = {
-	NULL, NULL, NULL, PLC_MAXLEVELV4,
+	NULL,
+	NULL,
+	NULL,
+	PLC_MAXLEVELV4,
 };
 
 /* Static structure of BGP ORF prefix_list's master. */
 static struct prefix_master prefix_master_orf_v6 = {
-	NULL, NULL, NULL, PLC_MAXLEVELV6,
+	NULL,
+	NULL,
+	NULL,
+	PLC_MAXLEVELV6,
 };
 
 static struct prefix_master *prefix_master_get(afi_t afi, int orf)
@@ -101,8 +113,8 @@ const char *prefix_list_name(struct prefix_list *plist)
 
 afi_t prefix_list_afi(struct prefix_list *plist)
 {
-	if (plist->master == &prefix_master_ipv4
-	    || plist->master == &prefix_master_orf_v4)
+	if (plist->master == &prefix_master_ipv4 ||
+	    plist->master == &prefix_master_orf_v4)
 		return AFI_IP;
 	return AFI_IP6;
 }
@@ -160,8 +172,7 @@ struct prefix_list_entry *prefix_list_entry_new(void)
 {
 	struct prefix_list_entry *new;
 
-	new = XCALLOC(MTYPE_PREFIX_LIST_ENTRY,
-		      sizeof(struct prefix_list_entry));
+	new = XCALLOC(MTYPE_PREFIX_LIST_ENTRY, sizeof(struct prefix_list_entry));
 	return new;
 }
 
@@ -172,8 +183,7 @@ void prefix_list_entry_free(struct prefix_list_entry *pentry)
 
 /* Insert new prefix list to list of prefix_list.  Each prefix_list
    is sorted by the name. */
-static struct prefix_list *prefix_list_insert(afi_t afi, int orf,
-					      const char *name)
+static struct prefix_list *prefix_list_insert(afi_t afi, int orf, const char *name)
 {
 	struct prefix_list *plist;
 	struct prefix_master *master;
@@ -186,8 +196,7 @@ static struct prefix_list *prefix_list_insert(afi_t afi, int orf,
 	plist = prefix_list_new();
 	plist->name = XSTRDUP(MTYPE_MPREFIX_LIST_STR, name);
 	plist->master = master;
-	plist->trie =
-		XCALLOC(MTYPE_PREFIX_LIST_TRIE, sizeof(struct pltrie_table));
+	plist->trie = XCALLOC(MTYPE_PREFIX_LIST_TRIE, sizeof(struct pltrie_table));
 
 	plist_add(&master->str, plist);
 
@@ -312,16 +321,15 @@ static struct prefix_list_entry *prefix_seq_check(struct prefix_list *plist,
 	return NULL;
 }
 
-struct prefix_list_entry *
-prefix_list_entry_lookup(struct prefix_list *plist, struct prefix *prefix,
-			 enum prefix_list_type type, int64_t seq,
-			 int le, int ge)
+struct prefix_list_entry *prefix_list_entry_lookup(struct prefix_list *plist,
+						   struct prefix *prefix,
+						   enum prefix_list_type type,
+						   int64_t seq, int le, int ge)
 {
 	struct prefix_list_entry *pentry;
 
 	for (pentry = plist->head; pentry; pentry = pentry->next)
-		if (prefix_same(&pentry->prefix, prefix)
-		    && pentry->type == type) {
+		if (prefix_same(&pentry->prefix, prefix) && pentry->type == type) {
 			if (seq >= 0 && pentry->seq != seq)
 				continue;
 
@@ -336,9 +344,8 @@ prefix_list_entry_lookup(struct prefix_list *plist, struct prefix *prefix,
 	return NULL;
 }
 
-static bool
-prefix_list_entry_lookup_prefix(struct prefix_list *plist,
-				struct prefix_list_entry *plist_entry)
+static bool prefix_list_entry_lookup_prefix(struct prefix_list *plist,
+					    struct prefix_list_entry *plist_entry)
 {
 	struct prefix_list_entry *pentry = NULL;
 
@@ -455,8 +462,7 @@ void prefix_list_entry_delete(struct prefix_list *plist,
 		if (plist->master->delete_hook)
 			(*plist->master->delete_hook)(plist);
 
-		if (plist->head == NULL && plist->tail == NULL
-		    && plist->desc == NULL)
+		if (plist->head == NULL && plist->tail == NULL && plist->desc == NULL)
 			prefix_list_delete(plist);
 		else
 			plist->master->recent = plist;
@@ -471,8 +477,8 @@ static void trie_install_fn(struct prefix_list_entry *object,
 			return;
 		if ((*updptr)->prefix.prefixlen < object->prefix.prefixlen)
 			break;
-		if ((*updptr)->prefix.prefixlen == object->prefix.prefixlen
-		    && (*updptr)->seq > object->seq)
+		if ((*updptr)->prefix.prefixlen == object->prefix.prefixlen &&
+		    (*updptr)->seq > object->seq)
 			break;
 		updptr = &(*updptr)->next_best;
 	}
@@ -674,8 +680,7 @@ void prefix_list_entry_update_finish(struct prefix_list_entry *ple)
 	prefix_list_trie_add(pl, ple);
 	pl->count++;
 
-	route_map_notify_pentry_dependencies(pl->name, ple,
-					     RMAP_EVENT_PLIST_ADDED);
+	route_map_notify_pentry_dependencies(pl->name, ple, RMAP_EVENT_PLIST_ADDED);
 
 	/* Run hook function. */
 	if (pl->master->add_hook)
@@ -746,11 +751,10 @@ static int prefix_list_entry_match(struct prefix_list_entry *pentry,
 	return 1;
 }
 
-enum prefix_list_type prefix_list_apply_ext(
-	struct prefix_list *plist,
-	const struct prefix_list_entry **which,
-	union prefixconstptr object,
-	bool address_mode)
+enum prefix_list_type prefix_list_apply_ext(struct prefix_list *plist,
+					    const struct prefix_list_entry **which,
+					    union prefixconstptr object,
+					    bool address_mode)
 {
 	struct prefix_list_entry *pentry, *pbest = NULL;
 
@@ -881,9 +885,9 @@ prefix_entry_dup_check(struct prefix_list *plist, struct prefix_list_entry *new)
 		pentry = table->entries[byte].up_chain;
 
 	for (; pentry; pentry = pentry->next_best) {
-		if (prefix_same(&pentry->prefix, &new->prefix)
-		    && pentry->type == new->type && pentry->le == new->le
-		    && pentry->ge == new->ge && pentry->seq != seq)
+		if (prefix_same(&pentry->prefix, &new->prefix) &&
+		    pentry->type == new->type && pentry->le == new->le &&
+		    pentry->ge == new->ge && pentry->seq != seq)
 			return pentry;
 	}
 	return NULL;
@@ -926,8 +930,7 @@ static void vty_show_prefix_entry(struct vty *vty, json_object *json, afi_t afi,
 				afi == AFI_IP ? "" : "v6", plist->name,
 				plist->count);
 			if (plist->desc)
-				vty_out(vty, "   Description: %s\n",
-					plist->desc);
+				vty_out(vty, "   Description: %s\n", plist->desc);
 		}
 	} else if (dtype == summary_display || dtype == detail_display) {
 		if (json) {
@@ -948,8 +951,7 @@ static void vty_show_prefix_entry(struct vty *vty, json_object *json, afi_t afi,
 				afi == AFI_IP ? "" : "v6", plist->name);
 
 			if (plist->desc)
-				vty_out(vty, "   Description: %s\n",
-					plist->desc);
+				vty_out(vty, "   Description: %s\n", plist->desc);
 
 			vty_out(vty,
 				"   count: %d, range entries: %d, sequences: %" PRId64
@@ -965,13 +967,11 @@ static void vty_show_prefix_entry(struct vty *vty, json_object *json, afi_t afi,
 
 		if (json) {
 			json_entries = json_object_new_array();
-			json_object_object_add(json_pl, "entries",
-					       json_entries);
+			json_object_object_add(json_pl, "entries", json_entries);
 		}
 
 		for (pentry = plist->head; pentry; pentry = pentry->next) {
-			if (dtype == sequential_display
-			    && pentry->seq != seqnum)
+			if (dtype == sequential_display && pentry->seq != seqnum)
 				continue;
 
 			if (json) {
@@ -980,31 +980,25 @@ static void vty_show_prefix_entry(struct vty *vty, json_object *json, afi_t afi,
 				json_entry = json_object_new_object();
 				json_object_array_add(json_entries, json_entry);
 
-				json_object_int_add(json_entry,
-						    "sequenceNumber",
+				json_object_int_add(json_entry, "sequenceNumber",
 						    pentry->seq);
-				json_object_string_add(
-					json_entry, "type",
-					prefix_list_type_str(pentry));
+				json_object_string_add(json_entry, "type",
+						       prefix_list_type_str(pentry));
 				json_object_string_addf(json_entry, "prefix",
-							"%pFX",
-							&pentry->prefix);
+							"%pFX", &pentry->prefix);
 
 				if (pentry->ge)
-					json_object_int_add(
-						json_entry,
-						"minimumPrefixLength",
-						pentry->ge);
-				if (pentry->le)
-					json_object_int_add(
-						json_entry,
-						"maximumPrefixLength",
-						pentry->le);
-
-				if (dtype == detail_display
-				    || dtype == sequential_display) {
 					json_object_int_add(json_entry,
-							    "hitCount",
+							    "minimumPrefixLength",
+							    pentry->ge);
+				if (pentry->le)
+					json_object_int_add(json_entry,
+							    "maximumPrefixLength",
+							    pentry->le);
+
+				if (dtype == detail_display ||
+				    dtype == sequential_display) {
+					json_object_int_add(json_entry, "hitCount",
 							    pentry->hitcnt);
 					json_object_int_add(json_entry,
 							    "referenceCount",
@@ -1015,8 +1009,7 @@ static void vty_show_prefix_entry(struct vty *vty, json_object *json, afi_t afi,
 
 				vty_out(vty, "seq %" PRId64 " ", pentry->seq);
 
-				vty_out(vty, "%s ",
-					prefix_list_type_str(pentry));
+				vty_out(vty, "%s ", prefix_list_type_str(pentry));
 
 				if (pentry->any)
 					vty_out(vty, "any");
@@ -1026,15 +1019,13 @@ static void vty_show_prefix_entry(struct vty *vty, json_object *json, afi_t afi,
 					vty_out(vty, "%pFX", p);
 
 					if (pentry->ge)
-						vty_out(vty, " ge %d",
-							pentry->ge);
+						vty_out(vty, " ge %d", pentry->ge);
 					if (pentry->le)
-						vty_out(vty, " le %d",
-							pentry->le);
+						vty_out(vty, " le %d", pentry->le);
 				}
 
-				if (dtype == detail_display
-				    || dtype == sequential_display)
+				if (dtype == detail_display ||
+				    dtype == sequential_display)
 					vty_out(vty,
 						" (hit count: %ld, refcount: %ld)",
 						pentry->hitcnt, pentry->refcnt);
@@ -1046,8 +1037,7 @@ static void vty_show_prefix_entry(struct vty *vty, json_object *json, afi_t afi,
 }
 
 static int vty_show_prefix_list(struct vty *vty, afi_t afi, const char *name,
-				const char *seq, enum display_type dtype,
-				bool uj)
+				const char *seq, enum display_type dtype, bool uj)
 {
 	struct prefix_list *plist;
 	struct prefix_master *master;
@@ -1124,8 +1114,8 @@ static int vty_show_prefix_list_prefix(struct vty *vty, afi_t afi,
 				match = 1;
 
 		if (type == longer_display) {
-			if ((p.family == pentry->prefix.family)
-			    && (prefix_match(&p, &pentry->prefix)))
+			if ((p.family == pentry->prefix.family) &&
+			    (prefix_match(&p, &pentry->prefix)))
 				match = 1;
 		}
 
@@ -1146,8 +1136,7 @@ static int vty_show_prefix_list_prefix(struct vty *vty, afi_t afi,
 					vty_out(vty, " le %d", pentry->le);
 			}
 
-			if (type == normal_display
-			    || type == first_match_display)
+			if (type == normal_display || type == first_match_display)
 				vty_out(vty, " (hit count: %ld, refcount: %ld)",
 					pentry->hitcnt, pentry->refcnt);
 
@@ -1175,8 +1164,7 @@ static int vty_clear_prefix_list(struct vty *vty, afi_t afi, const char *name,
 
 	if (name == NULL && prefix == NULL) {
 		frr_each (plist, &master->str, plist)
-			for (pentry = plist->head; pentry;
-			     pentry = pentry->next)
+			for (pentry = plist->head; pentry; pentry = pentry->next)
 				pentry->hitcnt = 0;
 	} else {
 		plist = prefix_list_lookup(afi, name);
@@ -1195,8 +1183,8 @@ static int vty_clear_prefix_list(struct vty *vty, afi_t afi, const char *name,
 
 		for (pentry = plist->head; pentry; pentry = pentry->next) {
 			if (prefix) {
-				if (pentry->prefix.family == p.family
-				    && prefix_match(&pentry->prefix, &p))
+				if (pentry->prefix.family == p.family &&
+				    prefix_match(&pentry->prefix, &p))
 					pentry->hitcnt = 0;
 			} else
 				pentry->hitcnt = 0;
@@ -1207,35 +1195,25 @@ static int vty_clear_prefix_list(struct vty *vty, afi_t afi, const char *name,
 
 #include "lib/plist_clippy.c"
 
-DEFPY (show_ip_prefix_list,
-       show_ip_prefix_list_cmd,
-       "show ip prefix-list [WORD [seq$dseq (1-4294967295)$arg]] [json$uj]",
-       SHOW_STR
-       IP_STR
-       PREFIX_LIST_STR
-       "Name of a prefix list\n"
-       "sequence number of an entry\n"
-       "Sequence number\n"
-       JSON_STR)
+DEFPY(show_ip_prefix_list, show_ip_prefix_list_cmd,
+      "show ip prefix-list [WORD [seq$dseq (1-4294967295)$arg]] [json$uj]",
+      SHOW_STR IP_STR PREFIX_LIST_STR "Name of a prefix list\n"
+				      "sequence number of an entry\n"
+				      "Sequence number\n" JSON_STR)
 {
 	enum display_type dtype = normal_display;
 	if (dseq)
 		dtype = sequential_display;
 
-	return vty_show_prefix_list(vty, AFI_IP, prefix_list, arg_str, dtype,
-				    !!uj);
+	return vty_show_prefix_list(vty, AFI_IP, prefix_list, arg_str, dtype, !!uj);
 }
 
-DEFPY (show_ip_prefix_list_prefix,
-       show_ip_prefix_list_prefix_cmd,
-       "show ip prefix-list WORD A.B.C.D/M$prefix [longer$dl|first-match$dfm]",
-       SHOW_STR
-       IP_STR
-       PREFIX_LIST_STR
-       "Name of a prefix list\n"
-       "IP prefix <network>/<length>, e.g., 35.0.0.0/8\n"
-       "Lookup longer prefix\n"
-       "First matched prefix\n")
+DEFPY(show_ip_prefix_list_prefix, show_ip_prefix_list_prefix_cmd,
+      "show ip prefix-list WORD A.B.C.D/M$prefix [longer$dl|first-match$dfm]",
+      SHOW_STR IP_STR PREFIX_LIST_STR "Name of a prefix list\n"
+				      "IP prefix <network>/<length>, e.g., 35.0.0.0/8\n"
+				      "Lookup longer prefix\n"
+				      "First matched prefix\n")
 {
 	enum display_type dtype = normal_display;
 	if (dl)
@@ -1247,56 +1225,38 @@ DEFPY (show_ip_prefix_list_prefix,
 					   dtype);
 }
 
-DEFPY (show_ip_prefix_list_summary,
-       show_ip_prefix_list_summary_cmd,
-       "show ip prefix-list summary [WORD$prefix_list] [json$uj]",
-       SHOW_STR
-       IP_STR
-       PREFIX_LIST_STR
-       "Summary of prefix lists\n"
-       "Name of a prefix list\n"
-       JSON_STR)
+DEFPY(show_ip_prefix_list_summary, show_ip_prefix_list_summary_cmd,
+      "show ip prefix-list summary [WORD$prefix_list] [json$uj]",
+      SHOW_STR IP_STR PREFIX_LIST_STR "Summary of prefix lists\n"
+				      "Name of a prefix list\n" JSON_STR)
 {
 	return vty_show_prefix_list(vty, AFI_IP, prefix_list, NULL,
 				    summary_display, !!uj);
 }
 
-DEFPY (show_ip_prefix_list_detail,
-       show_ip_prefix_list_detail_cmd,
-       "show ip prefix-list detail [WORD$prefix_list] [json$uj]",
-       SHOW_STR
-       IP_STR
-       PREFIX_LIST_STR
-       "Detail of prefix lists\n"
-       "Name of a prefix list\n"
-       JSON_STR)
+DEFPY(show_ip_prefix_list_detail, show_ip_prefix_list_detail_cmd,
+      "show ip prefix-list detail [WORD$prefix_list] [json$uj]",
+      SHOW_STR IP_STR PREFIX_LIST_STR "Detail of prefix lists\n"
+				      "Name of a prefix list\n" JSON_STR)
 {
 	return vty_show_prefix_list(vty, AFI_IP, prefix_list, NULL,
 				    detail_display, !!uj);
 }
 
-DEFPY (clear_ip_prefix_list,
-       clear_ip_prefix_list_cmd,
-       "clear ip prefix-list [WORD [A.B.C.D/M$prefix]]",
-       CLEAR_STR
-       IP_STR
-       PREFIX_LIST_STR
-       "Name of a prefix list\n"
-       "IP prefix <network>/<length>, e.g., 35.0.0.0/8\n")
+DEFPY(clear_ip_prefix_list, clear_ip_prefix_list_cmd,
+      "clear ip prefix-list [WORD [A.B.C.D/M$prefix]]",
+      CLEAR_STR IP_STR PREFIX_LIST_STR
+      "Name of a prefix list\n"
+      "IP prefix <network>/<length>, e.g., 35.0.0.0/8\n")
 {
 	return vty_clear_prefix_list(vty, AFI_IP, prefix_list, prefix_str);
 }
 
-DEFPY (show_ipv6_prefix_list,
-       show_ipv6_prefix_list_cmd,
-       "show ipv6 prefix-list [WORD [seq$dseq (1-4294967295)$arg]] [json$uj]",
-       SHOW_STR
-       IPV6_STR
-       PREFIX_LIST_STR
-       "Name of a prefix list\n"
-       "sequence number of an entry\n"
-       "Sequence number\n"
-       JSON_STR)
+DEFPY(show_ipv6_prefix_list, show_ipv6_prefix_list_cmd,
+      "show ipv6 prefix-list [WORD [seq$dseq (1-4294967295)$arg]] [json$uj]",
+      SHOW_STR IPV6_STR PREFIX_LIST_STR "Name of a prefix list\n"
+					"sequence number of an entry\n"
+					"Sequence number\n" JSON_STR)
 {
 	enum display_type dtype = normal_display;
 	if (dseq)
@@ -1306,16 +1266,13 @@ DEFPY (show_ipv6_prefix_list,
 				    !!uj);
 }
 
-DEFPY (show_ipv6_prefix_list_prefix,
-       show_ipv6_prefix_list_prefix_cmd,
-       "show ipv6 prefix-list WORD X:X::X:X/M$prefix [longer$dl|first-match$dfm]",
-       SHOW_STR
-       IPV6_STR
-       PREFIX_LIST_STR
-       "Name of a prefix list\n"
-       "IPv6 prefix <network>/<length>, e.g., 3ffe::/16\n"
-       "Lookup longer prefix\n"
-       "First matched prefix\n")
+DEFPY(show_ipv6_prefix_list_prefix, show_ipv6_prefix_list_prefix_cmd,
+      "show ipv6 prefix-list WORD X:X::X:X/M$prefix [longer$dl|first-match$dfm]",
+      SHOW_STR IPV6_STR PREFIX_LIST_STR
+      "Name of a prefix list\n"
+      "IPv6 prefix <network>/<length>, e.g., 3ffe::/16\n"
+      "Lookup longer prefix\n"
+      "First matched prefix\n")
 {
 	enum display_type dtype = normal_display;
 	if (dl)
@@ -1327,57 +1284,42 @@ DEFPY (show_ipv6_prefix_list_prefix,
 					   prefix_str, dtype);
 }
 
-DEFPY (show_ipv6_prefix_list_summary,
-       show_ipv6_prefix_list_summary_cmd,
-       "show ipv6 prefix-list summary [WORD$prefix-list] [json$uj]",
-       SHOW_STR
-       IPV6_STR
-       PREFIX_LIST_STR
-       "Summary of prefix lists\n"
-       "Name of a prefix list\n"
-       JSON_STR)
+DEFPY(show_ipv6_prefix_list_summary, show_ipv6_prefix_list_summary_cmd,
+      "show ipv6 prefix-list summary [WORD$prefix-list] [json$uj]",
+      SHOW_STR IPV6_STR PREFIX_LIST_STR "Summary of prefix lists\n"
+					"Name of a prefix list\n" JSON_STR)
 {
 	return vty_show_prefix_list(vty, AFI_IP6, prefix_list, NULL,
 				    summary_display, !!uj);
 }
 
-DEFPY (show_ipv6_prefix_list_detail,
-       show_ipv6_prefix_list_detail_cmd,
-       "show ipv6 prefix-list detail [WORD$prefix-list] [json$uj]",
-       SHOW_STR
-       IPV6_STR
-       PREFIX_LIST_STR
-       "Detail of prefix lists\n"
-       "Name of a prefix list\n"
-       JSON_STR)
+DEFPY(show_ipv6_prefix_list_detail, show_ipv6_prefix_list_detail_cmd,
+      "show ipv6 prefix-list detail [WORD$prefix-list] [json$uj]",
+      SHOW_STR IPV6_STR PREFIX_LIST_STR "Detail of prefix lists\n"
+					"Name of a prefix list\n" JSON_STR)
 {
 	return vty_show_prefix_list(vty, AFI_IP6, prefix_list, NULL,
 				    detail_display, !!uj);
 }
 
-DEFPY (clear_ipv6_prefix_list,
-       clear_ipv6_prefix_list_cmd,
-       "clear ipv6 prefix-list [WORD [X:X::X:X/M$prefix]]",
-       CLEAR_STR
-       IPV6_STR
-       PREFIX_LIST_STR
-       "Name of a prefix list\n"
-       "IPv6 prefix <network>/<length>, e.g., 3ffe::/16\n")
+DEFPY(clear_ipv6_prefix_list, clear_ipv6_prefix_list_cmd,
+      "clear ipv6 prefix-list [WORD [X:X::X:X/M$prefix]]",
+      CLEAR_STR IPV6_STR PREFIX_LIST_STR
+      "Name of a prefix list\n"
+      "IPv6 prefix <network>/<length>, e.g., 3ffe::/16\n")
 {
 	return vty_clear_prefix_list(vty, AFI_IP6, prefix_list, prefix_str);
 }
 
-DEFPY (debug_prefix_list_match,
-       debug_prefix_list_match_cmd,
-       "debug prefix-list WORD$prefix-list match <A.B.C.D/M|X:X::X:X/M>"
-       " [address-mode$addr_mode]",
-       DEBUG_STR
-       "Prefix-list test access\n"
-       "Name of a prefix list\n"
-       "Test prefix for prefix list result\n"
-       "Prefix to test in ip prefix-list\n"
-       "Prefix to test in ipv6 prefix-list\n"
-       "Use address matching mode (PIM RP)\n")
+DEFPY(debug_prefix_list_match, debug_prefix_list_match_cmd,
+      "debug prefix-list WORD$prefix-list match <A.B.C.D/M|X:X::X:X/M>"
+      " [address-mode$addr_mode]",
+      DEBUG_STR "Prefix-list test access\n"
+		"Name of a prefix list\n"
+		"Test prefix for prefix list result\n"
+		"Prefix to test in ip prefix-list\n"
+		"Prefix to test in ipv6 prefix-list\n"
+		"Use address matching mode (PIM RP)\n")
 {
 	struct prefix_list *plist;
 	const struct prefix_list_entry *entry = NULL;
@@ -1399,7 +1341,7 @@ DEFPY (debug_prefix_list_match,
 	if (!entry)
 		vty_out(vty, "no match found\n");
 	else {
-		vty_out(vty, "matching entry #%"PRId64": %pFX", entry->seq,
+		vty_out(vty, "matching entry #%" PRId64 ": %pFX", entry->seq,
 			&entry->prefix);
 		if (entry->ge)
 			vty_out(vty, " ge %d", entry->ge);
@@ -1425,8 +1367,7 @@ struct stream *prefix_bgp_orf_entry(struct stream *s, struct prefix_list *plist,
 		uint8_t flag = init_flag;
 		struct prefix *p = &pentry->prefix;
 
-		flag |= (pentry->type == PREFIX_PERMIT ? permit_flag
-						       : deny_flag);
+		flag |= (pentry->type == PREFIX_PERMIT ? permit_flag : deny_flag);
 		stream_putc(s, flag);
 		stream_putl(s, (uint32_t)pentry->seq);
 		stream_putc(s, (uint8_t)pentry->ge);
@@ -1461,9 +1402,11 @@ int prefix_bgp_orf_set(char *name, afi_t afi, struct orf_prefix *orfp,
 	apply_mask(&orfp->p);
 
 	if (set) {
-		pentry = prefix_list_entry_make(
-			&orfp->p, (permit ? PREFIX_PERMIT : PREFIX_DENY),
-			orfp->seq, orfp->le, orfp->ge, false);
+		pentry = prefix_list_entry_make(&orfp->p,
+						(permit ? PREFIX_PERMIT
+							: PREFIX_DENY),
+						orfp->seq, orfp->le, orfp->ge,
+						false);
 
 		if (prefix_entry_dup_check(plist, pentry)) {
 			prefix_list_entry_free(pentry);
@@ -1472,9 +1415,10 @@ int prefix_bgp_orf_set(char *name, afi_t afi, struct orf_prefix *orfp,
 
 		prefix_list_entry_add(plist, pentry);
 	} else {
-		pentry = prefix_list_entry_lookup(
-			plist, &orfp->p, (permit ? PREFIX_PERMIT : PREFIX_DENY),
-			orfp->seq, orfp->le, orfp->ge);
+		pentry = prefix_list_entry_lookup(plist, &orfp->p,
+						  (permit ? PREFIX_PERMIT
+							  : PREFIX_DENY),
+						  orfp->seq, orfp->le, orfp->ge);
 
 		if (!pentry)
 			return CMD_WARNING_CONFIG_FAILED;
@@ -1495,8 +1439,7 @@ void prefix_bgp_orf_remove_all(afi_t afi, char *name)
 }
 
 /* return prefix count */
-int prefix_bgp_show_prefix_list(struct vty *vty, afi_t afi, char *name,
-				bool use_json)
+int prefix_bgp_show_prefix_list(struct vty *vty, afi_t afi, char *name, bool use_json)
 {
 	struct prefix_list *plist;
 	struct prefix_list_entry *pentry;
@@ -1516,10 +1459,8 @@ int prefix_bgp_show_prefix_list(struct vty *vty, afi_t afi, char *name,
 		json_prefix = json_object_new_object();
 		json_list = json_object_new_object();
 
-		json_object_int_add(json_prefix, "prefixListCounter",
-				    plist->count);
-		json_object_string_add(json_prefix, "prefixListName",
-				       plist->name);
+		json_object_int_add(json_prefix, "prefixListCounter", plist->count);
+		json_object_string_add(json_prefix, "prefixListName", plist->name);
 
 		for (pentry = plist->head; pentry; pentry = pentry->next) {
 			struct prefix *p = &pentry->prefix;
@@ -1532,20 +1473,16 @@ int prefix_bgp_show_prefix_list(struct vty *vty, afi_t afi, char *name,
 					       prefix_list_type_str(pentry));
 
 			if (pentry->ge)
-				json_object_int_add(json_list, "ge",
-						    pentry->ge);
+				json_object_int_add(json_list, "ge", pentry->ge);
 			if (pentry->le)
-				json_object_int_add(json_list, "le",
-						    pentry->le);
+				json_object_int_add(json_list, "le", pentry->le);
 
 			json_object_object_add(json_prefix, buf_a, json_list);
 		}
 		if (afi == AFI_IP)
-			json_object_object_add(json, "ipPrefixList",
-					       json_prefix);
+			json_object_object_add(json, "ipPrefixList", json_prefix);
 		else
-			json_object_object_add(json, "ipv6PrefixList",
-					       json_prefix);
+			json_object_object_add(json, "ipv6PrefixList", json_prefix);
 
 		vty_json(vty, json);
 	} else {
@@ -1592,8 +1529,7 @@ static struct cmd_node prefix_node = {
 	.prompt = "",
 };
 
-static void plist_autocomplete_afi(afi_t afi, vector comps,
-				   struct cmd_token *token)
+static void plist_autocomplete_afi(afi_t afi, vector comps, struct cmd_token *token)
 {
 	struct prefix_list *plist;
 	struct prefix_master *master;
@@ -1613,12 +1549,12 @@ static void plist_autocomplete(vector comps, struct cmd_token *token)
 }
 
 static const struct cmd_variable_handler plist_var_handlers[] = {
-	{/* "prefix-list WORD" */
-	 .varname = "prefix_list",
-	 .completions = plist_autocomplete},
-	{.tokenname = "PREFIXLIST_NAME",
-	 .completions = plist_autocomplete},
-	{.completions = NULL}};
+	{ /* "prefix-list WORD" */
+	  .varname = "prefix_list",
+	  .completions = plist_autocomplete },
+	{ .tokenname = "PREFIXLIST_NAME", .completions = plist_autocomplete },
+	{ .completions = NULL }
+};
 
 
 static void prefix_list_init_ipv4(void)

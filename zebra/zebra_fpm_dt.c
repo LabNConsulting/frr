@@ -194,14 +194,13 @@ static void zfpm_dt_log_fpm_message(Fpm__Message *msg)
 			continue;
 
 		if (nexthop->address)
-			qpb_l3_address_get(nexthop->address, &nh_family,
-					   &nh_addr);
+			qpb_l3_address_get(nexthop->address, &nh_family, &nh_addr);
 
 		zfpm_debug("Nexthop - if_index: %d (%s), gateway: %s, ",
 			   if_index, if_name ? if_name : "name not specified",
-			   nexthop->address ?
-			   inet_ntop(AF_INET, &nh_addr.ipv4,
-				     addr_buf, sizeof(addr_buf)) : "None");
+			   nexthop->address ? inet_ntop(AF_INET, &nh_addr.ipv4,
+							addr_buf, sizeof(addr_buf))
+					    : "None");
 	}
 }
 

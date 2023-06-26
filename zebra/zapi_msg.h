@@ -33,20 +33,16 @@ extern "C" {
  * fifo
  *    a batch of messages
  */
-extern void zserv_handle_commands(struct zserv *client,
-				  struct stream_fifo *fifo);
+extern void zserv_handle_commands(struct zserv *client, struct stream_fifo *fifo);
 
 extern int zsend_vrf_add(struct zserv *zclient, struct zebra_vrf *zvrf);
 extern int zsend_vrf_delete(struct zserv *zclient, struct zebra_vrf *zvrf);
 extern int zsend_interface_add(struct zserv *zclient, struct interface *ifp);
 extern int zsend_interface_delete(struct zserv *zclient, struct interface *ifp);
-extern int zsend_interface_addresses(struct zserv *zclient,
-				     struct interface *ifp);
+extern int zsend_interface_addresses(struct zserv *zclient, struct interface *ifp);
 extern int zsend_interface_address(int cmd, struct zserv *zclient,
-				   struct interface *ifp,
-				   struct connected *ifc);
-extern void nbr_connected_add_ipv6(struct interface *ifp,
-				   struct in6_addr *address);
+				   struct interface *ifp, struct connected *ifc);
+extern void nbr_connected_add_ipv6(struct interface *ifp, struct in6_addr *address);
 extern void nbr_connected_delete_ipv6(struct interface *ifp,
 				      struct in6_addr *address);
 extern int zsend_interface_update(int cmd, struct zserv *client,
@@ -76,22 +72,19 @@ extern void zsend_iptable_notify_owner(const struct zebra_dplane_ctx *ctx,
 				       enum zapi_iptable_notify_owner note);
 extern void zsend_ipset_notify_owner(const struct zebra_dplane_ctx *ctx,
 				     enum zapi_ipset_notify_owner note);
-extern void
-zsend_ipset_entry_notify_owner(const struct zebra_dplane_ctx *ctx,
-			       enum zapi_ipset_entry_notify_owner note);
+extern void zsend_ipset_entry_notify_owner(const struct zebra_dplane_ctx *ctx,
+					   enum zapi_ipset_entry_notify_owner note);
 extern bool zserv_nexthop_num_warn(const char *caller, const struct prefix *p,
 				   const unsigned int nexthop_num);
 
 extern void zsend_capabilities_all_clients(void);
-extern int zsend_assign_label_chunk_response(struct zserv *client,
-					     vrf_id_t vrf_id,
+extern int zsend_assign_label_chunk_response(struct zserv *client, vrf_id_t vrf_id,
 					     struct label_manager_chunk *lmc);
 extern int zsend_label_manager_connect_response(struct zserv *client,
 						vrf_id_t vrf_id,
 						unsigned short result);
-extern int zsend_sr_policy_notify_status(uint32_t color,
-					 struct ipaddr *endpoint, char *name,
-					 int status);
+extern int zsend_sr_policy_notify_status(uint32_t color, struct ipaddr *endpoint,
+					 char *name, int status);
 extern void zsend_nhrp_neighbor_notify(int cmd, struct interface *ifp,
 				       struct ipaddr *ipaddr, int ndm_state,
 				       union sockunion *link_layer_ipv4);
@@ -109,7 +102,8 @@ extern int zsend_zebra_srv6_locator_add(struct zserv *client,
 extern int zsend_zebra_srv6_locator_delete(struct zserv *client,
 					   struct srv6_locator *loc);
 extern int zsend_srv6_manager_get_locator_chunk_response(struct zserv *client,
-		vrf_id_t vrf_id, struct srv6_locator *loc);
+							 vrf_id_t vrf_id,
+							 struct srv6_locator *loc);
 
 #ifdef __cplusplus
 }

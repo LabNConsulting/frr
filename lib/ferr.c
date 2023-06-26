@@ -128,8 +128,7 @@ void log_ref_display(struct vty *vty, uint32_t code, bool json)
 			json_object_string_add(obj, "title", ref->title);
 			json_object_string_add(obj, "description",
 					       ref->description);
-			json_object_string_add(obj, "suggestion",
-					       ref->suggestion);
+			json_object_string_add(obj, "suggestion", ref->suggestion);
 			json_object_object_add(top, key, obj);
 		} else {
 			char pbuf[256];
@@ -150,16 +149,13 @@ void log_ref_display(struct vty *vty, uint32_t code, bool json)
 	list_delete(&errlist);
 }
 
-DEFUN_NOSH(show_error_code,
-	   show_error_code_cmd,
+DEFUN_NOSH(show_error_code, show_error_code_cmd,
 	   "show error <(1-4294967295)|all> [json]",
-	   SHOW_STR
-	   "Information on errors\n"
-	   "Error code to get info about\n"
-	   "Information on all errors\n"
-	   JSON_STR)
+	   SHOW_STR "Information on errors\n"
+		    "Error code to get info about\n"
+		    "Information on all errors\n" JSON_STR)
 {
-	bool json = strmatch(argv[argc-1]->text, "json");
+	bool json = strmatch(argv[argc - 1]->text, "json");
 	uint32_t arg = 0;
 
 	if (!strmatch(argv[2]->text, "all"))
@@ -224,13 +220,12 @@ static ferr_r ferr_set_va(const char *file, int line, const char *func,
 	error->func = func;
 	error->kind = kind;
 
-	error->unique_id = jhash(text, strlen(text),
-				 jhash(file, strlen(file), 0xd4ed0298));
+	error->unique_id =
+		jhash(text, strlen(text), jhash(file, strlen(file), 0xd4ed0298));
 
 	error->errno_val = errno_val;
 	if (pathname)
-		snprintf(error->pathname, sizeof(error->pathname), "%s",
-			 pathname);
+		snprintf(error->pathname, sizeof(error->pathname), "%s", pathname);
 	else
 		error->pathname[0] = '\0';
 

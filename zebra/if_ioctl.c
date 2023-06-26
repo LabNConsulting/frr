@@ -42,8 +42,7 @@ static int interface_list_ioctl(void)
 	/* Normally SIOCGIFCONF works with AF_INET socket. */
 	sock = socket(AF_INET, SOCK_DGRAM, 0);
 	if (sock < 0) {
-		flog_err_sys(EC_LIB_SOCKET,
-			     "Can't make AF_INET socket stream: %s",
+		flog_err_sys(EC_LIB_SOCKET, "Can't make AF_INET socket stream: %s",
 			     safe_strerror(errno));
 		return -1;
 	}
@@ -173,19 +172,17 @@ static int if_getaddrs(void)
 
 	for (ifapfree = ifap; ifap; ifap = ifap->ifa_next) {
 		if (ifap->ifa_addr == NULL) {
-			flog_err(
-				EC_LIB_INTERFACE,
-				"%s: nonsensical ifaddr with NULL ifa_addr, ifname %s",
-				__func__,
-				(ifap->ifa_name ? ifap->ifa_name : "(null)"));
+			flog_err(EC_LIB_INTERFACE,
+				 "%s: nonsensical ifaddr with NULL ifa_addr, ifname %s",
+				 __func__,
+				 (ifap->ifa_name ? ifap->ifa_name : "(null)"));
 			continue;
 		}
 
 		ifp = if_lookup_by_name(ifap->ifa_name, VRF_DEFAULT);
 		if (ifp == NULL) {
-			flog_err(EC_LIB_INTERFACE,
-				 "%s: Can't lookup interface %s", __func__,
-				 ifap->ifa_name);
+			flog_err(EC_LIB_INTERFACE, "%s: Can't lookup interface %s",
+				 __func__, ifap->ifa_name);
 			continue;
 		}
 
@@ -202,28 +199,23 @@ static int if_getaddrs(void)
 
 			dest_pnt = NULL;
 
-			if (if_is_pointopoint(ifp) && ifap->ifa_dstaddr
-			    && !IPV4_ADDR_SAME(&addr->sin_addr,
-					       &((struct sockaddr_in *)
-							 ifap->ifa_dstaddr)
-							->sin_addr)) {
+			if (if_is_pointopoint(ifp) && ifap->ifa_dstaddr &&
+			    !IPV4_ADDR_SAME(&addr->sin_addr,
+					    &((struct sockaddr_in *)ifap->ifa_dstaddr)
+						     ->sin_addr)) {
 				dest = (struct sockaddr_in *)ifap->ifa_dstaddr;
 				dest_pnt = &dest->sin_addr;
 				flags = ZEBRA_IFA_PEER;
-			} else if (ifap->ifa_broadaddr
-				   && !IPV4_ADDR_SAME(
-					      &addr->sin_addr,
-					      &((struct sockaddr_in *)
-							ifap->ifa_broadaddr)
-						       ->sin_addr)) {
-				dest = (struct sockaddr_in *)
-					       ifap->ifa_broadaddr;
+			} else if (ifap->ifa_broadaddr &&
+				   !IPV4_ADDR_SAME(&addr->sin_addr,
+						   &((struct sockaddr_in *)ifap->ifa_broadaddr)
+							    ->sin_addr)) {
+				dest = (struct sockaddr_in *)ifap->ifa_broadaddr;
 				dest_pnt = &dest->sin_addr;
 			}
 
 			connected_add_ipv4(ifp, flags, &addr->sin_addr,
-					   prefixlen, dest_pnt, NULL,
-					   METRIC_MAX);
+					   prefixlen, dest_pnt, NULL, METRIC_MAX);
 		}
 		if (ifap->ifa_addr->sa_family == AF_INET6) {
 			struct sockaddr_in6 *addr;
@@ -236,9 +228,8 @@ static int if_getaddrs(void)
 
 #if defined(KAME)
 			if (IN6_IS_ADDR_LINKLOCAL(&addr->sin6_addr)) {
-				addr->sin6_scope_id =
-					ntohs(*(uint16_t *)&addr->sin6_addr
-						       .s6_addr[2]);
+				addr->sin6_scope_id = ntohs(
+					*(uint16_t *)&addr->sin6_addr.s6_addr[2]);
 				addr->sin6_addr.s6_addr[2] =
 					addr->sin6_addr.s6_addr[3] = 0;
 			}
@@ -274,7 +265,6 @@ static void interface_info_ioctl()
 /* Lookup all interface information. */
 void interface_list(struct zebra_ns *zns)
 {
-
 	zlog_info("%s: NS %u", __func__, zns->ns_id);
 
 /* Linux can do both proc & ioctl, ioctl is the only way to get

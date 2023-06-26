@@ -27,7 +27,7 @@
 #include "memory.h"
 #include "bitfield.h"
 
-#define ADMIN_GROUP_PRINT_MAX_SIZE 2048
+#define ADMIN_GROUP_PRINT_MAX_SIZE    2048
 #define EXT_ADMIN_GROUP_MAX_POSITIONS 1024
 
 struct admin_group {
@@ -38,13 +38,11 @@ char *admin_group_string(char *out, size_t sz, int indent,
 			 const struct admin_group *ag);
 char *admin_group_standard_print(char *out, int indent, uint32_t bitmap);
 char *admin_group_print(char *out, int indent, const struct admin_group *ag);
-bool admin_group_cmp(const struct admin_group *ag1,
-		     const struct admin_group *ag2);
+bool admin_group_cmp(const struct admin_group *ag1, const struct admin_group *ag2);
 void admin_group_copy(struct admin_group *dst, const struct admin_group *src);
 void admin_group_init(struct admin_group *ag);
 void admin_group_term(struct admin_group *ag);
-uint32_t admin_group_get_offset(const struct admin_group *ag,
-				size_t oct_offset);
+uint32_t admin_group_get_offset(const struct admin_group *ag, size_t oct_offset);
 void admin_group_set(struct admin_group *ag, size_t pos);
 void admin_group_unset(struct admin_group *ag, size_t pos);
 int admin_group_get(const struct admin_group *ag, size_t pos);

@@ -32,7 +32,7 @@ extern "C" {
 struct zebra_vrf;
 
 /* Default port information. */
-#define ZEBRA_VTY_PORT                2601
+#define ZEBRA_VTY_PORT 2601
 
 /* Default configuration filename. */
 #define DEFAULT_CONFIG_FILE "zebra.conf"
@@ -233,12 +233,11 @@ struct zserv {
 		struct zebra_vrf *zvrf
 
 /* Hooks for client connect / disconnect */
-DECLARE_HOOK(zserv_client_connect, (struct zserv *client), (client));
-DECLARE_KOOH(zserv_client_close, (struct zserv *client), (client));
+DECLARE_HOOK(zserv_client_connect, (struct zserv * client), (client));
+DECLARE_KOOH(zserv_client_close, (struct zserv * client), (client));
 
 #define DYNAMIC_CLIENT_GR_DISABLED(_client)                                    \
-	((_client->proto <= ZEBRA_ROUTE_CONNECT)                               \
-	 || !(_client->gr_instance_count))
+	((_client->proto <= ZEBRA_ROUTE_CONNECT) || !(_client->gr_instance_count))
 
 /*
  * Initialize Zebra API server.
@@ -329,8 +328,7 @@ struct zserv *zserv_find_client_session(uint8_t proto, unsigned short instance,
  * Returns:
  *    The Zebra API client.
  */
-extern struct zserv *zserv_acquire_client(uint8_t proto,
-					  unsigned short instance,
+extern struct zserv *zserv_acquire_client(uint8_t proto, unsigned short instance,
 					  uint32_t session_id);
 
 /*
@@ -370,8 +368,7 @@ void zserv_client_delete(struct zserv *client);
  * hdr
  *    Message header
  */
-void zserv_log_message(const char *errmsg, struct stream *msg,
-		       struct zmsghdr *hdr);
+void zserv_log_message(const char *errmsg, struct stream *msg, struct zmsghdr *hdr);
 
 /* TODO */
 __attribute__((__noreturn__)) void zebra_finalize(struct event *event);
@@ -383,8 +380,7 @@ extern int zebra_gr_client_disconnect(struct zserv *client);
 extern void zebra_gr_client_reconnect(struct zserv *client);
 extern void zebra_gr_stale_client_cleanup(struct list *client_list);
 extern void zread_client_capabilities(struct zserv *client, struct zmsghdr *hdr,
-				      struct stream *msg,
-				      struct zebra_vrf *zvrf);
+				      struct stream *msg, struct zebra_vrf *zvrf);
 
 #ifdef __cplusplus
 }

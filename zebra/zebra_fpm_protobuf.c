@@ -68,15 +68,15 @@ static inline int add_nexthop(qpb_allocator_t *allocator, Fpm__AddRoute *msg,
 
 	if_index = nexthop->ifindex;
 
-	if (nexthop->type == NEXTHOP_TYPE_IPV4
-	    || nexthop->type == NEXTHOP_TYPE_IPV4_IFINDEX) {
+	if (nexthop->type == NEXTHOP_TYPE_IPV4 ||
+	    nexthop->type == NEXTHOP_TYPE_IPV4_IFINDEX) {
 		gateway = &nexthop->gate;
 		if (nexthop->src.ipv4.s_addr != INADDR_ANY)
 			src = &nexthop->src;
 	}
 
-	if (nexthop->type == NEXTHOP_TYPE_IPV6
-	    || nexthop->type == NEXTHOP_TYPE_IPV6_IFINDEX) {
+	if (nexthop->type == NEXTHOP_TYPE_IPV6 ||
+	    nexthop->type == NEXTHOP_TYPE_IPV6_IFINDEX) {
 		gateway = &nexthop->gate;
 	}
 
@@ -107,8 +107,8 @@ static inline int add_nexthop(qpb_allocator_t *allocator, Fpm__AddRoute *msg,
 		}
 
 		if (gateway) {
-			pb_nh->address = qpb_l3_address_create(
-				allocator, gateway, rib_dest_af(dest));
+			pb_nh->address = qpb_l3_address_create(allocator, gateway,
+							       rib_dest_af(dest));
 		}
 
 		msg->nexthops[msg->n_nexthops++] = pb_nh;
@@ -220,8 +220,7 @@ static Fpm__AddRoute *create_add_route_message(qpb_allocator_t *allocator,
  * create_route_message
  */
 static Fpm__Message *create_route_message(qpb_allocator_t *allocator,
-					  rib_dest_t *dest,
-					  struct route_entry *re)
+					  rib_dest_t *dest, struct route_entry *re)
 {
 	Fpm__Message *msg;
 

@@ -48,7 +48,7 @@ struct ns_map_nsid {
 };
 
 static inline int ns_map_compare(const struct ns_map_nsid *a,
-				   const struct ns_map_nsid *b)
+				 const struct ns_map_nsid *b)
 {
 	return (a->ns_id - b->ns_id);
 }
@@ -56,8 +56,7 @@ static inline int ns_map_compare(const struct ns_map_nsid *a,
 RB_HEAD(ns_map_nsid_head, ns_map_nsid);
 RB_PROTOTYPE(ns_map_nsid_head, ns_map_nsid, id_entry, ns_map_compare);
 RB_GENERATE(ns_map_nsid_head, ns_map_nsid, id_entry, ns_map_compare);
-static struct ns_map_nsid_head ns_map_nsid_list =
-		RB_INITIALIZER(&ns_map_nsid_list);
+static struct ns_map_nsid_head ns_map_nsid_list = RB_INITIALIZER(&ns_map_nsid_list);
 
 static ns_id_t ns_id_external_numbering;
 
@@ -142,8 +141,7 @@ static struct ns *ns_lookup_name_internal(const char *name)
 	return NULL;
 }
 
-static struct ns *ns_get_created_internal(struct ns *ns, char *name,
-					  ns_id_t ns_id)
+static struct ns *ns_get_created_internal(struct ns *ns, char *name, ns_id_t ns_id)
 {
 	int created = 0;
 	/*
@@ -207,8 +205,7 @@ static int ns_enable_internal(struct ns *ns, void (*func)(ns_id_t, void *))
 
 		/* Non default NS. leave */
 		if (ns->ns_id == NS_UNKNOWN) {
-			flog_err(EC_LIB_NS,
-				 "Can not enable NS %s %u: Invalid NSID",
+			flog_err(EC_LIB_NS, "Can not enable NS %s %u: Invalid NSID",
 				 ns->name, ns->ns_id);
 			return 0;
 		}
@@ -358,11 +355,8 @@ struct ns *ns_lookup(ns_id_t ns_id)
 	return ns_lookup_internal(ns_id);
 }
 
-void ns_walk_func(int (*func)(struct ns *,
-			      void *param_in,
-			      void **param_out),
-		  void *param_in,
-		  void **param_out)
+void ns_walk_func(int (*func)(struct ns *, void *param_in, void **param_out),
+		  void *param_in, void **param_out)
 {
 	struct ns *ns = NULL;
 	int ret;
@@ -424,13 +418,11 @@ char *ns_netns_pathname(struct vty *vty, const char *name)
 
 	if (!result) {
 		if (vty)
-			vty_out(vty, "Invalid pathname for %s: %s\n",
-				pathname,
+			vty_out(vty, "Invalid pathname for %s: %s\n", pathname,
 				safe_strerror(errno));
 		else
-			flog_warn(EC_LIB_LINUX_NS,
-				  "Invalid pathname for %s: %s", pathname,
-				  safe_strerror(errno));
+			flog_warn(EC_LIB_LINUX_NS, "Invalid pathname for %s: %s",
+				  pathname, safe_strerror(errno));
 		return NULL;
 	}
 	check_base = basename(pathname);
@@ -487,8 +479,7 @@ void ns_init_management(ns_id_t default_ns_id, ns_id_t internal_ns)
 	/* Set the default NS name. */
 	default_ns->name = XSTRDUP(MTYPE_NS_NAME, NS_DEFAULT_NAME);
 	if (ns_debug)
-		zlog_info("%s: default NSID is %u", __func__,
-			  default_ns->ns_id);
+		zlog_info("%s: default NSID is %u", __func__, default_ns->ns_id);
 
 	/* Enable the default NS. */
 	if (!ns_enable(default_ns, NULL)) {

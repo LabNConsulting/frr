@@ -79,8 +79,8 @@ struct flex_algo {
 
 	/* which dataplane must be used for the algorithm */
 #define FLEX_ALGO_SR_MPLS 0x01
-#define FLEX_ALGO_SRV6 0x02
-#define FLEX_ALGO_IP 0x04
+#define FLEX_ALGO_SRV6	  0x02
+#define FLEX_ALGO_IP	  0x04
 	uint8_t dataplanes;
 
 	/* True if the Algorithm is locally enabled (ie. a definition has been

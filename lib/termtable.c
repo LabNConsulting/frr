@@ -393,8 +393,8 @@ char *ttable_dump(struct ttable *tt, const char *newline)
 				if (k != 0 && row[k].style.border.left_on)
 					buf[pos] = tt->style.corner;
 				pos += cw[k];
-				if (row[k].style.border.right_on
-				    && k != tt->ncols - 1)
+				if (row[k].style.border.right_on &&
+				    k != tt->ncols - 1)
 					buf[pos - 1] = tt->style.corner;
 			}
 
@@ -456,8 +456,8 @@ char *ttable_dump(struct ttable *tt, const char *newline)
 				if (k != 0 && row[k].style.border.left_on)
 					buf[pos] = tt->style.corner;
 				pos += cw[k];
-				if (row[k].style.border.right_on
-				    && k != tt->ncols - 1)
+				if (row[k].style.border.right_on &&
+				    k != tt->ncols - 1)
 					buf[pos - 1] = tt->style.corner;
 			}
 

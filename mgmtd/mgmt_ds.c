@@ -35,11 +35,11 @@ struct mgmt_ds_ctx {
 };
 
 const char *mgmt_ds_names[MGMTD_DS_MAX_ID + 1] = {
-	MGMTD_DS_NAME_NONE,	/* MGMTD_DS_NONE */
-	MGMTD_DS_NAME_RUNNING,     /* MGMTD_DS_RUNNING */
+	MGMTD_DS_NAME_NONE,	   /* MGMTD_DS_NONE */
+	MGMTD_DS_NAME_RUNNING,	   /* MGMTD_DS_RUNNING */
 	MGMTD_DS_NAME_CANDIDATE,   /* MGMTD_DS_CANDIDATE */
 	MGMTD_DS_NAME_OPERATIONAL, /* MGMTD_DS_OPERATIONAL */
-	"Unknown/Invalid",	 /* MGMTD_DS_ID_MAX */
+	"Unknown/Invalid",	   /* MGMTD_DS_ID_MAX */
 };
 
 static struct mgmt_master *mgmt_ds_mm;
@@ -55,7 +55,7 @@ static int mgmt_ds_dump_in_memory(struct mgmt_ds_ctx *ds_ctx,
 
 	if (base_xpath[0] == '\0')
 		root = ds_ctx->config_ds ? ds_ctx->root.cfg_root->dnode
-					  : ds_ctx->root.dnode_root;
+					 : ds_ctx->root.dnode_root;
 	else
 		root = yang_dnode_get(ds_ctx->config_ds
 					      ? ds_ctx->root.cfg_root->dnode
@@ -64,8 +64,7 @@ static int mgmt_ds_dump_in_memory(struct mgmt_ds_ctx *ds_ctx,
 	if (!root)
 		return -1;
 
-	options = ds_ctx->config_ds ? LYD_PRINT_WD_TRIM :
-		LYD_PRINT_WD_EXPLICIT;
+	options = ds_ctx->config_ds ? LYD_PRINT_WD_TRIM : LYD_PRINT_WD_EXPLICIT;
 
 	if (base_xpath[0] == '\0')
 		lyd_print_all(out, root, format, options);
@@ -114,8 +113,7 @@ static int mgmt_ds_merge_src_with_dst_ds(struct mgmt_ds_ctx *src,
 
 	MGMTD_DS_DBG("Merging DS %d with %d", dst->ds_id, src->ds_id);
 	if (src->config_ds && dst->config_ds)
-		ret = nb_config_merge(dst->root.cfg_root, src->root.cfg_root,
-				      true);
+		ret = nb_config_merge(dst->root.cfg_root, src->root.cfg_root, true);
 	else {
 		assert(!src->config_ds && !dst->config_ds);
 		ret = lyd_merge_siblings(&dst->root.dnode_root,
@@ -137,8 +135,7 @@ static int mgmt_ds_merge_src_with_dst_ds(struct mgmt_ds_ctx *src,
 	return 0;
 }
 
-static int mgmt_ds_load_cfg_from_file(const char *filepath,
-				      struct lyd_node **dnode)
+static int mgmt_ds_load_cfg_from_file(const char *filepath, struct lyd_node **dnode)
 {
 	LY_ERR ret;
 
@@ -260,10 +257,9 @@ void mgmt_ds_unlock(struct mgmt_ds_ctx *ds_ctx)
 {
 	assert(ds_ctx);
 	if (!ds_ctx->locked)
-		zlog_warn(
-			"%s: WARNING: unlock on unlocked in DS:%s last session-id %" PRIu64,
-			__func__, mgmt_ds_id2name(ds_ctx->ds_id),
-			ds_ctx->vty_session_id);
+		zlog_warn("%s: WARNING: unlock on unlocked in DS:%s last session-id %" PRIu64,
+			  __func__, mgmt_ds_id2name(ds_ctx->ds_id),
+			  ds_ctx->vty_session_id);
 	ds_ctx->locked = 0;
 }
 
@@ -301,8 +297,7 @@ struct nb_config *mgmt_ds_get_nb_config(struct mgmt_ds_ctx *ds_ctx)
 }
 
 static int mgmt_walk_ds_nodes(
-	struct nb_config *root, const char *base_xpath,
-	struct lyd_node *base_dnode,
+	struct nb_config *root, const char *base_xpath, struct lyd_node *base_dnode,
 	void (*mgmt_ds_node_iter_fn)(const char *xpath, struct lyd_node *node,
 				     struct nb_node *nb_node, void *ctx),
 	void *ctx)
@@ -371,7 +366,7 @@ struct lyd_node *mgmt_ds_find_data_node_by_xpath(struct mgmt_ds_ctx *ds_ctx,
 		return NULL;
 
 	return yang_dnode_get(ds_ctx->config_ds ? ds_ctx->root.cfg_root->dnode
-						 : ds_ctx->root.dnode_root,
+						: ds_ctx->root.dnode_root,
 			      xpath);
 }
 
@@ -386,9 +381,8 @@ int mgmt_ds_delete_data_nodes(struct mgmt_ds_ctx *ds_ctx, const char *xpath)
 
 	nb_node = nb_node_find(xpath);
 
-	dnode = yang_dnode_get(ds_ctx->config_ds
-				       ? ds_ctx->root.cfg_root->dnode
-				       : ds_ctx->root.dnode_root,
+	dnode = yang_dnode_get(ds_ctx->config_ds ? ds_ctx->root.cfg_root->dnode
+						 : ds_ctx->root.dnode_root,
 			       xpath);
 
 	if (!dnode)
@@ -401,10 +395,10 @@ int mgmt_ds_delete_data_nodes(struct mgmt_ds_ctx *ds_ctx, const char *xpath)
 	if (nb_node && nb_node->dep_cbs.get_dependant_xpath) {
 		nb_node->dep_cbs.get_dependant_xpath(dnode, dep_xpath);
 
-		dep_dnode = yang_dnode_get(
-			ds_ctx->config_ds ? ds_ctx->root.cfg_root->dnode
-					  : ds_ctx->root.dnode_root,
-			dep_xpath);
+		dep_dnode = yang_dnode_get(ds_ctx->config_ds
+						   ? ds_ctx->root.cfg_root->dnode
+						   : ds_ctx->root.dnode_root,
+					   dep_xpath);
 		if (dep_dnode)
 			lyd_free_tree(dep_dnode);
 	}
@@ -423,8 +417,7 @@ int mgmt_ds_load_config_from_file(struct mgmt_ds_ctx *dst,
 		return -1;
 
 	if (mgmt_ds_load_cfg_from_file(file_path, &iter) != 0) {
-		MGMTD_DS_ERR("Failed to load config from the file %s",
-			     file_path);
+		MGMTD_DS_ERR("Failed to load config from the file %s", file_path);
 		return -1;
 	}
 
@@ -442,13 +435,11 @@ int mgmt_ds_load_config_from_file(struct mgmt_ds_ctx *dst,
 	return 0;
 }
 
-int mgmt_ds_iter_data(Mgmtd__DatastoreId ds_id, struct nb_config *root,
-		      const char *base_xpath,
-		      void (*mgmt_ds_node_iter_fn)(const char *xpath,
-						   struct lyd_node *node,
-						   struct nb_node *nb_node,
-						   void *ctx),
-		      void *ctx)
+int mgmt_ds_iter_data(
+	Mgmtd__DatastoreId ds_id, struct nb_config *root, const char *base_xpath,
+	void (*mgmt_ds_node_iter_fn)(const char *xpath, struct lyd_node *node,
+				     struct nb_node *nb_node, void *ctx),
+	void *ctx)
 {
 	int ret = 0;
 	char xpath[MGMTD_MAX_XPATH_LEN];
@@ -496,7 +487,7 @@ void mgmt_ds_dump_tree(struct vty *vty, struct mgmt_ds_ctx *ds_ctx,
 {
 	struct ly_out *out;
 	char *str;
-	char base_xpath[MGMTD_MAX_XPATH_LEN] = {0};
+	char base_xpath[MGMTD_MAX_XPATH_LEN] = { 0 };
 
 	if (!ds_ctx) {
 		vty_out(vty, "    >>>>> Datastore Not Initialized!\n");

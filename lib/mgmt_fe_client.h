@@ -30,10 +30,10 @@ extern "C" {
 #define MGMTD_FE_DEFAULT_CONN_RETRY_INTVL_SEC 5
 
 #define MGMTD_FE_MSG_PROC_DELAY_USEC 10
-#define MGMTD_FE_MAX_NUM_MSG_PROC 500
+#define MGMTD_FE_MAX_NUM_MSG_PROC    500
 
 #define MGMTD_FE_MSG_WRITE_DELAY_MSEC 1
-#define MGMTD_FE_MAX_NUM_MSG_WRITE 100
+#define MGMTD_FE_MAX_NUM_MSG_WRITE    100
 
 #define GMGD_FE_MAX_NUM_REQ_ITEMS 64
 
@@ -50,11 +50,11 @@ extern "C" {
 
 #define MGMTD_CLIENT_ID_NONE 0
 
-#define MGMTD_DS_NONE MGMTD__DATASTORE_ID__DS_NONE
-#define MGMTD_DS_RUNNING MGMTD__DATASTORE_ID__RUNNING_DS
-#define MGMTD_DS_CANDIDATE MGMTD__DATASTORE_ID__CANDIDATE_DS
+#define MGMTD_DS_NONE	     MGMTD__DATASTORE_ID__DS_NONE
+#define MGMTD_DS_RUNNING     MGMTD__DATASTORE_ID__RUNNING_DS
+#define MGMTD_DS_CANDIDATE   MGMTD__DATASTORE_ID__CANDIDATE_DS
 #define MGMTD_DS_OPERATIONAL MGMTD__DATASTORE_ID__OPERATIONAL_DS
-#define MGMTD_DS_MAX_ID MGMTD_DS_OPERATIONAL + 1
+#define MGMTD_DS_MAX_ID	     MGMTD_DS_OPERATIONAL + 1
 
 struct mgmt_fe_client;
 
@@ -79,9 +79,8 @@ struct mgmt_fe_client_cbs {
 				      uintptr_t session_id,
 				      uintptr_t user_session_client);
 
-	void (*lock_ds_notify)(struct mgmt_fe_client *client,
-			       uintptr_t user_data, uint64_t client_id,
-			       uintptr_t session_id,
+	void (*lock_ds_notify)(struct mgmt_fe_client *client, uintptr_t user_data,
+			       uint64_t client_id, uintptr_t session_id,
 			       uintptr_t user_session_client, uint64_t req_id,
 			       bool lock_ds, bool success,
 			       Mgmtd__DatastoreId ds_id, char *errmsg_if_any);
@@ -89,23 +88,20 @@ struct mgmt_fe_client_cbs {
 	void (*set_config_notify)(struct mgmt_fe_client *client,
 				  uintptr_t user_data, uint64_t client_id,
 				  uintptr_t session_id,
-				  uintptr_t user_session_client,
-				  uint64_t req_id, bool success,
-				  Mgmtd__DatastoreId ds_id, bool implcit_commit,
-				  char *errmsg_if_any);
+				  uintptr_t user_session_client, uint64_t req_id,
+				  bool success, Mgmtd__DatastoreId ds_id,
+				  bool implcit_commit, char *errmsg_if_any);
 
 	void (*commit_config_notify)(struct mgmt_fe_client *client,
 				     uintptr_t user_data, uint64_t client_id,
 				     uintptr_t session_id,
-				     uintptr_t user_session_client,
-				     uint64_t req_id, bool success,
-				     Mgmtd__DatastoreId src_ds_id,
+				     uintptr_t user_session_client, uint64_t req_id,
+				     bool success, Mgmtd__DatastoreId src_ds_id,
 				     Mgmtd__DatastoreId dst_ds_id,
 				     bool validate_only, char *errmsg_if_any);
 
-	int (*get_data_notify)(struct mgmt_fe_client *client,
-			       uintptr_t user_data, uint64_t client_id,
-			       uintptr_t session_id,
+	int (*get_data_notify)(struct mgmt_fe_client *client, uintptr_t user_data,
+			       uint64_t client_id, uintptr_t session_id,
 			       uintptr_t user_session_client, uint64_t req_id,
 			       bool success, Mgmtd__DatastoreId ds_id,
 			       Mgmtd__YangData **yang_data, size_t num_data,
@@ -124,8 +120,7 @@ extern struct debug mgmt_dbg_fe_client;
  ***************************************************************/
 
 #define MGMTD_FE_CLIENT_DBG(fmt, ...)                                          \
-	DEBUGD(&mgmt_dbg_fe_client, "FE-CLIENT: %s: " fmt, __func__,           \
-	       ##__VA_ARGS__)
+	DEBUGD(&mgmt_dbg_fe_client, "FE-CLIENT: %s: " fmt, __func__, ##__VA_ARGS__)
 #define MGMTD_FE_CLIENT_ERR(fmt, ...)                                          \
 	zlog_err("FE-CLIENT: %s: ERROR: " fmt, __func__, ##__VA_ARGS__)
 #define MGMTD_DBG_FE_CLIENT_CHECK()                                            \
@@ -176,9 +171,9 @@ extern void mgmt_debug_fe_client_show_debug(struct vty *vty);
  * Returns:
  *    MGMTD_SUCCESS on success, MGMTD_* otherwise.
  */
-extern enum mgmt_result
-mgmt_fe_create_client_session(struct mgmt_fe_client *client, uint64_t client_id,
-			      uintptr_t user_client);
+extern enum mgmt_result mgmt_fe_create_client_session(struct mgmt_fe_client *client,
+						      uint64_t client_id,
+						      uintptr_t user_client);
 
 /*
  * Delete an existing Session for a Frontend Client connection.
@@ -192,9 +187,8 @@ mgmt_fe_create_client_session(struct mgmt_fe_client *client, uint64_t client_id,
  * Returns:
  *    0 on success, otherwise msg_conn_send_msg() return values.
  */
-extern enum mgmt_result
-mgmt_fe_destroy_client_session(struct mgmt_fe_client *client,
-			       uint64_t client_id);
+extern enum mgmt_result mgmt_fe_destroy_client_session(struct mgmt_fe_client *client,
+						       uint64_t client_id);
 
 /*
  * Send UN/LOCK_DS_REQ to MGMTD for a specific Datastore DS.
@@ -320,8 +314,7 @@ extern int mgmt_fe_send_commitcfg_req(struct mgmt_fe_client *client,
 extern int mgmt_fe_send_getcfg_req(struct mgmt_fe_client *client,
 				   uint64_t session_id, uint64_t req_id,
 				   Mgmtd__DatastoreId ds_id,
-				   Mgmtd__YangGetDataReq **data_req,
-				   int num_reqs);
+				   Mgmtd__YangGetDataReq **data_req, int num_reqs);
 
 /*
  * Send GET_DATA_REQ to MGMTD for one or more data item(s).
@@ -364,8 +357,7 @@ extern int mgmt_fe_send_getdata_req(struct mgmt_fe_client *client,
  */
 extern int mgmt_fe_send_regnotify_req(struct mgmt_fe_client *client,
 				      uint64_t session_id, uint64_t req_id,
-				      Mgmtd__DatastoreId ds_id,
-				      bool register_req,
+				      Mgmtd__DatastoreId ds_id, bool register_req,
 				      Mgmtd__YangDataXPath **data_req,
 				      int num_reqs);
 

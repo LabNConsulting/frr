@@ -5,8 +5,7 @@
  */
 
 /* Get the VRR interface for SVI if any */
-static inline struct interface *
-zebra_get_vrr_intf_for_svi(struct interface *ifp)
+static inline struct interface *zebra_get_vrr_intf_for_svi(struct interface *ifp)
 {
 	struct zebra_vrf *zvrf = NULL;
 	struct interface *tmp_if = NULL;

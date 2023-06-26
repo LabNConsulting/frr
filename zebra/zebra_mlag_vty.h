@@ -10,8 +10,7 @@
 extern "C" {
 #endif
 
-extern int32_t zebra_mlag_test_mlag_internal(const char *none,
-					     const char *primary,
+extern int32_t zebra_mlag_test_mlag_internal(const char *none, const char *primary,
 					     const char *secondary);
 
 extern void zebra_mlag_vty_init(void);

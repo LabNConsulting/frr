@@ -56,9 +56,8 @@ extern void zebra_interface_vrf_update_del(struct interface *ifp,
 extern void zebra_interface_vrf_update_add(struct interface *ifp,
 					   vrf_id_t old_vrf_id);
 
-extern int zebra_import_table(afi_t afi, vrf_id_t vrf_id,
-			      uint32_t table_id, uint32_t distance,
-			      const char *rmap_name, int add);
+extern int zebra_import_table(afi_t afi, vrf_id_t vrf_id, uint32_t table_id,
+			      uint32_t distance, const char *rmap_name, int add);
 
 extern int zebra_add_import_table_entry(struct zebra_vrf *zvrf,
 					struct route_node *rn,
@@ -67,8 +66,7 @@ extern int zebra_add_import_table_entry(struct zebra_vrf *zvrf,
 extern int zebra_del_import_table_entry(struct zebra_vrf *zvrf,
 					struct route_node *rn,
 					struct route_entry *re);
-extern int is_zebra_import_table_enabled(afi_t, vrf_id_t vrf_id,
-					 uint32_t table_id);
+extern int is_zebra_import_table_enabled(afi_t, vrf_id_t vrf_id, uint32_t table_id);
 
 extern int zebra_import_table_config(struct vty *, vrf_id_t vrf_id);
 

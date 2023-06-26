@@ -46,12 +46,11 @@
 	} while (0)
 
 PRINTFRR(2, 0)
-static inline const char *
-yang_dnode_xpath_get_canon(const struct lyd_node *dnode, const char *xpath_fmt,
-			   va_list ap)
+static inline const char *yang_dnode_xpath_get_canon(const struct lyd_node *dnode,
+						     const char *xpath_fmt,
+						     va_list ap)
 {
-	const struct lyd_node_term *__dleaf =
-		(const struct lyd_node_term *)dnode;
+	const struct lyd_node_term *__dleaf = (const struct lyd_node_term *)dnode;
 	assert(__dleaf);
 	if (xpath_fmt) {
 		char __xpath[XPATH_MAXLEN];
@@ -68,8 +67,7 @@ static inline const struct lyd_value *
 yang_dnode_xpath_get_value(const struct lyd_node *dnode, const char *xpath_fmt,
 			   va_list ap)
 {
-	const struct lyd_node_term *__dleaf =
-		(const struct lyd_node_term *)dnode;
+	const struct lyd_node_term *__dleaf = (const struct lyd_node_term *)dnode;
 	assert(__dleaf);
 	if (xpath_fmt) {
 		char __xpath[XPATH_MAXLEN];
@@ -116,8 +114,7 @@ struct yang_data *yang_data_new_bool(const char *xpath, bool value)
 	return yang_data_new(xpath, (value) ? "true" : "false");
 }
 
-bool yang_dnode_get_bool(const struct lyd_node *dnode, const char *xpath_fmt,
-			 ...)
+bool yang_dnode_get_bool(const struct lyd_node *dnode, const char *xpath_fmt, ...)
 {
 	const struct lyd_value *dvalue;
 	dvalue = YANG_DNODE_XPATH_GET_VALUE(dnode, xpath_fmt);
@@ -165,13 +162,12 @@ struct yang_data *yang_data_new_dec64(const char *xpath, double value)
 	return yang_data_new(xpath, value_str);
 }
 
-double yang_dnode_get_dec64(const struct lyd_node *dnode, const char *xpath_fmt,
-			    ...)
+double yang_dnode_get_dec64(const struct lyd_node *dnode, const char *xpath_fmt, ...)
 {
-	const double denom[19] = {1e0,   1e-1,  1e-2,  1e-3,  1e-4,
-				  1e-5,  1e-6,  1e-7,  1e-8,  1e-9,
-				  1e-10, 1e-11, 1e-12, 1e-13, 1e-14,
-				  1e-15, 1e-16, 1e-17, 1e-18};
+	const double denom[19] = { 1e0,	  1e-1,	 1e-2,	1e-3,  1e-4,
+				   1e-5,  1e-6,	 1e-7,	1e-8,  1e-9,
+				   1e-10, 1e-11, 1e-12, 1e-13, 1e-14,
+				   1e-15, 1e-16, 1e-17, 1e-18 };
 	const struct lysc_type_dec *dectype;
 	const struct lyd_value *dvalue;
 
@@ -256,8 +252,8 @@ struct yang_data *yang_data_new_enum(const char *xpath, int value)
 	enums = type->enums;
 	unsigned int count = LY_ARRAY_COUNT(enums);
 	for (unsigned int i = 0; i < count; i++) {
-		if (CHECK_FLAG(enums[i].flags, LYS_SET_VALUE)
-		    && value == enums[i].value)
+		if (CHECK_FLAG(enums[i].flags, LYS_SET_VALUE) &&
+		    value == enums[i].value)
 			return yang_data_new(xpath, enums[i].name);
 	}
 
@@ -268,8 +264,7 @@ struct yang_data *yang_data_new_enum(const char *xpath, int value)
 	abort();
 }
 
-int yang_dnode_get_enum(const struct lyd_node *dnode, const char *xpath_fmt,
-			...)
+int yang_dnode_get_enum(const struct lyd_node *dnode, const char *xpath_fmt, ...)
 {
 	const struct lyd_value *dvalue;
 
@@ -309,8 +304,7 @@ struct yang_data *yang_data_new_int8(const char *xpath, int8_t value)
 	return yang_data_new(xpath, value_str);
 }
 
-int8_t yang_dnode_get_int8(const struct lyd_node *dnode, const char *xpath_fmt,
-			   ...)
+int8_t yang_dnode_get_int8(const struct lyd_node *dnode, const char *xpath_fmt, ...)
 {
 	const struct lyd_value *dvalue;
 	dvalue = YANG_DNODE_XPATH_GET_VALUE(dnode, xpath_fmt);
@@ -621,8 +615,7 @@ const char *yang_dnode_get_string(const struct lyd_node *dnode,
 	return YANG_DNODE_XPATH_GET_CANON(dnode, xpath_fmt);
 }
 
-void yang_dnode_get_string_buf(char *buf, size_t size,
-			       const struct lyd_node *dnode,
+void yang_dnode_get_string_buf(char *buf, size_t size, const struct lyd_node *dnode,
 			       const char *xpath_fmt, ...)
 {
 	const char *canon = YANG_DNODE_XPATH_GET_CANON(dnode, xpath_fmt);
@@ -631,8 +624,7 @@ void yang_dnode_get_string_buf(char *buf, size_t size,
 
 		yang_dnode_get_path(dnode, xpath, sizeof(xpath));
 		flog_warn(EC_LIB_YANG_DATA_TRUNCATED,
-			  "%s: value was truncated [xpath %s]", __func__,
-			  xpath);
+			  "%s: value was truncated [xpath %s]", __func__, xpath);
 	}
 }
 
@@ -648,8 +640,7 @@ const char *yang_get_default_string(const char *xpath_fmt, ...)
 	return yang_get_default_value(xpath);
 }
 
-void yang_get_default_string_buf(char *buf, size_t size, const char *xpath_fmt,
-				 ...)
+void yang_get_default_string_buf(char *buf, size_t size, const char *xpath_fmt, ...)
 {
 	char xpath[XPATH_MAXLEN];
 	const char *value;
@@ -662,8 +653,7 @@ void yang_get_default_string_buf(char *buf, size_t size, const char *xpath_fmt,
 	value = yang_get_default_value(xpath);
 	if (strlcpy(buf, value, size) >= size)
 		flog_warn(EC_LIB_YANG_DATA_TRUNCATED,
-			  "%s: value was truncated [xpath %s]", __func__,
-			  xpath);
+			  "%s: value was truncated [xpath %s]", __func__, xpath);
 }
 
 /*
@@ -716,8 +706,7 @@ size_t yang_dnode_get_binary_buf(char *buf, size_t size,
 
 		yang_dnode_get_path(dnode, xpath, sizeof(xpath));
 		flog_warn(EC_LIB_YANG_DATA_TRUNCATED,
-			  "%s: value was truncated [xpath %s]", __func__,
-			  xpath);
+			  "%s: value was truncated [xpath %s]", __func__, xpath);
 	}
 	free(value_str);
 	return ret_len;
@@ -732,8 +721,7 @@ struct yang_data *yang_data_new_empty(const char *xpath)
 	return yang_data_new(xpath, NULL);
 }
 
-bool yang_dnode_get_empty(const struct lyd_node *dnode, const char *xpath_fmt,
-			  ...)
+bool yang_dnode_get_empty(const struct lyd_node *dnode, const char *xpath_fmt, ...)
 {
 	va_list ap;
 	char xpath[XPATH_MAXLEN];
@@ -764,8 +752,7 @@ void yang_str2prefix(const char *value, union prefixptr prefix)
 	apply_mask(prefix.p);
 }
 
-struct yang_data *yang_data_new_prefix(const char *xpath,
-				       union prefixconstptr prefix)
+struct yang_data *yang_data_new_prefix(const char *xpath, union prefixconstptr prefix)
 {
 	char value_str[PREFIX2STR_BUFFER];
 
@@ -810,8 +797,7 @@ void yang_str2ipv4(const char *value, struct in_addr *addr)
 	(void)inet_pton(AF_INET, value, addr);
 }
 
-struct yang_data *yang_data_new_ipv4(const char *xpath,
-				     const struct in_addr *addr)
+struct yang_data *yang_data_new_ipv4(const char *xpath, const struct in_addr *addr)
 {
 	char value_str[INET_ADDRSTRLEN];
 
@@ -852,8 +838,7 @@ void yang_str2ipv4p(const char *value, union prefixptr prefix)
 	apply_mask_ipv4(prefix4);
 }
 
-struct yang_data *yang_data_new_ipv4p(const char *xpath,
-				      union prefixconstptr prefix)
+struct yang_data *yang_data_new_ipv4p(const char *xpath, union prefixconstptr prefix)
 {
 	char value_str[PREFIX2STR_BUFFER];
 
@@ -892,8 +877,7 @@ void yang_str2ipv6(const char *value, struct in6_addr *addr)
 	(void)inet_pton(AF_INET6, value, addr);
 }
 
-struct yang_data *yang_data_new_ipv6(const char *xpath,
-				     const struct in6_addr *addr)
+struct yang_data *yang_data_new_ipv6(const char *xpath, const struct in6_addr *addr)
 {
 	char value_str[INET6_ADDRSTRLEN];
 
@@ -934,8 +918,7 @@ void yang_str2ipv6p(const char *value, union prefixptr prefix)
 	apply_mask_ipv6(prefix6);
 }
 
-struct yang_data *yang_data_new_ipv6p(const char *xpath,
-				      union prefixconstptr prefix)
+struct yang_data *yang_data_new_ipv6p(const char *xpath, union prefixconstptr prefix)
 {
 	char value_str[PREFIX2STR_BUFFER];
 
@@ -1006,8 +989,7 @@ void yang_get_default_ip(struct ipaddr *var, const char *xpath_fmt, ...)
 	yang_str2ip(value, var);
 }
 
-struct yang_data *yang_data_new_mac(const char *xpath,
-				    const struct ethaddr *mac)
+struct yang_data *yang_data_new_mac(const char *xpath, const struct ethaddr *mac)
 {
 	char value_str[ETHER_ADDR_STRLEN];
 

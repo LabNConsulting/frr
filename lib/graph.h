@@ -63,8 +63,7 @@ void graph_delete_node(struct graph *graph, struct graph_node *node);
  * @param[in] to
  * @return to
  */
-struct graph_node *graph_add_edge(struct graph_node *from,
-				  struct graph_node *to);
+struct graph_node *graph_add_edge(struct graph_node *from, struct graph_node *to);
 
 /**
  * Removes a directed edge between two nodes.

@@ -109,7 +109,6 @@ void cpath_del(struct c_path *path)
  */
 static void cpath_replace(struct c_path *next_path, struct c_path *cur_path)
 {
-
 	if (next_path->edges)
 		list_delete(&next_path->edges);
 
@@ -162,8 +161,7 @@ static void vnode_del(struct v_node *vnode)
  *
  * @return	Vertex if found, NULL otherwise
  */
-static struct ls_vertex *get_vertex_by_ipv4(struct ls_ted *ted,
-					    struct in_addr ipv4)
+static struct ls_vertex *get_vertex_by_ipv4(struct ls_ted *ted, struct in_addr ipv4)
 {
 	struct ls_subnet *subnet;
 	struct prefix p;
@@ -192,8 +190,7 @@ static struct ls_vertex *get_vertex_by_ipv4(struct ls_ted *ted,
  *
  * @return	Vertex if found, NULL otherwise
  */
-static struct ls_vertex *get_vertex_by_ipv6(struct ls_ted *ted,
-					    struct in6_addr ipv6)
+static struct ls_vertex *get_vertex_by_ipv6(struct ls_ted *ted, struct in6_addr ipv6)
 {
 	struct ls_subnet *subnet;
 	struct prefix p;
@@ -467,7 +464,6 @@ static bool prune_edge(const struct c_path *path, const struct ls_edge *edge,
  */
 static bool relax_constraints(struct cspf *algo, struct ls_edge *edge)
 {
-
 	struct c_path pkey = {};
 	struct c_path *next_path;
 	struct v_node vnode = {};
@@ -509,8 +505,7 @@ static bool relax_constraints(struct cspf *algo, struct ls_edge *edge)
 			     algo->path->weight;
 		break;
 	case CSPF_DELAY:
-		total_cost =
-			edge->attributes->extended.delay + algo->path->weight;
+		total_cost = edge->attributes->extended.delay + algo->path->weight;
 		break;
 	default:
 		break;
@@ -624,8 +619,7 @@ struct c_path *compute_p2p_path(struct cspf *algo, struct ls_ted *ted)
 	 * path if it exists. Otherwise an empty path with status failed is
 	 * returned.
 	 */
-	if (optim_path->status == IN_PROGRESS ||
-	    listcount(optim_path->edges) == 0)
+	if (optim_path->status == IN_PROGRESS || listcount(optim_path->edges) == 0)
 		optim_path->status = FAILED;
 	cspf_clean(algo);
 

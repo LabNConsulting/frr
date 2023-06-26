@@ -38,12 +38,9 @@ static struct graph *nodegraph = NULL, *nodegraph_free = NULL;
 		}                                                              \
 	} while (0)
 
-DEFUN (grammar_test,
-       grammar_test_cmd,
-       "grammar parse LINE...",
-       GRAMMAR_STR
-       "parse a command\n"
-       "command to pass to new parser\n")
+DEFUN(grammar_test, grammar_test_cmd, "grammar parse LINE...",
+      GRAMMAR_STR "parse a command\n"
+		  "command to pass to new parser\n")
 {
 	check_nodegraph();
 
@@ -55,8 +52,7 @@ DEFUN (grammar_test,
 	struct cmd_element *cmd =
 		XCALLOC(MTYPE_CMD_DESCRIPTIONS, sizeof(struct cmd_element));
 	cmd->string = command;
-	cmd->doc =
-		"0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n";
+	cmd->doc = "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n";
 	cmd->func = NULL;
 
 	// parse the command and install it into the command graph
@@ -70,12 +66,10 @@ DEFUN (grammar_test,
 	return CMD_SUCCESS;
 }
 
-DEFUN (grammar_test_complete,
-       grammar_test_complete_cmd,
-       "grammar complete COMMAND...",
-       GRAMMAR_STR
-       "attempt to complete input on DFA\n"
-       "command to complete\n")
+DEFUN(grammar_test_complete, grammar_test_complete_cmd,
+      "grammar complete COMMAND...",
+      GRAMMAR_STR "attempt to complete input on DFA\n"
+		  "command to complete\n")
 {
 	check_nodegraph();
 
@@ -92,8 +86,7 @@ DEFUN (grammar_test_complete,
 
 	// generate completions of user input
 	struct list *completions;
-	enum matcher_rv result =
-		command_complete(nodegraph, command, &completions);
+	enum matcher_rv result = command_complete(nodegraph, command, &completions);
 
 	// print completions or relevant error message
 	if (!MATCHER_ERROR(result)) {
@@ -111,13 +104,11 @@ DEFUN (grammar_test_complete,
 		// print completions
 		for (i = 0; i < vector_active(comps); i++) {
 			tkn = vector_slot(comps, i);
-			vty_out(vty, "  %-*s  %s\n", width, tkn->text,
-				tkn->desc);
+			vty_out(vty, "  %-*s  %s\n", width, tkn->text, tkn->desc);
 		}
 
 		for (i = 0; i < vector_active(comps); i++)
-			cmd_token_del(
-				(struct cmd_token *)vector_slot(comps, i));
+			cmd_token_del((struct cmd_token *)vector_slot(comps, i));
 		vector_free(comps);
 	} else
 		vty_out(vty, "%% No match\n");
@@ -130,12 +121,9 @@ DEFUN (grammar_test_complete,
 	return CMD_SUCCESS;
 }
 
-DEFUN (grammar_test_match,
-       grammar_test_match_cmd,
-       "grammar match COMMAND...",
-       GRAMMAR_STR
-       "attempt to match input on DFA\n"
-       "command to match\n")
+DEFUN(grammar_test_match, grammar_test_match_cmd, "grammar match COMMAND...",
+      GRAMMAR_STR "attempt to match input on DFA\n"
+		  "command to match\n")
 {
 	check_nodegraph();
 
@@ -196,34 +184,30 @@ DEFUN (grammar_test_match,
 /**
  * Testing shim to test docstrings
  */
-DEFUN (grammar_test_doc,
-       grammar_test_doc_cmd,
-       "grammar test docstring",
-       GRAMMAR_STR
-       "Test function for docstring\n"
-       "Command end\n")
+DEFUN(grammar_test_doc, grammar_test_doc_cmd, "grammar test docstring",
+      GRAMMAR_STR "Test function for docstring\n"
+		  "Command end\n")
 {
 	check_nodegraph();
 
 	// create cmd_element with docstring
 	struct cmd_element *cmd =
 		XCALLOC(MTYPE_CMD_DESCRIPTIONS, sizeof(struct cmd_element));
-	cmd->string = XSTRDUP(
-		MTYPE_CMD_DESCRIPTIONS,
-		"test docstring <example|selector follow> (1-255) end VARIABLE [OPTION|set lol] . VARARG");
-	cmd->doc = XSTRDUP(MTYPE_CMD_DESCRIPTIONS,
-			   "Test stuff\n"
-			   "docstring thing\n"
-			   "first example\n"
-			   "second example\n"
-			   "follow\n"
-			   "random range\n"
-			   "end thingy\n"
-			   "variable\n"
-			   "optional variable\n"
-			   "optional set\n"
-			   "optional lol\n"
-			   "vararg!\n");
+	cmd->string =
+		XSTRDUP(MTYPE_CMD_DESCRIPTIONS,
+			"test docstring <example|selector follow> (1-255) end VARIABLE [OPTION|set lol] . VARARG");
+	cmd->doc = XSTRDUP(MTYPE_CMD_DESCRIPTIONS, "Test stuff\n"
+						   "docstring thing\n"
+						   "first example\n"
+						   "second example\n"
+						   "follow\n"
+						   "random range\n"
+						   "end thingy\n"
+						   "variable\n"
+						   "optional variable\n"
+						   "optional set\n"
+						   "optional lol\n"
+						   "vararg!\n");
 	cmd->func = NULL;
 
 	// parse element
@@ -235,12 +219,9 @@ DEFUN (grammar_test_doc,
 /**
  * Debugging command to print command graph
  */
-DEFUN (grammar_test_show,
-       grammar_test_show_cmd,
-       "grammar show [doc]",
-       GRAMMAR_STR
-       "print current accumulated DFA\n"
-       "include docstrings\n")
+DEFUN(grammar_test_show, grammar_test_show_cmd, "grammar show [doc]",
+      GRAMMAR_STR "print current accumulated DFA\n"
+		  "include docstrings\n")
 {
 	check_nodegraph();
 
@@ -250,12 +231,9 @@ DEFUN (grammar_test_show,
 	return CMD_SUCCESS;
 }
 
-DEFUN (grammar_test_dot,
-       grammar_test_dot_cmd,
-       "grammar dotfile OUTNAME",
-       GRAMMAR_STR
-       "print current graph for dot\n"
-       ".dot filename\n")
+DEFUN(grammar_test_dot, grammar_test_dot_cmd, "grammar dotfile OUTNAME",
+      GRAMMAR_STR "print current graph for dot\n"
+		  ".dot filename\n")
 {
 	check_nodegraph();
 	FILE *ofd = fopen(argv[2]->arg, "w");
@@ -344,13 +322,11 @@ static struct list *cmd_graph_permutations(struct graph *graph)
 
 extern vector cmdvec;
 
-DEFUN (grammar_findambig,
-       grammar_findambig_cmd,
-       "grammar find-ambiguous [{printall|nodescan}]",
-       GRAMMAR_STR
-       "Find ambiguous commands\n"
-       "Print all permutations\n"
-       "Scan all nodes\n")
+DEFUN(grammar_findambig, grammar_findambig_cmd,
+      "grammar find-ambiguous [{printall|nodescan}]",
+      GRAMMAR_STR "Find ambiguous commands\n"
+		  "Print all permutations\n"
+		  "Scan all nodes\n")
 {
 	struct list *commands;
 	struct cmd_permute_item *prev = NULL, *cur = NULL;
@@ -375,8 +351,7 @@ DEFUN (grammar_findambig,
 
 	do {
 		if (scan) {
-			struct cmd_node *cnode =
-				vector_slot(cmdvec, scannode++);
+			struct cmd_node *cnode = vector_slot(cmdvec, scannode++);
 			if (!cnode)
 				continue;
 			cmd_finalize_node(cnode);
@@ -417,11 +392,8 @@ DEFUN (grammar_findambig,
 	return ambig == 0 ? CMD_SUCCESS : CMD_WARNING_CONFIG_FAILED;
 }
 
-DEFUN (grammar_init_graph,
-       grammar_init_graph_cmd,
-       "grammar init",
-       GRAMMAR_STR
-       "(re)initialize graph\n")
+DEFUN(grammar_init_graph, grammar_init_graph_cmd, "grammar init",
+      GRAMMAR_STR "(re)initialize graph\n")
 {
 	if (nodegraph_free)
 		graph_delete_graph(nodegraph_free);
@@ -431,12 +403,9 @@ DEFUN (grammar_init_graph,
 	return CMD_SUCCESS;
 }
 
-DEFUN (grammar_access,
-       grammar_access_cmd,
-       "grammar access (0-65535)",
-       GRAMMAR_STR
-       "access node graph\n"
-       "node number\n")
+DEFUN(grammar_access, grammar_access_cmd, "grammar access (0-65535)",
+      GRAMMAR_STR "access node graph\n"
+		  "node number\n")
 {
 	if (nodegraph_free)
 		graph_delete_graph(nodegraph_free);
@@ -514,22 +483,20 @@ static void pretty_print_graph(struct vty *vty, struct graph_node *start,
 			// if this node is a vararg, just print *
 			if (adj == start)
 				vty_out(vty, "*");
-			else if (((struct cmd_token *)adj->data)->type
-				 == END_TKN)
+			else if (((struct cmd_token *)adj->data)->type == END_TKN)
 				vty_out(vty, "--END\n");
 			else {
 				size_t k;
 				for (k = 0; k < stackpos; k++)
 					if (stack[k] == adj) {
-						vty_out(vty, "<<loop@%zu \n",
-							k);
+						vty_out(vty, "<<loop@%zu \n", k);
 						break;
 					}
 				if (k == stackpos)
-					pretty_print_graph(
-						vty, adj,
-						numto > 1 ? level + 1 : level,
-						desc, stack, stackpos);
+					pretty_print_graph(vty, adj,
+							   numto > 1 ? level + 1
+								     : level,
+							   desc, stack, stackpos);
 			}
 		}
 	} else

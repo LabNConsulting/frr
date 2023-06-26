@@ -85,10 +85,9 @@ struct frr_pthread *frr_pthread_new(const struct frr_pthread_attr *attr,
 	else
 		strlcpy(fpt->os_name, name, OS_THREAD_NAMELEN);
 	/* initialize startup synchronization primitives */
-	fpt->running_cond_mtx = XCALLOC(
-		MTYPE_PTHREAD_PRIM, sizeof(pthread_mutex_t));
-	fpt->running_cond = XCALLOC(MTYPE_PTHREAD_PRIM,
-				    sizeof(pthread_cond_t));
+	fpt->running_cond_mtx =
+		XCALLOC(MTYPE_PTHREAD_PRIM, sizeof(pthread_mutex_t));
+	fpt->running_cond = XCALLOC(MTYPE_PTHREAD_PRIM, sizeof(pthread_cond_t));
 	pthread_mutex_init(fpt->running_cond_mtx, NULL);
 	pthread_cond_init(fpt->running_cond, NULL);
 
@@ -125,11 +124,11 @@ int frr_pthread_set_name(struct frr_pthread *fpt)
 	int ret = 0;
 
 #ifdef HAVE_PTHREAD_SETNAME_NP
-# ifdef GNU_LINUX
+#ifdef GNU_LINUX
 	ret = pthread_setname_np(fpt->thread, fpt->os_name);
-# elif defined(__NetBSD__)
+#elif defined(__NetBSD__)
 	ret = pthread_setname_np(fpt->thread, fpt->os_name, NULL);
-# endif
+#endif
 #elif defined(HAVE_PTHREAD_SET_NAME_NP)
 	pthread_set_name_np(fpt->thread, fpt->os_name);
 #endif
@@ -182,8 +181,7 @@ void frr_pthread_wait_running(struct frr_pthread *fpt)
 {
 	frr_with_mutex (fpt->running_cond_mtx) {
 		while (!fpt->running)
-			pthread_cond_wait(fpt->running_cond,
-					  fpt->running_cond_mtx);
+			pthread_cond_wait(fpt->running_cond, fpt->running_cond_mtx);
 	}
 }
 
@@ -210,8 +208,7 @@ void frr_pthread_stop_all(void)
 		struct listnode *n;
 		struct frr_pthread *fpt;
 		for (ALL_LIST_ELEMENTS_RO(frr_pthread_list, n, fpt)) {
-			if (atomic_load_explicit(&fpt->running,
-						 memory_order_relaxed))
+			if (atomic_load_explicit(&fpt->running, memory_order_relaxed))
 				frr_pthread_stop(fpt, NULL);
 		}
 	}

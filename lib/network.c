@@ -65,9 +65,8 @@ int set_nonblocking(int fd)
 	   never be negative. */
 	flags = fcntl(fd, F_GETFL);
 	if (flags < 0) {
-		flog_err(EC_LIB_SYSTEM_CALL,
-			 "fcntl(F_GETFL) failed for fd %d: %s", fd,
-			 safe_strerror(errno));
+		flog_err(EC_LIB_SYSTEM_CALL, "fcntl(F_GETFL) failed for fd %d: %s",
+			 fd, safe_strerror(errno));
 		return -1;
 	}
 	if (fcntl(fd, F_SETFL, (flags | O_NONBLOCK)) < 0) {

@@ -167,8 +167,7 @@ void msgbuf_drain(struct msgbuf *msgbuf, size_t n)
 {
 	struct ibuf *buf, *next;
 
-	for (buf = TAILQ_FIRST(&msgbuf->bufs); buf != NULL && n > 0;
-	     buf = next) {
+	for (buf = TAILQ_FIRST(&msgbuf->bufs); buf != NULL && n > 0; buf = next) {
 		next = TAILQ_NEXT(buf, entry);
 		if (buf->rpos + n >= buf->wpos) {
 			n -= buf->wpos - buf->rpos;

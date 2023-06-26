@@ -91,8 +91,7 @@ struct route_table *zebra_router_find_table(struct zebra_vrf *zvrf,
 }
 
 struct route_table *zebra_router_get_table(struct zebra_vrf *zvrf,
-					   uint32_t tableid, afi_t afi,
-					   safi_t safi)
+					   uint32_t tableid, afi_t afi, safi_t safi)
 {
 	struct zebra_router_table finder;
 	struct zebra_router_table *zrt;
@@ -113,8 +112,7 @@ struct route_table *zebra_router_get_table(struct zebra_vrf *zvrf,
 	zrt->afi = afi;
 	zrt->safi = safi;
 	zrt->ns_id = zvrf->zns->ns_id;
-	zrt->table =
-		(afi == AFI_IP6) ? srcdest_table_init() : route_table_init();
+	zrt->table = (afi == AFI_IP6) ? srcdest_table_init() : route_table_init();
 
 	info = XCALLOC(MTYPE_RIB_TABLE_INFO, sizeof(*info));
 	info->zvrf = zvrf;
@@ -139,11 +137,10 @@ void zebra_router_show_table_summary(struct vty *vty)
 	RB_FOREACH (zrt, zebra_router_table_head, &zrouter.tables) {
 		struct rib_table_info *info = route_table_get_info(zrt->table);
 
-		vty_out(vty, "%-16s%5d %9d %7s %15s %8d %10lu\n", info->zvrf->vrf->name,
-			zrt->ns_id, info->zvrf->vrf->vrf_id,
-			afi2str(zrt->afi), safi2str(zrt->safi),
-			zrt->tableid,
-			zrt->table->count);
+		vty_out(vty, "%-16s%5d %9d %7s %15s %8d %10lu\n",
+			info->zvrf->vrf->name, zrt->ns_id,
+			info->zvrf->vrf->vrf_id, afi2str(zrt->afi),
+			safi2str(zrt->safi), zrt->tableid, zrt->table->count);
 	}
 }
 
@@ -196,16 +193,14 @@ void zebra_router_release_table(struct zebra_vrf *zvrf, uint32_t tableid,
 
 uint32_t zebra_router_get_next_sequence(void)
 {
-	return 1
-	       + atomic_fetch_add_explicit(&zrouter.sequence_num, 1,
-					   memory_order_relaxed);
+	return 1 + atomic_fetch_add_explicit(&zrouter.sequence_num, 1,
+					     memory_order_relaxed);
 }
 
 void multicast_mode_ipv4_set(enum multicast_mode mode)
 {
 	if (IS_ZEBRA_DEBUG_RIB)
-		zlog_debug("%s: multicast lookup mode set (%d)", __func__,
-			   mode);
+		zlog_debug("%s: multicast lookup mode set (%d)", __func__, mode);
 	zrouter.ipv4_multicast_mode = mode;
 }
 
@@ -237,8 +232,7 @@ void zebra_router_terminate(void)
 
 	hash_clean_and_free(&zrouter.rules_hash, zebra_pbr_rules_free);
 
-	hash_clean_and_free(&zrouter.ipset_entry_hash,
-			    zebra_pbr_ipset_entry_free);
+	hash_clean_and_free(&zrouter.ipset_entry_hash, zebra_pbr_ipset_entry_free);
 	hash_clean_and_free(&zrouter.ipset_hash, zebra_pbr_ipset_free);
 	hash_clean_and_free(&zrouter.iptable_hash, zebra_pbr_iptable_free);
 
@@ -273,32 +267,32 @@ void zebra_router_init(bool asic_offload, bool notify_on_ack)
 					      zebra_pbr_rules_hash_equal,
 					      "Rules Hash");
 
-	zrouter.ipset_hash =
-		hash_create_size(8, zebra_pbr_ipset_hash_key,
-				 zebra_pbr_ipset_hash_equal, "IPset Hash");
+	zrouter.ipset_hash = hash_create_size(8, zebra_pbr_ipset_hash_key,
+					      zebra_pbr_ipset_hash_equal,
+					      "IPset Hash");
 
-	zrouter.ipset_entry_hash = hash_create_size(
-		8, zebra_pbr_ipset_entry_hash_key,
-		zebra_pbr_ipset_entry_hash_equal, "IPset Hash Entry");
+	zrouter.ipset_entry_hash =
+		hash_create_size(8, zebra_pbr_ipset_entry_hash_key,
+				 zebra_pbr_ipset_entry_hash_equal,
+				 "IPset Hash Entry");
 
 	zrouter.iptable_hash = hash_create_size(8, zebra_pbr_iptable_hash_key,
 						zebra_pbr_iptable_hash_equal,
 						"IPtable Hash Entry");
 
-	zrouter.nhgs =
-		hash_create_size(8, zebra_nhg_hash_key, zebra_nhg_hash_equal,
-				 "Zebra Router Nexthop Groups");
+	zrouter.nhgs = hash_create_size(8, zebra_nhg_hash_key, zebra_nhg_hash_equal,
+					"Zebra Router Nexthop Groups");
 	zrouter.nhgs_id =
 		hash_create_size(8, zebra_nhg_id_key, zebra_nhg_hash_id_equal,
 				 "Zebra Router Nexthop Groups ID index");
 
-	zrouter.rules_hash =
-		hash_create_size(8, zebra_pbr_rules_hash_key,
-				 zebra_pbr_rules_hash_equal, "Rules Hash");
+	zrouter.rules_hash = hash_create_size(8, zebra_pbr_rules_hash_key,
+					      zebra_pbr_rules_hash_equal,
+					      "Rules Hash");
 
-	zrouter.qdisc_hash =
-		hash_create_size(8, zebra_tc_qdisc_hash_key,
-				 zebra_tc_qdisc_hash_equal, "TC (qdisc) Hash");
+	zrouter.qdisc_hash = hash_create_size(8, zebra_tc_qdisc_hash_key,
+					      zebra_tc_qdisc_hash_equal,
+					      "TC (qdisc) Hash");
 	zrouter.class_hash = hash_create_size(8, zebra_tc_class_hash_key,
 					      zebra_tc_class_hash_equal,
 					      "TC (classes) Hash");
@@ -315,8 +309,7 @@ void zebra_router_init(bool asic_offload, bool notify_on_ack)
 	 * We would like to know.
 	 */
 #if CONFDATE > 20251231
-	CPP_NOTICE(
-		"Remove zrouter.asic_notification_nexthop_control as that it's not being maintained or used");
+	CPP_NOTICE("Remove zrouter.asic_notification_nexthop_control as that it's not being maintained or used");
 #endif
 	zrouter.asic_notification_nexthop_control = false;
 

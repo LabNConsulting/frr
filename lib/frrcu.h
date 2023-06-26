@@ -130,37 +130,37 @@ extern void rcu_enqueue(struct rcu_head *head, const struct rcu_action *action);
  */
 
 /* may be called with NULL mt to do non-MTYPE free() */
-#define rcu_free(mtype, ptr, field)                                            \
-	do {                                                                   \
-		typeof(ptr) _ptr = (ptr);                                      \
-		if (!_ptr)                                                     \
-			break;                                                 \
-		struct rcu_head *_rcu_head = &_ptr->field;                     \
+#define rcu_free(mtype, ptr, field)                                              \
+	do {                                                                     \
+		typeof(ptr) _ptr = (ptr);                                        \
+		if (!_ptr)                                                       \
+			break;                                                   \
+		struct rcu_head *_rcu_head = &_ptr->field;                       \
 		static const struct rcu_action _rcu_action = {                 \
 			.type = RCUA_FREE,                                     \
 			.u.free = {                                            \
 				.mt = mtype,                                   \
 				.offset = offsetof(typeof(*_ptr), field),      \
 			},                                                     \
-		};                                                             \
-		rcu_enqueue(_rcu_head, &_rcu_action);                          \
+		}; \
+		rcu_enqueue(_rcu_head, &_rcu_action);                            \
 	} while (0)
 
 /* use this sparingly, it runs on (and blocks) the RCU thread */
-#define rcu_call(func, ptr, field)                                             \
-	do {                                                                   \
-		typeof(ptr) _ptr = (ptr);                                      \
-		void (*fptype)(typeof(ptr));                                   \
-		struct rcu_head *_rcu_head = &_ptr->field;                     \
+#define rcu_call(func, ptr, field)                                               \
+	do {                                                                     \
+		typeof(ptr) _ptr = (ptr);                                        \
+		void (*fptype)(typeof(ptr));                                     \
+		struct rcu_head *_rcu_head = &_ptr->field;                       \
 		static const struct rcu_action _rcu_action = {                 \
 			.type = RCUA_CALL,                                     \
 			.u.call = {                                            \
 				.fptr = (void *)func,                          \
 				.offset = offsetof(typeof(*_ptr), field),      \
 			},                                                     \
-		};                                                             \
-		(void)(_fptype = func);                                        \
-		rcu_enqueue(_rcu_head, &_rcu_action);                          \
+		}; \
+		(void)(_fptype = func);                                          \
+		rcu_enqueue(_rcu_head, &_rcu_action);                            \
 	} while (0)
 
 extern void rcu_close(struct rcu_head_close *head, int fd);

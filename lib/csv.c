@@ -173,8 +173,7 @@ static void csv_decode_record(csv_record_t *rec)
 	}
 }
 
-static csv_field_t *csv_add_field_to_record(csv_t *csv, csv_record_t *rec,
-					    char *col)
+static csv_field_t *csv_add_field_to_record(csv_t *csv, csv_record_t *rec, char *col)
 {
 	csv_field_t *fld;
 	char *str = rec->record;
@@ -249,8 +248,7 @@ csv_record_t *csv_encode(csv_t *csv, int count, ...)
 						 (len - rec->rec_len), ",");
 		}
 	}
-	rec->rec_len +=
-		snprintf((str + rec->rec_len), (len - rec->rec_len), "\n");
+	rec->rec_len += snprintf((str + rec->rec_len), (len - rec->rec_len), "\n");
 	va_end(list);
 	csv->csv_len += rec->rec_len;
 	csv->pointer += rec->rec_len;
@@ -346,8 +344,7 @@ csv_record_t *csv_append_record(csv_t *csv, csv_record_t *rec, int count, ...)
 						 (len - rec->rec_len), ",");
 		}
 	}
-	rec->rec_len +=
-		snprintf((str + rec->rec_len), (len - rec->rec_len), "\n");
+	rec->rec_len += snprintf((str + rec->rec_len), (len - rec->rec_len), "\n");
 	va_end(list);
 	csv->csv_len += (rec->rec_len - tlen);
 	csv->pointer += (rec->rec_len - tlen);
@@ -386,8 +383,7 @@ void csv_clone_record(csv_t *csv, csv_record_t *in_rec, csv_record_t **out_rec)
 
 	/* only works with csv with discrete bufs */
 	if (csv->buf) {
-		log_error(
-			"un-supported for this csv type - single buf detected\n");
+		log_error("un-supported for this csv type - single buf detected\n");
 		return;
 	}
 
@@ -453,8 +449,7 @@ void csv_insert_record(csv_t *csv, csv_record_t *rec)
 
 	/* we can only insert records if no buf was supplied during csv init */
 	if (csv->buf) {
-		log_error(
-			"un-supported for this csv type - single buf detected\n");
+		log_error("un-supported for this csv type - single buf detected\n");
 		return;
 	}
 
@@ -470,24 +465,21 @@ void csv_insert_record(csv_t *csv, csv_record_t *rec)
 	csv->pointer += rec->rec_len;
 }
 
-csv_record_t *csv_concat_record(csv_t *csv, csv_record_t *rec1,
-				csv_record_t *rec2)
+csv_record_t *csv_concat_record(csv_t *csv, csv_record_t *rec1, csv_record_t *rec2)
 {
 	char *curr;
 	char *ret;
 	csv_record_t *rec;
 
 	/* first check if rec1 and rec2 belong to this csv */
-	if (!csv_is_record_valid(csv, rec1)
-	    || !csv_is_record_valid(csv, rec2)) {
+	if (!csv_is_record_valid(csv, rec1) || !csv_is_record_valid(csv, rec2)) {
 		log_error("rec1 and/or rec2 invalid\n");
 		return NULL;
 	}
 
 	/* we can only concat records if no buf was supplied during csv init */
 	if (csv->buf) {
-		log_error(
-			"un-supported for this csv type - single buf detected\n");
+		log_error("un-supported for this csv type - single buf detected\n");
 		return NULL;
 	}
 
@@ -528,8 +520,8 @@ csv_record_t *csv_concat_record(csv_t *csv, csv_record_t *rec1,
 	rec->rec_len = strlen(curr);
 
 	/* paranoia */
-	assert(csv->buflen
-	       > (csv->csv_len - rec1->rec_len - rec2->rec_len + rec->rec_len));
+	assert(csv->buflen >
+	       (csv->csv_len - rec1->rec_len - rec2->rec_len + rec->rec_len));
 
 	/* decode record into fields */
 	csv_decode_record(rec);

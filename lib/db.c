@@ -31,9 +31,8 @@ int db_init(const char *path_fmt, ...)
 	vsnprintf(path, sizeof(path), path_fmt, ap);
 	va_end(ap);
 
-	if (sqlite3_open_v2(path, &dbp,
-			    (SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE), NULL)
-	    != SQLITE_OK) {
+	if (sqlite3_open_v2(path, &dbp, (SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE),
+			    NULL) != SQLITE_OK) {
 		if (dbp == NULL) {
 			zlog_warn("%s: failed to open database '%s'", __func__,
 				  path);
@@ -86,30 +85,26 @@ static int db_vbindf(struct sqlite3_stmt *ss, const char *fmt, va_list vl)
 		switch (*sptr) {
 		case 'i':
 			uinteger = va_arg(vl, uint32_t);
-			if (sqlite3_bind_int(ss, column++, uinteger)
-			    != SQLITE_OK)
+			if (sqlite3_bind_int(ss, column++, uinteger) != SQLITE_OK)
 				return -1;
 			break;
 		case 'd':
 			uinteger64 = va_arg(vl, uint64_t);
-			if (sqlite3_bind_int64(ss, column++, uinteger64)
-			    != SQLITE_OK)
+			if (sqlite3_bind_int64(ss, column++, uinteger64) != SQLITE_OK)
 				return -1;
 			break;
 		case 's':
 			str = va_arg(vl, const char *);
 			vlen = va_arg(vl, int);
 			if (sqlite3_bind_text(ss, column++, str, vlen,
-					      SQLITE_STATIC)
-			    != SQLITE_OK)
+					      SQLITE_STATIC) != SQLITE_OK)
 				return -1;
 			break;
 		case 'b':
 			blob = va_arg(vl, void *);
 			vlen = va_arg(vl, int);
 			if (sqlite3_bind_blob(ss, column++, blob, vlen,
-					      SQLITE_STATIC)
-			    != SQLITE_OK)
+					      SQLITE_STATIC) != SQLITE_OK)
 				return -1;
 			break;
 		case 'n':

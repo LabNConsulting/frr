@@ -11,8 +11,8 @@
 #include "monotime.h"
 
 /* defaults */
-#define PULLWR_THRESH	16384	/* size at which we start to call write() */
-#define PULLWR_MAXSPIN	2500	/* max µs to spend grabbing more data */
+#define PULLWR_THRESH  16384 /* size at which we start to call write() */
+#define PULLWR_MAXSPIN 2500  /* max µs to spend grabbing more data */
 
 struct pullwr {
 	int fd;
@@ -31,12 +31,12 @@ struct pullwr {
 	uint64_t total_written;
 	char *buffer;
 
-	size_t thresh;		/* PULLWR_THRESH */
-	int64_t maxspin;	/* PULLWR_MAXSPIN */
+	size_t thresh;	 /* PULLWR_THRESH */
+	int64_t maxspin; /* PULLWR_MAXSPIN */
 };
 
 DEFINE_MTYPE_STATIC(LIB, PULLWR_HEAD, "pull-driven write controller");
-DEFINE_MTYPE_STATIC(LIB, PULLWR_BUF,  "pull-driven write buffer");
+DEFINE_MTYPE_STATIC(LIB, PULLWR_BUF, "pull-driven write buffer");
 
 static void pullwr_run(struct event *t);
 
@@ -67,8 +67,7 @@ void pullwr_del(struct pullwr *pullwr)
 	XFREE(MTYPE_PULLWR_HEAD, pullwr);
 }
 
-void pullwr_cfg(struct pullwr *pullwr, int64_t max_spin_usec,
-		size_t write_threshold)
+void pullwr_cfg(struct pullwr *pullwr, int64_t max_spin_usec, size_t write_threshold)
 {
 	pullwr->maxspin = max_spin_usec ?: PULLWR_MAXSPIN;
 	pullwr->thresh = write_threshold ?: PULLWR_THRESH;
@@ -138,8 +137,8 @@ static void pullwr_resize(struct pullwr *pullwr, size_t need)
 	if (niov >= 1) {
 		memcpy(newbuf, iov[0].iov_base, iov[0].iov_len);
 		if (niov >= 2)
-			memcpy(newbuf + iov[0].iov_len,
-				iov[1].iov_base, iov[1].iov_len);
+			memcpy(newbuf + iov[0].iov_len, iov[1].iov_base,
+			       iov[1].iov_len);
 	}
 
 	XFREE(MTYPE_PULLWR_BUF, pullwr->buffer);
@@ -162,13 +161,11 @@ void pullwr_write(struct pullwr *pullwr, const void *data, size_t len)
 		max1 = pullwr->bufsz - (pullwr->pos + pullwr->valid);
 		max1 = MIN(max1, len);
 
-		memcpy(pullwr->buffer + pullwr->pos + pullwr->valid,
-				data, max1);
+		memcpy(pullwr->buffer + pullwr->pos + pullwr->valid, data, max1);
 		len1 = len - max1;
 
 		if (len1)
 			memcpy(pullwr->buffer, (char *)data + max1, len1);
-
 	}
 	pullwr->valid += len;
 
@@ -188,17 +185,15 @@ static void pullwr_run(struct event *t)
 
 	do {
 		lastvalid = pullwr->valid - 1;
-		while (pullwr->valid < pullwr->thresh
-				&& pullwr->valid != lastvalid
-				&& !maxspun) {
+		while (pullwr->valid < pullwr->thresh &&
+		       pullwr->valid != lastvalid && !maxspun) {
 			lastvalid = pullwr->valid;
 			pullwr->fill(pullwr->arg, pullwr);
 
 			/* check after doing at least one fill() call so we
 			 * don't spin without making progress on slow boxes
 			 */
-			if (!maxspun && monotime_since(&t0, NULL)
-					>= pullwr->maxspin)
+			if (!maxspun && monotime_since(&t0, NULL) >= pullwr->maxspin)
 				maxspun = true;
 		}
 

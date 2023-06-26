@@ -23,8 +23,7 @@ static int target_cmp(const struct zlog_cfg_5424_user *a,
 	return strcmp(a->name, b->name);
 }
 
-DECLARE_RBTREE_UNIQ(targets, struct zlog_cfg_5424_user, targets_item,
-		    target_cmp);
+DECLARE_RBTREE_UNIQ(targets, struct zlog_cfg_5424_user, targets_item, target_cmp);
 DEFINE_QOBJ_TYPE(zlog_cfg_5424_user);
 
 static struct targets_head targets = INIT_RBTREE_UNIQ(targets);
@@ -147,9 +146,7 @@ static int reconf_clear_dst(struct zlog_cfg_5424_user *cfg, struct vty *vty)
 
 #include "lib/zlog_5424_cli_clippy.c"
 
-DEFPY_NOSH(log_5424_target,
-	   log_5424_target_cmd,
-	   "log extended-syslog EXTLOGNAME",
+DEFPY_NOSH(log_5424_target, log_5424_target_cmd, "log extended-syslog EXTLOGNAME",
 	   "Logging control\n"
 	   "Extended RFC5424 syslog (including file targets)\n"
 	   "Name identifying this syslog target\n")
@@ -166,13 +163,11 @@ DEFPY_NOSH(log_5424_target,
 	return CMD_SUCCESS;
 }
 
-DEFPY(no_log_5424_target,
-      no_log_5424_target_cmd,
+DEFPY(no_log_5424_target, no_log_5424_target_cmd,
       "no log extended-syslog EXTLOGNAME",
-      NO_STR
-      "Logging control\n"
-      "Extended RFC5424 syslog (including file targets)\n"
-      "Name identifying this syslog target\n")
+      NO_STR "Logging control\n"
+	     "Extended RFC5424 syslog (including file targets)\n"
+	     "Name identifying this syslog target\n")
 {
 	struct zlog_cfg_5424_user *cfg, ref;
 
@@ -195,11 +190,9 @@ DEFPY(no_log_5424_target,
 	"RFC3164 (legacy) syslog\n"                                            \
 	"RFC5424 (modern) syslog, supports structured data (default)\n"        \
 	"modified RFC3164 without hostname for local syslogd (/dev/log)\n"     \
-	"journald (systemd log) native format\n"                               \
-	/* end */
+	"journald (systemd log) native format\n" /* end */
 
-static enum zlog_5424_format log_5424_fmt(const char *fmt,
-					  enum zlog_5424_format dflt)
+static enum zlog_5424_format log_5424_fmt(const char *fmt, enum zlog_5424_format dflt)
 {
 	if (!fmt)
 		return dflt;
@@ -215,25 +208,22 @@ static enum zlog_5424_format log_5424_fmt(const char *fmt,
 	return dflt;
 }
 
-DEFPY(log_5424_destination_file,
-      log_5424_destination_file_cmd,
+DEFPY(log_5424_destination_file, log_5424_destination_file_cmd,
       "[no] destination file$type PATH "
-		"[create$create [{user WORD|group WORD|mode PERMS}]"
-		"|no-create$nocreate] "
-		"[format <rfc3164|rfc5424|local-syslogd|journald>$fmt]",
-      NO_STR
-      "Log destination setup\n"
-      "Log to file\n"
-      "Path to destination\n"
-      "Create file if it does not exist\n"
-      "Set file owner\n"
-      "User name\n"
-      "Set file group\n"
-      "Group name\n"
-      "Set permissions\n"
-      "File permissions (octal)\n"
-      "Do not create file if it does not exist\n"
-      FORMAT_HELP)
+      "[create$create [{user WORD|group WORD|mode PERMS}]"
+      "|no-create$nocreate] "
+      "[format <rfc3164|rfc5424|local-syslogd|journald>$fmt]",
+      NO_STR "Log destination setup\n"
+	     "Log to file\n"
+	     "Path to destination\n"
+	     "Create file if it does not exist\n"
+	     "Set file owner\n"
+	     "User name\n"
+	     "Set file group\n"
+	     "Group name\n"
+	     "Set permissions\n"
+	     "File permissions (octal)\n"
+	     "Do not create file if it does not exist\n" FORMAT_HELP)
 {
 	VTY_DECLVAR_CONTEXT(zlog_cfg_5424_user, cfg);
 	enum zlog_5424_dst dst;
@@ -251,16 +241,14 @@ DEFPY(log_5424_destination_file,
 		char *errp = (char *)perms;
 
 		perm_val = strtoul(perms, &errp, 8);
-		if (*errp || errp == perms || perm_val == 0 ||
-		    (perm_val & ~0666)) {
+		if (*errp || errp == perms || perm_val == 0 || (perm_val & ~0666)) {
 			vty_out(vty, "%% Invalid permissions value \"%s\"\n",
 				perms);
 			return CMD_WARNING;
 		}
 	}
 
-	dst = (strcmp(type, "fifo") == 0) ? ZLOG_5424_DST_FIFO
-					  : ZLOG_5424_DST_FILE;
+	dst = (strcmp(type, "fifo") == 0) ? ZLOG_5424_DST_FIFO : ZLOG_5424_DST_FILE;
 
 	if (cfg->filename && !strcmp(path, cfg->filename) &&
 	    dst == cfg->cfg.dst && cfg->cfg.active && cfg->cfg.fmt == fmtv)
@@ -345,25 +333,22 @@ DEFPY(log_5424_destination_file,
  * would need to be reopened when the process at the other end restarts.  None
  * of this is handled - use at your own caution.  It's _HIDDEN for a purpose.
  */
-ALIAS_HIDDEN(log_5424_destination_file,
-	     log_5424_destination_fifo_cmd,
-      "[no] destination fifo$type PATH "
-		"[create$create [{owner WORD|group WORD|permissions PERMS}]"
-		"|no-create$nocreate] "
-		"[format <rfc3164|rfc5424|local-syslogd|journald>$fmt]",
-      NO_STR
-      "Log destination setup\n"
-      "Log to filesystem FIFO\n"
-      "Path to destination\n"
-      "Create file if it does not exist\n"
-      "Set file owner\n"
-      "User name\n"
-      "Set file group\n"
-      "Group name\n"
-      "Set permissions\n"
-      "File permissions (octal)\n"
-      "Do not create file if it does not exist\n"
-      FORMAT_HELP)
+ALIAS_HIDDEN(log_5424_destination_file, log_5424_destination_fifo_cmd,
+	     "[no] destination fifo$type PATH "
+	     "[create$create [{owner WORD|group WORD|permissions PERMS}]"
+	     "|no-create$nocreate] "
+	     "[format <rfc3164|rfc5424|local-syslogd|journald>$fmt]",
+	     NO_STR "Log destination setup\n"
+		    "Log to filesystem FIFO\n"
+		    "Path to destination\n"
+		    "Create file if it does not exist\n"
+		    "Set file owner\n"
+		    "User name\n"
+		    "Set file group\n"
+		    "Group name\n"
+		    "Set permissions\n"
+		    "File permissions (octal)\n"
+		    "Do not create file if it does not exist\n" FORMAT_HELP)
 
 static int dst_unix(struct vty *vty, const char *no, const char *path,
 		    enum zlog_5424_format fmt, enum unix_special special)
@@ -376,8 +361,7 @@ static int dst_unix(struct vty *vty, const char *no, const char *path,
 	cfg->unix_special = special;
 
 	if (cfg->cfg.dst == ZLOG_5424_DST_UNIX && cfg->filename &&
-	    !strcmp(path, cfg->filename) && cfg->cfg.active &&
-	    cfg->cfg.fmt == fmt)
+	    !strcmp(path, cfg->filename) && cfg->cfg.active && cfg->cfg.fmt == fmt)
 		return CMD_SUCCESS;
 
 	clear_dst(cfg);
@@ -393,15 +377,12 @@ static int dst_unix(struct vty *vty, const char *no, const char *path,
 	return reconf_dst(cfg, vty);
 }
 
-DEFPY(log_5424_destination_unix,
-      log_5424_destination_unix_cmd,
+DEFPY(log_5424_destination_unix, log_5424_destination_unix_cmd,
       "[no] destination unix PATH "
-		 "[format <rfc3164|rfc5424|local-syslogd|journald>$fmt]",
-      NO_STR
-      "Log destination setup\n"
-      "Log to unix socket\n"
-      "Unix socket path\n"
-      FORMAT_HELP)
+      "[format <rfc3164|rfc5424|local-syslogd|journald>$fmt]",
+      NO_STR "Log destination setup\n"
+	     "Log to unix socket\n"
+	     "Unix socket path\n" FORMAT_HELP)
 {
 	VTY_DECLVAR_CONTEXT(zlog_cfg_5424_user, cfg);
 	enum zlog_5424_format fmtv = log_5424_fmt(fmt, ZLOG_FMT_5424);
@@ -409,32 +390,28 @@ DEFPY(log_5424_destination_unix,
 	return dst_unix(vty, no, path, fmtv, SPECIAL_NONE);
 }
 
-DEFPY(log_5424_destination_journald,
-      log_5424_destination_journald_cmd,
+DEFPY(log_5424_destination_journald, log_5424_destination_journald_cmd,
       "[no] destination journald",
-      NO_STR
-      "Log destination setup\n"
-      "Log directly to systemd's journald\n")
+      NO_STR "Log destination setup\n"
+	     "Log directly to systemd's journald\n")
 {
 	return dst_unix(vty, no, "/run/systemd/journal/socket",
 			ZLOG_FMT_JOURNALD, SPECIAL_JOURNALD);
 }
 
 #if defined(__FreeBSD_version) && (__FreeBSD_version >= 1200061)
-#define ZLOG_FMT_DEV_LOG	ZLOG_FMT_5424
+#define ZLOG_FMT_DEV_LOG ZLOG_FMT_5424
 #elif defined(__NetBSD_Version__) && (__NetBSD_Version__ >= 500000000)
-#define ZLOG_FMT_DEV_LOG	ZLOG_FMT_5424
+#define ZLOG_FMT_DEV_LOG ZLOG_FMT_5424
 #else
-#define ZLOG_FMT_DEV_LOG	ZLOG_FMT_LOCAL
+#define ZLOG_FMT_DEV_LOG ZLOG_FMT_LOCAL
 #endif
 
-DEFPY(log_5424_destination_syslog,
-      log_5424_destination_syslog_cmd,
+DEFPY(log_5424_destination_syslog, log_5424_destination_syslog_cmd,
       "[no] destination syslog [supports-rfc5424]$supp5424",
-      NO_STR
-      "Log destination setup\n"
-      "Log directly to syslog\n"
-      "Use RFC5424 format (please refer to documentation)\n")
+      NO_STR "Log destination setup\n"
+	     "Log directly to syslog\n"
+	     "Use RFC5424 format (please refer to documentation)\n")
 {
 	int format = supp5424 ? ZLOG_FMT_5424 : ZLOG_FMT_DEV_LOG;
 
@@ -455,19 +432,16 @@ DEFPY(log_5424_destination_syslog,
  *    all of this, why reinvent the wheel?
  */
 
-DEFPY(log_5424_destination_fd,
-      log_5424_destination_fd_cmd,
+DEFPY(log_5424_destination_fd, log_5424_destination_fd_cmd,
       "[no] destination <fd <(0-63)$fd|envvar WORD>|stdout$fd1|stderr$fd2>"
-		 "[format <rfc3164|rfc5424|local-syslogd|journald>$fmt]",
-      NO_STR
-      "Log destination setup\n"
-      "Log to pre-opened file descriptor\n"
-      "File descriptor number (must be open at startup)\n"
-      "Read file descriptor number from environment variable\n"
-      "Environment variable name\n"
-      "Log to standard output\n"
-      "Log to standard error output\n"
-      FORMAT_HELP)
+      "[format <rfc3164|rfc5424|local-syslogd|journald>$fmt]",
+      NO_STR "Log destination setup\n"
+	     "Log to pre-opened file descriptor\n"
+	     "File descriptor number (must be open at startup)\n"
+	     "Read file descriptor number from environment variable\n"
+	     "Environment variable name\n"
+	     "Log to standard output\n"
+	     "Log to standard error output\n" FORMAT_HELP)
 {
 	VTY_DECLVAR_CONTEXT(zlog_cfg_5424_user, cfg);
 	bool envvar_problem = false;
@@ -526,12 +500,10 @@ DEFPY(log_5424_destination_fd,
 	return reconf_dst(cfg, vty);
 }
 
-DEFPY(log_5424_destination_none,
-      log_5424_destination_none_cmd,
+DEFPY(log_5424_destination_none, log_5424_destination_none_cmd,
       "[no] destination [none]",
-      NO_STR
-      "Log destination setup\n"
-      "Deconfigure destination\n")
+      NO_STR "Log destination setup\n"
+	     "Deconfigure destination\n")
 {
 	VTY_DECLVAR_CONTEXT(zlog_cfg_5424_user, cfg);
 
@@ -540,12 +512,10 @@ DEFPY(log_5424_destination_none,
 
 /* end of destinations */
 
-DEFPY(log_5424_prio,
-      log_5424_prio_cmd,
+DEFPY(log_5424_prio, log_5424_prio_cmd,
       "[no] priority <emergencies|alerts|critical|errors|warnings|notifications|informational|debugging>$levelarg",
       NO_STR
-      "Set minimum message priority to include for this target\n"
-      LOG_LEVEL_DESC)
+      "Set minimum message priority to include for this target\n" LOG_LEVEL_DESC)
 {
 	VTY_DECLVAR_CONTEXT(zlog_cfg_5424_user, cfg);
 	int prio_min = log_level_match(levelarg);
@@ -557,12 +527,9 @@ DEFPY(log_5424_prio,
 	return reconf_meta(cfg, vty);
 }
 
-DEFPY(log_5424_facility,
-      log_5424_facility_cmd,
+DEFPY(log_5424_facility, log_5424_facility_cmd,
       "[no] facility <kern|user|mail|daemon|auth|syslog|lpr|news|uucp|cron|local0|local1|local2|local3|local4|local5|local6|local7>$facilityarg",
-      NO_STR
-      "Set syslog facility to use\n"
-      LOG_FACILITY_DESC)
+      NO_STR "Set syslog facility to use\n" LOG_FACILITY_DESC)
 {
 	VTY_DECLVAR_CONTEXT(zlog_cfg_5424_user, cfg);
 	int facility = facility_match(facilityarg);
@@ -574,16 +541,14 @@ DEFPY(log_5424_facility,
 	return reconf_meta(cfg, vty);
 }
 
-DEFPY(log_5424_meta,
-      log_5424_meta_cmd,
+DEFPY(log_5424_meta, log_5424_meta_cmd,
       "[no] structured-data <code-location|version|unique-id|error-category|format-args>$option",
-      NO_STR
-      "Select structured data (key/value pairs) to include in each message\n"
-      "FRR source code location\n"
-      "FRR version\n"
-      "Unique message identifier (XXXXX-XXXXX)\n"
-      "Error category (EC numeric)\n"
-      "Individual formatted log message arguments\n")
+      NO_STR "Select structured data (key/value pairs) to include in each message\n"
+	     "FRR source code location\n"
+	     "FRR version\n"
+	     "Unique message identifier (XXXXX-XXXXX)\n"
+	     "Error category (EC numeric)\n"
+	     "Individual formatted log message arguments\n")
 {
 	VTY_DECLVAR_CONTEXT(zlog_cfg_5424_user, cfg);
 	bool val = !no, *ptr;
@@ -602,13 +567,10 @@ DEFPY(log_5424_meta,
 	return reconf_meta(cfg, vty);
 }
 
-DEFPY(log_5424_ts_prec,
-      log_5424_ts_prec_cmd,
-      "[no] timestamp precision (0-9)",
-      NO_STR
-      "Timestamp options\n"
-      "Number of sub-second digits to include\n"
-      "Number of sub-second digits to include\n")
+DEFPY(log_5424_ts_prec, log_5424_ts_prec_cmd, "[no] timestamp precision (0-9)",
+      NO_STR "Timestamp options\n"
+	     "Number of sub-second digits to include\n"
+	     "Number of sub-second digits to include\n")
 {
 	VTY_DECLVAR_CONTEXT(zlog_cfg_5424_user, cfg);
 	uint32_t ts_flags = cfg->cfg.ts_flags;
@@ -626,12 +588,9 @@ DEFPY(log_5424_ts_prec,
 	return reconf_meta(cfg, vty);
 }
 
-DEFPY(log_5424_ts_local,
-      log_5424_ts_local_cmd,
-      "[no] timestamp local-time",
-      NO_STR
-      "Timestamp options\n"
-      "Use local system time zone rather than UTC\n")
+DEFPY(log_5424_ts_local, log_5424_ts_local_cmd, "[no] timestamp local-time",
+      NO_STR "Timestamp options\n"
+	     "Use local system time zone rather than UTC\n")
 {
 	VTY_DECLVAR_CONTEXT(zlog_cfg_5424_user, cfg);
 	uint32_t ts_flags = cfg->cfg.ts_flags;
@@ -702,11 +661,9 @@ static int log_5424_config_write(struct vty *vty)
 				vty_out(vty, " destination fd envvar %s%s\n",
 					cfg->envvar, fmt_str);
 			else if (cfg->cfg.fd == 1)
-				vty_out(vty, " destination stdout%s\n",
-					fmt_str);
+				vty_out(vty, " destination stdout%s\n", fmt_str);
 			else if (cfg->cfg.fd == 2)
-				vty_out(vty, " destination stderr%s\n",
-					fmt_str);
+				vty_out(vty, " destination stderr%s\n", fmt_str);
 			else
 				vty_out(vty, " destination fd %d%s\n",
 					cfg->cfg.fd, fmt_str);
@@ -729,11 +686,9 @@ static int log_5424_config_write(struct vty *vty)
 				vty_out(vty, " create");
 
 				if (cfg->file_user)
-					vty_out(vty, " user %s",
-						cfg->file_user);
+					vty_out(vty, " user %s", cfg->file_user);
 				if (cfg->file_group)
-					vty_out(vty, " group %s",
-						cfg->file_group);
+					vty_out(vty, " group %s", cfg->file_group);
 				if (cfg->cfg.file_mode != (LOGFILE_MASK & 0666))
 					vty_out(vty, " mode %04o",
 						cfg->cfg.file_mode);
@@ -801,8 +756,7 @@ static int log_5424_show(struct vty *vty)
 
 		switch (cfg->cfg.dst) {
 		case ZLOG_5424_DST_NONE:
-			vty_out(vty,
-				"  Inactive (no destination configured)\n");
+			vty_out(vty, "  Inactive (no destination configured)\n");
 			break;
 
 		case ZLOG_5424_DST_FD:
@@ -815,8 +769,7 @@ static int log_5424_show(struct vty *vty)
 			else if (cfg->cfg.fd == 2)
 				vty_out(vty, "  logging to stderr\n");
 			else
-				vty_out(vty, "  logging to fd %d\n",
-					cfg->cfg.fd);
+				vty_out(vty, "  logging to fd %d\n", cfg->cfg.fd);
 			break;
 
 		case ZLOG_5424_DST_FILE:
@@ -824,9 +777,8 @@ static int log_5424_show(struct vty *vty)
 		case ZLOG_5424_DST_UNIX:
 			vty_out(vty, "  logging to %s: %pSE\n",
 				(cfg->cfg.dst == ZLOG_5424_DST_FIFO) ? "fifo"
-				: (cfg->cfg.dst == ZLOG_5424_DST_UNIX)
-					? "unix socket"
-					: "file",
+				: (cfg->cfg.dst == ZLOG_5424_DST_UNIX) ? "unix socket"
+								       : "file",
 				cfg->filename);
 			break;
 		}
@@ -851,10 +803,9 @@ static int log_5424_show(struct vty *vty)
 		case ZLOG_FMT_JOURNALD:
 			vty_out(vty, "  structured data: ");
 
-			for (struct log_option *opt = log_opts; opt->name;
-			     opt++) {
-				bool *ptr = (bool *)(((char *)&cfg->cfg) +
-						     opt->offs);
+			for (struct log_option *opt = log_opts; opt->name; opt++) {
+				bool *ptr =
+					(bool *)(((char *)&cfg->cfg) + opt->offs);
 
 				if (*ptr) {
 					vty_out(vty, "%s%s", first ? "" : ", ",
@@ -887,8 +838,7 @@ static int log_5424_show(struct vty *vty)
 			since = 0;
 		else
 			since = monotime_since(&err_ts, NULL);
-		vty_out(vty,
-			"  last error: %s (%lld.%06llds ago, currently %s)\n",
+		vty_out(vty, "  last error: %s (%lld.%06llds ago, currently %s)\n",
 			last_errno ? safe_strerror(last_errno) : "none",
 			since / 1000000LL, since % 1000000LL,
 			stale_errno ? "OK" : "erroring");
@@ -915,8 +865,8 @@ static void log_5424_autocomplete(vector comps, struct cmd_token *token)
 }
 
 static const struct cmd_variable_handler log_5424_var_handlers[] = {
-	{.tokenname = "EXTLOGNAME", .completions = log_5424_autocomplete},
-	{.completions = NULL},
+	{ .tokenname = "EXTLOGNAME", .completions = log_5424_autocomplete },
+	{ .completions = NULL },
 };
 
 void log_5424_cmd_init(void)
@@ -972,9 +922,8 @@ static int log_5424_rotate(void)
 
 	frr_each (targets, &targets, cfg)
 		if (!zlog_5424_rotate(&cfg->cfg))
-			zlog_err(
-				"log rotation on extended log target %s failed",
-				cfg->name);
+			zlog_err("log rotation on extended log target %s failed",
+				 cfg->name);
 
 	return 0;
 }

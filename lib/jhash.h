@@ -41,8 +41,7 @@ extern uint32_t jhash2(const uint32_t *k, uint32_t length, uint32_t initval);
  * NOTE: In partilar the "c += length; __jhash_mix(a,b,c);" normally
  *       done at the end is not done here.
  */
-extern uint32_t jhash_3words(uint32_t a, uint32_t b, uint32_t c,
-			     uint32_t initval);
+extern uint32_t jhash_3words(uint32_t a, uint32_t b, uint32_t c, uint32_t initval);
 extern uint32_t jhash_2words(uint32_t a, uint32_t b, uint32_t initval);
 extern uint32_t jhash_1word(uint32_t a, uint32_t initval);
 

@@ -142,8 +142,7 @@ static void zebra_mlag_read(struct event *thread)
 	tot_len -= ZEBRA_MLAG_LEN_SIZE;
 
 	/* Process the packet */
-	zebra_mlag_process_mlag_data(mlag_rd_buffer + ZEBRA_MLAG_LEN_SIZE,
-				     tot_len);
+	zebra_mlag_process_mlag_data(mlag_rd_buffer + ZEBRA_MLAG_LEN_SIZE, tot_len);
 
 	/* Register read thread. */
 	zebra_mlag_reset_read_buffer();
@@ -153,7 +152,7 @@ static void zebra_mlag_read(struct event *thread)
 
 static void zebra_mlag_connect(struct event *thread)
 {
-	struct sockaddr_un svr = {0};
+	struct sockaddr_un svr = { 0 };
 
 	/* Reset the Timer-running flag */
 	zrouter.mlag_info.timer_running = false;
@@ -168,9 +167,8 @@ static void zebra_mlag_connect(struct event *thread)
 
 	if (connect(mlag_socket, (struct sockaddr *)&svr, sizeof(svr)) == -1) {
 		if (IS_ZEBRA_DEBUG_MLAG)
-			zlog_debug(
-				"Unable to connect to %s try again in 10 secs",
-				svr.sun_path);
+			zlog_debug("Unable to connect to %s try again in 10 secs",
+				   svr.sun_path);
 		close(mlag_socket);
 		zrouter.mlag_info.timer_running = true;
 		event_add_timer(zmlag_master, zebra_mlag_connect, NULL, 10,
@@ -181,8 +179,7 @@ static void zebra_mlag_connect(struct event *thread)
 	set_nonblocking(mlag_socket);
 
 	if (IS_ZEBRA_DEBUG_MLAG)
-		zlog_debug("%s: Connection with MLAG is established ",
-			   __func__);
+		zlog_debug("%s: Connection with MLAG is established ", __func__);
 
 	event_add_read(zmlag_master, zebra_mlag_read, NULL, mlag_socket,
 		       &zrouter.mlag_info.t_read);
@@ -215,9 +212,8 @@ static int zebra_mlag_private_open_channel(void)
 
 	if (zrouter.mlag_info.timer_running == true) {
 		if (IS_ZEBRA_DEBUG_MLAG)
-			zlog_debug(
-				"%s: Connection retry is in progress for MLAGD",
-				__func__);
+			zlog_debug("%s: Connection retry is in progress for MLAGD",
+				   __func__);
 		return 0;
 	}
 
@@ -264,8 +260,7 @@ static int zebra_mlag_private_cleanup_data(void)
 
 static int zebra_mlag_module_init(void)
 {
-	hook_register(zebra_mlag_private_write_data,
-		      zebra_mlag_private_write_data);
+	hook_register(zebra_mlag_private_write_data, zebra_mlag_private_write_data);
 	hook_register(zebra_mlag_private_monitor_state,
 		      zebra_mlag_private_monitor_state);
 	hook_register(zebra_mlag_private_open_channel,
@@ -277,9 +272,6 @@ static int zebra_mlag_module_init(void)
 	return 0;
 }
 
-FRR_MODULE_SETUP(
-	.name = "zebra_cumulus_mlag",
-	.version = FRR_VERSION,
-	.description = "zebra Cumulus MLAG interface",
-	.init = zebra_mlag_module_init,
-);
+FRR_MODULE_SETUP(.name = "zebra_cumulus_mlag", .version = FRR_VERSION,
+		 .description = "zebra Cumulus MLAG interface",
+		 .init = zebra_mlag_module_init, );

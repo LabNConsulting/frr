@@ -32,8 +32,7 @@ struct cb_core {
 	bool cancelled;
 
 	void (*cb_msg)(void *arg, void *zmqsock);
-	void (*cb_part)(void *arg, void *zmqsock, zmq_msg_t *msg,
-			unsigned partnum);
+	void (*cb_part)(void *arg, void *zmqsock, zmq_msg_t *msg, unsigned partnum);
 	void (*cb_error)(void *arg, void *zmqsock);
 };
 
@@ -57,17 +56,16 @@ extern void *frrzmq_context;
 extern void frrzmq_init(void);
 extern void frrzmq_finish(void);
 
-#define _xref_zmq_a(type, f, d, call)                                          \
-	({                                                                     \
-		static const struct xref_eventsched _xref __attribute__(       \
-			(used)) = {                                            \
-			.xref = XREF_INIT(XREFT_EVENTSCHED, NULL, __func__),   \
-			.funcname = #f,                                        \
-			.dest = #d,                                            \
-			.event_type = EVENT_##type,                            \
-		};                                                             \
-		XREF_LINK(_xref.xref);                                         \
-		call;                                                          \
+#define _xref_zmq_a(type, f, d, call)                                               \
+	({                                                                          \
+		static const struct xref_eventsched _xref __attribute__((used)) = { \
+			.xref = XREF_INIT(XREFT_EVENTSCHED, NULL, __func__),        \
+			.funcname = #f,                                             \
+			.dest = #d,                                                 \
+			.event_type = EVENT_##type,                                 \
+		};                                                                  \
+		XREF_LINK(_xref.xref);                                              \
+		call;                                                               \
 	}) /* end */
 
 /* core event registration, one of these 2 macros should be used */
@@ -107,14 +105,13 @@ struct frrzmq_cb;
  *   may schedule the event to run as soon as libfrr is back in its main
  *   loop.
  */
-extern int
-_frrzmq_event_add_read(const struct xref_eventsched *xref,
-		       struct event_loop *master,
-		       void (*msgfunc)(void *arg, void *zmqsock),
-		       void (*partfunc)(void *arg, void *zmqsock,
-					zmq_msg_t *msg, unsigned partnum),
-		       void (*errfunc)(void *arg, void *zmqsock), void *arg,
-		       void *zmqsock, struct frrzmq_cb **cb);
+extern int _frrzmq_event_add_read(const struct xref_eventsched *xref,
+				  struct event_loop *master,
+				  void (*msgfunc)(void *arg, void *zmqsock),
+				  void (*partfunc)(void *arg, void *zmqsock,
+						   zmq_msg_t *msg, unsigned partnum),
+				  void (*errfunc)(void *arg, void *zmqsock),
+				  void *arg, void *zmqsock, struct frrzmq_cb **cb);
 extern int _frrzmq_event_add_write(const struct xref_eventsched *xref,
 				   struct event_loop *master,
 				   void (*msgfunc)(void *arg, void *zmqsock),

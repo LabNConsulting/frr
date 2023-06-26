@@ -30,11 +30,9 @@ struct fbuf {
 	size_t outpos_n, outpos_i;
 };
 
-#define at(a, b) PRINTFRR(a, b)
-#define atn(a, b) \
-	at(a, b) __attribute__((nonnull(1) _RET_NONNULL))
-#define atm(a, b) \
-	atn(a, b) __attribute__((malloc))
+#define at(a, b)  PRINTFRR(a, b)
+#define atn(a, b) at(a, b) __attribute__((nonnull(1) _RET_NONNULL))
+#define atm(a, b) atn(a, b) __attribute__((malloc))
 
 /* return value is length needed for the full string (excluding \0) in all
  * cases.  The functions write as much as they can, but continue regardless,
@@ -47,30 +45,30 @@ struct fbuf {
  * (call bprintfrr repeatedly with the same buffer)
  */
 ssize_t vbprintfrr(struct fbuf *out, const char *fmt, va_list) at(2, 0);
-ssize_t  bprintfrr(struct fbuf *out, const char *fmt, ...)     at(2, 3);
+ssize_t bprintfrr(struct fbuf *out, const char *fmt, ...) at(2, 3);
 
 /* these do null terminate like their snprintf cousins */
 ssize_t vsnprintfrr(char *out, size_t sz, const char *fmt, va_list) at(3, 0);
-ssize_t  snprintfrr(char *out, size_t sz, const char *fmt, ...)     at(3, 4);
+ssize_t snprintfrr(char *out, size_t sz, const char *fmt, ...) at(3, 4);
 
 /* c = continue / concatenate (append at the end of the string)
  * return value is would-be string length (regardless of buffer length),
  * i.e. includes already written chars */
 ssize_t vcsnprintfrr(char *out, size_t sz, const char *fmt, va_list) at(3, 0);
-ssize_t  csnprintfrr(char *out, size_t sz, const char *fmt, ...)     at(3, 4);
+ssize_t csnprintfrr(char *out, size_t sz, const char *fmt, ...) at(3, 4);
 
 /* memory allocations don't fail in FRR, so you always get something here.
  * (in case of error, returns a strdup of the format string) */
 char *vasprintfrr(struct memtype *mt, const char *fmt, va_list) atm(2, 0);
-char  *asprintfrr(struct memtype *mt, const char *fmt, ...)     atm(2, 3);
+char *asprintfrr(struct memtype *mt, const char *fmt, ...) atm(2, 3);
 
 /* try to use provided buffer (presumably from stack), allocate if it's too
  * short.  Must call XFREE(mt, return value) if return value != out.
  */
-char *vasnprintfrr(struct memtype *mt, char *out, size_t sz,
-		   const char *fmt, va_list) atn(4, 0);
-char  *asnprintfrr(struct memtype *mt, char *out, size_t sz,
-		   const char *fmt, ...)     atn(4, 5);
+char *vasnprintfrr(struct memtype *mt, char *out, size_t sz, const char *fmt,
+		   va_list) atn(4, 0);
+char *asnprintfrr(struct memtype *mt, char *out, size_t sz, const char *fmt, ...)
+	atn(4, 5);
 
 #define printfrr(fmt, ...)                                                     \
 	do {                                                                   \
@@ -265,22 +263,22 @@ struct va_format {
 };
 
 #ifdef _FRR_ATTRIBUTE_PRINTFRR
-#pragma FRR printfrr_ext "%pFB" (struct fbuf *)
-#pragma FRR printfrr_ext "%pVA" (struct va_format *)
+#pragma FRR printfrr_ext "%pFB"(struct fbuf *)
+#pragma FRR printfrr_ext "%pVA"(struct va_format *)
 
-#pragma FRR printfrr_ext "%pHX" (signed char *)
-#pragma FRR printfrr_ext "%pHX" (unsigned char *)
-#pragma FRR printfrr_ext "%pHX" (void *)
-#pragma FRR printfrr_ext "%pHS" (signed char *)
-#pragma FRR printfrr_ext "%pHS" (unsigned char *)
-#pragma FRR printfrr_ext "%pHS" (void *)
+#pragma FRR printfrr_ext "%pHX"(signed char *)
+#pragma FRR printfrr_ext "%pHX"(unsigned char *)
+#pragma FRR printfrr_ext "%pHX"(void *)
+#pragma FRR printfrr_ext "%pHS"(signed char *)
+#pragma FRR printfrr_ext "%pHS"(unsigned char *)
+#pragma FRR printfrr_ext "%pHS"(void *)
 
-#pragma FRR printfrr_ext "%pSE" (char *)
-#pragma FRR printfrr_ext "%pSQ" (char *)
+#pragma FRR printfrr_ext "%pSE"(char *)
+#pragma FRR printfrr_ext "%pSQ"(char *)
 
-#pragma FRR printfrr_ext "%pTS" (struct timespec *)
-#pragma FRR printfrr_ext "%pTV" (struct timeval *)
-#pragma FRR printfrr_ext "%pTT" (time_t *)
+#pragma FRR printfrr_ext "%pTS"(struct timespec *)
+#pragma FRR printfrr_ext "%pTV"(struct timeval *)
+#pragma FRR printfrr_ext "%pTT"(time_t *)
 #endif
 
 /* when using non-ISO-C compatible extension specifiers... */
@@ -289,13 +287,10 @@ struct va_format {
 #define FMT_NSTD_BEGIN
 #define FMT_NSTD_END
 #else /* !_FRR_ATTRIBUTE_PRINTFRR */
-#define FMT_NSTD_BEGIN \
+#define FMT_NSTD_BEGIN                                                         \
 	_Pragma("GCC diagnostic push")                                         \
-	_Pragma("GCC diagnostic ignored \"-Wformat\"")                         \
-	/* end */
-#define FMT_NSTD_END \
-	_Pragma("GCC diagnostic pop")                                          \
-	/* end */
+		_Pragma("GCC diagnostic ignored \"-Wformat\"") /* end */
+#define FMT_NSTD_END _Pragma("GCC diagnostic pop")	       /* end */
 #endif
 
 #define FMT_NSTD(expr)                                                         \
@@ -305,8 +300,7 @@ struct va_format {
 		_v = expr;                                                     \
 		FMT_NSTD_END                                                   \
 		_v;                                                            \
-	})                                                                     \
-	/* end */
+	}) /* end */
 
 #ifdef __cplusplus
 }

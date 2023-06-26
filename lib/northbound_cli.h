@@ -40,8 +40,7 @@ extern struct nb_config *vty_shared_candidate_config;
  *    to restore a leaf to its default value.
  */
 extern void nb_cli_enqueue_change(struct vty *vty, const char *xpath,
-				  enum nb_operation operation,
-				  const char *value);
+				  enum nb_operation operation, const char *value);
 
 /*
  * Apply enqueued changes to the candidate configuration, do not batch,
@@ -76,8 +75,8 @@ extern int nb_cli_apply_changes_clear_pending(struct vty *vty,
  * Returns:
  *    CMD_SUCCESS on success, CMD_WARNING_CONFIG_FAILED otherwise.
  */
-extern int nb_cli_apply_changes(struct vty *vty, const char *xpath_base_fmt,
-				...) PRINTFRR(2, 3);
+extern int nb_cli_apply_changes(struct vty *vty, const char *xpath_base_fmt, ...)
+	PRINTFRR(2, 3);
 
 /*
  * Execute a YANG RPC or Action.
@@ -115,8 +114,7 @@ extern int nb_cli_rpc(struct vty *vty, const char *xpath, struct list *input,
  * show_defaults
  *    Specify whether to display default configuration values or not.
  */
-extern void nb_cli_show_dnode_cmds(struct vty *vty,
-				   const struct lyd_node *dnode,
+extern void nb_cli_show_dnode_cmds(struct vty *vty, const struct lyd_node *dnode,
 				   bool show_defaults);
 
 /*

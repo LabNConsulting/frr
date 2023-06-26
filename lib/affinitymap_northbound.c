@@ -71,25 +71,23 @@ static int lib_affinity_map_value_modify(struct nb_cb_modify_args *args)
 	char *map_name;
 	uint16_t pos;
 
-	name = yang_dnode_get_string(
-		(const struct lyd_node *)args->dnode->parent, "./name");
+	name = yang_dnode_get_string((const struct lyd_node *)args->dnode->parent,
+				     "./name");
 
-	pos = yang_dnode_get_uint16(
-		(const struct lyd_node *)args->dnode->parent, "./value");
+	pos = yang_dnode_get_uint16((const struct lyd_node *)args->dnode->parent,
+				    "./value");
 
 	switch (args->event) {
 	case NB_EV_VALIDATE:
 		map_name = affinity_map_name_get(pos);
-		if (map_name &&
-		    strncmp(map_name, name, AFFINITY_NAME_SIZE) != 0) {
+		if (map_name && strncmp(map_name, name, AFFINITY_NAME_SIZE) != 0) {
 			snprintf(args->errmsg, args->errmsg_len,
 				 "bit-position is used by %s.", map_name);
 			return NB_ERR_VALIDATION;
 		}
 		if (!affinity_map_check_update_hook(name, pos)) {
-			snprintf(
-				args->errmsg, args->errmsg_len,
-				"affinity-map new bit-position > 31 but is used with standard admin-groups");
+			snprintf(args->errmsg, args->errmsg_len,
+				 "affinity-map new bit-position > 31 but is used with standard admin-groups");
 			return NB_ERR_VALIDATION;
 		}
 		break;

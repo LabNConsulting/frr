@@ -27,8 +27,7 @@ struct ldp_sync_info *ldp_sync_info_create(void)
 {
 	struct ldp_sync_info *ldp_sync_info;
 
-	ldp_sync_info = XCALLOC(MTYPE_LDP_SYNC_INFO,
-				sizeof(struct ldp_sync_info));
+	ldp_sync_info = XCALLOC(MTYPE_LDP_SYNC_INFO, sizeof(struct ldp_sync_info));
 	assert(ldp_sync_info);
 
 	ldp_sync_info->flags = 0;
@@ -51,8 +50,7 @@ void ldp_sync_info_free(struct ldp_sync_info **ldp_sync_info)
 bool ldp_sync_if_is_enabled(struct ldp_sync_info *ldp_sync_info)
 {
 	/* return true if LDP-SYNC is configured on this interface */
-	if (ldp_sync_info &&
-	    ldp_sync_info->enabled == LDP_IGP_SYNC_ENABLED &&
+	if (ldp_sync_info && ldp_sync_info->enabled == LDP_IGP_SYNC_ENABLED &&
 	    ldp_sync_info->state == LDP_IGP_SYNC_STATE_REQUIRED_NOT_UP)
 		return true;
 
@@ -69,8 +67,7 @@ bool ldp_sync_if_down(struct ldp_sync_info *ldp_sync_info)
 		EVENT_OFF(ldp_sync_info->t_holddown);
 
 		if (ldp_sync_info->state == LDP_IGP_SYNC_STATE_REQUIRED_UP)
-			ldp_sync_info->state =
-				LDP_IGP_SYNC_STATE_REQUIRED_NOT_UP;
+			ldp_sync_info->state = LDP_IGP_SYNC_STATE_REQUIRED_NOT_UP;
 		return true;
 	}
 

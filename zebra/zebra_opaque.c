@@ -54,7 +54,6 @@ static struct opq_regh_head opq_reg_hash;
  * Globals
  */
 static struct zebra_opaque_globals {
-
 	/* Sentinel for run or start of shutdown */
 	_Atomic uint32_t run;
 
@@ -95,18 +94,16 @@ static const char LOG_NAME[] = "Zebra Opaque";
 
 /* Main event loop, processing incoming message queue */
 static void process_messages(struct event *event);
-static int handle_opq_registration(const struct zmsghdr *hdr,
-				   struct stream *msg);
-static int handle_opq_unregistration(const struct zmsghdr *hdr,
-				     struct stream *msg);
+static int handle_opq_registration(const struct zmsghdr *hdr, struct stream *msg);
+static int handle_opq_unregistration(const struct zmsghdr *hdr, struct stream *msg);
 static int dispatch_opq_messages(struct stream_fifo *msg_fifo);
 static struct opq_msg_reg *opq_reg_lookup(uint32_t type);
 static bool opq_client_match(const struct opq_client_reg *client,
 			     const struct zapi_opaque_reg_info *info);
 static struct opq_msg_reg *opq_reg_alloc(uint32_t type);
 static void opq_reg_free(struct opq_msg_reg **reg);
-static struct opq_client_reg *opq_client_alloc(
-	const struct zapi_opaque_reg_info *info);
+static struct opq_client_reg *
+opq_client_alloc(const struct zapi_opaque_reg_info *info);
 static void opq_client_free(struct opq_client_reg **client);
 static const char *opq_client2str(char *buf, size_t buflen,
 				  const struct opq_client_reg *client);
@@ -130,17 +127,15 @@ void zebra_opaque_init(void)
  */
 void zebra_opaque_start(void)
 {
-	struct frr_pthread_attr pattr = {
-		.start = frr_pthread_attr_default.start,
-		.stop = frr_pthread_attr_default.stop
-	};
+	struct frr_pthread_attr pattr = { .start = frr_pthread_attr_default.start,
+					  .stop = frr_pthread_attr_default.stop };
 
 	if (IS_ZEBRA_DEBUG_EVENT)
 		zlog_debug("%s module starting", LOG_NAME);
 
 	/* Start pthread */
-	zo_info.pthread = frr_pthread_new(&pattr, "Zebra Opaque thread",
-					  "zebra_opaque");
+	zo_info.pthread =
+		frr_pthread_new(&pattr, "Zebra Opaque thread", "zebra_opaque");
 
 	/* Associate event 'master' */
 	zo_info.master = zo_info.pthread->master;
@@ -148,8 +143,7 @@ void zebra_opaque_start(void)
 	atomic_store_explicit(&zo_info.run, 1, memory_order_relaxed);
 
 	/* Enqueue an initial event for the pthread */
-	event_add_event(zo_info.master, process_messages, NULL, 0,
-			&zo_info.t_msgs);
+	event_add_event(zo_info.master, process_messages, NULL, 0, &zo_info.t_msgs);
 
 	/* And start the pthread */
 	frr_pthread_run(zo_info.pthread, NULL);
@@ -246,8 +240,7 @@ uint32_t zebra_opaque_enqueue_batch(struct stream_fifo *batch)
 	/* Schedule module pthread to process the batch */
 	if (counter > 0) {
 		if (IS_ZEBRA_DEBUG_RECV && IS_ZEBRA_DEBUG_DETAIL)
-			zlog_debug("%s: received %u messages",
-				   __func__, counter);
+			zlog_debug("%s: received %u messages", __func__, counter);
 		event_add_event(zo_info.master, process_messages, NULL, 0,
 				&zo_info.t_msgs);
 	}
@@ -276,7 +269,6 @@ static void process_messages(struct event *event)
 	 * save them on the local fifo
 	 */
 	frr_with_mutex (&zo_info.mutex) {
-
 		for (i = 0; i < zo_info.msgs_per_cycle; i++) {
 			msg = stream_fifo_pop(&zo_info.in_fifo);
 			if (msg == NULL)
@@ -315,8 +307,7 @@ static void process_messages(struct event *event)
 done:
 
 	if (need_resched) {
-		atomic_fetch_add_explicit(&zo_info.yields, 1,
-					  memory_order_relaxed);
+		atomic_fetch_add_explicit(&zo_info.yields, 1, memory_order_relaxed);
 		event_add_event(zo_info.master, process_messages, NULL, 0,
 				&zo_info.t_msgs);
 	}
@@ -380,18 +371,15 @@ static int dispatch_opq_messages(struct stream_fifo *msg_fifo)
 			dup = NULL;
 
 			if (CHECK_FLAG(info.flags, ZAPI_OPAQUE_FLAG_UNICAST)) {
-
 				if (client->proto != info.proto ||
 				    client->instance != info.instance ||
 				    client->session_id != info.session_id)
 					continue;
 
-				if (IS_ZEBRA_DEBUG_RECV &&
-				    IS_ZEBRA_DEBUG_DETAIL)
+				if (IS_ZEBRA_DEBUG_RECV && IS_ZEBRA_DEBUG_DETAIL)
 					zlog_debug("%s: found matching unicast client %s",
 						   __func__,
-						   opq_client2str(buf,
-								  sizeof(buf),
+						   opq_client2str(buf, sizeof(buf),
 								  client));
 
 			} else {
@@ -409,13 +397,10 @@ static int dispatch_opq_messages(struct stream_fifo *msg_fifo)
 						       client->instance,
 						       client->session_id);
 			if (zclient) {
-				if (IS_ZEBRA_DEBUG_SEND &&
-				    IS_ZEBRA_DEBUG_DETAIL)
+				if (IS_ZEBRA_DEBUG_SEND && IS_ZEBRA_DEBUG_DETAIL)
 					zlog_debug("%s: sending %s to client %s",
-						   __func__,
-						   (dup ? "dup" : "msg"),
-						   opq_client2str(buf,
-								  sizeof(buf),
+						   __func__, (dup ? "dup" : "msg"),
+						   opq_client2str(buf, sizeof(buf),
 								  client));
 
 				/*
@@ -431,12 +416,10 @@ static int dispatch_opq_messages(struct stream_fifo *msg_fifo)
 
 				zserv_release_client(zclient);
 			} else {
-				if (IS_ZEBRA_DEBUG_RECV &&
-				    IS_ZEBRA_DEBUG_DETAIL)
+				if (IS_ZEBRA_DEBUG_RECV && IS_ZEBRA_DEBUG_DETAIL)
 					zlog_debug("%s: type %u: no zclient for %s",
 						   __func__, info.type,
-						   opq_client2str(buf,
-								  sizeof(buf),
+						   opq_client2str(buf, sizeof(buf),
 								  client));
 				/* Registered but gone? */
 				if (dup)
@@ -460,8 +443,7 @@ drop_it:
 /*
  * Process a register/unregister message
  */
-static int handle_opq_registration(const struct zmsghdr *hdr,
-				   struct stream *msg)
+static int handle_opq_registration(const struct zmsghdr *hdr, struct stream *msg)
 {
 	int ret = 0;
 	struct zapi_opaque_reg_info info;
@@ -483,8 +465,7 @@ static int handle_opq_registration(const struct zmsghdr *hdr,
 	reg = opq_regh_find(&opq_reg_hash, &key);
 	if (reg) {
 		/* Look for dup client */
-		for (client = reg->clients; client != NULL;
-		     client = client->next) {
+		for (client = reg->clients; client != NULL; client = client->next) {
 			if (opq_client_match(client, &info))
 				break;
 		}
@@ -494,16 +475,14 @@ static int handle_opq_registration(const struct zmsghdr *hdr,
 			if (IS_ZEBRA_DEBUG_RECV)
 				zlog_debug("%s: duplicate opq reg for client %s",
 					   __func__,
-					   opq_client2str(buf, sizeof(buf),
-							  client));
+					   opq_client2str(buf, sizeof(buf), client));
 			goto done;
 		}
 
 		client = opq_client_alloc(&info);
 
 		if (IS_ZEBRA_DEBUG_RECV)
-			zlog_debug("%s: client %s registers for %u",
-				   __func__,
+			zlog_debug("%s: client %s registers for %u", __func__,
 				   opq_client2str(buf, sizeof(buf), client),
 				   info.type);
 
@@ -540,8 +519,7 @@ done:
 /*
  * Process a register/unregister message
  */
-static int handle_opq_unregistration(const struct zmsghdr *hdr,
-				     struct stream *msg)
+static int handle_opq_unregistration(const struct zmsghdr *hdr, struct stream *msg)
 {
 	int ret = 0;
 	struct zapi_opaque_reg_info info;
@@ -565,15 +543,13 @@ static int handle_opq_unregistration(const struct zmsghdr *hdr,
 		/* Weird: unregister for unknown message? */
 		if (IS_ZEBRA_DEBUG_RECV)
 			zlog_debug("%s: unknown client %s/%u/%u unregisters for unknown type %u",
-				   __func__,
-				   zebra_route_string(info.proto),
+				   __func__, zebra_route_string(info.proto),
 				   info.instance, info.session_id, info.type);
 		goto done;
 	}
 
 	/* Look for client */
-	for (client = reg->clients; client != NULL;
-	     client = client->next) {
+	for (client = reg->clients; client != NULL; client = client->next) {
 		if (opq_client_match(client, &info))
 			break;
 	}
@@ -588,9 +564,8 @@ static int handle_opq_unregistration(const struct zmsghdr *hdr,
 	}
 
 	if (IS_ZEBRA_DEBUG_RECV)
-		zlog_debug("%s: client %s unregisters for %u",
-			   __func__, opq_client2str(buf, sizeof(buf), client),
-			   info.type);
+		zlog_debug("%s: client %s unregisters for %u", __func__,
+			   opq_client2str(buf, sizeof(buf), client), info.type);
 
 	if (client->prev)
 		client->prev->next = client->next;
@@ -617,8 +592,7 @@ done:
 static bool opq_client_match(const struct opq_client_reg *client,
 			     const struct zapi_opaque_reg_info *info)
 {
-	if (client->proto == info->proto &&
-	    client->instance == info->instance &&
+	if (client->proto == info->proto && client->instance == info->instance &&
 	    client->session_id == info->session_id)
 		return true;
 	else
@@ -655,8 +629,7 @@ static void opq_reg_free(struct opq_msg_reg **reg)
 	XFREE(MTYPE_OPQ, (*reg));
 }
 
-static struct opq_client_reg *opq_client_alloc(
-	const struct zapi_opaque_reg_info *info)
+static struct opq_client_reg *opq_client_alloc(const struct zapi_opaque_reg_info *info)
 {
 	struct opq_client_reg *client;
 

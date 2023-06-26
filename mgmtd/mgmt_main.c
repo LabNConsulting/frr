@@ -18,18 +18,18 @@
 
 
 /* mgmt options, we use GNU getopt library. */
-static const struct option longopts[] = {
-	{"skip_runas", no_argument, NULL, 'S'},
-	{"no_zebra", no_argument, NULL, 'Z'},
-	{"socket_size", required_argument, NULL, 's'},
-	{0}};
+static const struct option longopts[] = { { "skip_runas", no_argument, NULL, 'S' },
+					  { "no_zebra", no_argument, NULL, 'Z' },
+					  { "socket_size", required_argument,
+					    NULL, 's' },
+					  { 0 } };
 
 static void mgmt_exit(int);
 static void mgmt_vrf_terminate(void);
 
 /* privileges */
-static zebra_capabilities_t _caps_p[] = {ZCAP_BIND, ZCAP_NET_RAW,
-					 ZCAP_NET_ADMIN, ZCAP_SYS_ADMIN};
+static zebra_capabilities_t _caps_p[] = { ZCAP_BIND, ZCAP_NET_RAW,
+					  ZCAP_NET_ADMIN, ZCAP_SYS_ADMIN };
 
 struct zebra_privs_t mgmt_privs = {
 #if defined(FRR_USER) && defined(FRR_GROUP)
@@ -175,8 +175,7 @@ static int mgmt_vrf_config_write(struct vty *vty)
 
 static void mgmt_vrf_init(void)
 {
-	vrf_init(mgmt_vrf_new, mgmt_vrf_enable, mgmt_vrf_disable,
-		 mgmt_vrf_delete);
+	vrf_init(mgmt_vrf_new, mgmt_vrf_enable, mgmt_vrf_disable, mgmt_vrf_delete);
 	vrf_cmd_init(mgmt_vrf_config_write);
 }
 
@@ -204,8 +203,7 @@ static const struct frr_yang_module_info *const mgmt_yang_modules[] = {
  * backend northbound callbacks during loading.
  */
 #ifdef HAVE_STATICD
-	&(struct frr_yang_module_info){.name = "frr-staticd",
-				       .ignore_cbs = true},
+	&(struct frr_yang_module_info){ .name = "frr-staticd", .ignore_cbs = true },
 #endif
 };
 
@@ -234,9 +232,8 @@ int main(int argc, char **argv)
 	int buffer_size = MGMTD_SOCKET_BUF_SIZE;
 
 	frr_preinit(&mgmtd_di, argc, argv);
-	frr_opt_add(
-		"s:" DEPRECATED_OPTIONS, longopts,
-		"  -s, --socket_size  Set MGMTD peer socket send buffer size\n");
+	frr_opt_add("s:" DEPRECATED_OPTIONS, longopts,
+		    "  -s, --socket_size  Set MGMTD peer socket send buffer size\n");
 
 	/* Command line argument treatment. */
 	while (1) {

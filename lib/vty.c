@@ -94,11 +94,11 @@ static int vtysh_flush(struct vty *vty);
 extern struct host host;
 
 /* active listeners */
-static struct vtyservs_head vty_servs[1] = {INIT_DLIST(vty_servs[0])};
+static struct vtyservs_head vty_servs[1] = { INIT_DLIST(vty_servs[0]) };
 
 /* active connections */
-static struct vtys_head vty_sessions[1] = {INIT_DLIST(vty_sessions[0])};
-static struct vtys_head vtysh_sessions[1] = {INIT_DLIST(vtysh_sessions[0])};
+static struct vtys_head vty_sessions[1] = { INIT_DLIST(vty_sessions[0]) };
+static struct vtys_head vtysh_sessions[1] = { INIT_DLIST(vtysh_sessions[0]) };
 
 /* Vty timeout value. */
 static unsigned long vty_timeout_val = VTY_TIMEOUT_DEFAULT;
@@ -159,23 +159,21 @@ static int vty_mgmt_unlock_running_inline(struct vty *vty)
 
 void vty_mgmt_resume_response(struct vty *vty, bool success)
 {
-	uint8_t header[4] = {0, 0, 0, 0};
+	uint8_t header[4] = { 0, 0, 0, 0 };
 	int ret = CMD_SUCCESS;
 
 	if (!vty->mgmt_req_pending_cmd) {
-		zlog_err(
-			"vty resume response called without mgmt_req_pending_cmd");
+		zlog_err("vty resume response called without mgmt_req_pending_cmd");
 		return;
 	}
 
 	if (!success)
 		ret = CMD_WARNING_CONFIG_FAILED;
 
-	MGMTD_FE_CLIENT_DBG(
-		"resuming CLI cmd after %s on vty session-id: %" PRIu64
-		" with '%s'",
-		vty->mgmt_req_pending_cmd, vty->mgmt_session_id,
-		success ? "succeeded" : "failed");
+	MGMTD_FE_CLIENT_DBG("resuming CLI cmd after %s on vty session-id: %" PRIu64
+			    " with '%s'",
+			    vty->mgmt_req_pending_cmd, vty->mgmt_session_id,
+			    success ? "succeeded" : "failed");
 
 	vty->mgmt_req_pending_cmd = NULL;
 
@@ -272,7 +270,7 @@ int vty_out(struct vty *vty, const char *format, ...)
 
 		/* Place first value in the cache */
 		char *firstline = vector_slot(lines, 0);
-		buffer_put(vty->lbuf, (uint8_t *) firstline, strlen(firstline));
+		buffer_put(vty->lbuf, (uint8_t *)firstline, strlen(firstline));
 
 		/* If our split returned more than one entry, time to filter */
 		if (vector_active(lines) > 1) {
@@ -301,13 +299,12 @@ int vty_out(struct vty *vty, const char *format, ...)
 			 * In this case we'd like to preserve the newline, so we add
 			 * the empty string [1] as in the first example.
 			 */
-			if (p[strlen(p) - 1] == '\n' && vector_active(lines) > 0
-			    && strlen(vector_slot(lines, vector_active(lines) - 1)))
+			if (p[strlen(p) - 1] == '\n' && vector_active(lines) > 0 &&
+			    strlen(vector_slot(lines, vector_active(lines) - 1)))
 				vector_set(lines, XSTRDUP(MTYPE_TMP, ""));
 
 			filtered = frrstr_join_vec(lines, "\n");
-		}
-		else {
+		} else {
 			filtered = NULL;
 		}
 
@@ -323,8 +320,7 @@ int vty_out(struct vty *vty, const char *format, ...)
 	switch (vty->type) {
 	case VTY_TERM:
 		/* print with crlf replacement */
-		buffer_put_crlf(vty->obuf, (uint8_t *)filtered,
-				strlen(filtered));
+		buffer_put_crlf(vty->obuf, (uint8_t *)filtered, strlen(filtered));
 		break;
 	case VTY_SHELL:
 		if (vty->of) {
@@ -363,8 +359,7 @@ static int vty_json_helper(struct vty *vty, struct json_object *json,
 	if (!json)
 		return CMD_SUCCESS;
 
-	text = json_object_to_json_string_ext(
-		json, options);
+	text = json_object_to_json_string_ext(json, options);
 	vty_out(vty, "%s\n", text);
 	json_object_free(json);
 
@@ -455,28 +450,28 @@ static void vty_prompt(struct vty *vty)
 /* Send WILL TELOPT_ECHO to remote server. */
 static void vty_will_echo(struct vty *vty)
 {
-	unsigned char cmd[] = {IAC, WILL, TELOPT_ECHO, '\0'};
+	unsigned char cmd[] = { IAC, WILL, TELOPT_ECHO, '\0' };
 	vty_out(vty, "%s", cmd);
 }
 
 /* Make suppress Go-Ahead telnet option. */
 static void vty_will_suppress_go_ahead(struct vty *vty)
 {
-	unsigned char cmd[] = {IAC, WILL, TELOPT_SGA, '\0'};
+	unsigned char cmd[] = { IAC, WILL, TELOPT_SGA, '\0' };
 	vty_out(vty, "%s", cmd);
 }
 
 /* Make don't use linemode over telnet. */
 static void vty_dont_linemode(struct vty *vty)
 {
-	unsigned char cmd[] = {IAC, DONT, TELOPT_LINEMODE, '\0'};
+	unsigned char cmd[] = { IAC, DONT, TELOPT_LINEMODE, '\0' };
 	vty_out(vty, "%s", cmd);
 }
 
 /* Use window size. */
 static void vty_do_window_size(struct vty *vty)
 {
-	unsigned char cmd[] = {IAC, DO, TELOPT_NAWS, '\0'};
+	unsigned char cmd[] = { IAC, DO, TELOPT_NAWS, '\0' };
 	vty_out(vty, "%s", cmd);
 }
 
@@ -548,8 +543,7 @@ static int vty_command(struct vty *vty, char *buf)
 	/*
 	 * Log non empty command lines
 	 */
-	if (vty_log_commands &&
-	    strncmp(buf, "echo PING", strlen("echo PING")) != 0)
+	if (vty_log_commands && strncmp(buf, "echo PING", strlen("echo PING")) != 0)
 		cp = buf;
 	if (cp != NULL) {
 		/* Skip white spaces. */
@@ -594,8 +588,8 @@ static int vty_command(struct vty *vty, char *buf)
 
 	walltime = event_consumed_time(&after, &before, &cputime);
 
-	if (cputime_enabled_here && cputime_enabled && cputime_threshold
-	    && cputime > cputime_threshold)
+	if (cputime_enabled_here && cputime_enabled && cputime_threshold &&
+	    cputime > cputime_threshold)
 		/* Warn about CPU hog that must be fixed. */
 		flog_warn(EC_LIB_SLOW_THREAD_CPU,
 			  "CPU HOG: command took %lums (cpu time %lums): %s",
@@ -1148,19 +1142,20 @@ static void vty_describe_command(struct vty *vty)
 				vty_out(vty, "  %-*s  %s\n", width, token->text,
 					token->desc);
 			else
-				vty_describe_fold(vty, width, desc_width,
-						  token);
+				vty_describe_fold(vty, width, desc_width, token);
 
 			if (IS_VARYING_TOKEN(token->type)) {
-				const char *ref = vector_slot(
-					vline, vector_active(vline) - 1);
+				const char *ref =
+					vector_slot(vline,
+						    vector_active(vline) - 1);
 
 				vector varcomps = vector_init(VECTOR_MIN_SIZE);
 				cmd_variable_complete(token, ref, varcomps);
 
 				if (vector_active(varcomps) > 0) {
-					char *ac = cmd_variable_comp2str(
-						varcomps, vty->width);
+					char *ac =
+						cmd_variable_comp2str(varcomps,
+								      vty->width);
 					vty_out(vty, "%s\n", ac);
 					XFREE(MTYPE_TMP, ac);
 				}
@@ -1305,22 +1300,20 @@ static int vty_telnet_option(struct vty *vty, unsigned char *buf, int nbytes)
 		switch (vty->sb_buf[0]) {
 		case TELOPT_NAWS:
 			if (vty->sb_len != TELNET_NAWS_SB_LEN)
-				flog_err(
-					EC_LIB_SYSTEM_CALL,
-					"RFC 1073 violation detected: telnet NAWS option should send %d characters, but we received %lu",
-					TELNET_NAWS_SB_LEN,
-					(unsigned long)vty->sb_len);
+				flog_err(EC_LIB_SYSTEM_CALL,
+					 "RFC 1073 violation detected: telnet NAWS option should send %d characters, but we received %lu",
+					 TELNET_NAWS_SB_LEN,
+					 (unsigned long)vty->sb_len);
 			else if (sizeof(vty->sb_buf) < TELNET_NAWS_SB_LEN)
-				flog_err(
-					EC_LIB_DEVELOPMENT,
-					"Bug detected: sizeof(vty->sb_buf) %lu < %d, too small to handle the telnet NAWS option",
-					(unsigned long)sizeof(vty->sb_buf),
-					TELNET_NAWS_SB_LEN);
+				flog_err(EC_LIB_DEVELOPMENT,
+					 "Bug detected: sizeof(vty->sb_buf) %lu < %d, too small to handle the telnet NAWS option",
+					 (unsigned long)sizeof(vty->sb_buf),
+					 TELNET_NAWS_SB_LEN);
 			else {
-				vty->width = ((vty->sb_buf[1] << 8)
-					      | vty->sb_buf[2]);
-				vty->height = ((vty->sb_buf[3] << 8)
-					       | vty->sb_buf[4]);
+				vty->width =
+					((vty->sb_buf[1] << 8) | vty->sb_buf[2]);
+				vty->height =
+					((vty->sb_buf[3] << 8) | vty->sb_buf[4]);
 #ifdef TELNET_OPTION_DEBUG
 				vty_out(vty,
 					"TELNET NAWS window size negotiation completed: width %d, height %d\n",
@@ -1367,11 +1360,11 @@ static int vty_execute(struct vty *vty)
 	return ret;
 }
 
-#define CONTROL(X)  ((X) - '@')
+#define CONTROL(X)     ((X) - '@')
 #define VTY_NORMAL     0
 #define VTY_PRE_ESCAPE 1
 #define VTY_ESCAPE     2
-#define VTY_CR         3
+#define VTY_CR	       3
 
 /* Escape character command map. */
 static void vty_escape_map(unsigned char c, struct vty *vty)
@@ -1422,10 +1415,9 @@ static void vty_read(struct event *thread)
 				vty_event(VTY_READ, vty);
 				return;
 			}
-			flog_err(
-				EC_LIB_SOCKET,
-				"%s: read error on vty client fd %d, closing: %s",
-				__func__, vty->fd, safe_strerror(errno));
+			flog_err(EC_LIB_SOCKET,
+				 "%s: read error on vty client fd %d, closing: %s",
+				 __func__, vty->fd, safe_strerror(errno));
 			buffer_reset(vty->obuf);
 			buffer_reset(vty->lbuf);
 		}
@@ -1580,8 +1572,7 @@ static void vty_read(struct event *thread)
 			vty_complete_command(vty);
 			break;
 		case '?':
-			if (vty->node == AUTH_NODE
-			    || vty->node == AUTH_ENABLE_NODE)
+			if (vty->node == AUTH_NODE || vty->node == AUTH_ENABLE_NODE)
 				vty_self_insert(vty, buf[i]);
 			else
 				vty_describe_command(vty);
@@ -1630,9 +1621,10 @@ static void vty_flush(struct event *thread)
 		flushrc = buffer_flush_window(vty->obuf, vty->wfd, vty->width,
 					      1, erase, 0);
 	else
-		flushrc = buffer_flush_window(
-			vty->obuf, vty->wfd, vty->width,
-			vty->lines >= 0 ? vty->lines : vty->height, erase, 0);
+		flushrc = buffer_flush_window(vty->obuf, vty->wfd, vty->width,
+					      vty->lines >= 0 ? vty->lines
+							      : vty->height,
+					      erase, 0);
 	switch (flushrc) {
 	case BUFFER_ERROR:
 		zlog_info("buffer_flush failed on vty client fd %d/%d, closing",
@@ -1677,8 +1669,8 @@ struct vty *vty_new(void)
 			mgmt_client_id_next++;
 		new->mgmt_client_id = mgmt_client_id_next++;
 		new->mgmt_session_id = 0;
-		mgmt_fe_create_client_session(
-			mgmt_fe_client, new->mgmt_client_id, (uintptr_t) new);
+		mgmt_fe_create_client_session(mgmt_fe_client, new->mgmt_client_id,
+					      (uintptr_t) new);
 		/* we short-circuit create the session so it must be set now */
 		assertf(new->mgmt_session_id != 0,
 			"Failed to create client session for VTY");
@@ -1824,8 +1816,8 @@ void vty_stdio_resume(void)
 		struct termios termios;
 
 		termios = stdio_orig_termios;
-		termios.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR
-				     | IGNCR | ICRNL | IXON);
+		termios.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR |
+				     IGNCR | ICRNL | IXON);
 		termios.c_lflag &= ~(ECHO | ECHONL | ICANON | IEXTEN);
 		termios.c_cflag &= ~(CSIZE | PARENB);
 		termios.c_cflag |= CS8;
@@ -1900,15 +1892,14 @@ static void vty_accept(struct event *thread)
 
 	if (!sockunion2hostprefix(&su, &p)) {
 		close(vty_sock);
-		zlog_info("Vty unable to convert prefix from sockunion %pSU",
-			  &su);
+		zlog_info("Vty unable to convert prefix from sockunion %pSU", &su);
 		return;
 	}
 
 	/* VTY's accesslist apply. */
 	if (p.family == AF_INET && vty_accesslist_name) {
-		if ((acl = access_list_lookup(AFI_IP, vty_accesslist_name))
-		    && (access_list_apply(acl, &p) == FILTER_DENY)) {
+		if ((acl = access_list_lookup(AFI_IP, vty_accesslist_name)) &&
+		    (access_list_apply(acl, &p) == FILTER_DENY)) {
 			zlog_info("Vty connection refused from %pSU", &su);
 			close(vty_sock);
 			return;
@@ -1917,9 +1908,8 @@ static void vty_accept(struct event *thread)
 
 	/* VTY's ipv6 accesslist apply. */
 	if (p.family == AF_INET6 && vty_ipv6_accesslist_name) {
-		if ((acl = access_list_lookup(AFI_IP6,
-					      vty_ipv6_accesslist_name))
-		    && (access_list_apply(acl, &p) == FILTER_DENY)) {
+		if ((acl = access_list_lookup(AFI_IP6, vty_ipv6_accesslist_name)) &&
+		    (access_list_apply(acl, &p) == FILTER_DENY)) {
 			zlog_info("Vty connection refused from %pSU", &su);
 			close(vty_sock);
 			return;
@@ -2025,8 +2015,7 @@ static void vty_serv_un(const char *path)
 	/* Make UNIX domain socket. */
 	sock = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (sock < 0) {
-		flog_err_sys(EC_LIB_SOCKET,
-			     "Cannot create unix stream socket: %s",
+		flog_err_sys(EC_LIB_SOCKET, "Cannot create unix stream socket: %s",
 			     safe_strerror(errno));
 		return;
 	}
@@ -2109,10 +2098,9 @@ static void vtysh_accept(struct event *thread)
 	}
 
 	if (set_nonblocking(sock) < 0) {
-		flog_err(
-			EC_LIB_SOCKET,
-			"vtysh_accept: could not set vty socket %d to non-blocking, %s, closing",
-			sock, safe_strerror(errno));
+		flog_err(EC_LIB_SOCKET,
+			 "vtysh_accept: could not set vty socket %d to non-blocking, %s, closing",
+			 sock, safe_strerror(errno));
 		close(sock);
 		return;
 	}
@@ -2307,7 +2295,7 @@ static void vtysh_read(struct event *thread)
 	struct vty *vty;
 	unsigned char buf[VTY_READ_BUFSIZ];
 	unsigned char *p;
-	uint8_t header[4] = {0, 0, 0, 0};
+	uint8_t header[4] = { 0, 0, 0, 0 };
 
 	sock = EVENT_FD(thread);
 	vty = EVENT_ARG(thread);
@@ -2331,10 +2319,9 @@ static void vtysh_read(struct event *thread)
 				vty_event(VTYSH_READ, vty);
 				return;
 			}
-			flog_err(
-				EC_LIB_SOCKET,
-				"%s: read failed on vtysh client fd %d, closing: %s",
-				__func__, sock, safe_strerror(errno));
+			flog_err(EC_LIB_SOCKET,
+				 "%s: read failed on vtysh client fd %d, closing: %s",
+				 __func__, sock, safe_strerror(errno));
 		}
 		buffer_reset(vty->lbuf);
 		buffer_reset(vty->obuf);
@@ -2400,10 +2387,9 @@ static void vtysh_read(struct event *thread)
 				 * we get response through callback.
 				 */
 				if (vty->mgmt_req_pending_cmd) {
-					MGMTD_FE_CLIENT_DBG(
-						"postpone CLI response pending mgmtd %s on vty session-id %" PRIu64,
-						vty->mgmt_req_pending_cmd,
-						vty->mgmt_session_id);
+					MGMTD_FE_CLIENT_DBG("postpone CLI response pending mgmtd %s on vty session-id %" PRIu64,
+							    vty->mgmt_req_pending_cmd,
+							    vty->mgmt_session_id);
 					return;
 				}
 
@@ -2484,16 +2470,14 @@ void vty_close(struct vty *vty)
 	 * so warn the user.
 	 */
 	if (vty->mgmt_num_pending_setcfg)
-		MGMTD_FE_CLIENT_ERR(
-			"vty closed, uncommitted config will be lost.");
+		MGMTD_FE_CLIENT_ERR("vty closed, uncommitted config will be lost.");
 
 	/* Drop out of configure / transaction if needed. */
 	vty_config_exit(vty);
 
 	if (mgmt_fe_client && vty->mgmt_session_id) {
 		MGMTD_FE_CLIENT_DBG("closing vty session");
-		mgmt_fe_destroy_client_session(mgmt_fe_client,
-					       vty->mgmt_client_id);
+		mgmt_fe_destroy_client_session(mgmt_fe_client, vty->mgmt_client_id);
 		vty->mgmt_session_id = 0;
 	}
 
@@ -2642,8 +2626,7 @@ void vty_read_file_finish(struct vty *vty, struct nb_config *config)
 			message = "Command returned Incomplete";
 			break;
 		case CMD_ERR_EXEED_ARGC_MAX:
-			message =
-				"Command exceeded maximum number of Arguments";
+			message = "Command exceeded maximum number of Arguments";
 			break;
 		default:
 			message = "Command returned unhandled error message";
@@ -2663,7 +2646,7 @@ void vty_read_file_finish(struct vty *vty, struct nb_config *config)
 	 */
 	if (config == NULL) {
 		struct nb_context context = {};
-		char errmsg[BUFSIZ] = {0};
+		char errmsg[BUFSIZ] = { 0 };
 		int ret;
 
 		context.client = NB_CLIENT_CLI;
@@ -2672,9 +2655,8 @@ void vty_read_file_finish(struct vty *vty, struct nb_config *config)
 					  "Read configuration file", NULL,
 					  errmsg, sizeof(errmsg));
 		if (ret != NB_OK && ret != NB_ERR_NO_CHANGES)
-			zlog_err(
-				"%s: failed to read configuration file: %s (%s)",
-				__func__, nb_err_name(ret), errmsg);
+			zlog_err("%s: failed to read configuration file: %s (%s)",
+				 __func__, nb_err_name(ret), errmsg);
 	}
 
 	vty_close(vty);
@@ -2723,10 +2705,10 @@ static FILE *vty_use_backup_config(const char *fullpath)
 		unlink(fullpath_tmp);
 
 	if (0) {
-	out_close:
+out_close:
 		close(tmp);
 		unlink(fullpath_tmp);
-	out_close_sav:
+out_close_sav:
 		close(sav);
 	}
 
@@ -2746,10 +2728,9 @@ FILE *vty_open_config(const char *config_file, char *config_default_dir)
 	if (config_file != NULL) {
 		if (!IS_DIRECTORY_SEP(config_file[0])) {
 			if (getcwd(cwd, MAXPATHLEN) == NULL) {
-				flog_err_sys(
-					EC_LIB_SYSTEM_CALL,
-					"%s: failure to determine Current Working Directory %d!",
-					__func__, errno);
+				flog_err_sys(EC_LIB_SYSTEM_CALL,
+					     "%s: failure to determine Current Working Directory %d!",
+					     __func__, errno);
 				goto tmp_free_and_out;
 			}
 			size_t tmp_len = strlen(cwd) + strlen(config_file) + 2;
@@ -2762,25 +2743,22 @@ FILE *vty_open_config(const char *config_file, char *config_default_dir)
 		confp = fopen(fullpath, "r");
 
 		if (confp == NULL) {
-			flog_warn(
-				EC_LIB_BACKUP_CONFIG,
-				"%s: failed to open configuration file %s: %s, checking backup",
-				__func__, fullpath, safe_strerror(errno));
+			flog_warn(EC_LIB_BACKUP_CONFIG,
+				  "%s: failed to open configuration file %s: %s, checking backup",
+				  __func__, fullpath, safe_strerror(errno));
 
 			confp = vty_use_backup_config(fullpath);
 			if (confp)
 				flog_warn(EC_LIB_BACKUP_CONFIG,
 					  "using backup configuration file!");
 			else {
-				flog_err(
-					EC_LIB_VTY,
-					"%s: can't open configuration file [%s]",
-					__func__, config_file);
+				flog_err(EC_LIB_VTY,
+					 "%s: can't open configuration file [%s]",
+					 __func__, config_file);
 				goto tmp_free_and_out;
 			}
 		}
 	} else {
-
 		host_config_set(config_default_dir);
 
 #ifdef VTYSH
@@ -2809,11 +2787,10 @@ FILE *vty_open_config(const char *config_file, char *config_default_dir)
 #endif /* VTYSH */
 		confp = fopen(config_default_dir, "r");
 		if (confp == NULL) {
-			flog_err(
-				EC_LIB_SYSTEM_CALL,
-				"%s: failed to open configuration file %s: %s, checking backup",
-				__func__, config_default_dir,
-				safe_strerror(errno));
+			flog_err(EC_LIB_SYSTEM_CALL,
+				 "%s: failed to open configuration file %s: %s, checking backup",
+				 __func__, config_default_dir,
+				 safe_strerror(errno));
 
 			confp = vty_use_backup_config(config_default_dir);
 			if (confp) {
@@ -3013,8 +2990,7 @@ static void vty_event(enum vty_event event, struct vty *vty)
 	switch (event) {
 #ifdef VTYSH
 	case VTYSH_READ:
-		event_add_read(vty_master, vtysh_read, vty, vty->fd,
-			       &vty->t_read);
+		event_add_read(vty_master, vtysh_read, vty, vty->fd, &vty->t_read);
 		break;
 	case VTYSH_WRITE:
 		event_add_write(vty_master, vtysh_write, vty, vty->wfd,
@@ -3022,8 +2998,7 @@ static void vty_event(enum vty_event event, struct vty *vty)
 		break;
 #endif /* VTYSH */
 	case VTY_READ:
-		event_add_read(vty_master, vty_read, vty, vty->fd,
-			       &vty->t_read);
+		event_add_read(vty_master, vty_read, vty, vty->fd, &vty->t_read);
 
 		/* Time out treatment. */
 		if (vty->v_timeout) {
@@ -3048,10 +3023,7 @@ static void vty_event(enum vty_event event, struct vty *vty)
 	}
 }
 
-DEFUN_NOSH (config_who,
-       config_who_cmd,
-       "who",
-       "Display who is on vty\n")
+DEFUN_NOSH(config_who, config_who_cmd, "who", "Display who is on vty\n")
 {
 	struct vty *v;
 
@@ -3063,19 +3035,16 @@ DEFUN_NOSH (config_who,
 }
 
 /* Move to vty configuration mode. */
-DEFUN_NOSH (line_vty,
-       line_vty_cmd,
-       "line vty",
-       "Configure a terminal line\n"
-       "Virtual terminal\n")
+DEFUN_NOSH(line_vty, line_vty_cmd, "line vty",
+	   "Configure a terminal line\n"
+	   "Virtual terminal\n")
 {
 	vty->node = VTY_NODE;
 	return CMD_SUCCESS;
 }
 
 /* Set time out value. */
-static int exec_timeout(struct vty *vty, const char *min_str,
-			const char *sec_str)
+static int exec_timeout(struct vty *vty, const char *min_str, const char *sec_str)
 {
 	unsigned long timeout = 0;
 
@@ -3096,44 +3065,34 @@ static int exec_timeout(struct vty *vty, const char *min_str,
 	return CMD_SUCCESS;
 }
 
-DEFUN (exec_timeout_min,
-       exec_timeout_min_cmd,
-       "exec-timeout (0-35791)",
-       "Set timeout value\n"
-       "Timeout value in minutes\n")
+DEFUN(exec_timeout_min, exec_timeout_min_cmd, "exec-timeout (0-35791)",
+      "Set timeout value\n"
+      "Timeout value in minutes\n")
 {
 	int idx_number = 1;
 	return exec_timeout(vty, argv[idx_number]->arg, NULL);
 }
 
-DEFUN (exec_timeout_sec,
-       exec_timeout_sec_cmd,
-       "exec-timeout (0-35791) (0-2147483)",
-       "Set the EXEC timeout\n"
-       "Timeout in minutes\n"
-       "Timeout in seconds\n")
+DEFUN(exec_timeout_sec, exec_timeout_sec_cmd, "exec-timeout (0-35791) (0-2147483)",
+      "Set the EXEC timeout\n"
+      "Timeout in minutes\n"
+      "Timeout in seconds\n")
 {
 	int idx_number = 1;
 	int idx_number_2 = 2;
-	return exec_timeout(vty, argv[idx_number]->arg,
-			    argv[idx_number_2]->arg);
+	return exec_timeout(vty, argv[idx_number]->arg, argv[idx_number_2]->arg);
 }
 
-DEFUN (no_exec_timeout,
-       no_exec_timeout_cmd,
-       "no exec-timeout",
-       NO_STR
-       "Set the EXEC timeout\n")
+DEFUN(no_exec_timeout, no_exec_timeout_cmd, "no exec-timeout",
+      NO_STR "Set the EXEC timeout\n")
 {
 	return exec_timeout(vty, NULL, NULL);
 }
 
 /* Set vty access class. */
-DEFUN (vty_access_class,
-       vty_access_class_cmd,
-       "access-class WORD",
-       "Filter connections based on an IP access list\n"
-       "IP access list\n")
+DEFUN(vty_access_class, vty_access_class_cmd, "access-class WORD",
+      "Filter connections based on an IP access list\n"
+      "IP access list\n")
 {
 	int idx_word = 1;
 	if (vty_accesslist_name)
@@ -3145,17 +3104,14 @@ DEFUN (vty_access_class,
 }
 
 /* Clear vty access class. */
-DEFUN (no_vty_access_class,
-       no_vty_access_class_cmd,
-       "no access-class [WORD]",
-       NO_STR
-       "Filter connections based on an IP access list\n"
-       "IP access list\n")
+DEFUN(no_vty_access_class, no_vty_access_class_cmd, "no access-class [WORD]",
+      NO_STR "Filter connections based on an IP access list\n"
+	     "IP access list\n")
 {
 	int idx_word = 2;
 	const char *accesslist = (argc == 3) ? argv[idx_word]->arg : NULL;
-	if (!vty_accesslist_name
-	    || (argc == 3 && strcmp(vty_accesslist_name, accesslist))) {
+	if (!vty_accesslist_name ||
+	    (argc == 3 && strcmp(vty_accesslist_name, accesslist))) {
 		vty_out(vty, "Access-class is not currently applied to vty\n");
 		return CMD_WARNING_CONFIG_FAILED;
 	}
@@ -3168,12 +3124,9 @@ DEFUN (no_vty_access_class,
 }
 
 /* Set vty access class. */
-DEFUN (vty_ipv6_access_class,
-       vty_ipv6_access_class_cmd,
-       "ipv6 access-class WORD",
-       IPV6_STR
-       "Filter connections based on an IP access list\n"
-       "IPv6 access list\n")
+DEFUN(vty_ipv6_access_class, vty_ipv6_access_class_cmd, "ipv6 access-class WORD",
+      IPV6_STR "Filter connections based on an IP access list\n"
+	       "IPv6 access list\n")
 {
 	int idx_word = 2;
 	if (vty_ipv6_accesslist_name)
@@ -3185,21 +3138,17 @@ DEFUN (vty_ipv6_access_class,
 }
 
 /* Clear vty access class. */
-DEFUN (no_vty_ipv6_access_class,
-       no_vty_ipv6_access_class_cmd,
-       "no ipv6 access-class [WORD]",
-       NO_STR
-       IPV6_STR
-       "Filter connections based on an IP access list\n"
-       "IPv6 access list\n")
+DEFUN(no_vty_ipv6_access_class, no_vty_ipv6_access_class_cmd,
+      "no ipv6 access-class [WORD]",
+      NO_STR IPV6_STR "Filter connections based on an IP access list\n"
+		      "IPv6 access list\n")
 {
 	int idx_word = 3;
 	const char *accesslist = (argc == 4) ? argv[idx_word]->arg : NULL;
 
-	if (!vty_ipv6_accesslist_name
-	    || (argc == 4 && strcmp(vty_ipv6_accesslist_name, accesslist))) {
-		vty_out(vty,
-			"IPv6 access-class is not currently applied to vty\n");
+	if (!vty_ipv6_accesslist_name ||
+	    (argc == 4 && strcmp(vty_ipv6_accesslist_name, accesslist))) {
+		vty_out(vty, "IPv6 access-class is not currently applied to vty\n");
 		return CMD_WARNING_CONFIG_FAILED;
 	}
 
@@ -3211,49 +3160,36 @@ DEFUN (no_vty_ipv6_access_class,
 }
 
 /* vty login. */
-DEFUN (vty_login,
-       vty_login_cmd,
-       "login",
-       "Enable password checking\n")
+DEFUN(vty_login, vty_login_cmd, "login", "Enable password checking\n")
 {
 	no_password_check = 0;
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_vty_login,
-       no_vty_login_cmd,
-       "no login",
-       NO_STR
-       "Enable password checking\n")
+DEFUN(no_vty_login, no_vty_login_cmd, "no login", NO_STR "Enable password checking\n")
 {
 	no_password_check = 1;
 	return CMD_SUCCESS;
 }
 
-DEFUN (service_advanced_vty,
-       service_advanced_vty_cmd,
-       "service advanced-vty",
-       "Set up miscellaneous service\n"
-       "Enable advanced mode vty interface\n")
+DEFUN(service_advanced_vty, service_advanced_vty_cmd, "service advanced-vty",
+      "Set up miscellaneous service\n"
+      "Enable advanced mode vty interface\n")
 {
 	host.advanced = 1;
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_service_advanced_vty,
-       no_service_advanced_vty_cmd,
-       "no service advanced-vty",
-       NO_STR
-       "Set up miscellaneous service\n"
-       "Enable advanced mode vty interface\n")
+DEFUN(no_service_advanced_vty, no_service_advanced_vty_cmd,
+      "no service advanced-vty",
+      NO_STR "Set up miscellaneous service\n"
+	     "Enable advanced mode vty interface\n")
 {
 	host.advanced = 0;
 	return CMD_SUCCESS;
 }
 
-DEFUN_NOSH(terminal_monitor,
-	   terminal_monitor_cmd,
-	   "terminal monitor [detach]",
+DEFUN_NOSH(terminal_monitor, terminal_monitor_cmd, "terminal monitor [detach]",
 	   "Set terminal line parameters\n"
 	   "Copy debug output to the current terminal line\n"
 	   "Keep logging feed open independent of VTY session\n")
@@ -3282,33 +3218,24 @@ DEFUN_NOSH(terminal_monitor,
 	return CMD_SUCCESS;
 }
 
-DEFUN_NOSH(no_terminal_monitor,
-	   no_terminal_monitor_cmd,
-	   "no terminal monitor",
-	   NO_STR
-	   "Set terminal line parameters\n"
-	   "Copy debug output to the current terminal line\n")
+DEFUN_NOSH(no_terminal_monitor, no_terminal_monitor_cmd, "no terminal monitor",
+	   NO_STR "Set terminal line parameters\n"
+		  "Copy debug output to the current terminal line\n")
 {
 	zlog_live_close(&vty->live_log);
 	return CMD_SUCCESS;
 }
 
-DEFUN_NOSH(terminal_no_monitor,
-	   terminal_no_monitor_cmd,
-	   "terminal no monitor",
-	   "Set terminal line parameters\n"
-	   NO_STR
+DEFUN_NOSH(terminal_no_monitor, terminal_no_monitor_cmd, "terminal no monitor",
+	   "Set terminal line parameters\n" NO_STR
 	   "Copy debug output to the current terminal line\n")
 {
 	return no_terminal_monitor(self, vty, argc, argv);
 }
 
 
-DEFUN_NOSH (show_history,
-       show_history_cmd,
-       "show history",
-       SHOW_STR
-       "Display the session command history\n")
+DEFUN_NOSH(show_history, show_history_cmd, "show history",
+	   SHOW_STR "Display the session command history\n")
 {
 	int index;
 
@@ -3328,12 +3255,9 @@ DEFUN_NOSH (show_history,
 }
 
 /* vty login. */
-DEFPY (log_commands,
-       log_commands_cmd,
-       "[no] log commands",
-       NO_STR
-       "Logging control\n"
-       "Log all commands\n")
+DEFPY(log_commands, log_commands_cmd, "[no] log commands",
+      NO_STR "Logging control\n"
+	     "Log all commands\n")
 {
 	if (no) {
 		if (vty_log_commands_perm) {
@@ -3358,8 +3282,7 @@ static int vty_config_write(struct vty *vty)
 		vty_out(vty, " access-class %s\n", vty_accesslist_name);
 
 	if (vty_ipv6_accesslist_name)
-		vty_out(vty, " ipv6 access-class %s\n",
-			vty_ipv6_accesslist_name);
+		vty_out(vty, " ipv6 access-class %s\n", vty_ipv6_accesslist_name);
 
 	/* exec-timeout */
 	if (vty_timeout_val != VTY_TIMEOUT_DEFAULT)
@@ -3464,8 +3387,7 @@ static void vty_mgmt_server_connected(struct mgmt_fe_client *client,
 				      uintptr_t usr_data, bool connected)
 {
 	MGMTD_FE_CLIENT_DBG("Got %sconnected %s MGMTD Frontend Server",
-			    !connected ? "dis: " : "",
-			    !connected ? "from" : "to");
+			    !connected ? "dis: " : "", !connected ? "from" : "to");
 
 	/*
 	 * We should not have any sessions for connecting or disconnecting case.
@@ -3517,10 +3439,9 @@ static void vty_mgmt_session_notify(struct mgmt_fe_client *client,
 
 static void vty_mgmt_ds_lock_notified(struct mgmt_fe_client *client,
 				      uintptr_t usr_data, uint64_t client_id,
-				      uintptr_t session_id,
-				      uintptr_t session_ctx, uint64_t req_id,
-				      bool lock_ds, bool success,
-				      Mgmtd__DatastoreId ds_id,
+				      uintptr_t session_id, uintptr_t session_ctx,
+				      uint64_t req_id, bool lock_ds,
+				      bool success, Mgmtd__DatastoreId ds_id,
 				      char *errmsg_if_any)
 {
 	struct vty *vty;
@@ -3546,9 +3467,8 @@ static void vty_mgmt_ds_lock_notified(struct mgmt_fe_client *client,
 
 static void vty_mgmt_set_config_result_notified(
 	struct mgmt_fe_client *client, uintptr_t usr_data, uint64_t client_id,
-	uintptr_t session_id, uintptr_t session_ctx, uint64_t req_id,
-	bool success, Mgmtd__DatastoreId ds_id, bool implicit_commit,
-	char *errmsg_if_any)
+	uintptr_t session_id, uintptr_t session_ctx, uint64_t req_id, bool success,
+	Mgmtd__DatastoreId ds_id, bool implicit_commit, char *errmsg_if_any)
 {
 	struct vty *vty;
 
@@ -3592,10 +3512,9 @@ static void vty_mgmt_commit_config_result_notified(
 		vty_out(vty, "ERROR: COMMIT_CONFIG request failed, Error: %s\n",
 			errmsg_if_any ? errmsg_if_any : "Unknown");
 	} else {
-		MGMTD_FE_CLIENT_DBG(
-			"COMMIT_CONFIG request for client 0x%" PRIx64
-			" req-id %" PRIu64 " was successfull",
-			client_id, req_id);
+		MGMTD_FE_CLIENT_DBG("COMMIT_CONFIG request for client 0x%" PRIx64
+				    " req-id %" PRIu64 " was successfull",
+				    client_id, req_id);
 		if (errmsg_if_any)
 			vty_out(vty, "MGMTD: %s\n", errmsg_if_any);
 	}
@@ -3703,7 +3622,7 @@ int vty_mgmt_send_config_data(struct vty *vty, bool implicit_commit)
 	Mgmtd__YangDataValue value[VTY_MAXCFGCHANGES];
 	Mgmtd__YangData cfg_data[VTY_MAXCFGCHANGES];
 	Mgmtd__YangCfgDataReq cfg_req[VTY_MAXCFGCHANGES];
-	Mgmtd__YangCfgDataReq *cfgreq[VTY_MAXCFGCHANGES] = {0};
+	Mgmtd__YangCfgDataReq *cfgreq[VTY_MAXCFGCHANGES] = { 0 };
 	size_t indx;
 
 	if (vty->type == VTY_FILE) {
@@ -3765,8 +3684,7 @@ int vty_mgmt_send_config_data(struct vty *vty, bool implicit_commit)
 		case NB_OP_MOVE:
 		case NB_OP_PRE_VALIDATE:
 		case NB_OP_APPLY_FINISH:
-			cfg_req[indx].req_type =
-				MGMTD__CFG_DATA_REQ_TYPE__SET_DATA;
+			cfg_req[indx].req_type = MGMTD__CFG_DATA_REQ_TYPE__SET_DATA;
 			break;
 		case NB_OP_GET_ELEM:
 		case NB_OP_GET_NEXT:
@@ -3774,8 +3692,7 @@ int vty_mgmt_send_config_data(struct vty *vty, bool implicit_commit)
 		case NB_OP_LOOKUP_ENTRY:
 		case NB_OP_RPC:
 		default:
-			assertf(false,
-				"Invalid operation type for send config: %d",
+			assertf(false, "Invalid operation type for send config: %d",
 				vty->cfg_changes[indx].operation);
 			/*NOTREACHED*/
 			abort();
@@ -3788,9 +3705,8 @@ int vty_mgmt_send_config_data(struct vty *vty, bool implicit_commit)
 
 	vty->mgmt_req_id++;
 	if (mgmt_fe_send_setcfg_req(mgmt_fe_client, vty->mgmt_session_id,
-				    vty->mgmt_req_id, MGMTD_DS_CANDIDATE,
-				    cfgreq, indx, implicit_commit,
-				    MGMTD_DS_RUNNING)) {
+				    vty->mgmt_req_id, MGMTD_DS_CANDIDATE, cfgreq,
+				    indx, implicit_commit, MGMTD_DS_RUNNING)) {
 		zlog_err("Failed to send %zu config xpaths to mgmtd", indx);
 		vty_out(vty, "%% Failed to send commands to mgmtd\n");
 		return -1;
@@ -3805,10 +3721,10 @@ int vty_mgmt_send_commit_config(struct vty *vty, bool validate_only, bool abort)
 {
 	if (mgmt_fe_client && vty->mgmt_session_id) {
 		vty->mgmt_req_id++;
-		if (mgmt_fe_send_commitcfg_req(
-			    mgmt_fe_client, vty->mgmt_session_id,
-			    vty->mgmt_req_id, MGMTD_DS_CANDIDATE,
-			    MGMTD_DS_RUNNING, validate_only, abort)) {
+		if (mgmt_fe_send_commitcfg_req(mgmt_fe_client, vty->mgmt_session_id,
+					       vty->mgmt_req_id, MGMTD_DS_CANDIDATE,
+					       MGMTD_DS_RUNNING, validate_only,
+					       abort)) {
 			zlog_err("Failed sending COMMIT-REQ req-id %" PRIu64,
 				 vty->mgmt_req_id);
 			vty_out(vty, "Failed to send COMMIT-REQ to MGMTD!\n");
@@ -3842,12 +3758,10 @@ int vty_mgmt_send_get_config(struct vty *vty, Mgmtd__DatastoreId datastore,
 		getreq[i] = &get_req[i];
 	}
 	if (mgmt_fe_send_getcfg_req(mgmt_fe_client, vty->mgmt_session_id,
-				    vty->mgmt_req_id, datastore, getreq,
-				    num_req)) {
-		zlog_err(
-			"Failed to send GET-CONFIG to MGMTD for req-id %" PRIu64
-			".",
-			vty->mgmt_req_id);
+				    vty->mgmt_req_id, datastore, getreq, num_req)) {
+		zlog_err("Failed to send GET-CONFIG to MGMTD for req-id %" PRIu64
+			 ".",
+			 vty->mgmt_req_id);
 		vty_out(vty, "Failed to send GET-CONFIG to MGMTD!\n");
 		return -1;
 	}
@@ -3877,10 +3791,8 @@ int vty_mgmt_send_get_data(struct vty *vty, Mgmtd__DatastoreId datastore,
 		getreq[i] = &get_req[i];
 	}
 	if (mgmt_fe_send_getdata_req(mgmt_fe_client, vty->mgmt_session_id,
-				     vty->mgmt_req_id, datastore, getreq,
-				     num_req)) {
-		zlog_err("Failed to send GET-DATA to MGMTD for req-id %" PRIu64
-			 ".",
+				     vty->mgmt_req_id, datastore, getreq, num_req)) {
+		zlog_err("Failed to send GET-DATA to MGMTD for req-id %" PRIu64 ".",
 			 vty->mgmt_req_id);
 		vty_out(vty, "Failed to send GET-DATA to MGMTD!\n");
 		return -1;

@@ -90,42 +90,42 @@ struct ferr {
 
 /* Numeric ranges assigned to daemons for use as error codes. */
 #define BABEL_FERR_START    0x01000001
-#define BABEL_FRRR_END      0x01FFFFFF
-#define BGP_FERR_START      0x02000001
-#define BGP_FERR_END        0x02FFFFFF
+#define BABEL_FRRR_END	    0x01FFFFFF
+#define BGP_FERR_START	    0x02000001
+#define BGP_FERR_END	    0x02FFFFFF
 #define EIGRP_FERR_START    0x03000001
-#define EIGRP_FERR_END      0x03FFFFFF
-#define ISIS_FERR_START     0x04000001
-#define ISIS_FERR_END       0x04FFFFFF
-#define LDP_FERR_START      0x05000001
-#define LDP_FERR_END        0x05FFFFFF
-#define LIB_FERR_START      0x06000001
-#define LIB_FERR_END        0x06FFFFFF
-#define NHRP_FERR_START     0x07000001
-#define NHRP_FERR_END       0x07FFFFFF
-#define OSPF_FERR_START     0x08000001
-#define OSPF_FERR_END       0x08FFFFFF
+#define EIGRP_FERR_END	    0x03FFFFFF
+#define ISIS_FERR_START	    0x04000001
+#define ISIS_FERR_END	    0x04FFFFFF
+#define LDP_FERR_START	    0x05000001
+#define LDP_FERR_END	    0x05FFFFFF
+#define LIB_FERR_START	    0x06000001
+#define LIB_FERR_END	    0x06FFFFFF
+#define NHRP_FERR_START	    0x07000001
+#define NHRP_FERR_END	    0x07FFFFFF
+#define OSPF_FERR_START	    0x08000001
+#define OSPF_FERR_END	    0x08FFFFFF
 #define OSPFV3_FERR_START   0x09000001
-#define OSPFV3_FERR_END     0x09FFFFFF
-#define PBR_FERR_START      0x0A000001
-#define PBR_FERR_END        0x0AFFFFFF
-#define PIM_FERR_START      0x0B000001
-#define PIM_FERR_STOP       0x0BFFFFFF
-#define RIP_FERR_START      0x0C000001
-#define RIP_FERR_STOP       0x0CFFFFFF
+#define OSPFV3_FERR_END	    0x09FFFFFF
+#define PBR_FERR_START	    0x0A000001
+#define PBR_FERR_END	    0x0AFFFFFF
+#define PIM_FERR_START	    0x0B000001
+#define PIM_FERR_STOP	    0x0BFFFFFF
+#define RIP_FERR_START	    0x0C000001
+#define RIP_FERR_STOP	    0x0CFFFFFF
 #define RIPNG_FERR_START    0x0D000001
-#define RIPNG_FERR_STOP     0x0DFFFFFF
+#define RIPNG_FERR_STOP	    0x0DFFFFFF
 #define SHARP_FERR_START    0x0E000001
-#define SHARP_FERR_END      0x0EFFFFFF
+#define SHARP_FERR_END	    0x0EFFFFFF
 #define VTYSH_FERR_START    0x0F000001
-#define VTYSH_FRR_END       0x0FFFFFFF
+#define VTYSH_FRR_END	    0x0FFFFFFF
 #define WATCHFRR_FERR_START 0x10000001
 #define WATCHFRR_FERR_END   0x10FFFFFF
-#define PATH_FERR_START     0x11000001
-#define PATH_FERR_END       0x11FFFFFF
+#define PATH_FERR_START	    0x11000001
+#define PATH_FERR_END	    0x11FFFFFF
 #define ZEBRA_FERR_START    0xF1000001
-#define ZEBRA_FERR_END      0xF1FFFFFF
-#define END_FERR            0xFFFFFFFF
+#define ZEBRA_FERR_END	    0xF1FFFFFF
+#define END_FERR	    0xFFFFFFFF
 
 struct log_ref {
 	/* Unique error code displayed to end user as a reference. -1 means
@@ -171,8 +171,7 @@ ferr_r ferr_set_internal(const char *file, int line, const char *func,
 	PRINTFRR(5, 6);
 ferr_r ferr_set_internal_ext(const char *file, int line, const char *func,
 			     enum ferr_kind kind, const char *pathname,
-			     int errno_val, const char *text, ...)
-	PRINTFRR(7, 8);
+			     int errno_val, const char *text, ...) PRINTFRR(7, 8);
 
 #define ferr_ok() 0
 
@@ -184,8 +183,7 @@ ferr_r ferr_set_internal_ext(const char *file, int line, const char *func,
  * Don't put a \n at the end of the error message.
  */
 #define ferr_code_bug(...)                                                     \
-	ferr_set_internal(__FILE__, __LINE__, __func__, FERR_CODE_BUG,         \
-			  __VA_ARGS__)
+	ferr_set_internal(__FILE__, __LINE__, __func__, FERR_CODE_BUG, __VA_ARGS__)
 #define ferr_cfg_invalid(...)                                                  \
 	ferr_set_internal(__FILE__, __LINE__, __func__, FERR_CONFIG_INVALID,   \
 			  __VA_ARGS__)
@@ -193,14 +191,11 @@ ferr_r ferr_set_internal_ext(const char *file, int line, const char *func,
 	ferr_set_internal(__FILE__, __LINE__, __func__, FERR_CONFIG_REALITY,   \
 			  __VA_ARGS__)
 #define ferr_cfg_resource(...)                                                 \
-	ferr_set_internal(__FILE__, __LINE__, __func__, FERR_RESOURCE,         \
-			  __VA_ARGS__)
+	ferr_set_internal(__FILE__, __LINE__, __func__, FERR_RESOURCE, __VA_ARGS__)
 #define ferr_system(...)                                                       \
-	ferr_set_internal(__FILE__, __LINE__, __func__, FERR_SYSTEM,           \
-			  __VA_ARGS__)
+	ferr_set_internal(__FILE__, __LINE__, __func__, FERR_SYSTEM, __VA_ARGS__)
 #define ferr_library(...)                                                      \
-	ferr_set_internal(__FILE__, __LINE__, __func__, FERR_LIBRARY,          \
-			  __VA_ARGS__)
+	ferr_set_internal(__FILE__, __LINE__, __func__, FERR_LIBRARY, __VA_ARGS__)
 
 /* extended information variants */
 #define ferr_system_errno(...)                                                 \
@@ -234,8 +229,7 @@ void vty_print_error(struct vty *vty, ferr_r err, const char *msg, ...)
 ferr_r foo_bar_set(struct object *obj, int bar)
 {
 	if (bar < 1 || bar >= 100)
-		return ferr_config_invalid("bar setting (%d) must be 0<x<100",
-					   bar);
+		return ferr_config_invalid("bar setting (%d) must be 0<x<100", bar);
 	obj->bar = bar;
 	if (ioctl(obj->fd, bar))
 		return ferr_system_errno("couldn't set bar to %d", bar);
@@ -245,8 +239,7 @@ ferr_r foo_bar_set(struct object *obj, int bar)
 
 DEFUN("bla")
 {
-	CMD_FERR_RETURN(foo_bar_set(obj, atoi(argv[1])),
-			"command failed: $ERR\n");
+	CMD_FERR_RETURN(foo_bar_set(obj, atoi(argv[1])), "command failed: $ERR\n");
 	return CMD_SUCCESS;
 }
 

@@ -836,13 +836,12 @@ int lib_interface_zebra_ip_addrs_create(struct nb_cb_create_args *args)
 
 	switch (args->event) {
 	case NB_EV_VALIDATE:
-		if (prefix.family == AF_INET
-		    && ipv4_martian(&prefix.u.prefix4)) {
+		if (prefix.family == AF_INET && ipv4_martian(&prefix.u.prefix4)) {
 			snprintfrr(args->errmsg, args->errmsg_len,
 				   "invalid address %pFX", &prefix);
 			return NB_ERR_VALIDATION;
-		} else if (prefix.family == AF_INET6
-			   && ipv6_martian(&prefix.u.prefix6)) {
+		} else if (prefix.family == AF_INET6 &&
+			   ipv6_martian(&prefix.u.prefix6)) {
 			snprintfrr(args->errmsg, args->errmsg_len,
 				   "invalid address %pFX", &prefix);
 			return NB_ERR_VALIDATION;
@@ -908,8 +907,8 @@ int lib_interface_zebra_ip_addrs_destroy(struct nb_cb_destroy_args *args)
 		}
 
 		/* This is not real address or interface is not active. */
-		if (!CHECK_FLAG(ifc->conf, ZEBRA_IFC_QUEUED)
-		    || !CHECK_FLAG(ifp->status, ZEBRA_INTERFACE_ACTIVE)) {
+		if (!CHECK_FLAG(ifc->conf, ZEBRA_IFC_QUEUED) ||
+		    !CHECK_FLAG(ifp->status, ZEBRA_INTERFACE_ACTIVE)) {
 			listnode_delete(ifp->connected, ifc);
 			connected_free(&ifc);
 			return NB_ERR_VALIDATION;
@@ -975,8 +974,7 @@ int lib_interface_zebra_ip_addrs_ip4_peer_modify(struct nb_cb_modify_args *args)
 	return NB_OK;
 }
 
-int lib_interface_zebra_ip_addrs_ip4_peer_destroy(
-	struct nb_cb_destroy_args *args)
+int lib_interface_zebra_ip_addrs_ip4_peer_destroy(struct nb_cb_destroy_args *args)
 {
 	switch (args->event) {
 	case NB_EV_VALIDATE:
@@ -1132,8 +1130,7 @@ int lib_interface_zebra_bandwidth_destroy(struct nb_cb_destroy_args *args)
  * XPath:
  * /frr-interface:lib/interface/frr-zebra:zebra/link-params/legacy-admin-group
  */
-int lib_interface_zebra_legacy_admin_group_modify(
-	struct nb_cb_modify_args *args)
+int lib_interface_zebra_legacy_admin_group_modify(struct nb_cb_modify_args *args)
 {
 	struct interface *ifp;
 	struct if_link_params *iflp;
@@ -1169,8 +1166,7 @@ int lib_interface_zebra_legacy_admin_group_modify(
 	return NB_OK;
 }
 
-int lib_interface_zebra_legacy_admin_group_destroy(
-	struct nb_cb_destroy_args *args)
+int lib_interface_zebra_legacy_admin_group_destroy(struct nb_cb_destroy_args *args)
 {
 	struct interface *ifp;
 	struct if_link_params *iflp;
@@ -1233,10 +1229,9 @@ int lib_interface_zebra_affinity_create(struct nb_cb_create_args *args)
 		}
 		if (affinity_mode == AFFINITY_MODE_STANDARD &&
 		    affmap->bit_position > 31) {
-			snprintf(
-				args->errmsg, args->errmsg_len,
-				"affinity %s bit-position %d is not compatible with affinity-mode standard (bit-position > 31).",
-				affname, affmap->bit_position);
+			snprintf(args->errmsg, args->errmsg_len,
+				 "affinity %s bit-position %d is not compatible with affinity-mode standard (bit-position > 31).",
+				 affname, affmap->bit_position);
 			return NB_ERR_VALIDATION;
 		}
 		break;
@@ -1255,8 +1250,7 @@ int lib_interface_zebra_affinity_create(struct nb_cb_create_args *args)
 		}
 		if (affinity_mode == AFFINITY_MODE_EXTENDED ||
 		    affinity_mode == AFFINITY_MODE_BOTH) {
-			admin_group_set(&iflp->ext_admin_grp,
-					affmap->bit_position);
+			admin_group_set(&iflp->ext_admin_grp, affmap->bit_position);
 			SET_PARAM(iflp, LP_EXTEND_ADM_GRP);
 		}
 
@@ -1344,9 +1338,8 @@ int lib_interface_zebra_affinity_mode_modify(struct nb_cb_modify_args *args)
 	case NB_EV_VALIDATE:
 		if (affinity_mode == AFFINITY_MODE_STANDARD &&
 		    admin_group_nb_words(&iflp->ext_admin_grp) > 1) {
-			snprintf(
-				args->errmsg, args->errmsg_len,
-				"affinity-mode standard cannot be set when a bit-position > 31 is set.");
+			snprintf(args->errmsg, args->errmsg_len,
+				 "affinity-mode standard cannot be set when a bit-position > 31 is set.");
 			return NB_ERR_VALIDATION;
 		}
 		break;
@@ -1359,8 +1352,9 @@ int lib_interface_zebra_affinity_mode_modify(struct nb_cb_modify_args *args)
 		if (affinity_mode == AFFINITY_MODE_STANDARD) {
 			if (!IS_PARAM_SET(iflp, LP_ADM_GRP) &&
 			    IS_PARAM_SET(iflp, LP_EXTEND_ADM_GRP)) {
-				iflp->admin_grp = admin_group_get_offset(
-					&iflp->ext_admin_grp, 0);
+				iflp->admin_grp =
+					admin_group_get_offset(&iflp->ext_admin_grp,
+							       0);
 				SET_PARAM(iflp, LP_ADM_GRP);
 			}
 			admin_group_clear(&iflp->ext_admin_grp);
@@ -1384,8 +1378,9 @@ int lib_interface_zebra_affinity_mode_modify(struct nb_cb_modify_args *args)
 				SET_PARAM(iflp, LP_EXTEND_ADM_GRP);
 			} else if (!IS_PARAM_SET(iflp, LP_ADM_GRP) &&
 				   IS_PARAM_SET(iflp, LP_EXTEND_ADM_GRP)) {
-				iflp->admin_grp = admin_group_get_offset(
-					&iflp->ext_admin_grp, 0);
+				iflp->admin_grp =
+					admin_group_get_offset(&iflp->ext_admin_grp,
+							       0);
 				SET_PARAM(iflp, LP_ADM_GRP);
 			}
 		}
@@ -1425,15 +1420,13 @@ int lib_vrf_zebra_l3vni_id_modify(struct nb_cb_modify_args *args)
 		zvrf = zebra_vrf_lookup_by_name(vrfname);
 		if (!zvrf) {
 			snprintf(args->errmsg, args->errmsg_len,
-				 "zebra vrf info not found for vrf:%s.",
-				 vrfname);
+				 "zebra vrf info not found for vrf:%s.", vrfname);
 			return NB_ERR_VALIDATION;
 		}
 		if (zvrf->l3vni && zvrf->l3vni != vni) {
-			snprintf(
-				args->errmsg, args->errmsg_len,
-				"vni %u cannot be configured as vni %u is already configured under the vrf",
-				vni, zvrf->l3vni);
+			snprintf(args->errmsg, args->errmsg_len,
+				 "vni %u cannot be configured as vni %u is already configured under the vrf",
+				 vni, zvrf->l3vni);
 			return NB_ERR_VALIDATION;
 		}
 
@@ -1457,13 +1450,11 @@ int lib_vrf_zebra_l3vni_id_modify(struct nb_cb_modify_args *args)
 		pfx_only = yang_dnode_get_bool(args->dnode, "../prefix-only");
 
 		if (zebra_vxlan_process_vrf_vni_cmd(zvrf, vni, err, ERR_STR_SZ,
-						    pfx_only ? 1 : 0, 1)
-		    != 0) {
+						    pfx_only ? 1 : 0, 1) != 0) {
 			if (IS_ZEBRA_DEBUG_VXLAN)
-				snprintf(
-					args->errmsg, args->errmsg_len,
-					"vrf vni %u mapping failed with error: %s",
-					vni, err);
+				snprintf(args->errmsg, args->errmsg_len,
+					 "vrf vni %u mapping failed with error: %s",
+					 vni, err);
 			return NB_ERR;
 		}
 
@@ -1505,12 +1496,10 @@ int lib_vrf_zebra_l3vni_id_destroy(struct nb_cb_destroy_args *args)
 			filter = 1;
 
 		if (zebra_vxlan_process_vrf_vni_cmd(zvrf, vni, err, ERR_STR_SZ,
-						    filter, 0)
-		    != 0) {
+						    filter, 0) != 0) {
 			if (IS_ZEBRA_DEBUG_VXLAN)
-				zlog_debug(
-					"vrf vni %u unmapping failed with error: %s",
-					vni, err);
+				zlog_debug("vrf vni %u unmapping failed with error: %s",
+					   vni, err);
 			return NB_ERR;
 		}
 

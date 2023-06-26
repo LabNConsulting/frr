@@ -20,15 +20,15 @@
 #include "mlag/mlag.pb-c.h"
 #endif
 
-DEFINE_HOOK(zebra_mlag_private_write_data,
-	    (uint8_t *data, uint32_t len), (data, len));
+DEFINE_HOOK(zebra_mlag_private_write_data, (uint8_t * data, uint32_t len),
+	    (data, len));
 DEFINE_HOOK(zebra_mlag_private_monitor_state, (), ());
 DEFINE_HOOK(zebra_mlag_private_open_channel, (), ());
 DEFINE_HOOK(zebra_mlag_private_close_channel, (), ());
 DEFINE_HOOK(zebra_mlag_private_cleanup_data, (), ());
 
 #define ZEBRA_MLAG_METADATA_LEN 4
-#define ZEBRA_MLAG_MSG_BCAST 0xFFFFFFFF
+#define ZEBRA_MLAG_MSG_BCAST	0xFFFFFFFF
 
 uint8_t mlag_wr_buffer[ZEBRA_MLAG_BUF_LIMIT];
 uint8_t mlag_rd_buffer[ZEBRA_MLAG_BUF_LIMIT];
@@ -60,8 +60,7 @@ void zebra_mlag_send_register(void)
 	zebra_mlag_signal_write_thread();
 
 	if (IS_ZEBRA_DEBUG_MLAG)
-		zlog_debug("%s: Enqueued MLAG Register to MLAG Thread ",
-			   __func__);
+		zlog_debug("%s: Enqueued MLAG Register to MLAG Thread ", __func__);
 }
 
 /*
@@ -164,8 +163,8 @@ static void zebra_mlag_client_msg_handler(struct event *event)
 		 * write to MCLAGD
 		 */
 		if (len > 0) {
-			hook_call(zebra_mlag_private_write_data,
-				  mlag_wr_buffer, len);
+			hook_call(zebra_mlag_private_write_data, mlag_wr_buffer,
+				  len);
 
 			/*
 			 * If message type is De-register, send a signal to main
@@ -183,8 +182,7 @@ static void zebra_mlag_client_msg_handler(struct event *event)
 	}
 
 	if (IS_ZEBRA_DEBUG_MLAG)
-		zlog_debug(":%s: Posted  %d messages to MLAGD", __func__,
-			   wr_count);
+		zlog_debug(":%s: Posted  %d messages to MLAGD", __func__, wr_count);
 	/*
 	 * Currently there is only message write task is enqueued to this
 	 * thread, yielding was added for future purpose, so that this thread
@@ -237,9 +235,8 @@ static int zebra_mlag_signal_write_thread(void)
 	 * during Zebra Init/after MLAG thread is destroyed.
 	 * so it is safe to use without any locking
 	 */
-	event_add_event(zrouter.mlag_info.th_master,
-			zebra_mlag_client_msg_handler, NULL, 0,
-			&zrouter.mlag_info.t_write);
+	event_add_event(zrouter.mlag_info.th_master, zebra_mlag_client_msg_handler,
+			NULL, 0, &zrouter.mlag_info.t_write);
 	return 0;
 }
 
@@ -306,23 +303,20 @@ static void zebra_mlag_post_data_from_main_thread(struct event *thread)
 
 	STREAM_GETL(s, msg_type);
 	if (IS_ZEBRA_DEBUG_MLAG)
-		zlog_debug(
-			"%s: Posting MLAG data for msg_type:0x%x to interested clients",
-			__func__, msg_type);
+		zlog_debug("%s: Posting MLAG data for msg_type:0x%x to interested clients",
+			   __func__, msg_type);
 
 	msg_len = s->endp - ZEBRA_MLAG_METADATA_LEN;
 	for (ALL_LIST_ELEMENTS_RO(zrouter.client_list, node, client)) {
 		if (client->mlag_updates_interested == true) {
-			if (msg_type != ZEBRA_MLAG_MSG_BCAST
-			    && !CHECK_FLAG(client->mlag_reg_mask1,
-					   (1 << msg_type))) {
+			if (msg_type != ZEBRA_MLAG_MSG_BCAST &&
+			    !CHECK_FLAG(client->mlag_reg_mask1, (1 << msg_type))) {
 				continue;
 			}
 
 			if (IS_ZEBRA_DEBUG_MLAG)
-				zlog_debug(
-					"%s: Posting MLAG data of length-%d to client:%d ",
-					__func__, msg_len, client->proto);
+				zlog_debug("%s: Posting MLAG data of length-%d to client:%d ",
+					   __func__, msg_len, client->proto);
 
 			zebra_s = stream_new(msg_len);
 			STREAM_GET(zebra_s->data, s, msg_len);
@@ -354,9 +348,8 @@ static void zebra_mlag_spawn_pthread(void)
 {
 	/* Start MLAG write pthread */
 
-	struct frr_pthread_attr pattr = {.start =
-						 frr_pthread_attr_default.start,
-					 .stop = frr_pthread_attr_default.stop};
+	struct frr_pthread_attr pattr = { .start = frr_pthread_attr_default.start,
+					  .stop = frr_pthread_attr_default.stop };
 
 	zrouter.mlag_info.zebra_pth_mlag =
 		frr_pthread_new(&pattr, "Zebra MLAG thread", "Zebra MLAG");
@@ -381,8 +374,7 @@ static void zebra_mlag_terminate_pthread(struct event *event)
 
 	if (zrouter.mlag_info.clients_interested_cnt) {
 		if (IS_ZEBRA_DEBUG_MLAG)
-			zlog_debug(
-				"Zebra MLAG: still some clients are interested");
+			zlog_debug("Zebra MLAG: still some clients are interested");
 		return;
 	}
 
@@ -422,11 +414,9 @@ void zebra_mlag_client_register(ZAPI_HANDLER_ARGS)
 	STREAM_GETL(s, reg_mask);
 
 	if (client->mlag_updates_interested == true) {
-
 		if (IS_ZEBRA_DEBUG_MLAG)
-			zlog_debug(
-				"Client is registered, existing mask: 0x%x, new mask: 0x%x",
-				client->mlag_reg_mask1, reg_mask);
+			zlog_debug("Client is registered, existing mask: 0x%x, new mask: 0x%x",
+				   client->mlag_reg_mask1, reg_mask);
 		if (client->mlag_reg_mask1 != reg_mask)
 			client->mlag_reg_mask1 = reg_mask;
 		/*
@@ -451,8 +441,7 @@ void zebra_mlag_client_register(ZAPI_HANDLER_ARGS)
 		 * with MLAG
 		 */
 		if (IS_ZEBRA_DEBUG_MLAG)
-			zlog_debug(
-				"First client, opening the channel with MLAG");
+			zlog_debug("First client, opening the channel with MLAG");
 
 		zebra_mlag_spawn_pthread();
 		rc = hook_call(zebra_mlag_private_open_channel);
@@ -464,11 +453,10 @@ void zebra_mlag_client_register(ZAPI_HANDLER_ARGS)
 			 * MLAG-UP
 			 */
 			if (IS_ZEBRA_DEBUG_MLAG)
-				zlog_debug(
-					"Fail to open channel with MLAG,rc:%d, post Proto-down",
-					rc);
-			zebra_mlag_publish_process_state(
-				client, ZEBRA_MLAG_PROCESS_DOWN);
+				zlog_debug("Fail to open channel with MLAG,rc:%d, post Proto-down",
+					   rc);
+			zebra_mlag_publish_process_state(client,
+							 ZEBRA_MLAG_PROCESS_DOWN);
 		}
 	}
 
@@ -519,8 +507,7 @@ void zebra_mlag_client_unregister(ZAPI_HANDLER_ARGS)
 	}
 
 	if (IS_ZEBRA_DEBUG_MLAG)
-		zlog_debug(
-			"Client De-Registered successfully for MLAG Updates");
+		zlog_debug("Client De-Registered successfully for MLAG Updates");
 }
 
 /*
@@ -547,8 +534,7 @@ void zebra_mlag_forward_client_msg(ZAPI_HANDLER_ARGS)
 	 * Client data is | Zebra Header + MLAG Data |
 	 * we need to enqueue only the MLAG data, skipping Zebra Header
 	 */
-	stream_put(mlag_s, zebra_s->data + zebra_s->getp,
-		   STREAM_READABLE(zebra_s));
+	stream_put(mlag_s, zebra_s->data + zebra_s->getp, STREAM_READABLE(zebra_s));
 	stream_fifo_push_safe(zrouter.mlag_info.mlag_fifo, mlag_s);
 	zebra_mlag_signal_write_thread();
 
@@ -585,8 +571,8 @@ int32_t zebra_mlag_test_mlag_internal(const char *none, const char *primary,
 	if (orig != zrouter.mlag_info.role) {
 		zsend_capabilities_all_clients();
 		if (zrouter.mlag_info.role != MLAG_ROLE_NONE) {
-			if (zrouter.mlag_info.clients_interested_cnt == 0
-			    && !test_mlag_in_progress) {
+			if (zrouter.mlag_info.clients_interested_cnt == 0 &&
+			    !test_mlag_in_progress) {
 				if (zrouter.mlag_info.zebra_pth_mlag == NULL)
 					zebra_mlag_spawn_pthread();
 				zrouter.mlag_info.clients_interested_cnt++;
@@ -689,10 +675,8 @@ int zebra_mlag_protobuf_encode_client_data(struct stream *s, uint32_t *msg_type)
 
 		if (msg.owner_id == MLAG_OWNER_INTERFACE) {
 			vrf_name_len = strlen(msg.intf_name) + 1;
-			pay_load.intf_name =
-				XMALLOC(MTYPE_MLAG_PBUF, vrf_name_len);
-			strlcpy(pay_load.intf_name, msg.intf_name,
-				vrf_name_len);
+			pay_load.intf_name = XMALLOC(MTYPE_MLAG_PBUF, vrf_name_len);
+			strlcpy(pay_load.intf_name, msg.intf_name, vrf_name_len);
 		}
 
 		len = zebra_mlag_mroute_add__pack(&pay_load, tmp_buf);
@@ -718,10 +702,8 @@ int zebra_mlag_protobuf_encode_client_data(struct stream *s, uint32_t *msg_type)
 
 		if (msg.owner_id == MLAG_OWNER_INTERFACE) {
 			vrf_name_len = strlen(msg.intf_name) + 1;
-			pay_load.intf_name =
-				XMALLOC(MTYPE_MLAG_PBUF, vrf_name_len);
-			strlcpy(pay_load.intf_name, msg.intf_name,
-				vrf_name_len);
+			pay_load.intf_name = XMALLOC(MTYPE_MLAG_PBUF, vrf_name_len);
+			strlcpy(pay_load.intf_name, msg.intf_name, vrf_name_len);
 		}
 
 		len = zebra_mlag_mroute_del__pack(&pay_load, tmp_buf);
@@ -731,18 +713,16 @@ int zebra_mlag_protobuf_encode_client_data(struct stream *s, uint32_t *msg_type)
 	} break;
 	case MLAG_MROUTE_ADD_BULK: {
 		struct mlag_mroute_add msg;
-		ZebraMlagMrouteAddBulk Bulk_msg =
-			ZEBRA_MLAG_MROUTE_ADD_BULK__INIT;
+		ZebraMlagMrouteAddBulk Bulk_msg = ZEBRA_MLAG_MROUTE_ADD_BULK__INIT;
 		ZebraMlagMrouteAdd **pay_load = NULL;
 		bool cleanup = false;
 		uint32_t i, actual;
 
 		Bulk_msg.n_mroute_add = mlag_msg.msg_cnt;
-		pay_load = XMALLOC(MTYPE_MLAG_PBUF, sizeof(ZebraMlagMrouteAdd *)
-							    * mlag_msg.msg_cnt);
+		pay_load = XMALLOC(MTYPE_MLAG_PBUF, sizeof(ZebraMlagMrouteAdd *) *
+							    mlag_msg.msg_cnt);
 
 		for (i = 0, actual = 0; i < mlag_msg.msg_cnt; i++, actual++) {
-
 			uint32_t vrf_name_len = 0;
 
 			rc = mlag_lib_decode_mroute_add(s, &msg, &length);
@@ -757,8 +737,7 @@ int zebra_mlag_protobuf_encode_client_data(struct stream *s, uint32_t *msg_type)
 			vrf_name_len = strlen(msg.vrf_name) + 1;
 			pay_load[i]->vrf_name =
 				XMALLOC(MTYPE_MLAG_PBUF, vrf_name_len);
-			strlcpy(pay_load[i]->vrf_name, msg.vrf_name,
-				vrf_name_len);
+			strlcpy(pay_load[i]->vrf_name, msg.vrf_name, vrf_name_len);
 			pay_load[i]->source_ip = msg.source_ip;
 			pay_load[i]->group_ip = msg.group_ip;
 			pay_load[i]->cost_to_rp = msg.cost_to_rp;
@@ -777,8 +756,7 @@ int zebra_mlag_protobuf_encode_client_data(struct stream *s, uint32_t *msg_type)
 		}
 		if (!cleanup) {
 			Bulk_msg.mroute_add = pay_load;
-			len = zebra_mlag_mroute_add_bulk__pack(&Bulk_msg,
-							       tmp_buf);
+			len = zebra_mlag_mroute_add_bulk__pack(&Bulk_msg, tmp_buf);
 		}
 
 		for (i = 0; i < actual; i++) {
@@ -791,8 +769,8 @@ int zebra_mlag_protobuf_encode_client_data(struct stream *s, uint32_t *msg_type)
 				continue;
 
 			XFREE(MTYPE_MLAG_PBUF, pay_load[i]->vrf_name);
-			if (pay_load[i]->owner_id == MLAG_OWNER_INTERFACE
-			    && pay_load[i]->intf_name)
+			if (pay_load[i]->owner_id == MLAG_OWNER_INTERFACE &&
+			    pay_load[i]->intf_name)
 				XFREE(MTYPE_MLAG_PBUF, pay_load[i]->intf_name);
 			XFREE(MTYPE_MLAG_PBUF, pay_load[i]);
 		}
@@ -802,18 +780,16 @@ int zebra_mlag_protobuf_encode_client_data(struct stream *s, uint32_t *msg_type)
 	} break;
 	case MLAG_MROUTE_DEL_BULK: {
 		struct mlag_mroute_del msg;
-		ZebraMlagMrouteDelBulk Bulk_msg =
-			ZEBRA_MLAG_MROUTE_DEL_BULK__INIT;
+		ZebraMlagMrouteDelBulk Bulk_msg = ZEBRA_MLAG_MROUTE_DEL_BULK__INIT;
 		ZebraMlagMrouteDel **pay_load = NULL;
 		bool cleanup = false;
 		uint32_t i, actual;
 
 		Bulk_msg.n_mroute_del = mlag_msg.msg_cnt;
-		pay_load = XMALLOC(MTYPE_MLAG_PBUF, sizeof(ZebraMlagMrouteDel *)
-							    * mlag_msg.msg_cnt);
+		pay_load = XMALLOC(MTYPE_MLAG_PBUF, sizeof(ZebraMlagMrouteDel *) *
+							    mlag_msg.msg_cnt);
 
 		for (i = 0, actual = 0; i < mlag_msg.msg_cnt; i++, actual++) {
-
 			uint32_t vrf_name_len = 0;
 
 			rc = mlag_lib_decode_mroute_del(s, &msg, &length);
@@ -830,8 +806,7 @@ int zebra_mlag_protobuf_encode_client_data(struct stream *s, uint32_t *msg_type)
 			pay_load[i]->vrf_name =
 				XMALLOC(MTYPE_MLAG_PBUF, vrf_name_len);
 
-			strlcpy(pay_load[i]->vrf_name, msg.vrf_name,
-				vrf_name_len);
+			strlcpy(pay_load[i]->vrf_name, msg.vrf_name, vrf_name_len);
 			pay_load[i]->source_ip = msg.source_ip;
 			pay_load[i]->group_ip = msg.group_ip;
 			pay_load[i]->owner_id = msg.owner_id;
@@ -847,8 +822,7 @@ int zebra_mlag_protobuf_encode_client_data(struct stream *s, uint32_t *msg_type)
 		}
 		if (!cleanup) {
 			Bulk_msg.mroute_del = pay_load;
-			len = zebra_mlag_mroute_del_bulk__pack(&Bulk_msg,
-							       tmp_buf);
+			len = zebra_mlag_mroute_del_bulk__pack(&Bulk_msg, tmp_buf);
 		}
 
 		for (i = 0; i < actual; i++) {
@@ -861,8 +835,8 @@ int zebra_mlag_protobuf_encode_client_data(struct stream *s, uint32_t *msg_type)
 				continue;
 
 			XFREE(MTYPE_MLAG_PBUF, pay_load[i]->vrf_name);
-			if (pay_load[i]->owner_id == MLAG_OWNER_INTERFACE
-			    && pay_load[i]->intf_name)
+			if (pay_load[i]->owner_id == MLAG_OWNER_INTERFACE &&
+			    pay_load[i]->intf_name)
 				XFREE(MTYPE_MLAG_PBUF, pay_load[i]->intf_name);
 			XFREE(MTYPE_MLAG_PBUF, pay_load[i]);
 		}
@@ -912,12 +886,11 @@ int zebra_mlag_protobuf_encode_client_data(struct stream *s, uint32_t *msg_type)
 	len += ZEBRA_MLAG_LEN_SIZE;
 
 	if (IS_ZEBRA_DEBUG_MLAG)
-		zlog_debug(
-			"%s: length of Mlag ProtoBuf message:%s with Header  %d",
-			__func__,
-			mlag_lib_msgid_to_str(mlag_msg.msg_type, buf,
-					      sizeof(buf)),
-			len);
+		zlog_debug("%s: length of Mlag ProtoBuf message:%s with Header  %d",
+			   __func__,
+			   mlag_lib_msgid_to_str(mlag_msg.msg_type, buf,
+						 sizeof(buf)),
+			   len);
 	XFREE(MTYPE_MLAG_PBUF, hdr.data.data);
 
 	return len;
@@ -932,8 +905,7 @@ static void zebra_fill_protobuf_msg(struct stream *s, char *name, int len)
 	stream_put(s, NULL, len - str_len);
 }
 
-int zebra_mlag_protobuf_decode_message(struct stream *s, uint8_t *data,
-				       uint32_t len)
+int zebra_mlag_protobuf_decode_message(struct stream *s, uint8_t *data, uint32_t len)
 {
 	uint32_t msg_type;
 	ZebraMlagHeader *hdr;
@@ -972,8 +944,8 @@ int zebra_mlag_protobuf_decode_message(struct stream *s, uint8_t *data,
 		case ZEBRA_MLAG__HEADER__MESSAGE_TYPE__ZEBRA_MLAG_STATUS_UPDATE: {
 			ZebraMlagStatusUpdate *msg = NULL;
 
-			msg = zebra_mlag_status_update__unpack(
-				NULL, hdr->data.len, hdr->data.data);
+			msg = zebra_mlag_status_update__unpack(NULL, hdr->data.len,
+							       hdr->data.data);
 			if (msg == NULL) {
 				zebra_mlag__header__free_unpacked(hdr, NULL);
 				return -1;
@@ -983,8 +955,7 @@ int zebra_mlag_protobuf_decode_message(struct stream *s, uint8_t *data,
 			/* No Batching */
 			stream_putw(s, MLAG_MSG_NO_BATCH);
 			/* Actual Data */
-			zebra_fill_protobuf_msg(s, msg->peerlink,
-						INTERFACE_NAMSIZ);
+			zebra_fill_protobuf_msg(s, msg->peerlink, INTERFACE_NAMSIZ);
 			stream_putl(s, msg->my_role);
 			stream_putl(s, msg->peer_state);
 			zebra_mlag_status_update__free_unpacked(msg, NULL);
@@ -992,8 +963,8 @@ int zebra_mlag_protobuf_decode_message(struct stream *s, uint8_t *data,
 		case ZEBRA_MLAG__HEADER__MESSAGE_TYPE__ZEBRA_MLAG_VXLAN_UPDATE: {
 			ZebraMlagVxlanUpdate *msg = NULL;
 
-			msg = zebra_mlag_vxlan_update__unpack(
-				NULL, hdr->data.len, hdr->data.data);
+			msg = zebra_mlag_vxlan_update__unpack(NULL, hdr->data.len,
+							      hdr->data.data);
 			if (msg == NULL) {
 				zebra_mlag__header__free_unpacked(hdr, NULL);
 				return -1;
@@ -1069,25 +1040,26 @@ int zebra_mlag_protobuf_decode_message(struct stream *s, uint8_t *data,
 			ZebraMlagMrouteAdd *msg = NULL;
 			size_t i, length_spot;
 
-			Bulk_msg = zebra_mlag_mroute_add_bulk__unpack(
-				NULL, hdr->data.len, hdr->data.data);
+			Bulk_msg =
+				zebra_mlag_mroute_add_bulk__unpack(NULL,
+								   hdr->data.len,
+								   hdr->data.data);
 			if (Bulk_msg == NULL) {
 				zebra_mlag__header__free_unpacked(hdr, NULL);
 				return -1;
 			}
 			/* Payload len */
-			stream_putw(s, (Bulk_msg->n_mroute_add
-					* sizeof(struct mlag_mroute_add)));
+			stream_putw(s, (Bulk_msg->n_mroute_add *
+					sizeof(struct mlag_mroute_add)));
 			/* No. of msgs in Batch */
 			length_spot = stream_putw(s, Bulk_msg->n_mroute_add);
 
 			/* Actual Data */
 			for (i = 0; i < Bulk_msg->n_mroute_add; i++) {
-				if (STREAM_SIZE(s)
-				    < VRF_NAMSIZ + 22 + INTERFACE_NAMSIZ) {
-					zlog_warn(
-						"We have received more messages than we can parse at this point in time: %zu",
-						Bulk_msg->n_mroute_add);
+				if (STREAM_SIZE(s) <
+				    VRF_NAMSIZ + 22 + INTERFACE_NAMSIZ) {
+					zlog_warn("We have received more messages than we can parse at this point in time: %zu",
+						  Bulk_msg->n_mroute_add);
 					break;
 				}
 
@@ -1103,41 +1075,40 @@ int zebra_mlag_protobuf_decode_message(struct stream *s, uint8_t *data,
 				stream_putc(s, msg->am_i_dual_active);
 				stream_putl(s, msg->vrf_id);
 				if (msg->owner_id == MLAG_OWNER_INTERFACE)
-					zebra_fill_protobuf_msg(
-						s, msg->intf_name,
-						INTERFACE_NAMSIZ);
+					zebra_fill_protobuf_msg(s, msg->intf_name,
+								INTERFACE_NAMSIZ);
 				else
 					stream_put(s, NULL, INTERFACE_NAMSIZ);
 			}
 
 			stream_putw_at(s, length_spot, i + 1);
 
-			zebra_mlag_mroute_add_bulk__free_unpacked(Bulk_msg,
-								  NULL);
+			zebra_mlag_mroute_add_bulk__free_unpacked(Bulk_msg, NULL);
 		} break;
 		case ZEBRA_MLAG__HEADER__MESSAGE_TYPE__ZEBRA_MLAG_MROUTE_DEL_BULK: {
 			ZebraMlagMrouteDelBulk *Bulk_msg = NULL;
 			ZebraMlagMrouteDel *msg = NULL;
 			size_t i, length_spot;
 
-			Bulk_msg = zebra_mlag_mroute_del_bulk__unpack(
-				NULL, hdr->data.len, hdr->data.data);
+			Bulk_msg =
+				zebra_mlag_mroute_del_bulk__unpack(NULL,
+								   hdr->data.len,
+								   hdr->data.data);
 			if (Bulk_msg == NULL) {
 				zebra_mlag__header__free_unpacked(hdr, NULL);
 				return -1;
 			}
 			/* Payload len */
-			stream_putw(s, (Bulk_msg->n_mroute_del
-					* sizeof(struct mlag_mroute_del)));
+			stream_putw(s, (Bulk_msg->n_mroute_del *
+					sizeof(struct mlag_mroute_del)));
 			/* No. of msgs in Batch */
 			length_spot = stream_putw(s, Bulk_msg->n_mroute_del);
 
 			/* Actual Data */
 			for (i = 0; i < Bulk_msg->n_mroute_del; i++) {
-				if (STREAM_SIZE(s)
-				    < VRF_NAMSIZ + 16 + INTERFACE_NAMSIZ) {
-					zlog_warn(
-						"We have received more messages than we can parse at this time");
+				if (STREAM_SIZE(s) <
+				    VRF_NAMSIZ + 16 + INTERFACE_NAMSIZ) {
+					zlog_warn("We have received more messages than we can parse at this time");
 					break;
 				}
 
@@ -1150,23 +1121,22 @@ int zebra_mlag_protobuf_decode_message(struct stream *s, uint8_t *data,
 				stream_putl(s, msg->owner_id);
 				stream_putl(s, msg->vrf_id);
 				if (msg->owner_id == MLAG_OWNER_INTERFACE)
-					zebra_fill_protobuf_msg(
-						s, msg->intf_name,
-						INTERFACE_NAMSIZ);
+					zebra_fill_protobuf_msg(s, msg->intf_name,
+								INTERFACE_NAMSIZ);
 				else
 					stream_put(s, NULL, INTERFACE_NAMSIZ);
 			}
 
 			stream_putw_at(s, length_spot, i + 1);
 
-			zebra_mlag_mroute_del_bulk__free_unpacked(Bulk_msg,
-								  NULL);
+			zebra_mlag_mroute_del_bulk__free_unpacked(Bulk_msg, NULL);
 		} break;
 		case ZEBRA_MLAG__HEADER__MESSAGE_TYPE__ZEBRA_MLAG_ZEBRA_STATUS_UPDATE: {
 			ZebraMlagZebraStatusUpdate *msg = NULL;
 
-			msg = zebra_mlag_zebra_status_update__unpack(
-				NULL, hdr->data.len, hdr->data.data);
+			msg = zebra_mlag_zebra_status_update__unpack(NULL,
+								     hdr->data.len,
+								     hdr->data.data);
 			if (msg == NULL) {
 				zebra_mlag__header__free_unpacked(hdr, NULL);
 				return -1;
@@ -1177,8 +1147,7 @@ int zebra_mlag_protobuf_decode_message(struct stream *s, uint8_t *data,
 			stream_putw(s, MLAG_MSG_NO_BATCH);
 			/* Actual Data */
 			stream_putl(s, msg->peer_frrstate);
-			zebra_mlag_zebra_status_update__free_unpacked(msg,
-								      NULL);
+			zebra_mlag_zebra_status_update__free_unpacked(msg, NULL);
 		} break;
 		default:
 			break;
@@ -1194,8 +1163,7 @@ int zebra_mlag_protobuf_encode_client_data(struct stream *s, uint32_t *msg_type)
 	return 0;
 }
 
-int zebra_mlag_protobuf_decode_message(struct stream *s, uint8_t *data,
-				       uint32_t len)
+int zebra_mlag_protobuf_decode_message(struct stream *s, uint8_t *data, uint32_t len)
 {
 	return 0;
 }

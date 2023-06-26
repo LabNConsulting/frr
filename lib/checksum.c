@@ -82,14 +82,13 @@ uint16_t in_cksumv(const struct iovec *iov, size_t iov_len)
 }
 
 /* Fletcher Checksum -- Refer to RFC1008. */
-#define MODX                 4102U   /* 5802 should be fine */
+#define MODX 4102U /* 5802 should be fine */
 
 /* To be consistent, offset is 0-based index, rather than the 1-based
    index required in the specification ISO 8473, Annex C.1 */
 /* calling with offset == FLETCHER_CHECKSUM_VALIDATE will validate the checksum
    without modifying the buffer; a valid checksum returns 0 */
-uint16_t fletcher_checksum(uint8_t *buffer, const size_t len,
-			   const uint16_t offset)
+uint16_t fletcher_checksum(uint8_t *buffer, const size_t len, const uint16_t offset)
 {
 	uint8_t *p;
 	int x, y, c0, c1;
@@ -100,8 +99,7 @@ uint16_t fletcher_checksum(uint8_t *buffer, const size_t len,
 	if (offset != FLETCHER_CHECKSUM_VALIDATE)
 	/* Zero the csum in the packet. */
 	{
-		assert(offset
-		       < (len - 1)); /* account for two bytes of checksum */
+		assert(offset < (len - 1)); /* account for two bytes of checksum */
 		csum = (uint16_t *)(buffer + offset);
 		*(csum) = 0;
 	}

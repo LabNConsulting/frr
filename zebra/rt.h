@@ -32,29 +32,23 @@ extern "C" {
  * Update or delete a route, nexthop, LSP, pseudowire, or vxlan MAC from the
  * kernel, using info from a dataplane context.
  */
-extern enum zebra_dplane_result kernel_route_update(
-	struct zebra_dplane_ctx *ctx);
+extern enum zebra_dplane_result kernel_route_update(struct zebra_dplane_ctx *ctx);
 
-extern enum zebra_dplane_result
-kernel_nexthop_update(struct zebra_dplane_ctx *ctx);
+extern enum zebra_dplane_result kernel_nexthop_update(struct zebra_dplane_ctx *ctx);
 
-extern enum zebra_dplane_result kernel_lsp_update(
-	struct zebra_dplane_ctx *ctx);
+extern enum zebra_dplane_result kernel_lsp_update(struct zebra_dplane_ctx *ctx);
 
 enum zebra_dplane_result kernel_pw_update(struct zebra_dplane_ctx *ctx);
 
-enum zebra_dplane_result kernel_address_update_ctx(
-	struct zebra_dplane_ctx *ctx);
+enum zebra_dplane_result kernel_address_update_ctx(struct zebra_dplane_ctx *ctx);
 
 enum zebra_dplane_result kernel_mac_update_ctx(struct zebra_dplane_ctx *ctx);
 
 enum zebra_dplane_result kernel_neigh_update_ctx(struct zebra_dplane_ctx *ctx);
 
-extern enum zebra_dplane_result
-kernel_pbr_rule_update(struct zebra_dplane_ctx *ctx);
+extern enum zebra_dplane_result kernel_pbr_rule_update(struct zebra_dplane_ctx *ctx);
 
-extern enum zebra_dplane_result
-kernel_intf_update(struct zebra_dplane_ctx *ctx);
+extern enum zebra_dplane_result kernel_intf_update(struct zebra_dplane_ctx *ctx);
 
 extern enum zebra_dplane_result
 kernel_intf_netconf_update(struct zebra_dplane_ctx *ctx);
@@ -65,8 +59,7 @@ extern enum zebra_dplane_result kernel_tc_update(struct zebra_dplane_ctx *ctx);
 extern int kernel_neigh_update(int cmd, int ifindex, void *addr, char *lla,
 			       int llalen, ns_id_t ns_id, uint8_t family,
 			       bool permanent);
-extern int kernel_neigh_register(vrf_id_t vrf_id, struct zserv *client,
-				 bool reg);
+extern int kernel_neigh_register(vrf_id_t vrf_id, struct zserv *client, bool reg);
 extern int kernel_interface_set_master(struct interface *master,
 				       struct interface *slave);
 
@@ -91,8 +84,7 @@ extern void macfdb_read_for_bridge(struct zebra_ns *zns, struct interface *ifp,
 				   struct interface *br_if, vlanid_t vid);
 extern void macfdb_read_mcast_entry_for_vni(struct zebra_ns *zns,
 					    struct interface *ifp, vni_t vni);
-extern void macfdb_read_specific_mac(struct zebra_ns *zns,
-				     struct interface *br_if,
+extern void macfdb_read_specific_mac(struct zebra_ns *zns, struct interface *br_if,
 				     const struct ethaddr *mac, vlanid_t vid);
 extern void neigh_read(struct zebra_ns *zns);
 extern void neigh_read_for_vlan(struct zebra_ns *zns, struct interface *ifp);
@@ -102,7 +94,7 @@ extern void route_read(struct zebra_ns *zns);
 extern int kernel_upd_mac_nh(uint32_t nh_id, struct in_addr vtep_ip);
 extern int kernel_del_mac_nh(uint32_t nh_id);
 extern int kernel_upd_mac_nhg(uint32_t nhg_id, uint32_t nh_cnt,
-		struct nh_grp *nh_ids);
+			      struct nh_grp *nh_ids);
 extern int kernel_del_mac_nhg(uint32_t nhg_id);
 
 /*

@@ -175,19 +175,19 @@ static void *program_counter(void *context)
 #ifdef GNU_LINUX
 /* these are from GNU libc, rather than Linux, strictly speaking */
 #if defined(REG_EIP)
-#  define REG_INDEX REG_EIP
+#define REG_INDEX REG_EIP
 #elif defined(REG_RIP)
-#  define REG_INDEX REG_RIP
+#define REG_INDEX REG_RIP
 #elif defined(__powerpc__)
-#  define REG_INDEX 32
+#define REG_INDEX 32
 #endif
-#endif		       /* GNU_LINUX */
+#endif /* GNU_LINUX */
 
 #ifdef REG_INDEX
 #ifdef HAVE_UCONTEXT_T_UC_MCONTEXT_GREGS
-#  define REGS gregs[REG_INDEX]
+#define REGS gregs[REG_INDEX]
 #elif defined(HAVE_UCONTEXT_T_UC_MCONTEXT_UC_REGS)
-#  define REGS uc_regs->gregs[REG_INDEX]
+#define REGS uc_regs->gregs[REG_INDEX]
 #endif /* HAVE_UCONTEXT_T_UC_MCONTEXT_GREGS */
 #endif /* REG_INDEX */
 
@@ -220,7 +220,7 @@ core_handler(int signo, siginfo_t *siginfo, void *context)
 
 	/* make sure we don't hang in here.  default for SIGALRM is terminate.
 	 * - if we're in backtrace for more than a second, abort. */
-	struct sigaction sa_default = {.sa_handler = SIG_DFL};
+	struct sigaction sa_default = { .sa_handler = SIG_DFL };
 
 	sigaction(SIGALRM, &sa_default, NULL);
 	sigaction(signo, &sa_default, NULL);
@@ -258,7 +258,7 @@ static void trap_default_signals(void)
 #ifdef SIGEMT
 		SIGEMT,
 #endif
-		SIGFPE,  SIGBUS, SIGSEGV,
+		SIGFPE,	 SIGBUS, SIGSEGV,
 #ifdef SIGSYS
 		SIGSYS,
 #endif
@@ -270,7 +270,7 @@ static void trap_default_signals(void)
 #endif
 	};
 	static const int exit_signals[] = {
-		SIGHUP,    SIGINT, SIGALRM, SIGTERM, SIGUSR1, SIGUSR2,
+		SIGHUP,	   SIGINT, SIGALRM, SIGTERM, SIGUSR1, SIGUSR2,
 #ifdef SIGPOLL
 		SIGPOLL,
 #endif
@@ -289,9 +289,9 @@ static void trap_default_signals(void)
 		unsigned int nsigs;
 		void (*handler)(int signo, siginfo_t *info, void *context);
 	} sigmap[] = {
-		{core_signals, array_size(core_signals), core_handler},
-		{exit_signals, array_size(exit_signals), exit_handler},
-		{ignore_signals, array_size(ignore_signals), NULL},
+		{ core_signals, array_size(core_signals), core_handler },
+		{ exit_signals, array_size(exit_signals), exit_handler },
+		{ ignore_signals, array_size(ignore_signals), NULL },
 	};
 	unsigned int i;
 
@@ -300,8 +300,8 @@ static void trap_default_signals(void)
 
 		for (j = 0; j < sigmap[i].nsigs; j++) {
 			struct sigaction oact;
-			if ((sigaction(sigmap[i].sigs[j], NULL, &oact) == 0)
-			    && (oact.sa_handler == SIG_DFL)) {
+			if ((sigaction(sigmap[i].sigs[j], NULL, &oact) == 0) &&
+			    (oact.sa_handler == SIG_DFL)) {
 				struct sigaction act;
 				sigfillset(&act.sa_mask);
 				if (sigmap[i].handler == NULL) {
@@ -319,13 +319,11 @@ static void trap_default_signals(void)
 						act.sa_flags |= SA_RESETHAND;
 #endif
 				}
-				if (sigaction(sigmap[i].sigs[j], &act, NULL)
-				    < 0)
-					flog_err(
-						EC_LIB_SYSTEM_CALL,
-						"Unable to set signal handler for signal %d: %s",
-						sigmap[i].sigs[j],
-						safe_strerror(errno));
+				if (sigaction(sigmap[i].sigs[j], &act, NULL) < 0)
+					flog_err(EC_LIB_SYSTEM_CALL,
+						 "Unable to set signal handler for signal %d: %s",
+						 sigmap[i].sigs[j],
+						 safe_strerror(errno));
 			}
 		}
 	}
@@ -333,7 +331,6 @@ static void trap_default_signals(void)
 
 void signal_init(struct event_loop *m, int sigc, struct frr_signal_t signals[])
 {
-
 	int i = 0;
 	struct frr_signal_t *sig;
 

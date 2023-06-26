@@ -10,7 +10,7 @@
  */
 
 #ifndef _SYS_QUEUE_H_
-#define	_SYS_QUEUE_H_
+#define _SYS_QUEUE_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -87,10 +87,10 @@ extern "C" {
 /*
  * Singly-linked List access methods.
  */
-#define	SLIST_FIRST(head)	((head)->slh_first)
-#define	SLIST_END(head)		NULL
-#define	SLIST_EMPTY(head)	(SLIST_FIRST(head) == SLIST_END(head))
-#define	SLIST_NEXT(elm, field)	((elm)->field.sle_next)
+#define SLIST_FIRST(head)      ((head)->slh_first)
+#define SLIST_END(head)	       NULL
+#define SLIST_EMPTY(head)      (SLIST_FIRST(head) == SLIST_END(head))
+#define SLIST_NEXT(elm, field) ((elm)->field.sle_next)
 
 #define SLIST_FOREACH(var, head, field)                                        \
 	for ((var) = SLIST_FIRST(head); (var) != SLIST_END(head);              \
@@ -167,10 +167,10 @@ extern "C" {
 /*
  * List access methods.
  */
-#define	LIST_FIRST(head)		((head)->lh_first)
-#define	LIST_END(head)			NULL
-#define	LIST_EMPTY(head)		(LIST_FIRST(head) == LIST_END(head))
-#define	LIST_NEXT(elm, field)		((elm)->field.le_next)
+#define LIST_FIRST(head)      ((head)->lh_first)
+#define LIST_END(head)	      NULL
+#define LIST_EMPTY(head)      (LIST_FIRST(head) == LIST_END(head))
+#define LIST_NEXT(elm, field) ((elm)->field.le_next)
 
 #define LIST_FOREACH(var, head, field)                                         \
 	for ((var) = LIST_FIRST(head); (var) != LIST_END(head);                \
@@ -205,23 +205,21 @@ extern "C" {
 		(listelm)->field.le_prev = &(elm)->field.le_next;              \
 	} while (0)
 
-#define LIST_INSERT_HEAD(head, elm, field)                                     \
-	do {                                                                   \
-		if (((elm)->field.le_next = (head)->lh_first) != NULL)         \
-			(head)->lh_first->field.le_prev =                      \
-				&(elm)->field.le_next;                         \
-		(head)->lh_first = (elm);                                      \
-		(elm)->field.le_prev = &(head)->lh_first;                      \
+#define LIST_INSERT_HEAD(head, elm, field)                                       \
+	do {                                                                     \
+		if (((elm)->field.le_next = (head)->lh_first) != NULL)           \
+			(head)->lh_first->field.le_prev = &(elm)->field.le_next; \
+		(head)->lh_first = (elm);                                        \
+		(elm)->field.le_prev = &(head)->lh_first;                        \
 	} while (0)
 
-#define LIST_REMOVE(elm, field)                                                \
-	do {                                                                   \
-		if ((elm)->field.le_next != NULL)                              \
-			(elm)->field.le_next->field.le_prev =                  \
-				(elm)->field.le_prev;                          \
-		*(elm)->field.le_prev = (elm)->field.le_next;                  \
-		_Q_INVALIDATE((elm)->field.le_prev);                           \
-		_Q_INVALIDATE((elm)->field.le_next);                           \
+#define LIST_REMOVE(elm, field)                                                     \
+	do {                                                                        \
+		if ((elm)->field.le_next != NULL)                                   \
+			(elm)->field.le_next->field.le_prev = (elm)->field.le_prev; \
+		*(elm)->field.le_prev = (elm)->field.le_next;                       \
+		_Q_INVALIDATE((elm)->field.le_prev);                                \
+		_Q_INVALIDATE((elm)->field.le_next);                                \
 	} while (0)
 
 #define LIST_REPLACE(elm, elm2, field)                                         \
@@ -257,10 +255,10 @@ extern "C" {
 /*
  * Simple queue access methods.
  */
-#define	SIMPLEQ_FIRST(head)	    ((head)->sqh_first)
-#define	SIMPLEQ_END(head)	    NULL
-#define	SIMPLEQ_EMPTY(head)	    (SIMPLEQ_FIRST(head) == SIMPLEQ_END(head))
-#define	SIMPLEQ_NEXT(elm, field)    ((elm)->field.sqe_next)
+#define SIMPLEQ_FIRST(head)	 ((head)->sqh_first)
+#define SIMPLEQ_END(head)	 NULL
+#define SIMPLEQ_EMPTY(head)	 (SIMPLEQ_FIRST(head) == SIMPLEQ_END(head))
+#define SIMPLEQ_NEXT(elm, field) ((elm)->field.sqe_next)
 
 #define SIMPLEQ_FOREACH(var, head, field)                                      \
 	for ((var) = SIMPLEQ_FIRST(head); (var) != SIMPLEQ_END(head);          \
@@ -293,26 +291,23 @@ extern "C" {
 		(head)->sqh_last = &(elm)->field.sqe_next;                     \
 	} while (0)
 
-#define SIMPLEQ_INSERT_AFTER(head, listelm, elm, field)                        \
-	do {                                                                   \
-		if (((elm)->field.sqe_next = (listelm)->field.sqe_next)        \
-		    == NULL)                                                   \
-			(head)->sqh_last = &(elm)->field.sqe_next;             \
-		(listelm)->field.sqe_next = (elm);                             \
+#define SIMPLEQ_INSERT_AFTER(head, listelm, elm, field)                          \
+	do {                                                                     \
+		if (((elm)->field.sqe_next = (listelm)->field.sqe_next) == NULL) \
+			(head)->sqh_last = &(elm)->field.sqe_next;               \
+		(listelm)->field.sqe_next = (elm);                               \
 	} while (0)
 
-#define SIMPLEQ_REMOVE_HEAD(head, field)                                       \
-	do {                                                                   \
-		if (((head)->sqh_first = (head)->sqh_first->field.sqe_next)    \
-		    == NULL)                                                   \
-			(head)->sqh_last = &(head)->sqh_first;                 \
+#define SIMPLEQ_REMOVE_HEAD(head, field)                                             \
+	do {                                                                         \
+		if (((head)->sqh_first = (head)->sqh_first->field.sqe_next) == NULL) \
+			(head)->sqh_last = &(head)->sqh_first;                       \
 	} while (0)
 
 #define SIMPLEQ_REMOVE_AFTER(head, elm, field)                                 \
 	do {                                                                   \
 		if (((elm)->field.sqe_next =                                   \
-			     (elm)->field.sqe_next->field.sqe_next)            \
-		    == NULL)                                                   \
+			     (elm)->field.sqe_next->field.sqe_next) == NULL)   \
 			(head)->sqh_last = &(elm)->field.sqe_next;             \
 	} while (0)
 
@@ -345,10 +340,11 @@ extern "C" {
  */
 #define XSIMPLEQ_XOR(head, ptr)                                                \
 	((__typeof(ptr))((head)->sqx_cookie ^ (unsigned long)(ptr)))
-#define	XSIMPLEQ_FIRST(head)	    XSIMPLEQ_XOR(head, ((head)->sqx_first))
-#define	XSIMPLEQ_END(head)	    NULL
-#define	XSIMPLEQ_EMPTY(head)	    (XSIMPLEQ_FIRST(head) == XSIMPLEQ_END(head))
-#define	XSIMPLEQ_NEXT(head, elm, field)    XSIMPLEQ_XOR(head, ((elm)->field.sqx_next))
+#define XSIMPLEQ_FIRST(head) XSIMPLEQ_XOR(head, ((head)->sqx_first))
+#define XSIMPLEQ_END(head)   NULL
+#define XSIMPLEQ_EMPTY(head) (XSIMPLEQ_FIRST(head) == XSIMPLEQ_END(head))
+#define XSIMPLEQ_NEXT(head, elm, field)                                        \
+	XSIMPLEQ_XOR(head, ((elm)->field.sqx_next))
 
 #define XSIMPLEQ_FOREACH(var, head, field)                                     \
 	for ((var) = XSIMPLEQ_FIRST(head); (var) != XSIMPLEQ_END(head);        \
@@ -362,18 +358,17 @@ extern "C" {
 /*
  * XOR Simple queue functions.
  */
-#define XSIMPLEQ_INIT(head)                                                    \
-	do {                                                                   \
-		arc4random_buf(&(head)->sqx_cookie,                            \
-			       sizeof((head)->sqx_cookie));                    \
-		(head)->sqx_first = XSIMPLEQ_XOR(head, NULL);                  \
-		(head)->sqx_last = XSIMPLEQ_XOR(head, &(head)->sqx_first);     \
+#define XSIMPLEQ_INIT(head)                                                      \
+	do {                                                                     \
+		arc4random_buf(&(head)->sqx_cookie, sizeof((head)->sqx_cookie)); \
+		(head)->sqx_first = XSIMPLEQ_XOR(head, NULL);                    \
+		(head)->sqx_last = XSIMPLEQ_XOR(head, &(head)->sqx_first);       \
 	} while (0)
 
 #define XSIMPLEQ_INSERT_HEAD(head, elm, field)                                 \
 	do {                                                                   \
-		if (((elm)->field.sqx_next = (head)->sqx_first)                \
-		    == XSIMPLEQ_XOR(head, NULL))                               \
+		if (((elm)->field.sqx_next = (head)->sqx_first) ==             \
+		    XSIMPLEQ_XOR(head, NULL))                                  \
 			(head)->sqx_last =                                     \
 				XSIMPLEQ_XOR(head, &(elm)->field.sqx_next);    \
 		(head)->sqx_first = XSIMPLEQ_XOR(head, (elm));                 \
@@ -389,30 +384,28 @@ extern "C" {
 
 #define XSIMPLEQ_INSERT_AFTER(head, listelm, elm, field)                       \
 	do {                                                                   \
-		if (((elm)->field.sqx_next = (listelm)->field.sqx_next)        \
-		    == XSIMPLEQ_XOR(head, NULL))                               \
+		if (((elm)->field.sqx_next = (listelm)->field.sqx_next) ==     \
+		    XSIMPLEQ_XOR(head, NULL))                                  \
 			(head)->sqx_last =                                     \
 				XSIMPLEQ_XOR(head, &(elm)->field.sqx_next);    \
 		(listelm)->field.sqx_next = XSIMPLEQ_XOR(head, (elm));         \
 	} while (0)
 
-#define XSIMPLEQ_REMOVE_HEAD(head, field)                                      \
-	do {                                                                   \
-		if (((head)->sqx_first = XSIMPLEQ_XOR(head, (head)->sqx_first) \
-						 ->field.sqx_next)             \
-		    == XSIMPLEQ_XOR(head, NULL))                               \
-			(head)->sqx_last =                                     \
-				XSIMPLEQ_XOR(head, &(head)->sqx_first);        \
+#define XSIMPLEQ_REMOVE_HEAD(head, field)                                              \
+	do {                                                                           \
+		if (((head)->sqx_first =                                               \
+			     XSIMPLEQ_XOR(head, (head)->sqx_first)->field.sqx_next) == \
+		    XSIMPLEQ_XOR(head, NULL))                                          \
+			(head)->sqx_last = XSIMPLEQ_XOR(head, &(head)->sqx_first);     \
 	} while (0)
 
-#define XSIMPLEQ_REMOVE_AFTER(head, elm, field)                                \
-	do {                                                                   \
-		if (((elm)->field.sqx_next =                                   \
-			     XSIMPLEQ_XOR(head, (elm)->field.sqx_next)         \
-				     ->field.sqx_next)                         \
-		    == XSIMPLEQ_XOR(head, NULL))                               \
-			(head)->sqx_last =                                     \
-				XSIMPLEQ_XOR(head, &(elm)->field.sqx_next);    \
+#define XSIMPLEQ_REMOVE_AFTER(head, elm, field)                                            \
+	do {                                                                               \
+		if (((elm)->field.sqx_next =                                               \
+			     XSIMPLEQ_XOR(head, (elm)->field.sqx_next)->field.sqx_next) == \
+		    XSIMPLEQ_XOR(head, NULL))                                              \
+			(head)->sqx_last =                                                 \
+				XSIMPLEQ_XOR(head, &(elm)->field.sqx_next);                \
 	} while (0)
 
 
@@ -432,16 +425,16 @@ extern "C" {
 
 #define TAILQ_ENTRY(type)                                                      \
 	struct {                                                               \
-		struct type *tqe_next;  /* next element */                     \
+		struct type *tqe_next;	/* next element */                     \
 		struct type **tqe_prev; /* address of previous next element */ \
 	}
 
 /*
  * Tail queue access methods.
  */
-#define	TAILQ_FIRST(head)		((head)->tqh_first)
-#define	TAILQ_END(head)			NULL
-#define	TAILQ_NEXT(elm, field)		((elm)->field.tqe_next)
+#define TAILQ_FIRST(head)      ((head)->tqh_first)
+#define TAILQ_END(head)	       NULL
+#define TAILQ_NEXT(elm, field) ((elm)->field.tqe_next)
 #define TAILQ_LAST(head, headname)                                             \
 	(*(((struct headname *)((head)->tqh_last))->tqh_last))
 /* XXX */
@@ -465,8 +458,8 @@ extern "C" {
 
 #define TAILQ_FOREACH_REVERSE_SAFE(var, head, headname, field, tvar)           \
 	for ((var) = TAILQ_LAST(head, headname);                               \
-	     (var) != TAILQ_END(head)                                          \
-	     && ((tvar) = TAILQ_PREV(var, headname, field), 1);                \
+	     (var) != TAILQ_END(head) &&                                       \
+	     ((tvar) = TAILQ_PREV(var, headname, field), 1);                   \
 	     (var) = (tvar))
 
 /*
@@ -478,15 +471,14 @@ extern "C" {
 		(head)->tqh_last = &(head)->tqh_first;                         \
 	} while (0)
 
-#define TAILQ_INSERT_HEAD(head, elm, field)                                    \
-	do {                                                                   \
-		if (((elm)->field.tqe_next = (head)->tqh_first) != NULL)       \
-			(head)->tqh_first->field.tqe_prev =                    \
-				&(elm)->field.tqe_next;                        \
-		else                                                           \
-			(head)->tqh_last = &(elm)->field.tqe_next;             \
-		(head)->tqh_first = (elm);                                     \
-		(elm)->field.tqe_prev = &(head)->tqh_first;                    \
+#define TAILQ_INSERT_HEAD(head, elm, field)                                         \
+	do {                                                                        \
+		if (((elm)->field.tqe_next = (head)->tqh_first) != NULL)            \
+			(head)->tqh_first->field.tqe_prev = &(elm)->field.tqe_next; \
+		else                                                                \
+			(head)->tqh_last = &(elm)->field.tqe_next;                  \
+		(head)->tqh_first = (elm);                                          \
+		(elm)->field.tqe_prev = &(head)->tqh_first;                         \
 	} while (0)
 
 #define TAILQ_INSERT_TAIL(head, elm, field)                                    \
@@ -497,16 +489,15 @@ extern "C" {
 		(head)->tqh_last = &(elm)->field.tqe_next;                     \
 	} while (0)
 
-#define TAILQ_INSERT_AFTER(head, listelm, elm, field)                          \
-	do {                                                                   \
-		if (((elm)->field.tqe_next = (listelm)->field.tqe_next)        \
-		    != NULL)                                                   \
-			(elm)->field.tqe_next->field.tqe_prev =                \
-				&(elm)->field.tqe_next;                        \
-		else                                                           \
-			(head)->tqh_last = &(elm)->field.tqe_next;             \
-		(listelm)->field.tqe_next = (elm);                             \
-		(elm)->field.tqe_prev = &(listelm)->field.tqe_next;            \
+#define TAILQ_INSERT_AFTER(head, listelm, elm, field)                            \
+	do {                                                                     \
+		if (((elm)->field.tqe_next = (listelm)->field.tqe_next) != NULL) \
+			(elm)->field.tqe_next->field.tqe_prev =                  \
+				&(elm)->field.tqe_next;                          \
+		else                                                             \
+			(head)->tqh_last = &(elm)->field.tqe_next;               \
+		(listelm)->field.tqe_next = (elm);                               \
+		(elm)->field.tqe_prev = &(listelm)->field.tqe_next;              \
 	} while (0)
 
 #define TAILQ_INSERT_BEFORE(listelm, elm, field)                               \
@@ -542,15 +533,14 @@ extern "C" {
 		_Q_INVALIDATE((elm)->field.tqe_next);                          \
 	} while (0)
 
-#define TAILQ_CONCAT(head1, head2, field)                                      \
-	do {                                                                   \
-		if (!TAILQ_EMPTY(head2)) {                                     \
-			*(head1)->tqh_last = (head2)->tqh_first;               \
-			(head2)->tqh_first->field.tqe_prev =                   \
-				(head1)->tqh_last;                             \
-			(head1)->tqh_last = (head2)->tqh_last;                 \
-			TAILQ_INIT((head2));                                   \
-		}                                                              \
+#define TAILQ_CONCAT(head1, head2, field)                                       \
+	do {                                                                    \
+		if (!TAILQ_EMPTY(head2)) {                                      \
+			*(head1)->tqh_last = (head2)->tqh_first;                \
+			(head2)->tqh_first->field.tqe_prev = (head1)->tqh_last; \
+			(head1)->tqh_last = (head2)->tqh_last;                  \
+			TAILQ_INIT((head2));                                    \
+		}                                                               \
 	} while (0)
 
 #ifdef __cplusplus

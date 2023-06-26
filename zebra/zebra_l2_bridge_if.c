@@ -112,8 +112,7 @@ static int zebra_l2_bridge_if_vlan_clean(struct zebra_if *zif,
 
 	acc_bd = zebra_evpn_acc_vl_find(bvlan->vid, zif->ifp);
 	if (acc_bd)
-		zebra_evpn_access_bd_bridge_cleanup(bvlan->vid, zif->ifp,
-						    acc_bd);
+		zebra_evpn_access_bd_bridge_cleanup(bvlan->vid, zif->ifp, acc_bd);
 
 	bvlan->access_bd = NULL;
 	return 0;
@@ -157,8 +156,7 @@ static void zebra_l2_bridge_if_vlan_table_destroy(struct zebra_if *zif)
 	struct zebra_l2_bridge_if *br;
 
 	br = BRIDGE_FROM_ZEBRA_IF(zif);
-	zebra_l2_bridge_if_vlan_iterate(zif, zebra_l2_bridge_if_vlan_clean,
-					NULL);
+	zebra_l2_bridge_if_vlan_iterate(zif, zebra_l2_bridge_if_vlan_clean, NULL);
 	zebra_l2_bridge_vlan_table_destroy(br->vlan_table);
 	br->vlan_table = NULL;
 }

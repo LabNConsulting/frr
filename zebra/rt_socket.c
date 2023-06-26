@@ -145,9 +145,8 @@ static int kernel_rtm(int cmd, const struct prefix *p,
 	} while (0)
 
 			if (IN6_IS_ADDR_LINKLOCAL(&sin_gate.sin6.sin6_addr))
-				SET_IN6_LINKLOCAL_IFINDEX(
-					sin_gate.sin6.sin6_addr,
-					ifindex);
+				SET_IN6_LINKLOCAL_IFINDEX(sin_gate.sin6.sin6_addr,
+							  ifindex);
 #endif /* KAME */
 
 			gate = true;
@@ -164,8 +163,7 @@ static int kernel_rtm(int cmd, const struct prefix *p,
 				loopback.s_addr = htonl(INADDR_LOOPBACK);
 				sin_gate.sin.sin_addr = loopback;
 #ifdef HAVE_STRUCT_SOCKADDR_SA_LEN
-				sin_gate.sin.sin_len =
-					sizeof(struct sockaddr_in);
+				sin_gate.sin.sin_len = sizeof(struct sockaddr_in);
 #endif /* HAVE_STRUCT_SOCKADDR_SA_LEN */
 				gate = true;
 			} break;
@@ -205,26 +203,23 @@ static int kernel_rtm(int cmd, const struct prefix *p,
 
 #ifdef __OpenBSD__
 		if (nexthop->nh_label) {
-			if (kernel_rtm_add_labels(nexthop->nh_label,
-						  &smpls) != 0)
+			if (kernel_rtm_add_labels(nexthop->nh_label, &smpls) != 0)
 				continue;
 			smplsp = (union sockunion *)&smpls;
 		}
 #endif
 		error = rtm_write(cmd, &sin_dest, &sin_mask,
-				  gate ? &sin_gate : NULL, smplsp,
-				  ifindex, bh_type, metric);
+				  gate ? &sin_gate : NULL, smplsp, ifindex,
+				  bh_type, metric);
 
 		if (IS_ZEBRA_DEBUG_KERNEL) {
 			if (!gate) {
-				zlog_debug(
-					"%s: %pFX: attention! gate not found for re",
-					__func__, p);
+				zlog_debug("%s: %pFX: attention! gate not found for re",
+					   __func__, p);
 			} else {
 				switch (p->family) {
 				case AF_INET:
-					inet_ntop(AF_INET,
-						  &sin_gate.sin.sin_addr,
+					inet_ntop(AF_INET, &sin_gate.sin.sin_addr,
 						  gate_buf, sizeof(gate_buf));
 					break;
 
@@ -274,11 +269,10 @@ static int kernel_rtm(int cmd, const struct prefix *p,
 					 __func__, error, cmd);
 			break;
 		default:
-			flog_err(
-				EC_LIB_SYSTEM_CALL,
-				"%s: %pFX: rtm_write() unexpectedly returned %d for command %s",
-				__func__, p, error,
-				lookup_msg(rtm_type_str, cmd, NULL));
+			flog_err(EC_LIB_SYSTEM_CALL,
+				 "%s: %pFX: rtm_write() unexpectedly returned %d for command %s",
+				 __func__, p, error,
+				 lookup_msg(rtm_type_str, cmd, NULL));
 			break;
 		}
 	} /* for (ALL_NEXTHOPS(...))*/
@@ -286,9 +280,8 @@ static int kernel_rtm(int cmd, const struct prefix *p,
 	/* If there was no useful nexthop, then complain. */
 	if (nexthop_num == 0) {
 		if (IS_ZEBRA_DEBUG_KERNEL)
-			zlog_debug(
-				"%s: No useful nexthops were found in RIB prefix %pFX",
-				__func__, p);
+			zlog_debug("%s: No useful nexthops were found in RIB prefix %pFX",
+				   __func__, p);
 		return 1;
 	}
 
@@ -312,8 +305,7 @@ enum zebra_dplane_result kernel_route_update(struct zebra_dplane_ctx *ctx)
 	type = dplane_ctx_get_type(ctx);
 	old_type = dplane_ctx_get_old_type(ctx);
 
-	frr_with_privs(&zserv_privs) {
-
+	frr_with_privs (&zserv_privs) {
 		if (dplane_ctx_get_op(ctx) == DPLANE_OP_ROUTE_DELETE) {
 			if (!RSYSTEM_ROUTE(type))
 				kernel_rtm(RTM_DELETE, dplane_ctx_get_dest(ctx),
@@ -406,8 +398,7 @@ int kernel_del_mac_nh(uint32_t nh_id)
 	return 0;
 }
 
-int kernel_upd_mac_nhg(uint32_t nhg_id, uint32_t nh_cnt,
-		struct nh_grp *nh_ids)
+int kernel_upd_mac_nhg(uint32_t nhg_id, uint32_t nh_cnt, struct nh_grp *nh_ids)
 {
 	return 0;
 }

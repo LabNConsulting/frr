@@ -69,18 +69,18 @@ static ssize_t printfrr_hexdstr(struct fbuf *buf, struct printfrr_eargs *ea,
 }
 
 enum escape_flags {
-	ESC_N_R_T	= (1 << 0),	/* use \n \r \t instead of \x0a ...*/
-	ESC_SPACE	= (1 << 1),	/* \  */
-	ESC_BACKSLASH	= (1 << 2),	/* \\ */
-	ESC_DBLQUOTE	= (1 << 3),	/* \" */
-	ESC_SGLQUOTE	= (1 << 4),	/* \' */
-	ESC_BACKTICK	= (1 << 5),	/* \` */
-	ESC_DOLLAR	= (1 << 6),	/* \$ */
-	ESC_CLBRACKET	= (1 << 7),	/* \] for RFC5424 syslog */
-	ESC_OTHER	= (1 << 8),	/* remaining non-alpha */
+	ESC_N_R_T = (1 << 0),	  /* use \n \r \t instead of \x0a ...*/
+	ESC_SPACE = (1 << 1),	  /* \  */
+	ESC_BACKSLASH = (1 << 2), /* \\ */
+	ESC_DBLQUOTE = (1 << 3),  /* \" */
+	ESC_SGLQUOTE = (1 << 4),  /* \' */
+	ESC_BACKTICK = (1 << 5),  /* \` */
+	ESC_DOLLAR = (1 << 6),	  /* \$ */
+	ESC_CLBRACKET = (1 << 7), /* \] for RFC5424 syslog */
+	ESC_OTHER = (1 << 8),	  /* remaining non-alpha */
 
-	ESC_ALL = ESC_N_R_T | ESC_SPACE | ESC_BACKSLASH | ESC_DBLQUOTE
-		| ESC_SGLQUOTE | ESC_DOLLAR | ESC_OTHER,
+	ESC_ALL = ESC_N_R_T | ESC_SPACE | ESC_BACKSLASH | ESC_DBLQUOTE |
+		  ESC_SGLQUOTE | ESC_DOLLAR | ESC_OTHER,
 	ESC_QUOTSTRING = ESC_N_R_T | ESC_BACKSLASH | ESC_DBLQUOTE,
 	/* if needed: ESC_SHELL = ... */
 };
@@ -172,7 +172,7 @@ static ssize_t bquote(struct fbuf *buf, const uint8_t *pos, size_t len,
 			ret += bputch(buf, *pos);
 			continue;
 
-		/* remaining: !#&'()*;<=>?[^{|}~ */
+			/* remaining: !#&'()*;<=>?[^{|}~ */
 
 		default:
 			if (*pos >= 0x20 && *pos < 0x7f) {
@@ -284,8 +284,7 @@ ssize_t printfrr_time(struct fbuf *buf, struct printfrr_eargs *ea,
 			flags |= TIMEFMT_REALTIME;
 			break;
 		default:
-			return bputs(buf,
-				     "{invalid time format input specifier}");
+			return bputs(buf, "{invalid time format input specifier}");
 		}
 		ea->fmt++;
 
@@ -494,8 +493,7 @@ static ssize_t printfrr_reltime(struct fbuf *buf, struct printfrr_eargs *ea,
 	lldiv_t min_sec = lldiv(real_ts->tv_sec, 60);
 
 	if (flags & TIMEFMT_MMSS) {
-		ret += bprintfrr(buf, "%02lld:%02lld", min_sec.quot,
-				 min_sec.rem);
+		ret += bprintfrr(buf, "%02lld:%02lld", min_sec.quot, min_sec.rem);
 		ret += do_subsec(buf, real_ts, precision, flags);
 		return ret;
 	}
@@ -509,10 +507,8 @@ static ssize_t printfrr_reltime(struct fbuf *buf, struct printfrr_eargs *ea,
 		return ret;
 	}
 
-	lldiv_t day_hour =
-		hour_min.quot ? lldiv(hour_min.quot, 24) : (lldiv_t){};
-	lldiv_t week_day =
-		day_hour.quot ? lldiv(day_hour.quot, 7) : (lldiv_t){};
+	lldiv_t day_hour = hour_min.quot ? lldiv(hour_min.quot, 24) : (lldiv_t){};
+	lldiv_t week_day = day_hour.quot ? lldiv(day_hour.quot, 7) : (lldiv_t){};
 
 	/* if sub-second precision is not supported, return */
 	if (flags & TIMEFMT_BASIC) {
@@ -527,8 +523,7 @@ static ssize_t printfrr_reltime(struct fbuf *buf, struct printfrr_eargs *ea,
 					 space, hour_min.rem);
 		else
 			ret += bprintfrr(buf, "%02lld:%02lld:%02lld",
-					 hour_min.quot, hour_min.rem,
-					 min_sec.rem);
+					 hour_min.quot, hour_min.rem, min_sec.rem);
 		/* no sub-seconds here */
 		return ret;
 	}

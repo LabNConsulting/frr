@@ -37,8 +37,8 @@
  * wait that netns context is bound to
  * that folder 10 seconds
  */
-#define ZEBRA_NS_POLLING_INTERVAL_MSEC     1000
-#define ZEBRA_NS_POLLING_MAX_RETRIES  200
+#define ZEBRA_NS_POLLING_INTERVAL_MSEC 1000
+#define ZEBRA_NS_POLLING_MAX_RETRIES   200
 
 DEFINE_MTYPE_STATIC(ZEBRA, NETNS_MISC, "ZebraNetNSInfo");
 static struct event *zebra_netns_notify_current;
@@ -77,7 +77,7 @@ static void zebra_ns_notify_create_context_from_entry_name(const char *name)
 	if (netnspath == NULL)
 		return;
 
-	frr_with_privs(&zserv_privs) {
+	frr_with_privs (&zserv_privs) {
 		ns_id = zebra_ns_id_get(netnspath, -1);
 	}
 	if (ns_id == NS_UNKNOWN)
@@ -86,9 +86,8 @@ static void zebra_ns_notify_create_context_from_entry_name(const char *name)
 	/* if VRF with NS ID already present */
 	vrf = vrf_lookup_by_id((vrf_id_t)ns_id_external);
 	if (vrf) {
-		zlog_debug(
-			"NS notify : same NSID used by VRF %s. Ignore NS %s creation",
-			vrf->name, netnspath);
+		zlog_debug("NS notify : same NSID used by VRF %s. Ignore NS %s creation",
+			   vrf->name, netnspath);
 		return;
 	}
 	vrf = vrf_handler_create(NULL, name);
@@ -102,13 +101,13 @@ static void zebra_ns_notify_create_context_from_entry_name(const char *name)
 	default_ns = ns_get_default();
 
 	/* force kernel ns_id creation in that new vrf */
-	frr_with_privs(&zserv_privs) {
+	frr_with_privs (&zserv_privs) {
 		ns_switch_to_netns(netnspath);
 		ns_id_relative = zebra_ns_id_get(NULL, default_ns->fd);
 		ns_switchback_to_initial();
 	}
 
-	frr_with_privs(&zserv_privs) {
+	frr_with_privs (&zserv_privs) {
 		ret = zebra_vrf_netns_handler_create(NULL, vrf, netnspath,
 						     ns_id_external, ns_id,
 						     ns_id_relative);
@@ -123,8 +122,7 @@ static void zebra_ns_notify_create_context_from_entry_name(const char *name)
 	zlog_info("NS notify : created VRF %s NS %s", name, netnspath);
 }
 
-static int zebra_ns_continue_read(struct zebra_netns_info *zns_info,
-				  int stop_retry)
+static int zebra_ns_continue_read(struct zebra_netns_info *zns_info, int stop_retry)
 {
 	void *ns_path_ptr = (void *)zns_info->netnspath;
 
@@ -133,9 +131,8 @@ static int zebra_ns_continue_read(struct zebra_netns_info *zns_info,
 		XFREE(MTYPE_NETNS_MISC, zns_info);
 		return 0;
 	}
-	event_add_timer_msec(zrouter.master, zebra_ns_ready_read,
-			     (void *)zns_info, ZEBRA_NS_POLLING_INTERVAL_MSEC,
-			     NULL);
+	event_add_timer_msec(zrouter.master, zebra_ns_ready_read, (void *)zns_info,
+			     ZEBRA_NS_POLLING_INTERVAL_MSEC, NULL);
 	return 0;
 }
 
@@ -168,8 +165,7 @@ static int zebra_ns_delete(char *name)
 		if (IS_ZEBRA_IF_BOND(ifp))
 			zebra_l2if_update_bond(ifp, false);
 		if (IS_ZEBRA_IF_BOND_SLAVE(ifp))
-			zebra_l2if_update_bond_slave(ifp, IFINDEX_INTERNAL,
-						     false);
+			zebra_l2if_update_bond_slave(ifp, IFINDEX_INTERNAL, false);
 		/* Special handling for bridge or VxLAN interfaces. */
 		if (IS_ZEBRA_IF_BRIDGE(ifp))
 			zebra_l2_bridge_del(ifp);
@@ -222,8 +218,7 @@ static bool zebra_ns_notify_is_default_netns(const char *name)
 	memset(&st, 0, sizeof(st));
 	snprintf(netnspath, sizeof(netnspath), "%s/%s", NS_RUN_DIR, name);
 	/* compare with local stat */
-	if (stat(netnspath, &st) == 0 &&
-	    (st.st_dev == default_netns_stat.st_dev) &&
+	if (stat(netnspath, &st) == 0 && (st.st_dev == default_netns_stat.st_dev) &&
 	    (st.st_ino == default_netns_stat.st_ino))
 		return true;
 	return false;
@@ -244,7 +239,7 @@ static void zebra_ns_ready_read(struct event *t)
 	netnspath = zns_info->netnspath;
 	if (--zns_info->retries == 0)
 		stop_retry = 1;
-	frr_with_privs(&zserv_privs) {
+	frr_with_privs (&zserv_privs) {
 		err = ns_switch_to_netns(netnspath);
 	}
 	if (err < 0) {
@@ -253,7 +248,7 @@ static void zebra_ns_ready_read(struct event *t)
 	}
 
 	/* go back to default ns */
-	frr_with_privs(&zserv_privs) {
+	frr_with_privs (&zserv_privs) {
 		err = ns_switchback_to_initial();
 	}
 	if (err < 0) {
@@ -263,14 +258,14 @@ static void zebra_ns_ready_read(struct event *t)
 
 	/* check default name is not already set */
 	if (strmatch(VRF_DEFAULT_NAME, basename(netnspath))) {
-		zlog_warn("NS notify : NS %s is already default VRF.Cancel VRF Creation", basename(netnspath));
+		zlog_warn("NS notify : NS %s is already default VRF.Cancel VRF Creation",
+			  basename(netnspath));
 		zebra_ns_continue_read(zns_info, 1);
 		return;
 	}
 	if (zebra_ns_notify_is_default_netns(basename(netnspath))) {
-		zlog_warn(
-			"NS notify : NS %s is default VRF. Ignore VRF creation",
-			basename(netnspath));
+		zlog_warn("NS notify : NS %s is default VRF. Ignore VRF creation",
+			  basename(netnspath));
 		zebra_ns_continue_read(zns_info, 1);
 		return;
 	}
@@ -298,16 +293,16 @@ static void zebra_ns_notify_read(struct event *t)
 		return;
 	}
 	for (event = (struct inotify_event *)buf; (char *)event < &buf[len];
-	     event = (struct inotify_event *)((char *)event + sizeof(*event)
-					      + event->len)) {
+	     event = (struct inotify_event *)((char *)event + sizeof(*event) +
+					      event->len)) {
 		char *netnspath;
 		struct zebra_netns_info *netnsinfo;
 
 		if (!(event->mask & (IN_CREATE | IN_DELETE)))
 			continue;
 
-		if (offsetof(struct inotify_event, name) + event->len
-		    >= sizeof(buf)) {
+		if (offsetof(struct inotify_event, name) + event->len >=
+		    sizeof(buf)) {
 			flog_err(EC_ZEBRA_NS_NOTIFY_READ,
 				 "NS notify read: buffer underflow");
 			break;
@@ -379,30 +374,28 @@ void zebra_ns_notify_parse(void)
 	while ((dent = readdir(srcdir)) != NULL) {
 		struct stat st;
 
-		if (strcmp(dent->d_name, ".") == 0
-		    || strcmp(dent->d_name, "..") == 0)
+		if (strcmp(dent->d_name, ".") == 0 ||
+		    strcmp(dent->d_name, "..") == 0)
 			continue;
 		if (fstatat(dirfd(srcdir), dent->d_name, &st, 0) < 0) {
-			flog_err_sys(
-				EC_LIB_SYSTEM_CALL,
-				"NS parsing init: failed to parse entry %s",
-				dent->d_name);
+			flog_err_sys(EC_LIB_SYSTEM_CALL,
+				     "NS parsing init: failed to parse entry %s",
+				     dent->d_name);
 			continue;
 		}
 		if (S_ISDIR(st.st_mode)) {
-			zlog_debug("NS parsing init: %s is not a NS",
-				   dent->d_name);
+			zlog_debug("NS parsing init: %s is not a NS", dent->d_name);
 			continue;
 		}
 		/* check default name is not already set */
 		if (strmatch(VRF_DEFAULT_NAME, basename(dent->d_name))) {
-			zlog_warn("NS notify : NS %s is already default VRF.Cancel VRF Creation", dent->d_name);
+			zlog_warn("NS notify : NS %s is already default VRF.Cancel VRF Creation",
+				  dent->d_name);
 			continue;
 		}
 		if (zebra_ns_notify_is_default_netns(dent->d_name)) {
-			zlog_warn(
-				"NS notify : NS %s is default VRF. Ignore VRF creation",
-				dent->d_name);
+			zlog_warn("NS notify : NS %s is default VRF. Ignore VRF creation",
+				  dent->d_name);
 			continue;
 		}
 		zebra_ns_notify_create_context_from_entry_name(dent->d_name);
@@ -416,13 +409,11 @@ void zebra_ns_notify_init(void)
 
 	fd_monitor = inotify_init();
 	if (fd_monitor < 0) {
-		flog_err_sys(
-			EC_LIB_SYSTEM_CALL,
-			"NS notify init: failed to initialize inotify (%s)",
-			safe_strerror(errno));
+		flog_err_sys(EC_LIB_SYSTEM_CALL,
+			     "NS notify init: failed to initialize inotify (%s)",
+			     safe_strerror(errno));
 	}
-	if (inotify_add_watch(fd_monitor, NS_RUN_DIR,
-			      IN_CREATE | IN_DELETE) < 0) {
+	if (inotify_add_watch(fd_monitor, NS_RUN_DIR, IN_CREATE | IN_DELETE) < 0) {
 		flog_err_sys(EC_LIB_SYSTEM_CALL,
 			     "NS notify watch: failed to add watch (%s)",
 			     safe_strerror(errno));

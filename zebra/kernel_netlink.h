@@ -16,8 +16,8 @@ extern "C" {
 	((struct rtattr *)(((char *)(h)) + NLMSG_ALIGN(sizeof(struct nhmsg))))
 
 
-#define NL_RCV_PKT_BUF_SIZE     (34 * 1024)
-#define NL_PKT_BUF_SIZE         8192
+#define NL_RCV_PKT_BUF_SIZE (34 * 1024)
+#define NL_PKT_BUF_SIZE	    8192
 
 /*
  * nl_attr_put - add an attribute to the Netlink message.
@@ -73,8 +73,8 @@ extern void nl_attr_rtnh_end(struct nlmsghdr *n, struct rtnexthop *rtnh);
 extern void netlink_parse_rtattr(struct rtattr **tb, int max,
 				 struct rtattr *rta, int len);
 extern void netlink_parse_rtattr_flags(struct rtattr **tb, int max,
-				 struct rtattr *rta, int len,
-				 unsigned short flags);
+				       struct rtattr *rta, int len,
+				       unsigned short flags);
 extern void netlink_parse_rtattr_nested(struct rtattr **tb, int max,
 					struct rtattr *rta);
 /*

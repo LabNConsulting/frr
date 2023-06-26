@@ -47,19 +47,20 @@ struct pullwr;
  */
 extern struct pullwr *_pullwr_new(struct event_loop *tm, int fd, void *arg,
 				  void (*fill)(void *, struct pullwr *),
-				  void (*err)(void *, struct pullwr *,
-					      bool eof));
+				  void (*err)(void *, struct pullwr *, bool eof));
 extern void pullwr_del(struct pullwr *pullwr);
 
 /* type-checking wrapper.  makes sure fill() and err() take a first argument
  * whose type is identical to the type of arg.
  * => use "void fill(struct mystruct *arg, ...)" - no "void *arg"
  */
-#define pullwr_new(tm, fd, arg, fill, err) ({                                  \
-	void (*fill_typechk)(typeof(arg), struct pullwr *) = fill;          \
-	void (*err_typechk)(typeof(arg), struct pullwr *, bool) = err;      \
-	_pullwr_new(tm, fd, arg, (void *)fill_typechk, (void *)err_typechk);   \
-})
+#define pullwr_new(tm, fd, arg, fill, err)                                     \
+	({                                                                     \
+		void (*fill_typechk)(typeof(arg), struct pullwr *) = fill;     \
+		void (*err_typechk)(typeof(arg), struct pullwr *, bool) = err; \
+		_pullwr_new(tm, fd, arg, (void *)fill_typechk,                 \
+			    (void *)err_typechk);                              \
+	})
 
 /* max_spin_usec is the time after which the pullwr event handler will stop
  *   trying to get more data from fill() and yield control back to the
@@ -86,11 +87,9 @@ extern void pullwr_cfg(struct pullwr *pullwr, int64_t max_spin_usec,
 		       size_t write_threshold);
 
 extern void pullwr_bump(struct pullwr *pullwr);
-extern void pullwr_write(struct pullwr *pullwr,
-		const void *data, size_t len);
+extern void pullwr_write(struct pullwr *pullwr, const void *data, size_t len);
 
-static inline void pullwr_write_stream(struct pullwr *pullwr,
-		struct stream *s)
+static inline void pullwr_write_stream(struct pullwr *pullwr, struct stream *s)
 {
 	pullwr_write(pullwr, s->data, stream_get_endp(s));
 }

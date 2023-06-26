@@ -74,8 +74,7 @@ void affinity_map_set_check_use_hook(bool (*func)(const char *affmap_name));
 void affinity_map_set_check_update_hook(bool (*func)(const char *affmap_name,
 						     uint16_t new_pos));
 void affinity_map_set_update_hook(void (*func)(const char *affmap_name,
-					       uint16_t old_pos,
-					       uint16_t new_pos));
+					       uint16_t old_pos, uint16_t new_pos));
 
 void cli_show_affinity_map(struct vty *vty, const struct lyd_node *dnode,
 			   bool show_defaults);

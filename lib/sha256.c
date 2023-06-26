@@ -12,8 +12,8 @@ static inline uint32_t be32dec(const void *pp)
 {
 	const uint8_t *p = (uint8_t const *)pp;
 
-	return ((uint32_t)(p[3]) + ((uint32_t)(p[2]) << 8)
-		+ ((uint32_t)(p[1]) << 16) + ((uint32_t)(p[0]) << 24));
+	return ((uint32_t)(p[3]) + ((uint32_t)(p[2]) << 8) +
+		((uint32_t)(p[1]) << 16) + ((uint32_t)(p[0]) << 24));
 }
 #endif
 
@@ -54,14 +54,14 @@ static void be32dec_vect(uint32_t *dst, const unsigned char *src, size_t len)
 }
 
 /* Elementary functions used by SHA256 */
-#define Ch(x, y, z)     ((x & (y ^ z)) ^ z)
-#define Maj(x, y, z)    ((x & (y | z)) | (y & z))
-#define SHR(x, n)       (x >> n)
-#define ROTR(x, n)      ((x >> n) | (x << (32 - n)))
-#define S0(x)           (ROTR(x, 2) ^ ROTR(x, 13) ^ ROTR(x, 22))
-#define S1(x)           (ROTR(x, 6) ^ ROTR(x, 11) ^ ROTR(x, 25))
-#define s0(x)           (ROTR(x, 7) ^ ROTR(x, 18) ^ SHR(x, 3))
-#define s1(x)           (ROTR(x, 17) ^ ROTR(x, 19) ^ SHR(x, 10))
+#define Ch(x, y, z)  ((x & (y ^ z)) ^ z)
+#define Maj(x, y, z) ((x & (y | z)) | (y & z))
+#define SHR(x, n)    (x >> n)
+#define ROTR(x, n)   ((x >> n) | (x << (32 - n)))
+#define S0(x)	     (ROTR(x, 2) ^ ROTR(x, 13) ^ ROTR(x, 22))
+#define S1(x)	     (ROTR(x, 6) ^ ROTR(x, 11) ^ ROTR(x, 25))
+#define s0(x)	     (ROTR(x, 7) ^ ROTR(x, 18) ^ SHR(x, 3))
+#define s1(x)	     (ROTR(x, 17) ^ ROTR(x, 19) ^ SHR(x, 10))
 
 /* SHA256 round function */
 #define RND(a, b, c, d, e, f, g, h, k)                                         \
@@ -172,10 +172,11 @@ static void SHA256_Transform(uint32_t *state, const unsigned char block[64])
 	explicit_bzero(&t1, sizeof(t0));
 }
 
-static unsigned char PAD[64] = {
-	0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0,    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0,    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+static unsigned char PAD[64] = { 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				 0,    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				 0,    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				 0,    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				 0,    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 /* Add padding and terminating bit-count. */
 static void SHA256_Pad(SHA256_CTX *ctx)
@@ -201,7 +202,6 @@ static void SHA256_Pad(SHA256_CTX *ctx)
 /* SHA-256 initialization.  Begins a SHA-256 operation. */
 void SHA256_Init(SHA256_CTX *ctx)
 {
-
 	/* Zero bits processed so far */
 	ctx->count[0] = ctx->count[1] = 0;
 
@@ -264,7 +264,6 @@ void SHA256_Update(SHA256_CTX *ctx, const void *in, size_t len)
  */
 void SHA256_Final(unsigned char digest[32], SHA256_CTX *ctx)
 {
-
 	/* Add padding */
 	SHA256_Pad(ctx);
 
@@ -313,7 +312,6 @@ void HMAC__SHA256_Init(HMAC_SHA256_CTX *ctx, const void *_K, size_t Klen)
 /* Add bytes to the HMAC-SHA256 operation. */
 void HMAC__SHA256_Update(HMAC_SHA256_CTX *ctx, const void *in, size_t len)
 {
-
 	/* Feed data to the inner SHA256 operation. */
 	SHA256_Update(&ctx->ictx, in, len);
 }

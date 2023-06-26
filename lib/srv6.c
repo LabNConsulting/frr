@@ -53,8 +53,7 @@ const char *seg6local_action2str(uint32_t action)
 	}
 }
 
-int snprintf_seg6_segs(char *str,
-		size_t size, const struct seg6_segs *segs)
+int snprintf_seg6_segs(char *str, size_t size, const struct seg6_segs *segs)
 {
 	str[0] = '\0';
 	for (size_t i = 0; i < segs->num_segs; i++) {
@@ -73,7 +72,6 @@ const char *seg6local_context2str(char *str, size_t size,
 				  uint32_t action)
 {
 	switch (action) {
-
 	case ZEBRA_SEG6_LOCAL_ACTION_END:
 		snprintf(str, size, "USP");
 		return str;
@@ -158,14 +156,12 @@ json_object *srv6_locator_chunk_json(const struct srv6_locator_chunk *chunk)
 
 	jo_root = json_object_new_object();
 	json_object_string_addf(jo_root, "prefix", "%pFX", &chunk->prefix);
-	json_object_string_add(jo_root, "proto",
-			       zebra_route_string(chunk->proto));
+	json_object_string_add(jo_root, "proto", zebra_route_string(chunk->proto));
 
 	return jo_root;
 }
 
-json_object *
-srv6_locator_chunk_detailed_json(const struct srv6_locator_chunk *chunk)
+json_object *srv6_locator_chunk_detailed_json(const struct srv6_locator_chunk *chunk)
 {
 	json_object *jo_root = NULL;
 
@@ -175,8 +171,7 @@ srv6_locator_chunk_detailed_json(const struct srv6_locator_chunk *chunk)
 	json_object_string_addf(jo_root, "prefix", "%pFX", &chunk->prefix);
 
 	/* set block_bits_length */
-	json_object_int_add(jo_root, "blockBitsLength",
-			    chunk->block_bits_length);
+	json_object_int_add(jo_root, "blockBitsLength", chunk->block_bits_length);
 
 	/* set node_bits_length */
 	json_object_int_add(jo_root, "nodeBitsLength", chunk->node_bits_length);
@@ -193,8 +188,7 @@ srv6_locator_chunk_detailed_json(const struct srv6_locator_chunk *chunk)
 	json_object_int_add(jo_root, "keep", chunk->keep);
 
 	/* set proto */
-	json_object_string_add(jo_root, "proto",
-			       zebra_route_string(chunk->proto));
+	json_object_string_add(jo_root, "proto", zebra_route_string(chunk->proto));
 
 	/* set instance */
 	json_object_int_add(jo_root, "instance", chunk->instance);
@@ -240,8 +234,7 @@ json_object *srv6_locator_json(const struct srv6_locator *loc)
 		json_object_string_add(jo_root, "behavior", "usid");
 
 	/* set status_up */
-	json_object_boolean_add(jo_root, "statusUp",
-				loc->status_up);
+	json_object_boolean_add(jo_root, "statusUp", loc->status_up);
 
 	/* set chunks */
 	jo_chunks = json_object_new_array();

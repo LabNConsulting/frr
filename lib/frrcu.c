@@ -43,8 +43,8 @@
 #include "seqlock.h"
 #include "atomlist.h"
 
-DEFINE_MTYPE_STATIC(LIB, RCU_THREAD,    "RCU thread");
-DEFINE_MTYPE_STATIC(LIB, RCU_NEXT,      "RCU sequence barrier");
+DEFINE_MTYPE_STATIC(LIB, RCU_THREAD, "RCU thread");
+DEFINE_MTYPE_STATIC(LIB, RCU_NEXT, "RCU sequence barrier");
 
 DECLARE_ATOMLIST(rcu_heads, struct rcu_head, head);
 
@@ -61,8 +61,8 @@ struct rcu_thread {
 };
 DECLARE_ATOMLIST(rcu_threads, struct rcu_thread, head);
 
-static const struct rcu_action rcua_next  = { .type = RCUA_NEXT };
-static const struct rcu_action rcua_end   = { .type = RCUA_END };
+static const struct rcu_action rcua_next = { .type = RCUA_NEXT };
+static const struct rcu_action rcua_end = { .type = RCUA_END };
 static const struct rcu_action rcua_close = { .type = RCUA_CLOSE };
 
 struct rcu_next {
@@ -70,19 +70,19 @@ struct rcu_next {
 	struct rcu_head head_next;
 };
 
-#define rcu_free_internal(mtype, ptr, field)                                   \
-	do {                                                                   \
-		typeof(ptr) _ptr = (ptr);                                      \
-		struct rcu_head *_rcu_head = &_ptr->field;                     \
+#define rcu_free_internal(mtype, ptr, field)                                     \
+	do {                                                                     \
+		typeof(ptr) _ptr = (ptr);                                        \
+		struct rcu_head *_rcu_head = &_ptr->field;                       \
 		static const struct rcu_action _rcu_action = {                 \
 			.type = RCUA_FREE,                                     \
 			.u.free = {                                            \
 				.mt = mtype,                                   \
 				.offset = offsetof(typeof(*_ptr), field),      \
 			},                                                     \
-		};                                                             \
-		_rcu_head->action = &_rcu_action;                              \
-		rcu_heads_add_tail(&rcu_heads, _rcu_head);                     \
+		}; \
+		_rcu_head->action = &_rcu_action;                                \
+		rcu_heads_add_tail(&rcu_heads, _rcu_head);                       \
 	} while (0)
 
 /* primary global RCU position */
@@ -348,11 +348,11 @@ static void rcu_start(void)
 	pthread_sigmask(SIG_SETMASK, &oldsigs, NULL);
 
 #ifdef HAVE_PTHREAD_SETNAME_NP
-# ifdef GNU_LINUX
+#ifdef GNU_LINUX
 	pthread_setname_np(rcu_pthread, "RCU sweeper");
-# elif defined(__NetBSD__)
+#elif defined(__NetBSD__)
 	pthread_setname_np(rcu_pthread, "RCU sweeper", NULL);
-# endif
+#endif
 #elif defined(HAVE_PTHREAD_SET_NAME_NP)
 	pthread_set_name_np(rcu_pthread, "RCU sweeper");
 #endif
@@ -372,8 +372,7 @@ static void rcu_do(struct rcu_head *rh)
 			free(p);
 		break;
 	case RCUA_CLOSE:
-		rhc = container_of(rh, struct rcu_head_close,
-				   rcu_head);
+		rhc = container_of(rh, struct rcu_head_close, rcu_head);
 		close(rhc->fd);
 		break;
 	case RCUA_CALL:

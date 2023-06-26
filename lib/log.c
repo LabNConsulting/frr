@@ -37,7 +37,7 @@
  */
 const char *lookup_msg(const struct message *mz, int kz, const char *nf)
 {
-	static struct message nt = {0};
+	static struct message nt = { 0 };
 	const char *rz = nf ? nf : "(no message found)";
 	const struct message *pnt;
 	for (pnt = mz; memcmp(pnt, &nt, sizeof(struct message)); pnt++)
@@ -75,14 +75,14 @@ size_t frr_timestamp(int timestamp_precision, char *buf, size_t buflen)
 
 	if (buflen > cache.len) {
 		memcpy(buf, cache.buf, cache.len);
-		if ((timestamp_precision > 0)
-		    && (buflen > cache.len + 1 + timestamp_precision)) {
+		if ((timestamp_precision > 0) &&
+		    (buflen > cache.len + 1 + timestamp_precision)) {
 			/* should we worry about locale issues? */
-			static const int divisor[] = {0,   100000, 10000, 1000,
-						      100, 10,     1};
+			static const int divisor[] = { 0,   100000, 10000, 1000,
+						       100, 10,	    1 };
 			int prec;
-			char *p = buf + cache.len + 1
-				  + (prec = timestamp_precision);
+			char *p = buf + cache.len + 1 +
+				  (prec = timestamp_precision);
 			*p-- = '\0';
 			while (prec > 6)
 			/* this is unlikely to happen, but protect anyway */
@@ -118,8 +118,8 @@ void zlog_signal(int signo, const char *action, void *siginfo_v,
 {
 	siginfo_t *siginfo = siginfo_v;
 	time_t now;
-	char buf[sizeof("DEFAULT: Received signal S at T (si_addr 0xP, PC 0xP); aborting...")
-		 + 100];
+	char buf[sizeof("DEFAULT: Received signal S at T (si_addr 0xP, PC 0xP); aborting...") +
+		 100];
 	struct fbuf fb = { .buf = buf, .pos = buf, .len = sizeof(buf) };
 
 	time(&now);
@@ -127,11 +127,9 @@ void zlog_signal(int signo, const char *action, void *siginfo_v,
 	bprintfrr(&fb, "Received signal %d at %lld", signo, (long long)now);
 	if (program_counter)
 		bprintfrr(&fb, " (si_addr 0x%tx, PC 0x%tx)",
-			  (ptrdiff_t)siginfo->si_addr,
-			  (ptrdiff_t)program_counter);
+			  (ptrdiff_t)siginfo->si_addr, (ptrdiff_t)program_counter);
 	else
-		bprintfrr(&fb, " (si_addr 0x%tx)",
-			  (ptrdiff_t)siginfo->si_addr);
+		bprintfrr(&fb, " (si_addr 0x%tx)", (ptrdiff_t)siginfo->si_addr);
 	bprintfrr(&fb, "; %s\n", action);
 
 	zlog_sigsafe(fb.buf, fb.pos - fb.buf);
@@ -177,16 +175,15 @@ void zlog_backtrace_sigsafe(int priority, void *program_counter)
 		unw_get_reg(&cursor, UNW_REG_SP, &sp);
 
 		if (!unw_get_proc_name(&cursor, buf, sizeof(buf), &off))
-			snprintfrr(name, sizeof(name), "%s+%#lx",
-				   buf, (long)off);
+			snprintfrr(name, sizeof(name), "%s+%#lx", buf, (long)off);
 
 		fb.pos = buf;
 		if (unw_is_signal_frame(&cursor))
 			bprintfrr(&fb, "    ---- signal ----\n");
 		bprintfrr(&fb, "%-30s %16lx %16lx", name, (long)ip, (long)sp);
 		if (dladdr((void *)ip, &dlinfo))
-			bprintfrr(&fb, " %s (mapped at %p)",
-				  dlinfo.dli_fname, dlinfo.dli_fbase);
+			bprintfrr(&fb, " %s (mapped at %p)", dlinfo.dli_fname,
+				  dlinfo.dli_fbase);
 		bprintfrr(&fb, "\n");
 		zlog_sigsafe(fb.buf, fb.pos - fb.buf);
 	}
@@ -211,8 +208,7 @@ void zlog_backtrace_sigsafe(int priority, void *program_counter)
 		if (bt)
 			bprintfrr(&fb, "%s", bt[i]);
 		else
-			bprintfrr(&fb, "[bt %d] 0x%tx", i,
-				  (ptrdiff_t)(array[i]));
+			bprintfrr(&fb, "[bt %d] 0x%tx", i, (ptrdiff_t)(array[i]));
 		zlog_sigsafe(fb.buf, fb.pos - fb.buf);
 	}
 	if (bt)
@@ -242,16 +238,15 @@ void zlog_backtrace(int priority)
 			zlog(priority, "    ---- signal ----");
 
 		if (!unw_get_proc_name(&cursor, buf, sizeof(buf), &off))
-			snprintf(name, sizeof(name), "%s+%#lx",
-				buf, (long)off);
+			snprintf(name, sizeof(name), "%s+%#lx", buf, (long)off);
 
 		if (dladdr((void *)ip, &dlinfo))
 			zlog(priority, "%-30s %16lx %16lx %s (mapped at %p)",
-				name, (long)ip, (long)sp,
-				dlinfo.dli_fname, dlinfo.dli_fbase);
+			     name, (long)ip, (long)sp, dlinfo.dli_fname,
+			     dlinfo.dli_fbase);
 		else
-			zlog(priority, "%-30s %16lx %16lx",
-				name, (long)ip, (long)sp);
+			zlog(priority, "%-30s %16lx %16lx", name, (long)ip,
+			     (long)sp);
 	}
 #elif defined(HAVE_GLIBC_BACKTRACE)
 	void *array[20];
@@ -260,10 +255,9 @@ void zlog_backtrace(int priority)
 
 	size = backtrace(array, array_size(array));
 	if (size <= 0 || (size_t)size > array_size(array)) {
-		flog_err_sys(
-			EC_LIB_SYSTEM_CALL,
-			"Cannot get backtrace, returned invalid # of frames %d (valid range is between 1 and %lu)",
-			size, (unsigned long)(array_size(array)));
+		flog_err_sys(EC_LIB_SYSTEM_CALL,
+			     "Cannot get backtrace, returned invalid # of frames %d (valid range is between 1 and %lu)",
+			     size, (unsigned long)(array_size(array)));
 		return;
 	}
 	zlog(priority, "Backtrace for %d stack frames:", size);
@@ -298,8 +292,7 @@ void zlog_thread_info(int log_level)
 
 void memory_oom(size_t size, const char *name)
 {
-	zlog(LOG_CRIT,
-	     "out of memory: failed to allocate %zu bytes for %s object",
+	zlog(LOG_CRIT, "out of memory: failed to allocate %zu bytes for %s object",
 	     size, name);
 	zlog_backtrace(LOG_CRIT);
 	log_memstats(stderr, "log");
@@ -457,10 +450,11 @@ static const struct zebra_desc_table command_types[] = {
 	DESC_ENTRY(ZEBRA_TC_CLASS_ADD),
 	DESC_ENTRY(ZEBRA_TC_CLASS_DELETE),
 	DESC_ENTRY(ZEBRA_TC_FILTER_ADD),
-	DESC_ENTRY(ZEBRA_TC_FILTER_DELETE)};
+	DESC_ENTRY(ZEBRA_TC_FILTER_DELETE)
+};
 #undef DESC_ENTRY
 
-static const struct zebra_desc_table unknown = {0, "unknown", '?'};
+static const struct zebra_desc_table unknown = { 0, "unknown", '?' };
 
 static const struct zebra_desc_table *zroute_lookup(unsigned int zroute)
 {
@@ -475,9 +469,8 @@ static const struct zebra_desc_table *zroute_lookup(unsigned int zroute)
 		return &route_types[zroute];
 	for (i = 0; i < array_size(route_types); i++) {
 		if (zroute == route_types[i].type) {
-			zlog_warn(
-				"internal error: route type table out of order while searching for %u, please notify developers",
-				zroute);
+			zlog_warn("internal error: route type table out of order while searching for %u, please notify developers",
+				  zroute);
 			return &route_types[i];
 		}
 	}
@@ -506,7 +499,7 @@ const char *zserv_command_string(unsigned int command)
 	return command_types[command].string;
 }
 
-#define DESC_ENTRY(T) [(T)] = {(T), (#T), '\0'}
+#define DESC_ENTRY(T) [(T)] = { (T), (#T), '\0' }
 static const struct zebra_desc_table gr_client_cap_types[] = {
 	DESC_ENTRY(ZEBRA_CLIENT_GR_CAPABILITIES),
 	DESC_ENTRY(ZEBRA_CLIENT_ROUTE_UPDATE_COMPLETE),
@@ -519,8 +512,7 @@ static const struct zebra_desc_table gr_client_cap_types[] = {
 const char *zserv_gr_client_cap_string(uint32_t zcc)
 {
 	if (zcc >= array_size(gr_client_cap_types)) {
-		flog_err(EC_LIB_DEVELOPMENT, "unknown zserv command type: %u",
-			 zcc);
+		flog_err(EC_LIB_DEVELOPMENT, "unknown zserv command type: %u", zcc);
 		return unknown.string;
 	}
 	return gr_client_cap_types[zcc].string;

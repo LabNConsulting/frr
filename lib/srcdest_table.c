@@ -47,8 +47,7 @@ static struct route_node *srcdest_rnode_create(route_table_delegate_t *delegate,
 }
 
 static void srcdest_rnode_destroy(route_table_delegate_t *delegate,
-				  struct route_table *table,
-				  struct route_node *rn)
+				  struct route_table *table, struct route_node *rn)
 {
 	struct srcdest_rnode *srn = srcdest_rnode_from_rnode(rn);
 	struct route_table *src_table;
@@ -67,7 +66,8 @@ static void srcdest_rnode_destroy(route_table_delegate_t *delegate,
 
 route_table_delegate_t _srcdest_dstnode_delegate = {
 	.create_node = srcdest_rnode_create,
-	.destroy_node = srcdest_rnode_destroy};
+	.destroy_node = srcdest_rnode_destroy
+};
 
 /* ----- functions to manage rnodes _in_ srcdest table ----- */
 
@@ -76,9 +76,8 @@ route_table_delegate_t _srcdest_dstnode_delegate = {
  * but the cleanup is special to free the table (and possibly the
  * destination prefix's route_node) */
 
-static struct route_node *
-srcdest_srcnode_create(route_table_delegate_t *delegate,
-		       struct route_table *table)
+static struct route_node *srcdest_srcnode_create(route_table_delegate_t *delegate,
+						 struct route_table *table)
 {
 	return XCALLOC(MTYPE_ROUTE_SRC_NODE, sizeof(struct route_node));
 }
@@ -111,7 +110,8 @@ static void srcdest_srcnode_destroy(route_table_delegate_t *delegate,
 
 route_table_delegate_t _srcdest_srcnode_delegate = {
 	.create_node = srcdest_srcnode_create,
-	.destroy_node = srcdest_srcnode_destroy};
+	.destroy_node = srcdest_srcnode_destroy
+};
 
 /* NB: read comments in code for refcounting before using! */
 static struct route_node *srcdest_srcnode_get(struct route_node *rn,
@@ -149,9 +149,8 @@ static struct route_node *srcdest_srcnode_get(struct route_node *rn,
 	return route_node_get(srn->src_table, (const struct prefix *)src_p);
 }
 
-static struct route_node *srcdest_srcnode_lookup(
-	struct route_node *rn,
-	const struct prefix_ipv6 *src_p)
+static struct route_node *srcdest_srcnode_lookup(struct route_node *rn,
+						 const struct prefix_ipv6 *src_p)
 {
 	struct srcdest_rnode *srn;
 
@@ -253,8 +252,7 @@ struct route_node *srcdest_rnode_lookup(struct route_table *table,
 }
 
 void srcdest_rnode_prefixes(const struct route_node *rn,
-			    const struct prefix **p,
-			    const struct prefix **src_p)
+			    const struct prefix **p, const struct prefix **src_p)
 {
 	if (rnode_is_srcnode(rn)) {
 		struct route_node *dst_rn = route_table_get_info(rn->table);
@@ -271,13 +269,11 @@ void srcdest_rnode_prefixes(const struct route_node *rn,
 }
 
 const char *srcdest2str(const struct prefix *dst_p,
-			const struct prefix_ipv6 *src_p,
-			char *str, int size)
+			const struct prefix_ipv6 *src_p, char *str, int size)
 {
 	char dst_buf[PREFIX_STRLEN], src_buf[PREFIX_STRLEN];
 
-	snprintf(str, size, "%s%s%s",
-		 prefix2str(dst_p, dst_buf, sizeof(dst_buf)),
+	snprintf(str, size, "%s%s%s", prefix2str(dst_p, dst_buf, sizeof(dst_buf)),
 		 (src_p && src_p->prefixlen) ? " from " : "",
 		 (src_p && src_p->prefixlen)
 			 ? prefix2str(src_p, src_buf, sizeof(src_buf))
@@ -305,8 +301,7 @@ static ssize_t printfrr_rn(struct fbuf *buf, struct printfrr_eargs *ea,
 		return bputs(buf, "(null)");
 
 	srcdest_rnode_prefixes(rn, &dst_p, &src_p);
-	srcdest2str(dst_p, (const struct prefix_ipv6 *)src_p,
-		    cbuf, sizeof(cbuf));
+	srcdest2str(dst_p, (const struct prefix_ipv6 *)src_p, cbuf, sizeof(cbuf));
 	return bputs(buf, cbuf);
 }
 

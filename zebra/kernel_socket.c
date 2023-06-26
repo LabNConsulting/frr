@@ -49,9 +49,9 @@ extern struct zebra_privs_t zserv_privs;
  * bug if frr calls ROUNDUP with 0.
  */
 #ifdef __APPLE__
-#define ROUNDUP_TYPE	int
+#define ROUNDUP_TYPE int
 #else
-#define ROUNDUP_TYPE	long
+#define ROUNDUP_TYPE long
 #endif
 
 /*
@@ -61,7 +61,7 @@ extern struct zebra_privs_t zserv_privs;
 
 /* OS X (Xcode as of 2014-12) is known not to define RT_ROUNDUP */
 #if defined(RT_ROUNDUP)
-#define ROUNDUP(a)	RT_ROUNDUP(a)
+#define ROUNDUP(a) RT_ROUNDUP(a)
 #endif /* defined(RT_ROUNDUP) */
 
 /*
@@ -84,14 +84,14 @@ extern struct zebra_privs_t zserv_privs;
 
 #if defined(SA_SIZE)
 /* SAROUNDUP is the only thing we need, and SA_SIZE provides that */
-#define SAROUNDUP(a)	SA_SIZE(a)
+#define SAROUNDUP(a) SA_SIZE(a)
 #else /* !SA_SIZE */
 /*
  * Given a pointer (sockaddr or void *), return the number of bytes
  * taken up by the sockaddr and any padding needed for alignment.
  */
 #if defined(HAVE_STRUCT_SOCKADDR_SA_LEN)
-#define SAROUNDUP(X)   ROUNDUP(((struct sockaddr *)(X))->sa_len)
+#define SAROUNDUP(X) ROUNDUP(((struct sockaddr *)(X))->sa_len)
 #else
 /*
  * One would hope all fixed-size structure definitions are aligned,
@@ -110,99 +110,99 @@ extern struct zebra_privs_t zserv_privs;
 #endif /* !SA_SIZE */
 
 /* Routing socket message types. */
-const struct message rtm_type_str[] = {{RTM_ADD, "RTM_ADD"},
-				       {RTM_DELETE, "RTM_DELETE"},
-				       {RTM_CHANGE, "RTM_CHANGE"},
-				       {RTM_GET, "RTM_GET"},
-				       {RTM_LOSING, "RTM_LOSING"},
-				       {RTM_REDIRECT, "RTM_REDIRECT"},
-				       {RTM_MISS, "RTM_MISS"},
+const struct message rtm_type_str[] = { { RTM_ADD, "RTM_ADD" },
+					{ RTM_DELETE, "RTM_DELETE" },
+					{ RTM_CHANGE, "RTM_CHANGE" },
+					{ RTM_GET, "RTM_GET" },
+					{ RTM_LOSING, "RTM_LOSING" },
+					{ RTM_REDIRECT, "RTM_REDIRECT" },
+					{ RTM_MISS, "RTM_MISS" },
 #ifdef RTM_LOCK
-				       {RTM_LOCK, "RTM_LOCK"},
+					{ RTM_LOCK, "RTM_LOCK" },
 #endif /* RTM_LOCK */
 #ifdef OLDADD
-				       {RTM_OLDADD, "RTM_OLDADD"},
+					{ RTM_OLDADD, "RTM_OLDADD" },
 #endif /* RTM_OLDADD */
 #ifdef RTM_OLDDEL
-				       {RTM_OLDDEL, "RTM_OLDDEL"},
+					{ RTM_OLDDEL, "RTM_OLDDEL" },
 #endif /* RTM_OLDDEL */
 #ifdef RTM_RESOLVE
-				       {RTM_RESOLVE, "RTM_RESOLVE"},
-#endif	/* RTM_RESOLVE */
-				       {RTM_NEWADDR, "RTM_NEWADDR"},
-				       {RTM_DELADDR, "RTM_DELADDR"},
-				       {RTM_IFINFO, "RTM_IFINFO"},
+					{ RTM_RESOLVE, "RTM_RESOLVE" },
+#endif /* RTM_RESOLVE */
+					{ RTM_NEWADDR, "RTM_NEWADDR" },
+					{ RTM_DELADDR, "RTM_DELADDR" },
+					{ RTM_IFINFO, "RTM_IFINFO" },
 #ifdef RTM_OIFINFO
-				       {RTM_OIFINFO, "RTM_OIFINFO"},
+					{ RTM_OIFINFO, "RTM_OIFINFO" },
 #endif /* RTM_OIFINFO */
 #ifdef RTM_NEWMADDR
-				       {RTM_NEWMADDR, "RTM_NEWMADDR"},
+					{ RTM_NEWMADDR, "RTM_NEWMADDR" },
 #endif /* RTM_NEWMADDR */
 #ifdef RTM_DELMADDR
-				       {RTM_DELMADDR, "RTM_DELMADDR"},
+					{ RTM_DELMADDR, "RTM_DELMADDR" },
 #endif /* RTM_DELMADDR */
 #ifdef RTM_IFANNOUNCE
-				       {RTM_IFANNOUNCE, "RTM_IFANNOUNCE"},
+					{ RTM_IFANNOUNCE, "RTM_IFANNOUNCE" },
 #endif /* RTM_IFANNOUNCE */
 #ifdef RTM_IEEE80211
-				       {RTM_IEEE80211, "RTM_IEEE80211"},
+					{ RTM_IEEE80211, "RTM_IEEE80211" },
 #endif
-				       {0}};
+					{ 0 } };
 
-static const struct message rtm_flag_str[] = {{RTF_UP, "UP"},
-					      {RTF_GATEWAY, "GATEWAY"},
-					      {RTF_HOST, "HOST"},
-					      {RTF_REJECT, "REJECT"},
-					      {RTF_DYNAMIC, "DYNAMIC"},
-					      {RTF_MODIFIED, "MODIFIED"},
-					      {RTF_DONE, "DONE"},
+static const struct message rtm_flag_str[] = { { RTF_UP, "UP" },
+					       { RTF_GATEWAY, "GATEWAY" },
+					       { RTF_HOST, "HOST" },
+					       { RTF_REJECT, "REJECT" },
+					       { RTF_DYNAMIC, "DYNAMIC" },
+					       { RTF_MODIFIED, "MODIFIED" },
+					       { RTF_DONE, "DONE" },
 #ifdef RTF_MASK
-					      {RTF_MASK, "MASK"},
+					       { RTF_MASK, "MASK" },
 #endif /* RTF_MASK */
 #ifdef RTF_CLONING
-					      {RTF_CLONING, "CLONING"},
+					       { RTF_CLONING, "CLONING" },
 #endif /* RTF_CLONING */
 #ifdef RTF_XRESOLVE
-					      {RTF_XRESOLVE, "XRESOLVE"},
+					       { RTF_XRESOLVE, "XRESOLVE" },
 #endif /* RTF_XRESOLVE */
 #ifdef RTF_LLINFO
-					      {RTF_LLINFO, "LLINFO"},
+					       { RTF_LLINFO, "LLINFO" },
 #endif /* RTF_LLINFO */
-					      {RTF_STATIC, "STATIC"},
-					      {RTF_BLACKHOLE, "BLACKHOLE"},
+					       { RTF_STATIC, "STATIC" },
+					       { RTF_BLACKHOLE, "BLACKHOLE" },
 #ifdef RTF_PRIVATE
-					      {RTF_PRIVATE, "PRIVATE"},
+					       { RTF_PRIVATE, "PRIVATE" },
 #endif /* RTF_PRIVATE */
-					      {RTF_PROTO1, "PROTO1"},
-					      {RTF_PROTO2, "PROTO2"},
+					       { RTF_PROTO1, "PROTO1" },
+					       { RTF_PROTO2, "PROTO2" },
 #ifdef RTF_PRCLONING
-					      {RTF_PRCLONING, "PRCLONING"},
+					       { RTF_PRCLONING, "PRCLONING" },
 #endif /* RTF_PRCLONING */
 #ifdef RTF_WASCLONED
-					      {RTF_WASCLONED, "WASCLONED"},
+					       { RTF_WASCLONED, "WASCLONED" },
 #endif /* RTF_WASCLONED */
 #ifdef RTF_PROTO3
-					      {RTF_PROTO3, "PROTO3"},
+					       { RTF_PROTO3, "PROTO3" },
 #endif /* RTF_PROTO3 */
 #ifdef RTF_PINNED
-					      {RTF_PINNED, "PINNED"},
+					       { RTF_PINNED, "PINNED" },
 #endif /* RTF_PINNED */
 #ifdef RTF_LOCAL
-					      {RTF_LOCAL, "LOCAL"},
+					       { RTF_LOCAL, "LOCAL" },
 #endif /* RTF_LOCAL */
 #ifdef RTF_BROADCAST
-					      {RTF_BROADCAST, "BROADCAST"},
+					       { RTF_BROADCAST, "BROADCAST" },
 #endif /* RTF_BROADCAST */
 #ifdef RTF_MULTICAST
-					      {RTF_MULTICAST, "MULTICAST"},
+					       { RTF_MULTICAST, "MULTICAST" },
 #endif /* RTF_MULTICAST */
 #ifdef RTF_MULTIRT
-					      {RTF_MULTIRT, "MULTIRT"},
+					       { RTF_MULTIRT, "MULTIRT" },
 #endif /* RTF_MULTIRT */
 #ifdef RTF_SETSRC
-					      {RTF_SETSRC, "SETSRC"},
+					       { RTF_SETSRC, "SETSRC" },
 #endif /* RTF_SETSRC */
-					      {0}};
+					       { 0 } };
 
 /* Kernel routing update socket. */
 int routing_sock = -1;
@@ -261,9 +261,8 @@ size_t _rta_get(caddr_t sap, void *destp, size_t destlen, bool checkaf)
 		}
 
 		if (copylen > destlen) {
-			zlog_warn(
-				"%s: destination buffer too small (%zu vs %zu)",
-				__func__, copylen, destlen);
+			zlog_warn("%s: destination buffer too small (%zu vs %zu)",
+				  __func__, copylen, destlen);
 			memcpy(dest, sap, destlen);
 		} else
 			memcpy(dest, sap, copylen);
@@ -299,9 +298,8 @@ size_t rta_getsdlname(caddr_t sap, void *destp, short *destlen)
 
 	if (copylen > 0 && dest != NULL && sdl->sdl_family == AF_LINK) {
 		if (copylen > IFNAMSIZ) {
-			zlog_warn(
-				"%s: destination buffer too small (%zu vs %d)",
-				__func__, copylen, IFNAMSIZ);
+			zlog_warn("%s: destination buffer too small (%zu vs %d)",
+				  __func__, copylen, IFNAMSIZ);
 			memcpy(dest, sdl->sdl_data, IFNAMSIZ);
 			dest[IFNAMSIZ] = 0;
 			*destlen = IFNAMSIZ;
@@ -420,15 +418,14 @@ static int ifan_read(struct if_announcemsghdr *ifan)
 	ifp = if_lookup_by_index(ifan->ifan_index, VRF_DEFAULT);
 
 	if (ifp)
-		assert((ifp->ifindex == ifan->ifan_index)
-		       || (ifp->ifindex == IFINDEX_INTERNAL));
+		assert((ifp->ifindex == ifan->ifan_index) ||
+		       (ifp->ifindex == IFINDEX_INTERNAL));
 
-	if ((ifp == NULL) || ((ifp->ifindex == IFINDEX_INTERNAL)
-			      && (ifan->ifan_what == IFAN_ARRIVAL))) {
+	if ((ifp == NULL) || ((ifp->ifindex == IFINDEX_INTERNAL) &&
+			      (ifan->ifan_what == IFAN_ARRIVAL))) {
 		if (IS_ZEBRA_DEBUG_KERNEL)
-			zlog_debug(
-				"%s: creating interface for ifindex %d, name %s",
-				__func__, ifan->ifan_index, ifan->ifan_name);
+			zlog_debug("%s: creating interface for ifindex %d, name %s",
+				   __func__, ifan->ifan_index, ifan->ifan_name);
 
 		/* Create Interface */
 		ifp = if_get_by_name(ifan->ifan_name, VRF_DEFAULT,
@@ -457,8 +454,8 @@ static int ifan_read(struct if_announcemsghdr *ifan)
 /* BSD link detect translation */
 static void bsd_linkdetect_translate(struct if_msghdr *ifm)
 {
-	if ((ifm->ifm_data.ifi_link_state >= LINK_STATE_UP)
-	    || (ifm->ifm_data.ifi_link_state == LINK_STATE_UNKNOWN))
+	if ((ifm->ifm_data.ifi_link_state >= LINK_STATE_UP) ||
+	    (ifm->ifm_data.ifi_link_state == LINK_STATE_UNKNOWN))
 		SET_FLAG(ifm->ifm_flags, IFF_RUNNING);
 	else
 		UNSET_FLAG(ifm->ifm_flags, IFF_RUNNING);
@@ -564,9 +561,8 @@ int ifm_read(struct if_msghdr *ifm)
 		 */
 		if (ifnlen && (strncmp(ifp->name, ifname, IFNAMSIZ) != 0)) {
 			if (IS_ZEBRA_DEBUG_KERNEL)
-				zlog_debug(
-					"%s: ifp name %s doesn't match sdl name %s",
-					__func__, ifp->name, ifname);
+				zlog_debug("%s: ifp name %s doesn't match sdl name %s",
+					   __func__, ifp->name, ifname);
 			ifp = NULL;
 		}
 	}
@@ -614,17 +610,15 @@ int ifm_read(struct if_msghdr *ifm)
 		if (ifp == NULL) {
 			/* Interface that zebra was not previously aware of, so
 			 * create. */
-			ifp = if_get_by_name(ifname, VRF_DEFAULT,
-					     VRF_DEFAULT_NAME);
+			ifp = if_get_by_name(ifname, VRF_DEFAULT, VRF_DEFAULT_NAME);
 			if (IS_ZEBRA_DEBUG_KERNEL)
 				zlog_debug("%s: creating ifp for ifindex %d",
 					   __func__, ifm->ifm_index);
 		}
 
 		if (IS_ZEBRA_DEBUG_KERNEL)
-			zlog_debug(
-				"%s: updated/created ifp, ifname %s, ifindex %d",
-				__func__, ifp->name, ifp->ifindex);
+			zlog_debug("%s: updated/created ifp, ifname %s, ifindex %d",
+				   __func__, ifp->name, ifp->ifindex);
 		/*
 		 * Fill in newly created interface structure, or larval
 		 * structure with ifindex IFINDEX_INTERNAL.
@@ -666,8 +660,7 @@ int ifm_read(struct if_msghdr *ifm)
 
 			ifp->ll_type = sdl_to_zebra_link_type(sdl->sdl_type);
 			if (sdl->sdl_alen <= sizeof(ifp->hw_addr)) {
-				memcpy(ifp->hw_addr, LLADDR(sdl),
-				       sdl->sdl_alen);
+				memcpy(ifp->hw_addr, LLADDR(sdl), sdl->sdl_alen);
 				ifp->hw_addr_len = sdl->sdl_alen;
 			}
 		}
@@ -683,10 +676,9 @@ int ifm_read(struct if_msghdr *ifm)
 	 */
 	{
 		if (ifp->ifindex != ifm->ifm_index) {
-			zlog_debug(
-				"%s: index mismatch, ifname %s, ifp index %d, ifm index %d",
-				__func__, ifp->name, ifp->ifindex,
-				ifm->ifm_index);
+			zlog_debug("%s: index mismatch, ifname %s, ifp index %d, ifm index %d",
+				   __func__, ifp->name, ifp->ifindex,
+				   ifm->ifm_index);
 			return -1;
 		}
 
@@ -800,24 +792,21 @@ static void ifam_read_mesg(struct ifa_msghdr *ifm, union sockunion *addr,
 		switch (sockunion_family(addr)) {
 		case AF_INET:
 		case AF_INET6: {
-			int masklen =
-				(sockunion_family(addr) == AF_INET)
-					? ip_masklen(mask->sin.sin_addr)
-					: ip6_masklen(mask->sin6.sin6_addr);
-			zlog_debug(
-				"%s: ifindex %d, ifname %s, ifam_addrs {%s}, ifam_flags 0x%x, addr %pSU/%d broad %pSU dst %pSU gateway %pSU",
-				__func__, ifm->ifam_index,
-				(ifnlen ? ifname : "(nil)"),
-				rtatostr(ifm->ifam_addrs, fbuf, sizeof(fbuf)),
-				ifm->ifam_flags, addr, masklen, brd, &dst,
-				&gateway);
+			int masklen = (sockunion_family(addr) == AF_INET)
+					      ? ip_masklen(mask->sin.sin_addr)
+					      : ip6_masklen(mask->sin6.sin6_addr);
+			zlog_debug("%s: ifindex %d, ifname %s, ifam_addrs {%s}, ifam_flags 0x%x, addr %pSU/%d broad %pSU dst %pSU gateway %pSU",
+				   __func__, ifm->ifam_index,
+				   (ifnlen ? ifname : "(nil)"),
+				   rtatostr(ifm->ifam_addrs, fbuf, sizeof(fbuf)),
+				   ifm->ifam_flags, addr, masklen, brd, &dst,
+				   &gateway);
 		} break;
 		default:
 			zlog_debug("%s: ifindex %d, ifname %s, ifam_addrs {%s}",
 				   __func__, ifm->ifam_index,
 				   (ifnlen ? ifname : "(nil)"),
-				   rtatostr(ifm->ifam_addrs, fbuf,
-					    sizeof(fbuf)));
+				   rtatostr(ifm->ifam_addrs, fbuf, sizeof(fbuf)));
 			break;
 		}
 	}
@@ -887,13 +876,11 @@ int ifam_read(struct ifa_msghdr *ifam)
 			connected_add_ipv4(ifp, flags, &addr.sin.sin_addr,
 					   ip_masklen(mask.sin.sin_addr),
 					   dest_same ? NULL : &brd.sin.sin_addr,
-					   (isalias ? ifname : NULL),
-					   METRIC_MAX);
+					   (isalias ? ifname : NULL), METRIC_MAX);
 		else
 			connected_delete_ipv4(ifp, flags, &addr.sin.sin_addr,
 					      ip_masklen(mask.sin.sin_addr),
-					      dest_same ? NULL
-							: &brd.sin.sin_addr);
+					      dest_same ? NULL : &brd.sin.sin_addr);
 		break;
 	case AF_INET6:
 		/* Unset interface index from link-local address when IPv6 stack
@@ -904,10 +891,8 @@ int ifam_read(struct ifa_msghdr *ifam)
 
 		if (ifam->ifam_type == RTM_NEWADDR)
 			connected_add_ipv6(ifp, flags, &addr.sin6.sin6_addr,
-					   NULL,
-					   ip6_masklen(mask.sin6.sin6_addr),
-					   (isalias ? ifname : NULL),
-					   METRIC_MAX);
+					   NULL, ip6_masklen(mask.sin6.sin6_addr),
+					   (isalias ? ifname : NULL), METRIC_MAX);
 		else
 			connected_delete_ipv6(ifp, &addr.sin6.sin6_addr, NULL,
 					      ip6_masklen(mask.sin6.sin6_addr));
@@ -1027,8 +1012,8 @@ void rtm_read(struct rt_msghdr *rtm)
 		return;
 #endif
 
-	if ((rtm->rtm_type == RTM_ADD || rtm->rtm_type == RTM_CHANGE)
-	    && !(flags & RTF_UP))
+	if ((rtm->rtm_type == RTM_ADD || rtm->rtm_type == RTM_CHANGE) &&
+	    !(flags & RTF_UP))
 		return;
 
 	/* This is connected route. */
@@ -1097,15 +1082,13 @@ void rtm_read(struct rt_msghdr *rtm)
 	} else
 		return;
 
-	if (rtm->rtm_type == RTM_GET || rtm->rtm_type == RTM_ADD
-	    || rtm->rtm_type == RTM_CHANGE)
-		rib_add(afi, SAFI_UNICAST, VRF_DEFAULT, proto, 0, zebra_flags,
-			&p, NULL, &nh, 0, RT_TABLE_MAIN, 0, 0, distance, 0,
-			false);
+	if (rtm->rtm_type == RTM_GET || rtm->rtm_type == RTM_ADD ||
+	    rtm->rtm_type == RTM_CHANGE)
+		rib_add(afi, SAFI_UNICAST, VRF_DEFAULT, proto, 0, zebra_flags, &p,
+			NULL, &nh, 0, RT_TABLE_MAIN, 0, 0, distance, 0, false);
 	else
-		rib_delete(afi, SAFI_UNICAST, VRF_DEFAULT, proto, 0,
-			   zebra_flags, &p, NULL, &nh, 0, RT_TABLE_MAIN, 0,
-			   distance, true);
+		rib_delete(afi, SAFI_UNICAST, VRF_DEFAULT, proto, 0, zebra_flags,
+			   &p, NULL, &nh, 0, RT_TABLE_MAIN, 0, distance, true);
 }
 
 /* Interface function for the kernel routing table updates.  Support
@@ -1160,8 +1143,8 @@ int rtm_write(int message, union sockunion *dest, union sockunion *mask,
  * other flag instead?
  */
 #ifdef RTF_CLONING
-	if (!gate && (message == RTM_ADD || message == RTM_CHANGE) && ifp
-	    && (ifp->flags & IFF_POINTOPOINT) == 0)
+	if (!gate && (message == RTM_ADD || message == RTM_CHANGE) && ifp &&
+	    (ifp->flags & IFF_POINTOPOINT) == 0)
 		msg.rtm.rtm_flags |= RTF_CLONING;
 #endif /* RTF_CLONING */
 
@@ -1177,10 +1160,9 @@ int rtm_write(int message, union sockunion *dest, union sockunion *mask,
 			if (mask)
 				inet_ntop(AF_INET, &mask->sin.sin_addr,
 					  mask_buf, INET_ADDRSTRLEN);
-			flog_warn(
-				EC_ZEBRA_RTM_NO_GATEWAY,
-				"%s: %s/%s: gate == NULL and no gateway found for ifindex %d",
-				__func__, dest_buf, mask_buf, index);
+			flog_warn(EC_ZEBRA_RTM_NO_GATEWAY,
+				  "%s: %s/%s: gate == NULL and no gateway found for ifindex %d",
+				  __func__, dest_buf, mask_buf, index);
 			return -1;
 		}
 		gate = (union sockunion *)&((struct zebra_if *)ifp->info)->sdl;
@@ -1196,8 +1178,8 @@ int rtm_write(int message, union sockunion *dest, union sockunion *mask,
 		msg.rtm.rtm_addrs |= RTA_SRC;
 		msg.rtm.rtm_flags |= RTF_MPLS;
 
-		if (mpls->smpls.smpls_label
-		    != htonl(MPLS_LABEL_IMPLICIT_NULL << MPLS_LABEL_OFFSET))
+		if (mpls->smpls.smpls_label !=
+		    htonl(MPLS_LABEL_IMPLICIT_NULL << MPLS_LABEL_OFFSET))
 			msg.rtm.rtm_mpls = MPLS_OP_PUSH;
 	}
 #endif
@@ -1274,9 +1256,9 @@ static void rtmsg_debug(struct rt_msghdr *rtm)
 /* This is pretty gross, better suggestions welcome -- mhandler */
 #ifndef RTAX_MAX
 #ifdef RTA_NUMBITS
-#define RTAX_MAX	RTA_NUMBITS
+#define RTAX_MAX RTA_NUMBITS
 #else
-#define RTAX_MAX	8
+#define RTAX_MAX 8
 #endif /* RTA_NUMBITS */
 #endif /* RTAX_MAX */
 
@@ -1399,10 +1381,9 @@ static void kernel_read(struct event *thread)
 #endif /* RTM_IFANNOUNCE */
 	default:
 		if (IS_ZEBRA_DEBUG_KERNEL)
-			zlog_debug(
-				"Unprocessed RTM_type: %s(%d)",
-				lookup_msg(rtm_type_str, rtm->rtm_type, NULL),
-				rtm->rtm_type);
+			zlog_debug("Unprocessed RTM_type: %s(%d)",
+				   lookup_msg(rtm_type_str, rtm->rtm_type, NULL),
+				   rtm->rtm_type);
 		break;
 	}
 }
@@ -1413,11 +1394,10 @@ static void routing_socket(struct zebra_ns *zns)
 	uint32_t default_rcvbuf;
 	socklen_t optlen;
 
-	frr_with_privs(&zserv_privs) {
+	frr_with_privs (&zserv_privs) {
 		routing_sock = ns_socket(AF_ROUTE, SOCK_RAW, 0, zns->ns_id);
 
-		dplane_routing_sock =
-			ns_socket(AF_ROUTE, SOCK_RAW, 0, zns->ns_id);
+		dplane_routing_sock = ns_socket(AF_ROUTE, SOCK_RAW, 0, zns->ns_id);
 	}
 
 	if (routing_sock < 0) {
@@ -1525,7 +1505,6 @@ void kernel_update_multi(struct dplane_ctx_list_head *ctx_list)
 		}
 
 		switch (dplane_ctx_get_op(ctx)) {
-
 		case DPLANE_OP_ROUTE_INSTALL:
 		case DPLANE_OP_ROUTE_UPDATE:
 		case DPLANE_OP_ROUTE_DELETE:
@@ -1622,7 +1601,7 @@ void kernel_update_multi(struct dplane_ctx_list_head *ctx_list)
 			res = ZEBRA_DPLANE_REQUEST_FAILURE;
 		}
 
-	skip_one:
+skip_one:
 		dplane_ctx_set_status(ctx, res);
 
 		dplane_ctx_enqueue_tail(&handled_list, ctx);

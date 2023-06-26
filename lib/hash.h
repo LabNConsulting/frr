@@ -19,7 +19,7 @@ extern "C" {
 #define HASH_THRESHOLD(used, size) ((used) > (size))
 
 #define HASHWALK_CONTINUE 0
-#define HASHWALK_ABORT -1
+#define HASHWALK_ABORT	  -1
 
 struct hash_bucket {
 	/*
@@ -134,10 +134,10 @@ extern struct hash *hash_create(unsigned int (*hash_key)(const void *),
  * Returns:
  *    a new hash table
  */
-extern struct hash *
-hash_create_size(unsigned int size, unsigned int (*hash_key)(const void *),
-		 bool (*hash_cmp)(const void *, const void *),
-		 const char *name);
+extern struct hash *hash_create_size(unsigned int size,
+				     unsigned int (*hash_key)(const void *),
+				     bool (*hash_cmp)(const void *, const void *),
+				     const char *name);
 
 /*
  * Retrieve or insert data from / into a hash table.
@@ -171,8 +171,7 @@ hash_create_size(unsigned int size, unsigned int (*hash_key)(const void *),
  *    the data item found or inserted, or NULL if alloc_func is NULL and the
  *    data is not found
  */
-extern void *hash_get(struct hash *hash, void *data,
-		      void *(*alloc_func)(void *));
+extern void *hash_get(struct hash *hash, void *data, void *(*alloc_func)(void *));
 
 /*
  * Dummy element allocation function.

@@ -59,8 +59,7 @@ typedef enum {
 
 /* Try to write this data to the file descriptor.  Any data that cannot
    be written immediately is added to the buffer queue. */
-extern buffer_status_t buffer_write(struct buffer *, int fd, const void *,
-				    size_t);
+extern buffer_status_t buffer_write(struct buffer *, int fd, const void *, size_t);
 
 /* This function attempts to flush some (but perhaps not all) of
    the queued data to the given file descriptor. */

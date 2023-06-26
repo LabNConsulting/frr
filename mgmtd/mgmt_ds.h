@@ -18,10 +18,10 @@
 
 #define MGMTD_MAX_NUM_DSNODES_PER_BATCH 128
 
-#define MGMTD_DS_NAME_MAX_LEN 32
-#define MGMTD_DS_NAME_NONE "none"
-#define MGMTD_DS_NAME_RUNNING "running"
-#define MGMTD_DS_NAME_CANDIDATE "candidate"
+#define MGMTD_DS_NAME_MAX_LEN	  32
+#define MGMTD_DS_NAME_NONE	  "none"
+#define MGMTD_DS_NAME_RUNNING	  "running"
+#define MGMTD_DS_NAME_CANDIDATE	  "candidate"
 #define MGMTD_DS_NAME_OPERATIONAL "operational"
 
 #define FOREACH_MGMTD_DS_ID(id)                                                \
@@ -29,7 +29,7 @@
 
 #define MGMTD_MAX_COMMIT_LIST 10
 
-#define MGMTD_COMMIT_FILE_PATH DAEMON_DB_DIR "/commit-%s.json"
+#define MGMTD_COMMIT_FILE_PATH	     DAEMON_DB_DIR "/commit-%s.json"
 #define MGMTD_COMMIT_INDEX_FILE_NAME DAEMON_DB_DIR "/commit-index.dat"
 
 extern struct nb_config *running_config;
@@ -104,8 +104,7 @@ static inline Mgmtd__DatastoreId mgmt_get_ds_id_by_name(const char *ds_name)
  * path_len
  *     xpath length.
  */
-static inline void mgmt_xpath_append_trail_wildcard(char *xpath,
-						    size_t *xpath_len)
+static inline void mgmt_xpath_append_trail_wildcard(char *xpath, size_t *xpath_len)
 {
 	if (!xpath || !xpath_len)
 		return;
@@ -136,8 +135,7 @@ static inline void mgmt_xpath_append_trail_wildcard(char *xpath,
  * path_len
  *     xpath length.
  */
-static inline void mgmt_xpath_remove_trail_wildcard(char *xpath,
-						    size_t *xpath_len)
+static inline void mgmt_xpath_remove_trail_wildcard(char *xpath, size_t *xpath_len)
 {
 	if (!xpath || !xpath_len)
 		return;
@@ -145,8 +143,8 @@ static inline void mgmt_xpath_remove_trail_wildcard(char *xpath,
 	if (!*xpath_len)
 		*xpath_len = strlen(xpath);
 
-	if (*xpath_len > 2 && xpath[*xpath_len - 2] == '/'
-	    && xpath[*xpath_len - 1] == '*') {
+	if (*xpath_len > 2 && xpath[*xpath_len - 2] == '/' &&
+	    xpath[*xpath_len - 1] == '*') {
 		xpath[*xpath_len - 2] = 0;
 		(*xpath_len) -= 2;
 	}
@@ -171,7 +169,7 @@ extern void mgmt_ds_destroy(void);
  *    Datastore context (Holds info about ID, lock, root node etc).
  */
 extern struct mgmt_ds_ctx *mgmt_ds_get_ctx_by_id(struct mgmt_master *mm,
-						   Mgmtd__DatastoreId ds_id);
+						 Mgmtd__DatastoreId ds_id);
 
 /*
  * Check if a given datastore is config ds
@@ -209,8 +207,7 @@ extern void mgmt_ds_unlock(struct mgmt_ds_ctx *ds_ctx);
  *    0 on success, -1 on failure.
  */
 extern int mgmt_ds_copy_dss(struct mgmt_ds_ctx *src_ds_ctx,
-			    struct mgmt_ds_ctx *dst_ds_ctx,
-			    bool update_cmt_rec);
+			    struct mgmt_ds_ctx *dst_ds_ctx, bool update_cmt_rec);
 
 /*
  * Fetch northbound configuration for a given datastore context.
@@ -220,15 +217,13 @@ extern struct nb_config *mgmt_ds_get_nb_config(struct mgmt_ds_ctx *ds_ctx);
 /*
  * Find YANG data node given a datastore handle YANG xpath.
  */
-extern struct lyd_node *
-mgmt_ds_find_data_node_by_xpath(struct mgmt_ds_ctx *ds_ctx,
-				const char *xpath);
+extern struct lyd_node *mgmt_ds_find_data_node_by_xpath(struct mgmt_ds_ctx *ds_ctx,
+							const char *xpath);
 
 /*
  * Delete YANG data node given a datastore handle and YANG xpath.
  */
-extern int mgmt_ds_delete_data_nodes(struct mgmt_ds_ctx *ds_ctx,
-				     const char *xpath);
+extern int mgmt_ds_delete_data_nodes(struct mgmt_ds_ctx *ds_ctx, const char *xpath);
 
 /*
  * Iterate over datastore data.
@@ -255,8 +250,7 @@ extern int mgmt_ds_delete_data_nodes(struct mgmt_ds_ctx *ds_ctx,
  *    0 on success, -1 on failure.
  */
 extern int mgmt_ds_iter_data(
-	Mgmtd__DatastoreId ds_id, struct nb_config *root,
-	const char *base_xpath,
+	Mgmtd__DatastoreId ds_id, struct nb_config *root, const char *base_xpath,
 	void (*mgmt_ds_node_iter_fn)(const char *xpath, struct lyd_node *node,
 				     struct nb_node *nb_node, void *ctx),
 	void *ctx);
@@ -313,14 +307,12 @@ extern void mgmt_ds_dump_tree(struct vty *vty, struct mgmt_ds_ctx *ds_ctx,
  * Returns:
  *    0 on success, -1 on failure.
  */
-extern int mgmt_ds_dump_ds_to_file(char *file_name,
-				   struct mgmt_ds_ctx *ds_ctx);
+extern int mgmt_ds_dump_ds_to_file(char *file_name, struct mgmt_ds_ctx *ds_ctx);
 
 /*
  * Dump information about specific datastore.
  */
-extern void mgmt_ds_status_write_one(struct vty *vty,
-				     struct mgmt_ds_ctx *ds_ctx);
+extern void mgmt_ds_status_write_one(struct vty *vty, struct mgmt_ds_ctx *ds_ctx);
 
 /*
  * Dump information about all the datastores.

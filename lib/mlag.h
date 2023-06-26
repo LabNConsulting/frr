@@ -15,14 +15,10 @@ extern "C" {
 #include "lib/stream.h"
 
 #define MLAG_MSG_NULL_PAYLOAD 0
-#define MLAG_MSG_NO_BATCH 1
-#define MLAG_BUF_LIMIT 2048
+#define MLAG_MSG_NO_BATCH     1
+#define MLAG_BUF_LIMIT	      2048
 
-enum mlag_role {
-	MLAG_ROLE_NONE,
-	MLAG_ROLE_PRIMARY,
-	MLAG_ROLE_SECONDARY
-};
+enum mlag_role { MLAG_ROLE_NONE, MLAG_ROLE_PRIMARY, MLAG_ROLE_SECONDARY };
 
 enum mlag_state {
 	MLAG_STATE_DOWN,
@@ -112,15 +108,11 @@ extern char *mlag_lib_msgid_to_str(enum mlag_msg_type msg_type, char *buf,
 extern int mlag_lib_decode_mlag_hdr(struct stream *s, struct mlag_msg *msg,
 				    size_t *length);
 extern int mlag_lib_decode_mroute_add(struct stream *s,
-				      struct mlag_mroute_add *msg,
-				      size_t *length);
+				      struct mlag_mroute_add *msg, size_t *length);
 extern int mlag_lib_decode_mroute_del(struct stream *s,
-				      struct mlag_mroute_del *msg,
-				      size_t *length);
-extern int mlag_lib_decode_mlag_status(struct stream *s,
-				       struct mlag_status *msg);
-extern int mlag_lib_decode_vxlan_update(struct stream *s,
-					struct mlag_vxlan *msg);
+				      struct mlag_mroute_del *msg, size_t *length);
+extern int mlag_lib_decode_mlag_status(struct stream *s, struct mlag_status *msg);
+extern int mlag_lib_decode_vxlan_update(struct stream *s, struct mlag_vxlan *msg);
 extern int mlag_lib_decode_frr_status(struct stream *s,
 				      struct mlag_frr_status *msg);
 #ifdef __cplusplus
