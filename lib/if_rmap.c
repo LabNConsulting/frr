@@ -16,8 +16,7 @@
 #include "lib/if_rmap_clippy.c"
 
 DEFINE_MTYPE_STATIC(LIB, IF_RMAP_CTX, "Interface route map container");
-DEFINE_MTYPE_STATIC(LIB, IF_RMAP_CTX_NAME,
-		    "Interface route map container name");
+DEFINE_MTYPE_STATIC(LIB, IF_RMAP_CTX_NAME, "Interface route map container name");
 DEFINE_MTYPE_STATIC(LIB, IF_RMAP, "Interface route map");
 DEFINE_MTYPE_STATIC(LIB, IF_RMAP_NAME, "I.f. route map name");
 
@@ -44,7 +43,7 @@ static void if_rmap_free(struct if_rmap *if_rmap)
 
 struct if_rmap *if_rmap_lookup(struct if_rmap_ctx *ctx, const char *ifname)
 {
-	struct if_rmap key = {.ifname = ifname};
+	struct if_rmap key = { .ifname = ifname };
 	struct if_rmap *if_rmap;
 
 	if_rmap = hash_lookup(ctx->ifrmaphash, &key);
@@ -59,8 +58,7 @@ void if_rmap_hook_add(struct if_rmap_ctx *ctx,
 }
 
 void if_rmap_hook_delete(struct if_rmap_ctx *ctx,
-			 void (*func)(struct if_rmap_ctx *ctx,
-				      struct if_rmap *))
+			 void (*func)(struct if_rmap_ctx *ctx, struct if_rmap *))
 {
 	ctx->if_rmap_delete_hook = func;
 }
@@ -78,7 +76,7 @@ static void *if_rmap_hash_alloc(void *arg)
 
 static struct if_rmap *if_rmap_get(struct if_rmap_ctx *ctx, const char *ifname)
 {
-	struct if_rmap key = {.ifname = ifname};
+	struct if_rmap key = { .ifname = ifname };
 	struct if_rmap *ret;
 
 	ret = hash_get(ctx->ifrmaphash, &key, if_rmap_hash_alloc);
@@ -147,10 +145,9 @@ static int if_route_map_handler(struct vty *vty, bool no, const char *dir,
 	char xpath[XPATH_MAXLEN];
 
 	if (!no) {
-		snprintf(
-			xpath, sizeof(xpath),
-			"./if-route-maps/if-route-map[interface='%s']/%s-route-map",
-			ifname, dir);
+		snprintf(xpath, sizeof(xpath),
+			 "./if-route-maps/if-route-map[interface='%s']/%s-route-map",
+			 ifname, dir);
 	} else {
 		/*
 		 * If we are deleting the last policy for this interface,
@@ -159,14 +156,12 @@ static int if_route_map_handler(struct vty *vty, bool no, const char *dir,
 		 */
 		dnode = yang_dnode_get(vty->candidate_config->dnode,
 				       VTY_CURR_XPATH);
-		if (yang_dnode_existsf(
-			    dnode,
-			    "./if-route-maps/if-route-map[interface='%s']/%s-route-map",
-			    ifname, other_dir)) {
-			snprintf(
-				xpath, sizeof(xpath),
-				"./if-route-maps/if-route-map[interface='%s']/%s-route-map",
-				ifname, dir);
+		if (yang_dnode_existsf(dnode,
+				       "./if-route-maps/if-route-map[interface='%s']/%s-route-map",
+				       ifname, other_dir)) {
+			snprintf(xpath, sizeof(xpath),
+				 "./if-route-maps/if-route-map[interface='%s']/%s-route-map",
+				 ifname, dir);
 		} else {
 			/* both dir will be empty so delete the list node */
 			snprintf(xpath, sizeof(xpath),
@@ -195,11 +190,10 @@ DEFPY_YANG(if_ipv4_route_map, if_ipv4_route_map_cmd,
 
 DEFPY_YANG(no_if_ipv4_route_map, no_if_ipv4_route_map_cmd,
 	   "no route-map [ROUTE-MAP] <in$in|out> IFNAME",
-	   NO_STR
-	   "Route map set\n"
-	   "Route map name\n"
-	   "Route map set for input filtering\n"
-	   "Route map set for output filtering\n" INTERFACE_STR)
+	   NO_STR "Route map set\n"
+		  "Route map name\n"
+		  "Route map set for input filtering\n"
+		  "Route map set for output filtering\n" INTERFACE_STR)
 {
 	const char *dir = in ? "in" : "out";
 	const char *other_dir = in ? "out" : "in";
@@ -227,11 +221,10 @@ DEFPY_YANG(if_ipv6_route_map, if_ipv6_route_map_cmd,
 
 DEFPY_YANG(no_if_ipv6_route_map, no_if_ipv6_route_map_cmd,
 	   "no route-map [ROUTE-MAP] <in$in|out> IFNAME",
-	   NO_STR
-	   "Route map set\n"
-	   "Route map name\n"
-	   "Route map set for input filtering\n"
-	   "Route map set for output filtering\n" INTERFACE_STR)
+	   NO_STR "Route map set\n"
+		  "Route map name\n"
+		  "Route map set for input filtering\n"
+		  "Route map set for output filtering\n" INTERFACE_STR)
 {
 	const char *dir = in ? "in" : "out";
 	const char *other_dir = in ? "out" : "in";
@@ -257,7 +250,6 @@ void if_rmap_yang_modify_cb(struct if_rmap_ctx *ctx,
 			    const struct lyd_node *dnode,
 			    enum if_rmap_type type, bool del)
 {
-
 	const char *mapname = yang_dnode_get_string(dnode, NULL);
 	const char *ifname = yang_dnode_get_string(dnode, "../interface");
 
@@ -290,9 +282,9 @@ struct if_rmap_ctx *if_rmap_ctx_create(const char *name)
 	ctx = XCALLOC(MTYPE_IF_RMAP_CTX, sizeof(struct if_rmap_ctx));
 
 	ctx->name = XSTRDUP(MTYPE_IF_RMAP_CTX_NAME, name);
-	ctx->ifrmaphash =
-		hash_create_size(4, if_rmap_hash_make, if_rmap_hash_cmp,
-				 "Interface Route-Map Hash");
+	ctx->ifrmaphash = hash_create_size(4, if_rmap_hash_make,
+					   if_rmap_hash_cmp,
+					   "Interface Route-Map Hash");
 	return ctx;
 }
 

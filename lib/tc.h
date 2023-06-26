@@ -79,11 +79,11 @@ struct tc_flower {
 	uint32_t classid;
 
 #define TC_FLOWER_IP_PROTOCOL (1 << 0)
-#define TC_FLOWER_SRC_IP (1 << 1)
-#define TC_FLOWER_DST_IP (1 << 2)
-#define TC_FLOWER_SRC_PORT (1 << 3)
-#define TC_FLOWER_DST_PORT (1 << 4)
-#define TC_FLOWER_DSFIELD (1 << 5)
+#define TC_FLOWER_SRC_IP      (1 << 1)
+#define TC_FLOWER_DST_IP      (1 << 2)
+#define TC_FLOWER_SRC_PORT    (1 << 3)
+#define TC_FLOWER_DST_PORT    (1 << 4)
+#define TC_FLOWER_DSFIELD     (1 << 5)
 
 	uint32_t filter_bm;
 

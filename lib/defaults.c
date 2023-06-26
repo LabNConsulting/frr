@@ -93,13 +93,8 @@ static bool frr_match_version(const char *name, const char *vspec,
 		const char *str;
 		int dir, eq;
 	} specs[] = {
-		{"<=", -1, 1},
-		{">=", 1, 1},
-		{"==", 0, 1},
-		{"<", -1, 0},
-		{">", 1, 0},
-		{"=", 0, 1},
-		{NULL, 0, 0},
+		{ "<=", -1, 1 }, { ">=", 1, 1 }, { "==", 0, 1 }, { "<", -1, 0 },
+		{ ">", 1, 0 },	 { "=", 0, 1 },	 { NULL, 0, 0 },
 	};
 	const struct spec *s;
 
@@ -135,15 +130,17 @@ static void frr_default_apply_one(struct frr_default *dflt, bool check)
 	struct frr_default_entry *dfltentry = NULL, *saveentry = NULL;
 
 	for (; entry->match_version || entry->match_profile; entry++) {
-		if (entry->match_profile
-			&& strcmp(entry->match_profile, df_profile))
+		if (entry->match_profile &&
+		    strcmp(entry->match_profile, df_profile))
 			continue;
 
-		if (!dfltentry && frr_match_version(dflt->name,
-				entry->match_version, df_version, check))
+		if (!dfltentry &&
+		    frr_match_version(dflt->name, entry->match_version,
+				      df_version, check))
 			dfltentry = entry;
-		if (!saveentry && frr_match_version(dflt->name,
-				entry->match_version, FRR_VER_SHORT, check))
+		if (!saveentry &&
+		    frr_match_version(dflt->name, entry->match_version,
+				      FRR_VER_SHORT, check))
 			saveentry = entry;
 
 		if (dfltentry && saveentry && !check)

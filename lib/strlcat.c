@@ -17,11 +17,11 @@
 #ifndef HAVE_STRLCAT
 #undef strlcat
 
-size_t strlcat(char *__restrict dest,
-	       const char *__restrict src, size_t destsize);
+size_t strlcat(char *__restrict dest, const char *__restrict src,
+	       size_t destsize);
 
-size_t strlcat(char *__restrict dest,
-	       const char *__restrict src, size_t destsize)
+size_t strlcat(char *__restrict dest, const char *__restrict src,
+	       size_t destsize)
 {
 	size_t src_length = strlen(src);
 
@@ -45,7 +45,7 @@ size_t strlcat(char *__restrict dest,
 		target[to_copy] = '\0';
 	}
 
-/* If the sum wraps around, we have more than SIZE_MAX + 2 bytes in
+	/* If the sum wraps around, we have more than SIZE_MAX + 2 bytes in
    the two input strings (including both null terminators).  If each
    byte in the address space can be assigned a unique size_t value
    (which the static_assert checks), then by the pigeonhole

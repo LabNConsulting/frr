@@ -22,15 +22,15 @@ DEFINE_MTYPE_STATIC(LIB, PREFIX, "Prefix");
 DEFINE_MTYPE_STATIC(LIB, PREFIX_FLOWSPEC, "Prefix Flowspec");
 
 /* Maskbit. */
-static const uint8_t maskbit[] = {0x00, 0x80, 0xc0, 0xe0, 0xf0,
-				  0xf8, 0xfc, 0xfe, 0xff};
+static const uint8_t maskbit[] = { 0x00, 0x80, 0xc0, 0xe0, 0xf0,
+				   0xf8, 0xfc, 0xfe, 0xff };
 
 /* Number of bits in prefix type. */
 #ifndef PNBBY
 #define PNBBY 8
 #endif /* PNBBY */
 
-#define MASKBIT(offset)  ((0xff << (PNBBY - (offset))) & 0xff)
+#define MASKBIT(offset) ((0xff << (PNBBY - (offset))) & 0xff)
 
 int is_zero_mac(const struct ethaddr *mac)
 {
@@ -197,8 +197,7 @@ int prefix_match(union prefixconstptr unet, union prefixconstptr upfx)
 
 	if (n->family == AF_FLOWSPEC) {
 		/* prefixlen is unused. look at fs prefix len */
-		if (n->u.prefix_flowspec.family !=
-		    p->u.prefix_flowspec.family)
+		if (n->u.prefix_flowspec.family != p->u.prefix_flowspec.family)
 			return 0;
 
 		if (n->u.prefix_flowspec.prefixlen >
@@ -232,7 +231,6 @@ int prefix_match(union prefixconstptr unet, union prefixconstptr upfx)
 		if (np[offset] != pp[offset])
 			return 0;
 	return 1;
-
 }
 
 /*
@@ -278,7 +276,6 @@ int evpn_type5_prefix_match(const struct prefix *n, const struct prefix *p)
 		if (np[offset] != pp[offset])
 			return 0;
 	return 1;
-
 }
 
 /* If n includes p then return 1 else return 0. Prefix mask is not considered */
@@ -309,7 +306,7 @@ int prefix_match_network_statement(union prefixconstptr unet,
 }
 
 #ifdef __clang_analyzer__
-#undef prefix_copy	/* cf. prefix.h */
+#undef prefix_copy /* cf. prefix.h */
 #endif
 
 void prefix_copy(union prefixptr udest, union prefixconstptr usrc)
@@ -340,8 +337,7 @@ void prefix_copy(union prefixptr udest, union prefixconstptr usrc)
 		len = src->u.prefix_flowspec.prefixlen;
 		dest->u.prefix_flowspec.prefixlen =
 			src->u.prefix_flowspec.prefixlen;
-		dest->u.prefix_flowspec.family =
-			src->u.prefix_flowspec.family;
+		dest->u.prefix_flowspec.family = src->u.prefix_flowspec.family;
 		dest->family = src->family;
 		temp = XCALLOC(MTYPE_PREFIX_FLOWSPEC, len);
 		dest->u.prefix_flowspec.ptr = (uintptr_t)temp;
@@ -435,8 +431,7 @@ int prefix_cmp(union prefixconstptr up1, union prefixconstptr up2)
 		pp1 = (const uint8_t *)p1->u.prefix_flowspec.ptr;
 		pp2 = (const uint8_t *)p2->u.prefix_flowspec.ptr;
 
-		if (p1->u.prefix_flowspec.family !=
-		    p2->u.prefix_flowspec.family)
+		if (p1->u.prefix_flowspec.family != p2->u.prefix_flowspec.family)
 			return 1;
 
 		if (p1->u.prefix_flowspec.prefixlen !=
@@ -640,8 +635,7 @@ int str2prefix_eth(const char *str, struct prefix_eth *p)
 
 	/* Convert string to prefix. */
 	if (sscanf(str_addr, "%2x:%2x:%2x:%2x:%2x:%2x", a + 0, a + 1, a + 2,
-		   a + 3, a + 4, a + 5)
-	    != 6) {
+		   a + 3, a + 4, a + 5) != 6) {
 		ret = 0;
 		goto done;
 	}
@@ -679,8 +673,8 @@ void masklen2ip(const int masklen, struct in_addr *netmask)
 	if (sizeof(unsigned long long) > 4)
 		netmask->s_addr = htonl(0xffffffffULL << (32 - masklen));
 	else
-		netmask->s_addr =
-			htonl(masklen ? 0xffffffffU << (32 - masklen) : 0);
+		netmask->s_addr = htonl(masklen ? 0xffffffffU << (32 - masklen)
+						: 0);
 }
 
 /* Convert IP address's netmask into integer. We assume netmask is
@@ -865,8 +859,7 @@ struct prefix *sockunion2hostprefix(const union sockunion *su,
 		p = prefix ? (struct prefix_ipv6 *)prefix : prefix_ipv6_new();
 		p->family = AF_INET6;
 		p->prefixlen = IPV6_MAX_BITLEN;
-		memcpy(&p->prefix, &su->sin6.sin6_addr,
-		       sizeof(struct in6_addr));
+		memcpy(&p->prefix, &su->sin6.sin6_addr, sizeof(struct in6_addr));
 		return (struct prefix *)p;
 	}
 	return NULL;
@@ -1110,8 +1103,8 @@ static ssize_t prefixhost2str(struct fbuf *fbuf, union prefixconstptr pu)
 	}
 }
 
-void prefix_mcast_inet4_dump(const char *onfail, struct in_addr addr,
-		char *buf, int buf_size)
+void prefix_mcast_inet4_dump(const char *onfail, struct in_addr addr, char *buf,
+			     int buf_size)
 {
 	int save_errno = errno;
 
@@ -1163,7 +1156,6 @@ void prefix_free(struct prefix **p)
 /* Utility function to convert ipv4 prefixes to Classful prefixes */
 void apply_classful_mask_ipv4(struct prefix_ipv4 *p)
 {
-
 	uint32_t destination;
 
 	destination = ntohl(p->prefix.s_addr);
@@ -1253,8 +1245,7 @@ int prefix_str2mac(const char *str, struct ethaddr *mac)
 		return 0;
 
 	if (sscanf(str, "%2x:%2x:%2x:%2x:%2x:%2x", a + 0, a + 1, a + 2, a + 3,
-		   a + 4, a + 5)
-	    != 6) {
+		   a + 4, a + 5) != 6) {
 		/* error in incoming str length */
 		return 0;
 	}
@@ -1300,8 +1291,7 @@ unsigned prefix_hash_key(const void *pp)
 		memset(&copy, 0, sizeof(copy));
 		prefix_copy(&copy, (struct prefix *)pp);
 		len = jhash((void *)copy.u.prefix_flowspec.ptr,
-			    copy.u.prefix_flowspec.prefixlen,
-			    0x55aa5a5a);
+			    copy.u.prefix_flowspec.prefixlen, 0x55aa5a5a);
 		temp = (void *)copy.u.prefix_flowspec.ptr;
 		XFREE(MTYPE_PREFIX_FLOWSPEC, temp);
 		copy.u.prefix_flowspec.ptr = (uintptr_t)NULL;
@@ -1330,11 +1320,9 @@ int str_to_esi(const char *str, esi_t *esi)
 	if (!str)
 		return 0;
 
-	if (sscanf(str, "%2x:%2x:%2x:%2x:%2x:%2x:%2x:%2x:%2x:%2x",
-		   a + 0, a + 1, a + 2, a + 3,
-		   a + 4, a + 5, a + 6, a + 7,
-		   a + 8, a + 9)
-	    != ESI_BYTES) {
+	if (sscanf(str, "%2x:%2x:%2x:%2x:%2x:%2x:%2x:%2x:%2x:%2x", a + 0, a + 1,
+		   a + 2, a + 3, a + 4, a + 5, a + 6, a + 7, a + 8,
+		   a + 9) != ESI_BYTES) {
 		/* error in incoming str length */
 		return 0;
 	}
@@ -1362,10 +1350,9 @@ char *esi_to_str(const esi_t *esi, char *buf, int size)
 
 	snprintf(ptr, ESI_STR_LEN,
 		 "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
-		 esi->val[0], esi->val[1], esi->val[2],
-		 esi->val[3], esi->val[4], esi->val[5],
-		 esi->val[6], esi->val[7], esi->val[8],
-		 esi->val[9]);
+		 esi->val[0], esi->val[1], esi->val[2], esi->val[3],
+		 esi->val[4], esi->val[5], esi->val[6], esi->val[7],
+		 esi->val[8], esi->val[9]);
 	return ptr;
 }
 
@@ -1448,11 +1435,9 @@ int evpn_prefix2prefix(const struct prefix *evpn, struct prefix *to)
 	switch (addr->route_type) {
 	case BGP_EVPN_MAC_IP_ROUTE:
 		if (IS_IPADDR_V4(&addr->macip_addr.ip))
-			ipaddr2prefix(&addr->macip_addr.ip, IPV4_MAX_BITLEN,
-				      to);
+			ipaddr2prefix(&addr->macip_addr.ip, IPV4_MAX_BITLEN, to);
 		else if (IS_IPADDR_V6(&addr->macip_addr.ip))
-			ipaddr2prefix(&addr->macip_addr.ip, IPV6_MAX_BITLEN,
-				      to);
+			ipaddr2prefix(&addr->macip_addr.ip, IPV6_MAX_BITLEN, to);
 		else
 			return -1; /* mac only? */
 

@@ -39,10 +39,10 @@
 #if HAVE_BFDD == 0
 
 #define ZEBRA_PTM_RECONNECT_TIME_INITIAL 1 /* initial reconnect is 1s */
-#define ZEBRA_PTM_RECONNECT_TIME_MAX     300
+#define ZEBRA_PTM_RECONNECT_TIME_MAX	 300
 
-#define PTM_MSG_LEN     4
-#define PTM_HEADER_LEN  37
+#define PTM_MSG_LEN    4
+#define PTM_HEADER_LEN 37
 
 const char ZEBRA_PTM_GET_STATUS_CMD[] = "get-status";
 const char ZEBRA_PTM_BFD_START_CMD[] = "start-bfd-sess";
@@ -240,10 +240,8 @@ void zebra_ptm_connect(struct event *t)
 	}
 }
 
-DEFUN (zebra_ptm_enable,
-       zebra_ptm_enable_cmd,
-       "ptm-enable",
-       "Enable neighbor check with specified topology\n")
+DEFUN(zebra_ptm_enable, zebra_ptm_enable_cmd, "ptm-enable",
+      "Enable neighbor check with specified topology\n")
 {
 	struct vrf *vrf;
 	struct interface *ifp;
@@ -255,11 +253,9 @@ DEFUN (zebra_ptm_enable,
 		FOR_ALL_INTERFACES (vrf, ifp)
 			if (!ifp->ptm_enable) {
 				if_data = (struct zebra_if *)ifp->info;
-				if (if_data
-				    && (if_data->ptm_enable
-					== ZEBRA_IF_PTM_ENABLE_UNSPEC)) {
-					ifp->ptm_enable =
-						ZEBRA_IF_PTM_ENABLE_ON;
+				if (if_data && (if_data->ptm_enable ==
+						ZEBRA_IF_PTM_ENABLE_UNSPEC)) {
+					ifp->ptm_enable = ZEBRA_IF_PTM_ENABLE_ON;
 				}
 				/* Assign a default unknown status */
 				ifp->ptm_status = ZEBRA_PTM_STATUS_UNKNOWN;
@@ -270,21 +266,16 @@ DEFUN (zebra_ptm_enable,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_zebra_ptm_enable,
-       no_zebra_ptm_enable_cmd,
-       "no ptm-enable",
-       NO_STR
-       "Enable neighbor check with specified topology\n")
+DEFUN(no_zebra_ptm_enable, no_zebra_ptm_enable_cmd, "no ptm-enable",
+      NO_STR "Enable neighbor check with specified topology\n")
 {
 	ptm_cb.ptm_enable = ZEBRA_IF_PTM_ENABLE_OFF;
 	zebra_ptm_reset_status(1);
 	return CMD_SUCCESS;
 }
 
-DEFUN (zebra_ptm_enable_if,
-       zebra_ptm_enable_if_cmd,
-       "ptm-enable",
-       "Enable neighbor check with specified topology\n")
+DEFUN(zebra_ptm_enable_if, zebra_ptm_enable_if_cmd, "ptm-enable",
+      "Enable neighbor check with specified topology\n")
 {
 	VTY_DECLVAR_CONTEXT(interface, ifp);
 	struct zebra_if *if_data;
@@ -316,11 +307,8 @@ DEFUN (zebra_ptm_enable_if,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_zebra_ptm_enable_if,
-       no_zebra_ptm_enable_if_cmd,
-       "no ptm-enable",
-       NO_STR
-       "Enable neighbor check with specified topology\n")
+DEFUN(no_zebra_ptm_enable_if, no_zebra_ptm_enable_if_cmd, "no ptm-enable",
+      NO_STR "Enable neighbor check with specified topology\n")
 {
 	VTY_DECLVAR_CONTEXT(interface, ifp);
 	int send_linkup = 0;
@@ -376,12 +364,10 @@ static int zebra_ptm_socket_init(void)
 	/* Make server socket. */
 	memset(&addr, 0, sizeof(addr));
 	addr.sun_family = AF_UNIX;
-	memcpy(&addr.sun_path, ZEBRA_PTM_SOCK_NAME,
-	       sizeof(ZEBRA_PTM_SOCK_NAME));
+	memcpy(&addr.sun_path, ZEBRA_PTM_SOCK_NAME, sizeof(ZEBRA_PTM_SOCK_NAME));
 
 	ret = connect(sock, (struct sockaddr *)&addr,
-		      sizeof(addr.sun_family) + sizeof(ZEBRA_PTM_SOCK_NAME)
-			      - 1);
+		      sizeof(addr.sun_family) + sizeof(ZEBRA_PTM_SOCK_NAME) - 1);
 	if (ret < 0) {
 		if (IS_ZEBRA_DEBUG_EVENT)
 			zlog_debug("%s: Unable to connect to socket %s [%s]",
@@ -404,31 +390,28 @@ static void zebra_ptm_install_commands(void)
 
 /* BFD session goes down, send message to the protocols. */
 static void if_bfd_session_update(struct interface *ifp, struct prefix *dp,
-				  struct prefix *sp, int status,
-				  vrf_id_t vrf_id)
+				  struct prefix *sp, int status, vrf_id_t vrf_id)
 {
 	if (IS_ZEBRA_DEBUG_EVENT) {
 		char buf[2][INET6_ADDRSTRLEN];
 
 		if (ifp) {
-			zlog_debug(
-				"MESSAGE: ZEBRA_INTERFACE_BFD_DEST_UPDATE %s/%d on %s %s event",
-				inet_ntop(dp->family, &dp->u.prefix, buf[0],
-					  INET6_ADDRSTRLEN),
-				dp->prefixlen, ifp->name,
-				bfd_get_status_str(status));
+			zlog_debug("MESSAGE: ZEBRA_INTERFACE_BFD_DEST_UPDATE %s/%d on %s %s event",
+				   inet_ntop(dp->family, &dp->u.prefix, buf[0],
+					     INET6_ADDRSTRLEN),
+				   dp->prefixlen, ifp->name,
+				   bfd_get_status_str(status));
 		} else {
 			struct vrf *vrf = vrf_lookup_by_id(vrf_id);
 
-			zlog_debug(
-				"MESSAGE: ZEBRA_INTERFACE_BFD_DEST_UPDATE %s/%d with src %s/%d and vrf %s(%u) %s event",
-				inet_ntop(dp->family, &dp->u.prefix, buf[0],
-					  INET6_ADDRSTRLEN),
-				dp->prefixlen,
-				inet_ntop(sp->family, &sp->u.prefix, buf[1],
-					  INET6_ADDRSTRLEN),
-				sp->prefixlen, VRF_LOGNAME(vrf), vrf_id,
-				bfd_get_status_str(status));
+			zlog_debug("MESSAGE: ZEBRA_INTERFACE_BFD_DEST_UPDATE %s/%d with src %s/%d and vrf %s(%u) %s event",
+				   inet_ntop(dp->family, &dp->u.prefix, buf[0],
+					     INET6_ADDRSTRLEN),
+				   dp->prefixlen,
+				   inet_ntop(sp->family, &sp->u.prefix, buf[1],
+					     INET6_ADDRSTRLEN),
+				   sp->prefixlen, VRF_LOGNAME(vrf), vrf_id,
+				   bfd_get_status_str(status));
 		}
 	}
 
@@ -477,10 +460,9 @@ static int zebra_ptm_handle_bfd_msg(void *arg, void *in_ctxt,
 	}
 
 	if (IS_ZEBRA_DEBUG_EVENT)
-		zlog_debug(
-			"%s: Recv Port [%s] bfd status [%s] vrf [%s] peer [%s] local [%s]",
-			__func__, ifp ? ifp->name : "N/A", bfdst_str, vrf_str,
-			dest_str, src_str);
+		zlog_debug("%s: Recv Port [%s] bfd status [%s] vrf [%s] peer [%s] local [%s]",
+			   __func__, ifp ? ifp->name : "N/A", bfdst_str,
+			   vrf_str, dest_str, src_str);
 
 	if (str2prefix(dest_str, &dest_prefix) == 0) {
 		flog_err(EC_ZEBRA_PREFIX_PARSE_ERROR,
@@ -530,17 +512,16 @@ static int zebra_ptm_handle_cbl_msg(void *arg, void *in_ctxt,
 		zlog_debug("%s: Recv Port [%s] cbl status [%s]", __func__,
 			   ifp->name, cbl_str);
 
-	if (!strcmp(cbl_str, ZEBRA_PTM_PASS_STR)
-	    && (ifp->ptm_status != ZEBRA_PTM_STATUS_UP)) {
-
+	if (!strcmp(cbl_str, ZEBRA_PTM_PASS_STR) &&
+	    (ifp->ptm_status != ZEBRA_PTM_STATUS_UP)) {
 		if (ifp->ptm_status == ZEBRA_PTM_STATUS_DOWN)
 			send_linkup = 1;
 		ifp->ptm_status = ZEBRA_PTM_STATUS_UP;
-		if (ifp->ptm_enable && if_is_no_ptm_operative(ifp)
-		    && send_linkup)
+		if (ifp->ptm_enable && if_is_no_ptm_operative(ifp) &&
+		    send_linkup)
 			if_up(ifp, true);
-	} else if (!strcmp(cbl_str, ZEBRA_PTM_FAIL_STR)
-		   && (ifp->ptm_status != ZEBRA_PTM_STATUS_DOWN)) {
+	} else if (!strcmp(cbl_str, ZEBRA_PTM_FAIL_STR) &&
+		   (ifp->ptm_status != ZEBRA_PTM_STATUS_DOWN)) {
 		ifp->ptm_status = ZEBRA_PTM_STATUS_DOWN;
 		if (ifp->ptm_enable && if_is_no_ptm_operative(ifp))
 			if_down(ifp);
@@ -647,8 +628,8 @@ void zebra_ptm_sock_read(struct event *thread)
 					 ZEBRA_PTM_MAX_SOCKBUF, NULL);
 	} while (rc > 0);
 
-	if (((rc == 0) && !errno)
-	    || (errno && (errno != EWOULDBLOCK) && (errno != EAGAIN))) {
+	if (((rc == 0) && !errno) ||
+	    (errno && (errno != EWOULDBLOCK) && (errno != EAGAIN))) {
 		flog_err_sys(EC_LIB_SOCKET,
 			     "%s routing socket error: %s(%d) bytes %d",
 			     __func__, safe_strerror(errno), errno, rc);
@@ -814,12 +795,10 @@ void zebra_ptm_bfd_dst_register(ZAPI_HANDLER_ARGS)
 	}
 	STREAM_GETC(s, cbit_set);
 	snprintf(tmp_buf, sizeof(tmp_buf), "%d", cbit_set);
-	ptm_lib_append_msg(ptm_hdl, out_ctxt,
-			   ZEBRA_PTM_BFD_CBIT_FIELD, tmp_buf);
+	ptm_lib_append_msg(ptm_hdl, out_ctxt, ZEBRA_PTM_BFD_CBIT_FIELD, tmp_buf);
 
 	snprintf(tmp_buf, sizeof(tmp_buf), "%d", 1);
-	ptm_lib_append_msg(ptm_hdl, out_ctxt, ZEBRA_PTM_BFD_SEND_EVENT,
-			   tmp_buf);
+	ptm_lib_append_msg(ptm_hdl, out_ctxt, ZEBRA_PTM_BFD_SEND_EVENT, tmp_buf);
 
 	ptm_lib_complete_msg(ptm_hdl, out_ctxt, ptm_cb.out_data, &data_len);
 
@@ -1051,8 +1030,7 @@ int zebra_ptm_bfd_client_deregister(struct zserv *client)
 
 	ptm_lib_init_msg(ptm_hdl, 0, PTMLIB_MSG_TYPE_CMD, NULL, &out_ctxt);
 
-	snprintf(tmp_buf, sizeof(tmp_buf), "%s",
-		 ZEBRA_PTM_BFD_CLIENT_DEREG_CMD);
+	snprintf(tmp_buf, sizeof(tmp_buf), "%s", ZEBRA_PTM_BFD_CLIENT_DEREG_CMD);
 	ptm_lib_append_msg(ptm_hdl, out_ctxt, ZEBRA_PTM_CMD_STR, tmp_buf);
 
 	snprintf(tmp_buf, sizeof(tmp_buf), "%s", zebra_route_string(proto));
@@ -1144,9 +1122,8 @@ void zebra_ptm_reset_status(int ptm_disable)
 
 				if (if_is_operative(ifp) && send_linkup) {
 					if (IS_ZEBRA_DEBUG_EVENT)
-						zlog_debug(
-							"%s: Bringing up interface %s",
-							__func__, ifp->name);
+						zlog_debug("%s: Bringing up interface %s",
+							   __func__, ifp->name);
 					if_up(ifp, true);
 				}
 			}
@@ -1184,8 +1161,7 @@ struct ptm_process {
 };
 TAILQ_HEAD(ppqueue, ptm_process) ppqueue;
 
-DEFINE_MTYPE_STATIC(ZEBRA, ZEBRA_PTM_BFD_PROCESS,
-		    "PTM BFD process reg table");
+DEFINE_MTYPE_STATIC(ZEBRA, ZEBRA_PTM_BFD_PROCESS, "PTM BFD process reg table");
 
 /*
  * Prototypes.
@@ -1211,7 +1187,7 @@ static struct ptm_process *pp_new(pid_t pid, struct zserv *zs)
 
 #ifdef PTM_DEBUG
 	/* Sanity check: more than one client can't have the same PID. */
-	TAILQ_FOREACH(pp, &ppqueue, pp_entry) {
+	TAILQ_FOREACH (pp, &ppqueue, pp_entry) {
 		if (pp->pp_pid == pid && pp->pp_zs != zs)
 			zlog_err("%s:%d pid and client pointer doesn't match",
 				 __FILE__, __LINE__);
@@ -1237,7 +1213,7 @@ static struct ptm_process *pp_lookup_byzs(struct zserv *zs)
 {
 	struct ptm_process *pp;
 
-	TAILQ_FOREACH(pp, &ppqueue, pp_entry) {
+	TAILQ_FOREACH (pp, &ppqueue, pp_entry) {
 		if (pp->pp_zs != zs)
 			continue;
 
@@ -1399,7 +1375,8 @@ static void _zebra_ptm_reroute(struct zserv *zs, struct zebra_vrf *zvrf,
 	stream_putl(msgc, command);
 
 	if (STREAM_READABLE(msg) > STREAM_WRITEABLE(msgc)) {
-		zlog_warn("Cannot fit extended BFD header plus original message contents into ZAPI packet; dropping message");
+		zlog_warn(
+			"Cannot fit extended BFD header plus original message contents into ZAPI packet; dropping message");
 		goto stream_failure;
 	}
 

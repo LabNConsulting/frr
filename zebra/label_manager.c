@@ -39,16 +39,16 @@ DEFINE_MTYPE_STATIC(LBL_MGR, LM_CHUNK, "Label Manager Chunk");
  * externally
  */
 
-DEFINE_HOOK(lm_client_connect, (struct zserv *client, vrf_id_t vrf_id),
+DEFINE_HOOK(lm_client_connect, (struct zserv * client, vrf_id_t vrf_id),
 	    (client, vrf_id));
-DEFINE_HOOK(lm_client_disconnect, (struct zserv *client), (client));
+DEFINE_HOOK(lm_client_disconnect, (struct zserv * client), (client));
 DEFINE_HOOK(lm_get_chunk,
-	     (struct label_manager_chunk * *lmc, struct zserv *client,
-	      uint8_t keep, uint32_t size, uint32_t base, vrf_id_t vrf_id),
-	     (lmc, client, keep, size, base, vrf_id));
+	    (struct label_manager_chunk * *lmc, struct zserv *client,
+	     uint8_t keep, uint32_t size, uint32_t base, vrf_id_t vrf_id),
+	    (lmc, client, keep, size, base, vrf_id));
 DEFINE_HOOK(lm_release_chunk,
-	     (struct zserv *client, uint32_t start, uint32_t end),
-	     (client, start, end));
+	    (struct zserv * client, uint32_t start, uint32_t end),
+	    (client, start, end));
 DEFINE_HOOK(lm_cbs_inited, (), ());
 
 /* define wrappers to be called in zapi_msg.c (as hooks must be called in
@@ -111,8 +111,8 @@ int release_daemon_label_chunks(struct zserv *client)
 		    lmc->instance == client->instance &&
 		    lmc->session_id == client->session_id && lmc->keep == 0) {
 			ret = release_label_chunk(lmc->proto, lmc->instance,
-						  lmc->session_id,
-						  lmc->start, lmc->end);
+						  lmc->session_id, lmc->start,
+						  lmc->end);
 			if (ret == 0)
 				count++;
 		}
@@ -196,8 +196,8 @@ assign_specific_label_chunk(uint8_t proto, unsigned short instance,
 	uint32_t end = base + size - 1;
 
 	/* sanities */
-	if ((base < MPLS_LABEL_UNRESERVED_MIN)
-	    || (end > MPLS_LABEL_UNRESERVED_MAX)) {
+	if ((base < MPLS_LABEL_UNRESERVED_MIN) ||
+	    (end > MPLS_LABEL_UNRESERVED_MAX)) {
 		zlog_err("Invalid LM request arguments: base: %u, size: %u",
 			 base, size);
 		return NULL;
@@ -206,7 +206,6 @@ assign_specific_label_chunk(uint8_t proto, unsigned short instance,
 	/* Scan the existing chunks to see if the requested range of labels
 	 * falls inside any of such chunks */
 	for (ALL_LIST_ELEMENTS_RO(lbl_mgr.lc_list, node, lmc)) {
-
 		/* skip chunks for labels < base */
 		if (base > lmc->end)
 			continue;
@@ -305,8 +304,7 @@ assign_label_chunk(uint8_t proto, unsigned short instance, uint32_t session_id,
 
 	/* first check if there's one available */
 	for (ALL_LIST_ELEMENTS_RO(lbl_mgr.lc_list, node, lmc)) {
-		if (lmc->proto == NO_PROTO
-		    && lmc->end - lmc->start + 1 == size) {
+		if (lmc->proto == NO_PROTO && lmc->end - lmc->start + 1 == size) {
 			lmc->proto = proto;
 			lmc->instance = instance;
 			lmc->session_id = session_id;
@@ -332,8 +330,8 @@ assign_label_chunk(uint8_t proto, unsigned short instance, uint32_t session_id,
 	else
 		start_free = ((struct label_manager_chunk *)listgetdata(
 				      listtail(lbl_mgr.lc_list)))
-				     ->end
-			     + 1;
+				     ->end +
+			     1;
 
 	if (start_free > MPLS_LABEL_UNRESERVED_MAX - size + 1) {
 		flog_err(EC_ZEBRA_LM_EXHAUSTED_LABELS,
@@ -430,8 +428,7 @@ static int label_manager_disconnect(struct zserv *client)
 }
 static int label_manager_get_chunk(struct label_manager_chunk **lmc,
 				   struct zserv *client, uint8_t keep,
-				   uint32_t size, uint32_t base,
-				   vrf_id_t vrf_id)
+				   uint32_t size, uint32_t base, vrf_id_t vrf_id)
 {
 	*lmc = assign_label_chunk(client->proto, client->instance,
 				  client->session_id, keep, size, base);

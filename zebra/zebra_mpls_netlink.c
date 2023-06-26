@@ -23,7 +23,6 @@ ssize_t netlink_lsp_msg_encoder(struct zebra_dplane_ctx *ctx, void *buf,
 		cmd = RTM_DELROUTE;
 	} else if (dplane_ctx_get_op(ctx) == DPLANE_OP_LSP_INSTALL ||
 		   dplane_ctx_get_op(ctx) == DPLANE_OP_LSP_UPDATE) {
-
 		/* Validate */
 		if (dplane_ctx_get_best_nhlfe(ctx) == NULL) {
 			if (IS_ZEBRA_DEBUG_KERNEL || IS_ZEBRA_DEBUG_MPLS)

@@ -79,8 +79,7 @@ static void connected_announce(struct interface *ifp, struct connected *ifc)
 }
 
 /* If same interface address is already exist... */
-struct connected *connected_check(struct interface *ifp,
-				  union prefixconstptr pu)
+struct connected *connected_check(struct interface *ifp, union prefixconstptr pu)
 {
 	const struct prefix *p = pu.p;
 	struct connected *ifc;
@@ -108,8 +107,7 @@ struct connected *connected_check_ptp(struct interface *ifp,
 			continue;
 		if (!CONNECTED_PEER(ifc) && !d)
 			return ifc;
-		if (CONNECTED_PEER(ifc) && d
-		    && prefix_same(ifc->destination, d))
+		if (CONNECTED_PEER(ifc) && d && prefix_same(ifc->destination, d))
 			return ifc;
 	}
 
@@ -197,10 +195,9 @@ void connected_up(struct interface *ifp, struct connected *ifc)
 
 	zvrf = ifp->vrf->info;
 	if (!zvrf) {
-		flog_err(
-			EC_ZEBRA_VRF_NOT_FOUND,
-			"%s: Received Up for interface but no associated zvrf: %s(%d)",
-			__func__, ifp->vrf->name, ifp->vrf->vrf_id);
+		flog_err(EC_ZEBRA_VRF_NOT_FOUND,
+			 "%s: Received Up for interface but no associated zvrf: %s(%d)",
+			 __func__, ifp->vrf->name, ifp->vrf->vrf_id);
 		return;
 	}
 	if (!CHECK_FLAG(ifc->conf, ZEBRA_IFC_REAL))
@@ -241,8 +238,8 @@ void connected_up(struct interface *ifp, struct connected *ifc)
 		break;
 	}
 
-	metric = (ifc->metric < (uint32_t)METRIC_MAX) ?
-				ifc->metric : ifp->metric;
+	metric = (ifc->metric < (uint32_t)METRIC_MAX) ? ifc->metric
+						      : ifp->metric;
 
 	/*
 	 * Since we are hand creating the connected routes
@@ -268,8 +265,7 @@ void connected_up(struct interface *ifp, struct connected *ifc)
 		prefix_copy(&cp, CONNECTED_PREFIX(c));
 		apply_mask(&cp);
 
-		if (prefix_same(&cp, &p) &&
-		    !CHECK_FLAG(c->conf, ZEBRA_IFC_DOWN))
+		if (prefix_same(&cp, &p) && !CHECK_FLAG(c->conf, ZEBRA_IFC_DOWN))
 			count++;
 
 		if (count >= 2)
@@ -277,19 +273,16 @@ void connected_up(struct interface *ifp, struct connected *ifc)
 	}
 
 	rib_add(afi, SAFI_UNICAST, zvrf->vrf->vrf_id, ZEBRA_ROUTE_CONNECT, 0,
-		flags, &p, NULL, &nh, 0, zvrf->table_id, metric, 0, 0, 0,
-		false);
+		flags, &p, NULL, &nh, 0, zvrf->table_id, metric, 0, 0, 0, false);
 
 	rib_add(afi, SAFI_MULTICAST, zvrf->vrf->vrf_id, ZEBRA_ROUTE_CONNECT, 0,
-		flags, &p, NULL, &nh, 0, zvrf->table_id, metric, 0, 0, 0,
-		false);
+		flags, &p, NULL, &nh, 0, zvrf->table_id, metric, 0, 0, 0, false);
 
 	/* Schedule LSP forwarding entries for processing, if appropriate. */
 	if (zvrf->vrf->vrf_id == VRF_DEFAULT) {
 		if (IS_ZEBRA_DEBUG_MPLS)
-			zlog_debug(
-				"%u: IF %s IP %pFX address add/up, scheduling MPLS processing",
-				zvrf->vrf->vrf_id, ifp->name, &p);
+			zlog_debug("%u: IF %s IP %pFX address add/up, scheduling MPLS processing",
+				   zvrf->vrf->vrf_id, ifp->name, &p);
 		mpls_mark_lsps_for_processing(zvrf, &p);
 	}
 }
@@ -321,8 +314,8 @@ void connected_add_ipv4(struct interface *ifp, int flags,
 	p = prefix_ipv4_new();
 	p->family = AF_INET;
 	p->prefix = *addr;
-	p->prefixlen =
-		CHECK_FLAG(flags, ZEBRA_IFA_PEER) ? IPV4_MAX_BITLEN : prefixlen;
+	p->prefixlen = CHECK_FLAG(flags, ZEBRA_IFA_PEER) ? IPV4_MAX_BITLEN
+							 : prefixlen;
 	ifc->address = (struct prefix *)p;
 
 	/* If there is a peer address. */
@@ -336,23 +329,20 @@ void connected_add_ipv4(struct interface *ifp, int flags,
 			ifc->destination = (struct prefix *)p;
 
 			if (IPV4_ADDR_SAME(addr, dest))
-				flog_warn(
-					EC_ZEBRA_IFACE_SAME_LOCAL_AS_PEER,
-					"interface %s has same local and peer address %pI4, routing protocols may malfunction",
-					ifp->name, addr);
+				flog_warn(EC_ZEBRA_IFACE_SAME_LOCAL_AS_PEER,
+					  "interface %s has same local and peer address %pI4, routing protocols may malfunction",
+					  ifp->name, addr);
 		} else {
-			zlog_debug(
-				"%s called for interface %s with peer flag set, but no peer address supplied",
-				__func__, ifp->name);
+			zlog_debug("%s called for interface %s with peer flag set, but no peer address supplied",
+				   __func__, ifp->name);
 			UNSET_FLAG(ifc->flags, ZEBRA_IFA_PEER);
 		}
 	}
 
 	/* no destination address was supplied */
 	if (!dest && (prefixlen == IPV4_MAX_BITLEN) && if_is_pointopoint(ifp))
-		zlog_debug(
-			"PtP interface %s with addr %pI4/%d needs a peer address",
-			ifp->name, addr, prefixlen);
+		zlog_debug("PtP interface %s with addr %pI4/%d needs a peer address",
+			   ifp->name, addr, prefixlen);
 
 	/* Label of this address. */
 	if (label)
@@ -381,10 +371,9 @@ void connected_down(struct interface *ifp, struct connected *ifc)
 
 	zvrf = ifp->vrf->info;
 	if (!zvrf) {
-		flog_err(
-			EC_ZEBRA_VRF_NOT_FOUND,
-			"%s: Received Down for interface but no associated zvrf: %s(%d)",
-			__func__, ifp->vrf->name, ifp->vrf->vrf_id);
+		flog_err(EC_ZEBRA_VRF_NOT_FOUND,
+			 "%s: Received Down for interface but no associated zvrf: %s(%d)",
+			 __func__, ifp->vrf->name, ifp->vrf->vrf_id);
 		return;
 	}
 
@@ -397,8 +386,8 @@ void connected_down(struct interface *ifp, struct connected *ifc)
 	 */
 	if (CHECK_FLAG(ifc->conf, ZEBRA_IFC_DOWN)) {
 		if (IS_ZEBRA_DEBUG_RIB)
-			zlog_debug("%s: ifc %p, %pFX already DOWN",
-				   __func__, ifc, ifc->address);
+			zlog_debug("%s: ifc %p, %pFX already DOWN", __func__,
+				   ifc, ifc->address);
 		return;
 	}
 
@@ -445,8 +434,7 @@ void connected_down(struct interface *ifp, struct connected *ifc)
 		prefix_copy(&cp, CONNECTED_PREFIX(c));
 		apply_mask(&cp);
 
-		if (prefix_same(&p, &cp) &&
-		    !CHECK_FLAG(c->conf, ZEBRA_IFC_DOWN))
+		if (prefix_same(&p, &cp) && !CHECK_FLAG(c->conf, ZEBRA_IFC_DOWN))
 			count++;
 
 		if (count >= 1)
@@ -466,9 +454,8 @@ void connected_down(struct interface *ifp, struct connected *ifc)
 	/* Schedule LSP forwarding entries for processing, if appropriate. */
 	if (zvrf->vrf->vrf_id == VRF_DEFAULT) {
 		if (IS_ZEBRA_DEBUG_MPLS)
-			zlog_debug(
-				"%u: IF %s IP %pFX address down, scheduling MPLS processing",
-				zvrf->vrf->vrf_id, ifp->name, &p);
+			zlog_debug("%u: IF %s IP %pFX address down, scheduling MPLS processing",
+				   zvrf->vrf->vrf_id, ifp->name, &p);
 		mpls_mark_lsps_for_processing(zvrf, &p);
 	}
 }
@@ -486,9 +473,8 @@ static void connected_delete_helper(struct connected *ifc, struct prefix *p)
 	/* Schedule LSP forwarding entries for processing, if appropriate. */
 	if (ifp->vrf->vrf_id == VRF_DEFAULT) {
 		if (IS_ZEBRA_DEBUG_MPLS)
-			zlog_debug(
-				"%u: IF %s IP %pFX address delete, scheduling MPLS processing",
-				ifp->vrf->vrf_id, ifp->name, p);
+			zlog_debug("%u: IF %s IP %pFX address delete, scheduling MPLS processing",
+				   ifp->vrf->vrf_id, ifp->name, p);
 		mpls_mark_lsps_for_processing(ifp->vrf->info, p);
 	}
 }
@@ -504,8 +490,8 @@ void connected_delete_ipv4(struct interface *ifp, int flags,
 	memset(&p, 0, sizeof(p));
 	p.family = AF_INET;
 	p.u.prefix4 = *addr;
-	p.prefixlen =
-		CHECK_FLAG(flags, ZEBRA_IFA_PEER) ? IPV4_MAX_BITLEN : prefixlen;
+	p.prefixlen = CHECK_FLAG(flags, ZEBRA_IFA_PEER) ? IPV4_MAX_BITLEN
+							: prefixlen;
 
 	if (dest) {
 		memset(&d, 0, sizeof(d));
@@ -521,9 +507,8 @@ void connected_delete_ipv4(struct interface *ifp, int flags,
 
 /* Add connected IPv6 route to the interface. */
 void connected_add_ipv6(struct interface *ifp, int flags,
-			const struct in6_addr *addr,
-			const struct in6_addr *dest, uint16_t prefixlen,
-			const char *label, uint32_t metric)
+			const struct in6_addr *addr, const struct in6_addr *dest,
+			uint16_t prefixlen, const char *label, uint32_t metric)
 {
 	struct prefix_ipv6 *p;
 	struct connected *ifc;
@@ -561,9 +546,8 @@ void connected_add_ipv6(struct interface *ifp, int flags,
 		ifc->destination = (struct prefix *)p;
 	} else {
 		if (CHECK_FLAG(ifc->flags, ZEBRA_IFA_PEER)) {
-			zlog_debug(
-				"%s called for interface %s with peer flag set, but no peer address supplied",
-				__func__, ifp->name);
+			zlog_debug("%s called for interface %s with peer flag set, but no peer address supplied",
+				   __func__, ifp->name);
 			UNSET_FLAG(ifc->flags, ZEBRA_IFA_PEER);
 		}
 	}
@@ -585,8 +569,7 @@ void connected_add_ipv6(struct interface *ifp, int flags,
 	connected_update(ifp, ifc);
 }
 
-void connected_delete_ipv6(struct interface *ifp,
-			   const struct in6_addr *address,
+void connected_delete_ipv6(struct interface *ifp, const struct in6_addr *address,
 			   const struct in6_addr *dest, uint16_t prefixlen)
 {
 	struct prefix p, d;
@@ -619,8 +602,8 @@ int connected_is_unnumbered(struct interface *ifp)
 	struct listnode *node;
 
 	for (ALL_LIST_ELEMENTS_RO(ifp->connected, node, connected)) {
-		if (CHECK_FLAG(connected->conf, ZEBRA_IFC_REAL)
-		    && connected->address->family == AF_INET)
+		if (CHECK_FLAG(connected->conf, ZEBRA_IFC_REAL) &&
+		    connected->address->family == AF_INET)
 			return CHECK_FLAG(connected->flags,
 					  ZEBRA_IFA_UNNUMBERED);
 	}

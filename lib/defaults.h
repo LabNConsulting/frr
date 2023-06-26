@@ -73,7 +73,7 @@ struct frr_default {
 	struct frr_default_entry entries[];
 };
 
-#define _FRR_CFG_DEFAULT(type, typname, varname, ...) \
+#define _FRR_CFG_DEFAULT(type, typname, varname, ...)                          \
 	static type DFLT_##varname;                                            \
 	static type SAVE_##varname;                                            \
 	static struct frr_default _dflt_##varname = {                          \
@@ -103,16 +103,16 @@ struct frr_default {
  * will be expanded and blow up with a compile error.  Use an enum or add an
  * extra _ at the beginning (e.g. _SHARP_BLUNTNESS => DFLT__SHARP_BLUNTNESS)
  */
-#define FRR_CFG_DEFAULT_BOOL(varname, ...) \
-	_FRR_CFG_DEFAULT(bool, bool, varname, ## __VA_ARGS__)
-#define FRR_CFG_DEFAULT_LONG(varname, ...) \
-	_FRR_CFG_DEFAULT(long, long, varname, ## __VA_ARGS__)
-#define FRR_CFG_DEFAULT_ULONG(varname, ...) \
-	_FRR_CFG_DEFAULT(unsigned long, ulong, varname, ## __VA_ARGS__)
-#define FRR_CFG_DEFAULT_FLOAT(varname, ...) \
-	_FRR_CFG_DEFAULT(float, float, varname, ## __VA_ARGS__)
-#define FRR_CFG_DEFAULT_STR(varname, ...) \
-	_FRR_CFG_DEFAULT(const char *, str, varname, ## __VA_ARGS__)
+#define FRR_CFG_DEFAULT_BOOL(varname, ...)                                     \
+	_FRR_CFG_DEFAULT(bool, bool, varname, ##__VA_ARGS__)
+#define FRR_CFG_DEFAULT_LONG(varname, ...)                                     \
+	_FRR_CFG_DEFAULT(long, long, varname, ##__VA_ARGS__)
+#define FRR_CFG_DEFAULT_ULONG(varname, ...)                                    \
+	_FRR_CFG_DEFAULT(unsigned long, ulong, varname, ##__VA_ARGS__)
+#define FRR_CFG_DEFAULT_FLOAT(varname, ...)                                    \
+	_FRR_CFG_DEFAULT(float, float, varname, ##__VA_ARGS__)
+#define FRR_CFG_DEFAULT_STR(varname, ...)                                      \
+	_FRR_CFG_DEFAULT(const char *, str, varname, ##__VA_ARGS__)
 
 
 /* daemons don't need to call any of these, libfrr handles that */

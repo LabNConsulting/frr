@@ -46,17 +46,17 @@ struct zapi_opaque_reg_info;
 struct zclient;
 
 /* Link State Common definitions */
-#define MAX_NAME_LENGTH		256
-#define ISO_SYS_ID_LEN		6
+#define MAX_NAME_LENGTH 256
+#define ISO_SYS_ID_LEN	6
 
 /* Type of Node */
 enum ls_node_type {
-	NONE = 0,	/* Unknown */
-	STANDARD,	/* a P or PE node */
-	ABR,		/* an Array Border Node */
-	ASBR,		/* an Autonomous System Border Node */
-	RMT_ASBR,	/* Remote ASBR */
-	PSEUDO		/* a Pseudo Node */
+	NONE = 0, /* Unknown */
+	STANDARD, /* a P or PE node */
+	ABR,	  /* an Array Border Node */
+	ASBR,	  /* an Autonomous System Border Node */
+	RMT_ASBR, /* Remote ASBR */
+	PSEUDO	  /* a Pseudo Node */
 };
 
 /* Origin of the Link State information */
@@ -68,14 +68,14 @@ enum ls_origin { UNKNOWN = 0, ISIS_L1, ISIS_L2, OSPFv2, DIRECT, STATIC };
  *  - ISO System ID + ISIS Level for ISIS
  */
 struct ls_node_id {
-	enum ls_origin origin;		/* Origin of the LS information */
+	enum ls_origin origin; /* Origin of the LS information */
 	union {
 		struct {
-			struct in_addr addr;		/* OSPF Router IS */
-			struct in_addr area_id;		/* OSPF Area ID */
+			struct in_addr addr;	/* OSPF Router IS */
+			struct in_addr area_id; /* OSPF Area ID */
 		} ip;
 		struct {
-			uint8_t sys_id[ISO_SYS_ID_LEN];	/* ISIS System ID */
+			uint8_t sys_id[ISO_SYS_ID_LEN]; /* ISIS System ID */
 			uint8_t level;			/* ISIS Level */
 			uint8_t padding;
 		} iso;
@@ -96,144 +96,144 @@ extern int ls_node_id_same(struct ls_node_id i1, struct ls_node_id i2);
 #define LIB_LS_SR_ALGO_COUNT 2
 
 /* Link State flags to indicate which Node parameters are valid */
-#define LS_NODE_UNSET		0x0000
-#define LS_NODE_NAME		0x0001
-#define LS_NODE_ROUTER_ID	0x0002
-#define LS_NODE_ROUTER_ID6	0x0004
-#define LS_NODE_FLAG		0x0008
-#define LS_NODE_TYPE		0x0010
-#define LS_NODE_AS_NUMBER	0x0020
-#define LS_NODE_SR		0x0040
-#define LS_NODE_SRLB		0x0080
-#define LS_NODE_MSD		0x0100
+#define LS_NODE_UNSET	   0x0000
+#define LS_NODE_NAME	   0x0001
+#define LS_NODE_ROUTER_ID  0x0002
+#define LS_NODE_ROUTER_ID6 0x0004
+#define LS_NODE_FLAG	   0x0008
+#define LS_NODE_TYPE	   0x0010
+#define LS_NODE_AS_NUMBER  0x0020
+#define LS_NODE_SR	   0x0040
+#define LS_NODE_SRLB	   0x0080
+#define LS_NODE_MSD	   0x0100
 
 /* Link State Node structure */
 struct ls_node {
-	uint16_t flags;			/* Flag for parameters validity */
-	struct ls_node_id adv;		/* Adv. Router of this Link State */
-	char name[MAX_NAME_LENGTH];	/* Name of the Node (IS-IS only) */
-	struct in_addr router_id;	/* IPv4 Router ID */
-	struct in6_addr router_id6;	/* IPv6 Router ID */
-	uint8_t node_flag;		/* IS-IS or OSPF Node flag */
-	enum ls_node_type type;		/* Type of Node */
-	uint32_t as_number;		/* Local or neighbor AS number */
-	struct ls_srgb {		/* Segment Routing Global Block */
-		uint32_t lower_bound;		/* MPLS label lower bound */
-		uint32_t range_size;		/* MPLS label range size */
-		uint8_t flag;			/* IS-IS SRGB flags */
+	uint16_t flags;		      /* Flag for parameters validity */
+	struct ls_node_id adv;	      /* Adv. Router of this Link State */
+	char name[MAX_NAME_LENGTH];   /* Name of the Node (IS-IS only) */
+	struct in_addr router_id;     /* IPv4 Router ID */
+	struct in6_addr router_id6;   /* IPv6 Router ID */
+	uint8_t node_flag;	      /* IS-IS or OSPF Node flag */
+	enum ls_node_type type;	      /* Type of Node */
+	uint32_t as_number;	      /* Local or neighbor AS number */
+	struct ls_srgb {	      /* Segment Routing Global Block */
+		uint32_t lower_bound; /* MPLS label lower bound */
+		uint32_t range_size;  /* MPLS label range size */
+		uint8_t flag;	      /* IS-IS SRGB flags */
 	} srgb;
-	struct ls_srlb {		/* Segment Routing Local Block */
-		uint32_t lower_bound;		/* MPLS label lower bound */
-		uint32_t range_size;		/* MPLS label range size */
+	struct ls_srlb {	      /* Segment Routing Local Block */
+		uint32_t lower_bound; /* MPLS label lower bound */
+		uint32_t range_size;  /* MPLS label range size */
 	} srlb;
 	uint8_t algo[LIB_LS_SR_ALGO_COUNT]; /* Segment Routing Algorithms */
-	uint8_t msd;			/* Maximum Stack Depth */
+	uint8_t msd;			    /* Maximum Stack Depth */
 };
 
 /* Link State flags to indicate which Attribute parameters are valid */
-#define LS_ATTR_UNSET		0x00000000
-#define LS_ATTR_NAME		0x00000001
-#define LS_ATTR_METRIC		0x00000002
-#define LS_ATTR_TE_METRIC	0x00000004
-#define LS_ATTR_ADM_GRP		0x00000008
-#define LS_ATTR_LOCAL_ADDR	0x00000010
-#define LS_ATTR_NEIGH_ADDR	0x00000020
-#define LS_ATTR_LOCAL_ADDR6	0x00000040
-#define LS_ATTR_NEIGH_ADDR6	0x00000080
-#define LS_ATTR_LOCAL_ID	0x00000100
-#define LS_ATTR_NEIGH_ID	0x00000200
-#define LS_ATTR_MAX_BW		0x00000400
-#define LS_ATTR_MAX_RSV_BW	0x00000800
-#define LS_ATTR_UNRSV_BW	0x00001000
-#define LS_ATTR_REMOTE_AS	0x00002000
-#define LS_ATTR_REMOTE_ADDR	0x00004000
-#define LS_ATTR_REMOTE_ADDR6	0x00008000
-#define LS_ATTR_DELAY		0x00010000
-#define LS_ATTR_MIN_MAX_DELAY	0x00020000
-#define LS_ATTR_JITTER		0x00040000
-#define LS_ATTR_PACKET_LOSS	0x00080000
-#define LS_ATTR_AVA_BW		0x00100000
-#define LS_ATTR_RSV_BW		0x00200000
-#define LS_ATTR_USE_BW		0x00400000
-#define LS_ATTR_ADJ_SID		0x01000000
-#define LS_ATTR_BCK_ADJ_SID	0x02000000
-#define LS_ATTR_ADJ_SID6	0x04000000
-#define LS_ATTR_BCK_ADJ_SID6	0x08000000
-#define LS_ATTR_SRLG		0x10000000
-#define LS_ATTR_EXT_ADM_GRP 0x20000000
+#define LS_ATTR_UNSET	      0x00000000
+#define LS_ATTR_NAME	      0x00000001
+#define LS_ATTR_METRIC	      0x00000002
+#define LS_ATTR_TE_METRIC     0x00000004
+#define LS_ATTR_ADM_GRP	      0x00000008
+#define LS_ATTR_LOCAL_ADDR    0x00000010
+#define LS_ATTR_NEIGH_ADDR    0x00000020
+#define LS_ATTR_LOCAL_ADDR6   0x00000040
+#define LS_ATTR_NEIGH_ADDR6   0x00000080
+#define LS_ATTR_LOCAL_ID      0x00000100
+#define LS_ATTR_NEIGH_ID      0x00000200
+#define LS_ATTR_MAX_BW	      0x00000400
+#define LS_ATTR_MAX_RSV_BW    0x00000800
+#define LS_ATTR_UNRSV_BW      0x00001000
+#define LS_ATTR_REMOTE_AS     0x00002000
+#define LS_ATTR_REMOTE_ADDR   0x00004000
+#define LS_ATTR_REMOTE_ADDR6  0x00008000
+#define LS_ATTR_DELAY	      0x00010000
+#define LS_ATTR_MIN_MAX_DELAY 0x00020000
+#define LS_ATTR_JITTER	      0x00040000
+#define LS_ATTR_PACKET_LOSS   0x00080000
+#define LS_ATTR_AVA_BW	      0x00100000
+#define LS_ATTR_RSV_BW	      0x00200000
+#define LS_ATTR_USE_BW	      0x00400000
+#define LS_ATTR_ADJ_SID	      0x01000000
+#define LS_ATTR_BCK_ADJ_SID   0x02000000
+#define LS_ATTR_ADJ_SID6      0x04000000
+#define LS_ATTR_BCK_ADJ_SID6  0x08000000
+#define LS_ATTR_SRLG	      0x10000000
+#define LS_ATTR_EXT_ADM_GRP   0x20000000
 
 /* Link State Attributes */
 struct ls_attributes {
-	uint32_t flags;			/* Flag for parameters validity */
-	struct ls_node_id adv;		/* Adv. Router of this Link State */
-	char name[MAX_NAME_LENGTH];	/* Name of the Edge. Could be null */
-	uint32_t metric;		/* IGP standard metric */
-	struct ls_standard {		/* Standard TE metrics */
-		uint32_t te_metric;		/* Traffic Engineering metric */
-		uint32_t admin_group;		/* Administrative Group */
-		struct in_addr local;		/* Local IPv4 address */
-		struct in_addr remote;		/* Remote IPv4 address */
-		struct in6_addr local6;		/* Local IPv6 address */
-		struct in6_addr remote6;	/* Remote IPv6 address */
-		uint32_t local_id;		/* Local Identifier */
-		uint32_t remote_id;		/* Remote Identifier */
-		float max_bw;			/* Maximum Link Bandwidth */
-		float max_rsv_bw;		/* Maximum Reservable BW */
-		float unrsv_bw[8];		/* Unreserved BW per CT (8) */
-		uint32_t remote_as;		/* Remote AS number */
-		struct in_addr remote_addr;	/* Remote IPv4 address */
-		struct in6_addr remote_addr6;	/* Remote IPv6 address */
+	uint32_t flags;			 /* Flag for parameters validity */
+	struct ls_node_id adv;		 /* Adv. Router of this Link State */
+	char name[MAX_NAME_LENGTH];	 /* Name of the Edge. Could be null */
+	uint32_t metric;		 /* IGP standard metric */
+	struct ls_standard {		 /* Standard TE metrics */
+		uint32_t te_metric;	 /* Traffic Engineering metric */
+		uint32_t admin_group;	 /* Administrative Group */
+		struct in_addr local;	 /* Local IPv4 address */
+		struct in_addr remote;	 /* Remote IPv4 address */
+		struct in6_addr local6;	 /* Local IPv6 address */
+		struct in6_addr remote6; /* Remote IPv6 address */
+		uint32_t local_id;	 /* Local Identifier */
+		uint32_t remote_id;	 /* Remote Identifier */
+		float max_bw;		 /* Maximum Link Bandwidth */
+		float max_rsv_bw;	 /* Maximum Reservable BW */
+		float unrsv_bw[8];	 /* Unreserved BW per CT (8) */
+		uint32_t remote_as;	 /* Remote AS number */
+		struct in_addr remote_addr;   /* Remote IPv4 address */
+		struct in6_addr remote_addr6; /* Remote IPv6 address */
 	} standard;
-	struct ls_extended {		/* Extended TE Metrics */
-		uint32_t delay;		/* Unidirectional average delay */
-		uint32_t min_delay;	/* Unidirectional minimum delay */
-		uint32_t max_delay;	/* Unidirectional maximum delay */
-		uint32_t jitter;	/* Unidirectional delay variation */
-		uint32_t pkt_loss;	/* Unidirectional packet loss */
-		float ava_bw;		/* Available Bandwidth */
-		float rsv_bw;		/* Reserved Bandwidth */
-		float used_bw;		/* Utilized Bandwidth */
+	struct ls_extended {	    /* Extended TE Metrics */
+		uint32_t delay;	    /* Unidirectional average delay */
+		uint32_t min_delay; /* Unidirectional minimum delay */
+		uint32_t max_delay; /* Unidirectional maximum delay */
+		uint32_t jitter;    /* Unidirectional delay variation */
+		uint32_t pkt_loss;  /* Unidirectional packet loss */
+		float ava_bw;	    /* Available Bandwidth */
+		float rsv_bw;	    /* Reserved Bandwidth */
+		float used_bw;	    /* Utilized Bandwidth */
 	} extended;
 	struct admin_group ext_admin_group; /* Extended Admin. Group */
-#define ADJ_PRI_IPV4	0
-#define ADJ_BCK_IPV4	1
-#define ADJ_PRI_IPV6	2
-#define ADJ_BCK_IPV6	3
-#define LS_ADJ_MAX	4
-	struct ls_adjacency {		/* (LAN)-Adjacency SID for OSPF */
-		uint32_t sid;		/* SID as MPLS label or index */
-		uint8_t flags;		/* Flags */
-		uint8_t weight;		/* Administrative weight */
+#define ADJ_PRI_IPV4 0
+#define ADJ_BCK_IPV4 1
+#define ADJ_PRI_IPV6 2
+#define ADJ_BCK_IPV6 3
+#define LS_ADJ_MAX   4
+	struct ls_adjacency {	/* (LAN)-Adjacency SID for OSPF */
+		uint32_t sid;	/* SID as MPLS label or index */
+		uint8_t flags;	/* Flags */
+		uint8_t weight; /* Administrative weight */
 		union {
-			struct in_addr addr;	/* Neighbor @IP for OSPF */
+			struct in_addr addr; /* Neighbor @IP for OSPF */
 			uint8_t sysid[ISO_SYS_ID_LEN]; /* or Sys-ID for ISIS */
 		} neighbor;
-	} adj_sid[4];		/* IPv4/IPv6 & Primary/Backup (LAN)-Adj. SID */
-	uint32_t *srlgs;	/* List of Shared Risk Link Group */
-	uint8_t srlg_len;	/* number of SRLG in the list */
+	} adj_sid[4];	  /* IPv4/IPv6 & Primary/Backup (LAN)-Adj. SID */
+	uint32_t *srlgs;  /* List of Shared Risk Link Group */
+	uint8_t srlg_len; /* number of SRLG in the list */
 };
 
 /* Link State flags to indicate which Prefix parameters are valid */
-#define LS_PREF_UNSET		0x00
-#define LS_PREF_IGP_FLAG	0x01
-#define LS_PREF_ROUTE_TAG	0x02
-#define LS_PREF_EXTENDED_TAG	0x04
-#define LS_PREF_METRIC		0x08
-#define LS_PREF_SR		0x10
+#define LS_PREF_UNSET	     0x00
+#define LS_PREF_IGP_FLAG     0x01
+#define LS_PREF_ROUTE_TAG    0x02
+#define LS_PREF_EXTENDED_TAG 0x04
+#define LS_PREF_METRIC	     0x08
+#define LS_PREF_SR	     0x10
 
 /* Link State Prefix */
 struct ls_prefix {
-	uint8_t flags;			/* Flag for parameters validity */
-	struct ls_node_id adv;		/* Adv. Router of this Link State */
-	struct prefix pref;		/* IPv4 or IPv6 prefix */
-	uint8_t igp_flag;		/* IGP Flags associated to the prefix */
-	uint32_t route_tag;		/* IGP Route Tag */
-	uint64_t extended_tag;		/* IGP Extended Route Tag */
-	uint32_t metric;		/* Route metric for this prefix */
+	uint8_t flags;	       /* Flag for parameters validity */
+	struct ls_node_id adv; /* Adv. Router of this Link State */
+	struct prefix pref;    /* IPv4 or IPv6 prefix */
+	uint8_t igp_flag;      /* IGP Flags associated to the prefix */
+	uint32_t route_tag;    /* IGP Route Tag */
+	uint64_t extended_tag; /* IGP Extended Route Tag */
+	uint32_t metric;       /* Route metric for this prefix */
 	struct ls_sid {
-		uint32_t sid;		/* Segment Routing ID */
-		uint8_t sid_flag;	/* Segment Routing Flags */
-		uint8_t algo;		/* Algorithm for Segment Routing */
+		uint32_t sid;	  /* Segment Routing ID */
+		uint8_t sid_flag; /* Segment Routing Flags */
+		uint8_t algo;	  /* Algorithm for Segment Routing */
 	} sr;
 };
 
@@ -375,14 +375,14 @@ enum ls_type { GENERIC = 0, VERTEX, EDGE, SUBNET };
 /* Link State Vertex structure */
 PREDECL_RBTREE_UNIQ(vertices);
 struct ls_vertex {
-	enum ls_type type;		/* Link State Type */
-	enum ls_status status;		/* Status of the Vertex in the TED */
-	struct vertices_item entry;	/* Entry in RB Tree */
-	uint64_t key;			/* Unique Key identifier */
-	struct ls_node *node;		/* Link State Node */
-	struct list *incoming_edges;	/* List of incoming Link State links */
-	struct list *outgoing_edges;	/* List of outgoing Link State links */
-	struct list *prefixes;		/* List of advertised prefix */
+	enum ls_type type;	     /* Link State Type */
+	enum ls_status status;	     /* Status of the Vertex in the TED */
+	struct vertices_item entry;  /* Entry in RB Tree */
+	uint64_t key;		     /* Unique Key identifier */
+	struct ls_node *node;	     /* Link State Node */
+	struct list *incoming_edges; /* List of incoming Link State links */
+	struct list *outgoing_edges; /* List of outgoing Link State links */
+	struct list *prefixes;	     /* List of advertised prefix */
 };
 
 /* Link State Edge Key structure */
@@ -398,24 +398,24 @@ struct ls_edge_key {
 /* Link State Edge structure */
 PREDECL_RBTREE_UNIQ(edges);
 struct ls_edge {
-	enum ls_type type;		/* Link State Type */
-	enum ls_status status;		/* Status of the Edge in the TED */
-	struct edges_item entry;	/* Entry in RB tree */
-	struct ls_edge_key key;		/* Unique Key identifier */
-	struct ls_attributes *attributes;	/* Link State attributes */
-	struct ls_vertex *source;	/* Pointer to the source Vertex */
-	struct ls_vertex *destination;	/* Pointer to the destination Vertex */
+	enum ls_type type;		  /* Link State Type */
+	enum ls_status status;		  /* Status of the Edge in the TED */
+	struct edges_item entry;	  /* Entry in RB tree */
+	struct ls_edge_key key;		  /* Unique Key identifier */
+	struct ls_attributes *attributes; /* Link State attributes */
+	struct ls_vertex *source;	  /* Pointer to the source Vertex */
+	struct ls_vertex *destination; /* Pointer to the destination Vertex */
 };
 
 /* Link State Subnet structure */
 PREDECL_RBTREE_UNIQ(subnets);
 struct ls_subnet {
-	enum ls_type type;		/* Link State Type */
-	enum ls_status status;		/* Status of the Subnet in the TED */
-	struct subnets_item entry;	/* Entry in RB tree */
-	struct prefix key;		/* Unique Key identifier */
-	struct ls_prefix *ls_pref;	/* Link State Prefix */
-	struct ls_vertex *vertex;	/* Back pointer to the Vertex owner */
+	enum ls_type type;	   /* Link State Type */
+	enum ls_status status;	   /* Status of the Subnet in the TED */
+	struct subnets_item entry; /* Entry in RB tree */
+	struct prefix key;	   /* Unique Key identifier */
+	struct ls_prefix *ls_pref; /* Link State Prefix */
+	struct ls_vertex *vertex;  /* Back pointer to the Vertex owner */
 };
 
 /* Declaration of Vertices, Edges and Prefixes RB Trees */
@@ -449,8 +449,7 @@ DECLARE_RBTREE_UNIQ(edges, struct ls_edge, entry, edge_cmp);
  * Prefix comparison are done to the host part so, 10.0.0.1/24
  * and 10.0.0.2/24 are considered different
  */
-macro_inline int subnet_cmp(const struct ls_subnet *a,
-			    const struct ls_subnet *b)
+macro_inline int subnet_cmp(const struct ls_subnet *a, const struct ls_subnet *b)
 {
 	if (a->key.family != b->key.family)
 		return numcmp(a->key.family, b->key.family);
@@ -467,20 +466,20 @@ DECLARE_RBTREE_UNIQ(subnets, struct ls_subnet, entry, subnet_cmp);
 
 /* Link State TED Structure */
 struct ls_ted {
-	uint32_t key;			/* Unique identifier */
-	char name[MAX_NAME_LENGTH];	/* Name of this graph. Could be null */
-	uint32_t as_number;		/* AS number of the modeled network */
-	struct ls_vertex *self;		/* Vertex of the FRR instance */
-	struct vertices_head vertices;	/* List of Vertices */
-	struct edges_head edges;	/* List of Edges */
-	struct subnets_head subnets;	/* List of Subnets */
+	uint32_t key;		       /* Unique identifier */
+	char name[MAX_NAME_LENGTH];    /* Name of this graph. Could be null */
+	uint32_t as_number;	       /* AS number of the modeled network */
+	struct ls_vertex *self;	       /* Vertex of the FRR instance */
+	struct vertices_head vertices; /* List of Vertices */
+	struct edges_head edges;       /* List of Edges */
+	struct subnets_head subnets;   /* List of Subnets */
 };
 
 /* Generic Link State Element */
 struct ls_element {
-	enum ls_type type;		/* Link State Element Type */
-	enum ls_status status;		/* Link State Status in the TED */
-	void *data;			/* Link State payload */
+	enum ls_type type;     /* Link State Element Type */
+	enum ls_status status; /* Link State Status in the TED */
+	void *data;	       /* Link State payload */
 };
 
 /**
@@ -492,8 +491,7 @@ struct ls_element {
  *
  * @return	New Vertex or NULL in case of error
  */
-extern struct ls_vertex *ls_vertex_add(struct ls_ted *ted,
-				       struct ls_node *node);
+extern struct ls_vertex *ls_vertex_add(struct ls_ted *ted, struct ls_node *node);
 
 /**
  * Delete Link State Vertex. This function clean internal Vertex lists (incoming
@@ -655,8 +653,8 @@ extern struct ls_edge *ls_find_edge_by_key(struct ls_ted *ted,
  *
  * @return		Edge if found, NULL otherwise
  */
-extern struct ls_edge *
-ls_find_edge_by_source(struct ls_ted *ted, struct ls_attributes *attributes);
+extern struct ls_edge *ls_find_edge_by_source(struct ls_ted *ted,
+					      struct ls_attributes *attributes);
 
 /**
  * Find Edge in the Link State Data Base by the destination (remote IPv4 or IPv6
@@ -832,26 +830,26 @@ extern void ls_disconnect_edge(struct ls_edge *edge);
  */
 
 /* ZAPI Opaque Link State Message Event */
-#define LS_MSG_EVENT_UNDEF	0
-#define LS_MSG_EVENT_SYNC	1
-#define LS_MSG_EVENT_ADD	2
-#define LS_MSG_EVENT_UPDATE	3
-#define LS_MSG_EVENT_DELETE	4
+#define LS_MSG_EVENT_UNDEF  0
+#define LS_MSG_EVENT_SYNC   1
+#define LS_MSG_EVENT_ADD    2
+#define LS_MSG_EVENT_UPDATE 3
+#define LS_MSG_EVENT_DELETE 4
 
 /* ZAPI Opaque Link State Message sub-Type */
-#define LS_MSG_TYPE_NODE	1
-#define LS_MSG_TYPE_ATTRIBUTES	2
-#define LS_MSG_TYPE_PREFIX	3
+#define LS_MSG_TYPE_NODE       1
+#define LS_MSG_TYPE_ATTRIBUTES 2
+#define LS_MSG_TYPE_PREFIX     3
 
 /* Link State Message */
 struct ls_message {
-	uint8_t event;		/* Message Event: Sync, Add, Update, Delete */
-	uint8_t type;		/* Message Data Type: Node, Attribute, Prefix */
-	struct ls_node_id remote_id;	/* Remote Link State Node ID */
+	uint8_t event; /* Message Event: Sync, Add, Update, Delete */
+	uint8_t type;  /* Message Data Type: Node, Attribute, Prefix */
+	struct ls_node_id remote_id; /* Remote Link State Node ID */
 	union {
-		struct ls_node *node;		/* Link State Node */
-		struct ls_attributes *attr;	/* Link State Attributes */
-		struct ls_prefix *prefix;	/* Link State Prefix */
+		struct ls_node *node;	    /* Link State Node */
+		struct ls_attributes *attr; /* Link State Attributes */
+		struct ls_prefix *prefix;   /* Link State Prefix */
 	} data;
 };
 

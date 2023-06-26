@@ -108,10 +108,10 @@ struct event {
 	enum event_types add_type; /* event type */
 	struct event_list_item eventitem;
 	struct event_timer_list_item timeritem;
-	struct event **ref;	      /* external reference (if given) */
-	struct event_loop *master;    /* pointer to the struct event_loop */
+	struct event **ref;	       /* external reference (if given) */
+	struct event_loop *master;     /* pointer to the struct event_loop */
 	void (*func)(struct event *e); /* event function */
-	void *arg;		      /* event argument */
+	void *arg;		       /* event argument */
 	union {
 		int val;	      /* second argument of the event. */
 		int fd;		      /* file descriptor in case of r/w */
@@ -154,7 +154,7 @@ struct cpu_event_history {
 
 /* Macros. */
 #define EVENT_ARG(X) ((X)->arg)
-#define EVENT_FD(X) ((X)->u.fd)
+#define EVENT_FD(X)  ((X)->u.fd)
 #define EVENT_VAL(X) ((X)->u.val)
 
 /*
@@ -174,8 +174,8 @@ struct cpu_event_history {
 
 #define _xref_t_a(addfn, type, m, f, a, v, t)                                  \
 	({                                                                     \
-		static const struct xref_eventsched _xref __attribute__(       \
-			(used)) = {                                            \
+		static const struct xref_eventsched _xref __attribute__((      \
+			used)) = {                                             \
 			.xref = XREF_INIT(XREFT_EVENTSCHED, NULL, __func__),   \
 			.funcname = #f,                                        \
 			.dest = #t,                                            \
@@ -197,8 +197,8 @@ struct cpu_event_history {
 
 #define event_execute(m, f, a, v)                                              \
 	({                                                                     \
-		static const struct xref_eventsched _xref __attribute__(       \
-			(used)) = {                                            \
+		static const struct xref_eventsched _xref __attribute__((      \
+			used)) = {                                             \
 			.xref = XREF_INIT(XREFT_EVENTSCHED, NULL, __func__),   \
 			.funcname = #f,                                        \
 			.dest = NULL,                                          \

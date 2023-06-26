@@ -21,11 +21,11 @@ DEFINE_MTYPE_STATIC(LIB, PRIVS, "Privilege information");
  */
 #ifdef HAVE_CAPABILITIES
 #ifdef HAVE_LCAPS
-static const bool privs_per_process;  /* = false */
+static const bool privs_per_process; /* = false */
 #else
 static const bool privs_per_process = true;
 #endif /* HAVE_LCAPS */
-#else /* HAVE_CAPABILITIES */
+#else  /* HAVE_CAPABILITIES */
 static const bool privs_per_process = true;
 #endif
 
@@ -69,10 +69,10 @@ static struct _zprivs_t {
 	pset_t *syscaps_p; /* system-type requested permitted caps    */
 	pset_t *syscaps_i; /* system-type requested inheritable caps  */
 #endif			   /* HAVE_CAPABILITIES */
-	uid_t zuid,	/* uid to run as            */
-		zsuid;     /* saved uid                */
-	gid_t zgid;	/* gid to run as            */
-	gid_t vtygrp;      /* gid for vty sockets      */
+	uid_t zuid,	   /* uid to run as            */
+		zsuid;	   /* saved uid                */
+	gid_t zgid;	   /* gid to run as            */
+	gid_t vtygrp;	   /* gid for vty sockets      */
 } zprivs_state;
 
 /* externally exported but not directly accessed functions */
@@ -152,7 +152,7 @@ static struct {
 			{
 				1, (pvalue_t[]){CAP_SYS_RAWIO},
 			},
-#endif /* HAVE_LCAPS */
+#endif		  /* HAVE_LCAPS */
 };
 
 #ifdef HAVE_LCAPS
@@ -234,10 +234,9 @@ zebra_privs_current_t zprivs_state_caps(void)
 		if (cap_get_flag(zprivs_state.caps,
 				 zprivs_state.syscaps_p->caps[i], CAP_EFFECTIVE,
 				 &val)) {
-			flog_err(
-				EC_LIB_SYSTEM_CALL,
-				"zprivs_state_caps: could not cap_get_flag, %s",
-				safe_strerror(errno));
+			flog_err(EC_LIB_SYSTEM_CALL,
+				 "zprivs_state_caps: could not cap_get_flag, %s",
+				 safe_strerror(errno));
 			return ZPRIVS_UNKNOWN;
 		}
 		if (val == CAP_SET)
@@ -456,7 +455,7 @@ static struct zebra_privs_refs_t *get_privs_refs(struct zebra_privs_t *privs)
 		/* Locate - or create - the object for the current pthread. */
 		tid = pthread_self();
 
-		STAILQ_FOREACH(temp, &(privs->thread_refs), entry) {
+		STAILQ_FOREACH (temp, &(privs->thread_refs), entry) {
 			if (pthread_equal(temp->tid, tid)) {
 				refs = temp;
 				break;
@@ -560,8 +559,8 @@ void zprivs_preinit(struct zebra_privs_t *zprivs)
 	}
 
 	/* NULL privs */
-	if (!(zprivs->user || zprivs->group || zprivs->cap_num_p
-	      || zprivs->cap_num_i)) {
+	if (!(zprivs->user || zprivs->group || zprivs->cap_num_p ||
+	      zprivs->cap_num_i)) {
 		zprivs->change = zprivs_change_null;
 		zprivs->current_state = zprivs_state_null;
 		return;
@@ -570,8 +569,7 @@ void zprivs_preinit(struct zebra_privs_t *zprivs)
 	if (zprivs->user) {
 		if ((pwentry = getpwnam(zprivs->user)) == NULL) {
 			/* cant use log.h here as it depends on vty */
-			fprintf(stderr,
-				"privs_init: could not lookup user %s\n",
+			fprintf(stderr, "privs_init: could not lookup user %s\n",
 				zprivs->user);
 			exit(1);
 		}
@@ -603,8 +601,8 @@ void zprivs_init(struct zebra_privs_t *zprivs)
 	int found = 0;
 
 	/* NULL privs */
-	if (!(zprivs->user || zprivs->group || zprivs->cap_num_p
-	      || zprivs->cap_num_i))
+	if (!(zprivs->user || zprivs->group || zprivs->cap_num_p ||
+	      zprivs->cap_num_i))
 		return;
 
 	lib_privs = zprivs;
@@ -612,8 +610,7 @@ void zprivs_init(struct zebra_privs_t *zprivs)
 	if (zprivs->user) {
 		ngroups = array_size(groups);
 		if (getgrouplist(zprivs->user, zprivs_state.zgid, groups,
-				 &ngroups)
-		    < 0) {
+				 &ngroups) < 0) {
 			/* cant use log.h here as it depends on vty */
 			fprintf(stderr,
 				"privs_init: could not getgrouplist for user %s\n",
@@ -721,8 +718,8 @@ void zprivs_terminate(struct zebra_privs_t *zprivs)
 	}
 
 #ifdef HAVE_CAPABILITIES
-	if (zprivs->user || zprivs->group || zprivs->cap_num_p
-	    || zprivs->cap_num_i)
+	if (zprivs->user || zprivs->group || zprivs->cap_num_p ||
+	    zprivs->cap_num_i)
 		zprivs_caps_terminate();
 #else  /* !HAVE_CAPABILITIES */
 	/* only change uid if we don't have the correct one */
@@ -749,7 +746,6 @@ void zprivs_terminate(struct zebra_privs_t *zprivs)
 
 void zprivs_get_ids(struct zprivs_ids_t *ids)
 {
-
 	ids->uid_priv = getuid();
 	(zprivs_state.zuid) ? (ids->uid_normal = zprivs_state.zuid)
 			    : (ids->uid_normal = (uid_t)-1);

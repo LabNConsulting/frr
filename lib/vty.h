@@ -34,8 +34,8 @@ extern "C" {
 
 struct json_object;
 
-#define VTY_BUFSIZ 4096
-#define VTY_MAXHIST 20
+#define VTY_BUFSIZ   4096
+#define VTY_MAXHIST  20
 #define VTY_MAXDEPTH 8
 
 #define VTY_MAXCFGCHANGES 16
@@ -72,10 +72,11 @@ struct vty {
 	bool is_paged;
 
 	/* Is this vty connect to file or not */
-	enum { VTY_TERM,       /* telnet conn or stdin/stdout UI */
-	       VTY_FILE,       /* reading and writing config files */
-	       VTY_SHELL,      /* vtysh client side UI */
-	       VTY_SHELL_SERV, /* server-side vtysh connection */
+	enum {
+		VTY_TERM,	/* telnet conn or stdin/stdout UI */
+		VTY_FILE,	/* reading and writing config files */
+		VTY_SHELL,	/* vtysh client side UI */
+		VTY_SHELL_SERV, /* server-side vtysh connection */
 	} type;
 
 	/* Node status of this vty */
@@ -260,9 +261,8 @@ static inline void vty_push_context(struct vty *vty, int node, uint64_t id)
 /* will return if ptr is NULL. */
 #define VTY_CHECK_CONTEXT(ptr)                                                 \
 	if (!ptr) {                                                            \
-		vty_out(vty,                                                   \
-			"Current configuration object was deleted "            \
-			"by another process.\n");                              \
+		vty_out(vty, "Current configuration object was deleted "       \
+			     "by another process.\n");                         \
 		return CMD_WARNING;                                            \
 	}
 

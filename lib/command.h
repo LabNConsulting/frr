@@ -30,7 +30,7 @@ DECLARE_MTYPE(COMPLETION);
  * Host software MUST handle host names of up to 63 characters and
  * SHOULD handle host names of up to 255 characters.
  */
-#define HOSTNAME_LEN   255
+#define HOSTNAME_LEN 255
 
 /* Host configuration variable */
 struct host {
@@ -219,26 +219,26 @@ struct cmd_node {
 };
 
 /* Return value of the commands. */
-#define CMD_SUCCESS              0
-#define CMD_WARNING              1
-#define CMD_ERR_NO_MATCH         2
-#define CMD_ERR_AMBIGUOUS        3
-#define CMD_ERR_INCOMPLETE       4
-#define CMD_ERR_EXEED_ARGC_MAX   5
-#define CMD_ERR_NOTHING_TODO     6
-#define CMD_COMPLETE_FULL_MATCH  7
-#define CMD_COMPLETE_MATCH       8
-#define CMD_COMPLETE_LIST_MATCH  9
-#define CMD_SUCCESS_DAEMON      10
-#define CMD_ERR_NO_FILE         11
-#define CMD_SUSPEND             12
+#define CMD_SUCCESS		  0
+#define CMD_WARNING		  1
+#define CMD_ERR_NO_MATCH	  2
+#define CMD_ERR_AMBIGUOUS	  3
+#define CMD_ERR_INCOMPLETE	  4
+#define CMD_ERR_EXEED_ARGC_MAX	  5
+#define CMD_ERR_NOTHING_TODO	  6
+#define CMD_COMPLETE_FULL_MATCH	  7
+#define CMD_COMPLETE_MATCH	  8
+#define CMD_COMPLETE_LIST_MATCH	  9
+#define CMD_SUCCESS_DAEMON	  10
+#define CMD_ERR_NO_FILE		  11
+#define CMD_SUSPEND		  12
 #define CMD_WARNING_CONFIG_FAILED 13
-#define CMD_NOT_MY_INSTANCE	14
-#define CMD_NO_LEVEL_UP 15
-#define CMD_ERR_NO_DAEMON 16
+#define CMD_NOT_MY_INSTANCE	  14
+#define CMD_NO_LEVEL_UP		  15
+#define CMD_ERR_NO_DAEMON	  16
 
 /* Argc max counts. */
-#define CMD_ARGC_MAX   256
+#define CMD_ARGC_MAX 256
 
 /* helper defines for end-user DEFUN* macros */
 #define DEFUN_CMD_ELEMENT(funcname, cmdname, cmdstr, helpstr, attrs, dnum)     \
@@ -364,81 +364,82 @@ struct cmd_node {
  * allow the parser to match against them.
  * These macros allow that.
  */
-#define CMD_CREATE_STR(s)  CMD_CREATE_STR_HELPER(s)
+#define CMD_CREATE_STR(s)	 CMD_CREATE_STR_HELPER(s)
 #define CMD_CREATE_STR_HELPER(s) #s
-#define CMD_RANGE_STR(a,s) "(" CMD_CREATE_STR(a) "-" CMD_CREATE_STR(s) ")"
+#define CMD_RANGE_STR(a, s)	 "(" CMD_CREATE_STR(a) "-" CMD_CREATE_STR(s) ")"
 
 /* Common descriptions. */
-#define SHOW_STR "Show running system information\n"
-#define IP_STR "IP information\n"
-#define IPV6_STR "IPv6 information\n"
-#define IP_ADDR_STR "IPv4 Address\n"
-#define IP6_ADDR_STR "IPv6 Address\n"
-#define SRTE_STR "SR-TE information\n"
-#define SRTE_COLOR_STR "SR-TE Color information\n"
-#define NO_STR "Negate a command or set its defaults\n"
+#define SHOW_STR	  "Show running system information\n"
+#define IP_STR		  "IP information\n"
+#define IPV6_STR	  "IPv6 information\n"
+#define IP_ADDR_STR	  "IPv4 Address\n"
+#define IP6_ADDR_STR	  "IPv6 Address\n"
+#define SRTE_STR	  "SR-TE information\n"
+#define SRTE_COLOR_STR	  "SR-TE Color information\n"
+#define NO_STR		  "Negate a command or set its defaults\n"
 #define IGNORED_IN_NO_STR "Ignored value in no form\n"
-#define REDIST_STR "Redistribute information from another routing protocol\n"
-#define CLEAR_STR "Reset functions\n"
-#define RIP_STR "RIP information\n"
-#define EIGRP_STR "EIGRP information\n"
-#define BGP_STR "BGP information\n"
-#define BGP_SOFT_STR "Soft reconfig inbound and outbound updates\n"
-#define BGP_SOFT_IN_STR "Send route-refresh unless using 'soft-reconfiguration inbound'\n"
-#define BGP_SOFT_OUT_STR "Resend all outbound updates\n"
+#define REDIST_STR	  "Redistribute information from another routing protocol\n"
+#define CLEAR_STR	  "Reset functions\n"
+#define RIP_STR		  "RIP information\n"
+#define EIGRP_STR	  "EIGRP information\n"
+#define BGP_STR		  "BGP information\n"
+#define BGP_SOFT_STR	  "Soft reconfig inbound and outbound updates\n"
+#define BGP_SOFT_IN_STR                                                        \
+	"Send route-refresh unless using 'soft-reconfiguration inbound'\n"
+#define BGP_SOFT_OUT_STR	  "Resend all outbound updates\n"
 #define BGP_SOFT_RSCLIENT_RIB_STR "Soft reconfig for rsclient RIB\n"
-#define OSPF_STR "OSPF information\n"
-#define NEIGHBOR_STR "Specify neighbor router\n"
-#define DEBUG_STR "Debugging functions\n"
-#define UNDEBUG_STR "Disable debugging functions (see also 'debug')\n"
-#define ROUTER_STR "Enable a routing process\n"
+#define OSPF_STR		  "OSPF information\n"
+#define NEIGHBOR_STR		  "Specify neighbor router\n"
+#define DEBUG_STR		  "Debugging functions\n"
+#define UNDEBUG_STR		  "Disable debugging functions (see also 'debug')\n"
+#define ROUTER_STR		  "Enable a routing process\n"
 #define AS_STR                                                                 \
 	"AS number in plain  <1-4294967295> or dotted <0-65535>.<0-65535> format\n"
-#define MAC_STR "MAC address\n"
-#define MBGP_STR "MBGP information\n"
-#define MATCH_STR "Match values from routing table\n"
-#define SET_STR "Set values in destination routing protocol\n"
-#define OUT_STR "Filter outgoing routing updates\n"
-#define IN_STR  "Filter incoming routing updates\n"
-#define V4NOTATION_STR "specify by IPv4 address notation(e.g. 0.0.0.0)\n"
-#define OSPF6_NUMBER_STR "Specify by number\n"
-#define INTERFACE_STR "Interface information\n"
-#define IFNAME_STR "Interface name(e.g. ep0)\n"
-#define IP6_STR "IPv6 Information\n"
-#define OSPF6_STR "Open Shortest Path First (OSPF) for IPv6\n"
+#define MAC_STR		   "MAC address\n"
+#define MBGP_STR	   "MBGP information\n"
+#define MATCH_STR	   "Match values from routing table\n"
+#define SET_STR		   "Set values in destination routing protocol\n"
+#define OUT_STR		   "Filter outgoing routing updates\n"
+#define IN_STR		   "Filter incoming routing updates\n"
+#define V4NOTATION_STR	   "specify by IPv4 address notation(e.g. 0.0.0.0)\n"
+#define OSPF6_NUMBER_STR   "Specify by number\n"
+#define INTERFACE_STR	   "Interface information\n"
+#define IFNAME_STR	   "Interface name(e.g. ep0)\n"
+#define IP6_STR		   "IPv6 Information\n"
+#define OSPF6_STR	   "Open Shortest Path First (OSPF) for IPv6\n"
 #define OSPF6_INSTANCE_STR "(1-65535) Instance ID\n"
-#define SECONDS_STR "Seconds\n"
-#define ROUTE_STR "Routing Table\n"
-#define PREFIX_LIST_STR "Build a prefix list\n"
+#define SECONDS_STR	   "Seconds\n"
+#define ROUTE_STR	   "Routing Table\n"
+#define PREFIX_LIST_STR	   "Build a prefix list\n"
 #define OSPF6_DUMP_TYPE_LIST                                                   \
 	"<neighbor|interface|area|lsa|zebra|config|dbex|spf|route|lsdb|redistribute|hook|asbr|prefix|abr>"
-#define AREA_TAG_STR "[area tag]\n"
+#define AREA_TAG_STR	   "[area tag]\n"
 #define COMMUNITY_AANN_STR "Community number where AA and NN are (0-65535)\n"
 #define COMMUNITY_VAL_STR                                                      \
 	"Community number in AA:NN format (where AA and NN are (0-65535)) or local-AS|no-advertise|no-export|internet|graceful-shutdown|accept-own-nexthop|accept-own|route-filter-translated-v4|route-filter-v4|route-filter-translated-v6|route-filter-v6|llgr-stale|no-llgr|blackhole|no-peer or additive\n"
-#define MPLS_TE_STR "MPLS-TE specific commands\n"
-#define LINK_PARAMS_STR "Configure interface link parameters\n"
-#define OSPF_RI_STR "OSPF Router Information specific commands\n"
-#define PCE_STR "PCE Router Information specific commands\n"
-#define MPLS_STR "MPLS information\n"
-#define SR_STR "Segment-Routing specific commands\n"
-#define WATCHFRR_STR "watchfrr information\n"
-#define ZEBRA_STR "Zebra information\n"
-#define FILTER_LOG_STR "Filter Logs\n"
-#define BFD_PROFILE_STR "BFD profile.\n"
+#define MPLS_TE_STR	     "MPLS-TE specific commands\n"
+#define LINK_PARAMS_STR	     "Configure interface link parameters\n"
+#define OSPF_RI_STR	     "OSPF Router Information specific commands\n"
+#define PCE_STR		     "PCE Router Information specific commands\n"
+#define MPLS_STR	     "MPLS information\n"
+#define SR_STR		     "Segment-Routing specific commands\n"
+#define WATCHFRR_STR	     "watchfrr information\n"
+#define ZEBRA_STR	     "Zebra information\n"
+#define FILTER_LOG_STR	     "Filter Logs\n"
+#define BFD_PROFILE_STR	     "BFD profile.\n"
 #define BFD_PROFILE_NAME_STR "BFD profile name.\n"
-#define SHARP_STR "Sharp Routing Protocol\n"
+#define SHARP_STR	     "Sharp Routing Protocol\n"
 #define OSPF_GR_STR                                                            \
 	"OSPF non-stop forwarding (NSF) also known as OSPF Graceful Restart\n"
-#define MGMTD_STR "Management Daemon (MGMTD) information\n"
+#define MGMTD_STR	     "Management Daemon (MGMTD) information\n"
 #define MGMTD_BE_ADAPTER_STR "MGMTD Backend Adapter information\n"
 #define MGMTD_FE_ADAPTER_STR "MGMTD Frontend Adapter information\n"
-#define MGMTD_TXN_STR "MGMTD Transaction information\n"
-#define MGMTD_DS_STR "MGMTD Datastore information\n"
+#define MGMTD_TXN_STR	     "MGMTD Transaction information\n"
+#define MGMTD_DS_STR	     "MGMTD Datastore information\n"
 
-#define CMD_VNI_RANGE "(1-16777215)"
-#define CONF_BACKUP_EXT ".sav"
-#define MPLS_LDP_SYNC_STR "Enable MPLS LDP-SYNC\n"
+#define CMD_VNI_RANGE	     "(1-16777215)"
+#define CONF_BACKUP_EXT	     ".sav"
+#define MPLS_LDP_SYNC_STR    "Enable MPLS LDP-SYNC\n"
 #define NO_MPLS_LDP_SYNC_STR "Disable MPLS LDP-SYNC\n"
 #define MPLS_LDP_SYNC_HOLDDOWN_STR                                             \
 	"Time to wait for LDP-SYNC to occur before restoring if cost\n"
@@ -450,53 +451,58 @@ struct cmd_node {
 
 /* IPv4 only machine should not accept IPv6 address for peer's IP
    address.  So we replace VTY command string like below. */
-#define NEIGHBOR_ADDR_STR  "Neighbor address\nIPv6 address\n"
-#define NEIGHBOR_ADDR_STR2 "Neighbor address\nNeighbor IPv6 address\nInterface name or neighbor tag\n"
+#define NEIGHBOR_ADDR_STR "Neighbor address\nIPv6 address\n"
+#define NEIGHBOR_ADDR_STR2                                                     \
+	"Neighbor address\nNeighbor IPv6 address\nInterface name or neighbor tag\n"
 #define NEIGHBOR_ADDR_STR3 "Neighbor address\nIPv6 address\nInterface name\n"
 
 /* Graceful Restart cli help strings */
-#define GR_CMD "Global Graceful Restart command\n"
-#define NO_GR_CMD "Undo Global Graceful Restart command\n"
-#define GR "Global Graceful Restart - GR Mode\n"
-#define GR_DISABLE "Global Graceful Restart - Disable Mode\n"
+#define GR_CMD	      "Global Graceful Restart command\n"
+#define NO_GR_CMD     "Undo Global Graceful Restart command\n"
+#define GR	      "Global Graceful Restart - GR Mode\n"
+#define GR_DISABLE    "Global Graceful Restart - Disable Mode\n"
 #define NO_GR_DISABLE "Undo Global Graceful Restart - Disable Mode\n"
-#define GR_DEBUG "Graceful Restart - Enable Debug Logs\n"
-#define GR_SHOW "Graceful Restart - Show command for Global and all neighbor mode\n"
-#define GR_NEIGHBOR_CMD "Graceful Restart command for a neighbor\n"
+#define GR_DEBUG      "Graceful Restart - Enable Debug Logs\n"
+#define GR_SHOW                                                                \
+	"Graceful Restart - Show command for Global and all neighbor mode\n"
+#define GR_NEIGHBOR_CMD	   "Graceful Restart command for a neighbor\n"
 #define NO_GR_NEIGHBOR_CMD "Undo Graceful Restart command for a neighbor\n"
-#define GR_NEIGHBOR_DISABLE_CMD "Graceful Restart Disable command for a neighbor\n"
-#define NO_GR_NEIGHBOR_DISABLE_CMD "Undo Graceful Restart Disable command for a neighbor\n"
-#define GR_NEIGHBOR_HELPER_CMD "Graceful Restart Helper command for a neighbor\n"
-#define NO_GR_NEIGHBOR_HELPER_CMD "Undo Graceful Restart Helper command for a neighbor\n"
+#define GR_NEIGHBOR_DISABLE_CMD                                                \
+	"Graceful Restart Disable command for a neighbor\n"
+#define NO_GR_NEIGHBOR_DISABLE_CMD                                             \
+	"Undo Graceful Restart Disable command for a neighbor\n"
+#define GR_NEIGHBOR_HELPER_CMD                                                 \
+	"Graceful Restart Helper command for a neighbor\n"
+#define NO_GR_NEIGHBOR_HELPER_CMD                                              \
+	"Undo Graceful Restart Helper command for a neighbor\n"
 
 /* EVPN help Strings */
-#define EVPN_RT_HELP_STR "EVPN route information\n"
+#define EVPN_RT_HELP_STR      "EVPN route information\n"
 #define EVPN_RT_DIST_HELP_STR "Route Distinguisher\n"
-#define EVPN_ASN_IP_HELP_STR "ASN:XX or A.B.C.D:XX\n"
-#define EVPN_TYPE_HELP_STR "Specify Route type\n"
-#define EVPN_TYPE_1_HELP_STR "EAD (Type-1) route\n"
-#define EVPN_TYPE_2_HELP_STR "MAC-IP (Type-2) route\n"
-#define EVPN_TYPE_3_HELP_STR "Multicast (Type-3) route\n"
-#define EVPN_TYPE_4_HELP_STR "Ethernet Segment (Type-4) route\n"
-#define EVPN_TYPE_5_HELP_STR "Prefix (Type-5) route\n"
-#define EVPN_TYPE_ALL_LIST "<ead|1|macip|2|multicast|3|es|4|prefix|5>"
+#define EVPN_ASN_IP_HELP_STR  "ASN:XX or A.B.C.D:XX\n"
+#define EVPN_TYPE_HELP_STR    "Specify Route type\n"
+#define EVPN_TYPE_1_HELP_STR  "EAD (Type-1) route\n"
+#define EVPN_TYPE_2_HELP_STR  "MAC-IP (Type-2) route\n"
+#define EVPN_TYPE_3_HELP_STR  "Multicast (Type-3) route\n"
+#define EVPN_TYPE_4_HELP_STR  "Ethernet Segment (Type-4) route\n"
+#define EVPN_TYPE_5_HELP_STR  "Prefix (Type-5) route\n"
+#define EVPN_TYPE_ALL_LIST    "<ead|1|macip|2|multicast|3|es|4|prefix|5>"
 #define EVPN_TYPE_ALL_LIST_HELP_STR                                            \
-	EVPN_TYPE_1_HELP_STR EVPN_TYPE_1_HELP_STR                              \
-	EVPN_TYPE_2_HELP_STR EVPN_TYPE_2_HELP_STR                              \
-	EVPN_TYPE_3_HELP_STR EVPN_TYPE_3_HELP_STR                              \
-	EVPN_TYPE_4_HELP_STR EVPN_TYPE_4_HELP_STR                              \
-	EVPN_TYPE_5_HELP_STR EVPN_TYPE_5_HELP_STR
+	EVPN_TYPE_1_HELP_STR EVPN_TYPE_1_HELP_STR EVPN_TYPE_2_HELP_STR         \
+		EVPN_TYPE_2_HELP_STR EVPN_TYPE_3_HELP_STR EVPN_TYPE_3_HELP_STR \
+			EVPN_TYPE_4_HELP_STR EVPN_TYPE_4_HELP_STR              \
+				EVPN_TYPE_5_HELP_STR EVPN_TYPE_5_HELP_STR
 
 /* Describing roles */
 #define ROLE_STR                                                               \
 	"Providing transit\nRoute server\nRS client\nUsing transit\nPublic/private peering\n"
 
 /* BFD protocol integration strings. */
-#define BFD_INTEGRATION_STR "BFD monitoring\n"
+#define BFD_INTEGRATION_STR	      "BFD monitoring\n"
 #define BFD_INTEGRATION_MULTI_HOP_STR "Use BFD multi hop session\n"
-#define BFD_INTEGRATION_SOURCE_STR "Use source for BFD session\n"
-#define BFD_INTEGRATION_SOURCEV4_STR "Use IPv4 source for BFD session\n"
-#define BFD_INTEGRATION_SOURCEV6_STR "Use IPv4 source for BFD session\n"
+#define BFD_INTEGRATION_SOURCE_STR    "Use source for BFD session\n"
+#define BFD_INTEGRATION_SOURCEV4_STR  "Use IPv4 source for BFD session\n"
+#define BFD_INTEGRATION_SOURCEV6_STR  "Use IPv4 source for BFD session\n"
 
 /* Prototypes. */
 extern void install_node(struct cmd_node *node);
@@ -509,14 +515,15 @@ struct xref_install_element {
 	enum node_type node_type;
 };
 
-#define install_element(node_type_, cmd_element_) do {                         \
+#define install_element(node_type_, cmd_element_)                              \
+	do {                                                                   \
 		static const struct xref_install_element _xref                 \
-				__attribute__((used)) = {                      \
-			.xref = XREF_INIT(XREFT_INSTALL_ELEMENT, NULL,         \
-					  __func__),                           \
-			.cmd_element = cmd_element_,                           \
-			.node_type = node_type_,                               \
-		};                                                             \
+			__attribute__((used)) = {                              \
+				.xref = XREF_INIT(XREFT_INSTALL_ELEMENT, NULL, \
+						  __func__),                   \
+				.cmd_element = cmd_element_,                   \
+				.node_type = node_type_,                       \
+			};                                                     \
 		XREF_LINK(_xref.xref);                                         \
 		_install_element(node_type_, cmd_element_);                    \
 	} while (0)
@@ -622,8 +629,7 @@ struct cmd_variable_handler {
 
 extern void cmd_variable_complete(struct cmd_token *token, const char *arg,
 				  vector comps);
-extern void
-cmd_variable_handler_register(const struct cmd_variable_handler *cvh);
+extern void cmd_variable_handler_register(const struct cmd_variable_handler *cvh);
 extern char *cmd_variable_comp2str(vector comps, unsigned short cols);
 
 extern void command_setup_early_logging(const char *dest, const char *level);

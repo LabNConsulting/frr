@@ -109,7 +109,6 @@ void cpath_del(struct c_path *path)
  */
 static void cpath_replace(struct c_path *next_path, struct c_path *cur_path)
 {
-
 	if (next_path->edges)
 		list_delete(&next_path->edges);
 
@@ -467,7 +466,6 @@ static bool prune_edge(const struct c_path *path, const struct ls_edge *edge,
  */
 static bool relax_constraints(struct cspf *algo, struct ls_edge *edge)
 {
-
 	struct c_path pkey = {};
 	struct c_path *next_path;
 	struct v_node vnode = {};
@@ -509,8 +507,8 @@ static bool relax_constraints(struct cspf *algo, struct ls_edge *edge)
 			     algo->path->weight;
 		break;
 	case CSPF_DELAY:
-		total_cost =
-			edge->attributes->extended.delay + algo->path->weight;
+		total_cost = edge->attributes->extended.delay +
+			     algo->path->weight;
 		break;
 	default:
 		break;

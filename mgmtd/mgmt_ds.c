@@ -35,11 +35,11 @@ struct mgmt_ds_ctx {
 };
 
 const char *mgmt_ds_names[MGMTD_DS_MAX_ID + 1] = {
-	MGMTD_DS_NAME_NONE,	/* MGMTD_DS_NONE */
-	MGMTD_DS_NAME_RUNNING,     /* MGMTD_DS_RUNNING */
+	MGMTD_DS_NAME_NONE,	   /* MGMTD_DS_NONE */
+	MGMTD_DS_NAME_RUNNING,	   /* MGMTD_DS_RUNNING */
 	MGMTD_DS_NAME_CANDIDATE,   /* MGMTD_DS_CANDIDATE */
 	MGMTD_DS_NAME_OPERATIONAL, /* MGMTD_DS_OPERATIONAL */
-	"Unknown/Invalid",	 /* MGMTD_DS_ID_MAX */
+	"Unknown/Invalid",	   /* MGMTD_DS_ID_MAX */
 };
 
 static struct mgmt_master *mgmt_ds_mm;
@@ -55,7 +55,7 @@ static int mgmt_ds_dump_in_memory(struct mgmt_ds_ctx *ds_ctx,
 
 	if (base_xpath[0] == '\0')
 		root = ds_ctx->config_ds ? ds_ctx->root.cfg_root->dnode
-					  : ds_ctx->root.dnode_root;
+					 : ds_ctx->root.dnode_root;
 	else
 		root = yang_dnode_get(ds_ctx->config_ds
 					      ? ds_ctx->root.cfg_root->dnode
@@ -64,8 +64,7 @@ static int mgmt_ds_dump_in_memory(struct mgmt_ds_ctx *ds_ctx,
 	if (!root)
 		return -1;
 
-	options = ds_ctx->config_ds ? LYD_PRINT_WD_TRIM :
-		LYD_PRINT_WD_EXPLICIT;
+	options = ds_ctx->config_ds ? LYD_PRINT_WD_TRIM : LYD_PRINT_WD_EXPLICIT;
 
 	if (base_xpath[0] == '\0')
 		lyd_print_all(out, root, format, options);
@@ -260,10 +259,9 @@ void mgmt_ds_unlock(struct mgmt_ds_ctx *ds_ctx)
 {
 	assert(ds_ctx);
 	if (!ds_ctx->locked)
-		zlog_warn(
-			"%s: WARNING: unlock on unlocked in DS:%s last session-id %" PRIu64,
-			__func__, mgmt_ds_id2name(ds_ctx->ds_id),
-			ds_ctx->vty_session_id);
+		zlog_warn("%s: WARNING: unlock on unlocked in DS:%s last session-id %" PRIu64,
+			  __func__, mgmt_ds_id2name(ds_ctx->ds_id),
+			  ds_ctx->vty_session_id);
 	ds_ctx->locked = 0;
 }
 
@@ -371,7 +369,7 @@ struct lyd_node *mgmt_ds_find_data_node_by_xpath(struct mgmt_ds_ctx *ds_ctx,
 		return NULL;
 
 	return yang_dnode_get(ds_ctx->config_ds ? ds_ctx->root.cfg_root->dnode
-						 : ds_ctx->root.dnode_root,
+						: ds_ctx->root.dnode_root,
 			      xpath);
 }
 
@@ -386,9 +384,8 @@ int mgmt_ds_delete_data_nodes(struct mgmt_ds_ctx *ds_ctx, const char *xpath)
 
 	nb_node = nb_node_find(xpath);
 
-	dnode = yang_dnode_get(ds_ctx->config_ds
-				       ? ds_ctx->root.cfg_root->dnode
-				       : ds_ctx->root.dnode_root,
+	dnode = yang_dnode_get(ds_ctx->config_ds ? ds_ctx->root.cfg_root->dnode
+						 : ds_ctx->root.dnode_root,
 			       xpath);
 
 	if (!dnode)
@@ -401,10 +398,10 @@ int mgmt_ds_delete_data_nodes(struct mgmt_ds_ctx *ds_ctx, const char *xpath)
 	if (nb_node && nb_node->dep_cbs.get_dependant_xpath) {
 		nb_node->dep_cbs.get_dependant_xpath(dnode, dep_xpath);
 
-		dep_dnode = yang_dnode_get(
-			ds_ctx->config_ds ? ds_ctx->root.cfg_root->dnode
-					  : ds_ctx->root.dnode_root,
-			dep_xpath);
+		dep_dnode = yang_dnode_get(ds_ctx->config_ds
+						   ? ds_ctx->root.cfg_root->dnode
+						   : ds_ctx->root.dnode_root,
+					   dep_xpath);
 		if (dep_dnode)
 			lyd_free_tree(dep_dnode);
 	}
@@ -496,7 +493,7 @@ void mgmt_ds_dump_tree(struct vty *vty, struct mgmt_ds_ctx *ds_ctx,
 {
 	struct ly_out *out;
 	char *str;
-	char base_xpath[MGMTD_MAX_XPATH_LEN] = {0};
+	char base_xpath[MGMTD_MAX_XPATH_LEN] = { 0 };
 
 	if (!ds_ctx) {
 		vty_out(vty, "    >>>>> Datastore Not Initialized!\n");

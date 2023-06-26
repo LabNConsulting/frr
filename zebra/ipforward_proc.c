@@ -59,8 +59,7 @@ int ipforward_on(void)
 {
 	FILE *fp;
 
-	frr_with_privs(&zserv_privs) {
-
+	frr_with_privs (&zserv_privs) {
 		fp = fopen(proc_ipv4_forwarding, "w");
 
 		if (fp == NULL) {
@@ -70,7 +69,6 @@ int ipforward_on(void)
 		fprintf(fp, "1\n");
 
 		fclose(fp);
-
 	}
 
 	return ipforward();
@@ -80,8 +78,7 @@ int ipforward_off(void)
 {
 	FILE *fp;
 
-	frr_with_privs(&zserv_privs) {
-
+	frr_with_privs (&zserv_privs) {
 		fp = fopen(proc_ipv4_forwarding, "w");
 
 		if (fp == NULL) {
@@ -91,7 +88,6 @@ int ipforward_off(void)
 		fprintf(fp, "0\n");
 
 		fclose(fp);
-
 	}
 
 	return ipforward();
@@ -127,8 +123,7 @@ int ipforward_ipv6_on(void)
 {
 	FILE *fp;
 
-	frr_with_privs(&zserv_privs) {
-
+	frr_with_privs (&zserv_privs) {
 		fp = fopen(proc_ipv6_forwarding, "w");
 
 		if (fp == NULL) {
@@ -138,7 +133,6 @@ int ipforward_ipv6_on(void)
 		fprintf(fp, "1\n");
 
 		fclose(fp);
-
 	}
 
 	return ipforward_ipv6();
@@ -149,8 +143,7 @@ int ipforward_ipv6_off(void)
 {
 	FILE *fp;
 
-	frr_with_privs(&zserv_privs) {
-
+	frr_with_privs (&zserv_privs) {
 		fp = fopen(proc_ipv6_forwarding, "w");
 
 		if (fp == NULL) {
@@ -160,7 +153,6 @@ int ipforward_ipv6_off(void)
 		fprintf(fp, "0\n");
 
 		fclose(fp);
-
 	}
 
 	return ipforward_ipv6();

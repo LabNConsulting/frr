@@ -22,10 +22,10 @@
 
 DEFINE_MGROUP_ACTIVEATEXIT(LOG, "logging subsystem");
 
-DEFINE_MTYPE_STATIC(LOG, LOG_FD,        "log file target");
-DEFINE_MTYPE_STATIC(LOG, LOG_FD_NAME,   "log file name");
+DEFINE_MTYPE_STATIC(LOG, LOG_FD, "log file target");
+DEFINE_MTYPE_STATIC(LOG, LOG_FD_NAME, "log file name");
 DEFINE_MTYPE_STATIC(LOG, LOG_FD_ROTATE, "log file rotate helper");
-DEFINE_MTYPE_STATIC(LOG, LOG_SYSL,      "syslog target");
+DEFINE_MTYPE_STATIC(LOG, LOG_SYSL, "syslog target");
 
 struct zlt_fd {
 	struct zlog_target zt;
@@ -38,15 +38,11 @@ struct zlt_fd {
 	struct rcu_head_close head_close;
 };
 
-static const char * const prionames[] = {
-	[LOG_EMERG] =	"emergencies: ",
-	[LOG_ALERT] =	"alerts: ",
-	[LOG_CRIT] =	"critical: ",
-	[LOG_ERR] =	"errors: ",
-	[LOG_WARNING] =	"warnings: ",
-	[LOG_NOTICE] =	"notifications: ",
-	[LOG_INFO] =	"informational: ",
-	[LOG_DEBUG] =	"debugging: ",
+static const char *const prionames[] = {
+	[LOG_EMERG] = "emergencies: ",	[LOG_ALERT] = "alerts: ",
+	[LOG_CRIT] = "critical: ",	[LOG_ERR] = "errors: ",
+	[LOG_WARNING] = "warnings: ",	[LOG_NOTICE] = "notifications: ",
+	[LOG_INFO] = "informational: ", [LOG_DEBUG] = "debugging: ",
 };
 
 void zlog_fd(struct zlog_target *zt, struct zlog_msg *msgs[], size_t nmsgs)
@@ -74,13 +70,12 @@ void zlog_fd(struct zlog_target *zt, struct zlog_msg *msgs[], size_t nmsgs)
 			};
 
 			iov[iovpos].iov_base = ts_pos;
-			zlog_msg_ts(msg, &fbuf,
-				    ZLOG_TS_LEGACY | zte->ts_subsec);
+			zlog_msg_ts(msg, &fbuf, ZLOG_TS_LEGACY | zte->ts_subsec);
 			ts_pos = fbuf.pos;
 
 			*ts_pos++ = ' ';
-			iov[iovpos].iov_len =
-				ts_pos - (char *)iov[iovpos].iov_base;
+			iov[iovpos].iov_len = ts_pos -
+					      (char *)iov[iovpos].iov_base;
 
 			iovpos++;
 
@@ -97,8 +92,8 @@ void zlog_fd(struct zlog_target *zt, struct zlog_msg *msgs[], size_t nmsgs)
 
 			iovpos++;
 
-			iov[iovpos].iov_base =
-				(char *)zlog_msg_text(msg, &textlen);
+			iov[iovpos].iov_base = (char *)zlog_msg_text(msg,
+								     &textlen);
 			iov[iovpos].iov_len = textlen + 1;
 
 			iovpos++;
@@ -109,9 +104,9 @@ void zlog_fd(struct zlog_target *zt, struct zlog_msg *msgs[], size_t nmsgs)
 		 *  - this being the last message in the batch
 		 *  - not enough remaining iov entries
 		 */
-		if (iovpos > 0 && (ts_buf + sizeof(ts_buf) - ts_pos < TS_LEN
-				   || i + 1 == nmsgs
-				   || array_size(iov) - iovpos < 5)) {
+		if (iovpos > 0 &&
+		    (ts_buf + sizeof(ts_buf) - ts_pos < TS_LEN ||
+		     i + 1 == nmsgs || array_size(iov) - iovpos < 5)) {
 			writev(fd, iov, iovpos);
 
 			iovpos = 0;
@@ -122,8 +117,7 @@ void zlog_fd(struct zlog_target *zt, struct zlog_msg *msgs[], size_t nmsgs)
 	assert(iovpos == 0);
 }
 
-static void zlog_fd_sigsafe(struct zlog_target *zt, const char *text,
-			    size_t len)
+static void zlog_fd_sigsafe(struct zlog_target *zt, const char *text, size_t len)
 {
 	struct zlt_fd *zte = container_of(zt, struct zlt_fd, zt);
 	struct iovec iov[4];
@@ -196,8 +190,8 @@ static bool zlog_file_cycle(struct zlog_cfg_file *zcf)
 			fd = dup(zcf->fd);
 		else if (zcf->filename)
 			fd = open(zcf->filename,
-				  O_WRONLY | O_APPEND | O_CREAT | O_CLOEXEC
-					| O_NOCTTY,
+				  O_WRONLY | O_APPEND | O_CREAT | O_CLOEXEC |
+					  O_NOCTTY,
 				  LOGFILE_MASK);
 		else
 			fd = -1;
@@ -368,7 +362,7 @@ static int zlt_aux_init(const char *prefix, int prio_min)
 }
 
 static int zlt_init(const char *progname, const char *protoname,
-		     unsigned short instance, uid_t uid, gid_t gid)
+		    unsigned short instance, uid_t uid, gid_t gid)
 {
 	openlog(progname, LOG_CONS | LOG_NDELAY | LOG_PID, LOG_DAEMON);
 	return 0;

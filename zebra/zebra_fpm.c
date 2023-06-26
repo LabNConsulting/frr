@@ -33,7 +33,7 @@ DEFINE_MTYPE_STATIC(ZEBRA, FPM_MAC_INFO, "FPM_MAC_INFO");
 /*
  * Interval at which we attempt to connect to the FPM.
  */
-#define ZFPM_CONNECT_RETRY_IVL   5
+#define ZFPM_CONNECT_RETRY_IVL 5
 
 /*
  * Sizes of outgoing and incoming stream buffers for writing/reading
@@ -51,7 +51,7 @@ DEFINE_MTYPE_STATIC(ZEBRA, FPM_MAC_INFO, "FPM_MAC_INFO");
 /*
  * Interval over which we collect statistics.
  */
-#define ZFPM_STATS_IVL_SECS        10
+#define ZFPM_STATS_IVL_SECS 10
 #define FPM_MAX_MAC_MSG_LEN 512
 
 static void zfpm_iterate_rmac_table(struct hash_bucket *bucket, void *args);
@@ -145,7 +145,6 @@ enum zfpm_msg_format {
  * Globals.
  */
 struct zfpm_glob {
-
 	/*
 	 * True if the FPM module has been enabled.
 	 */
@@ -294,7 +293,6 @@ static inline int zfpm_thread_should_yield(struct event *t)
 static const char *zfpm_state_to_str(enum zfpm_state state)
 {
 	switch (state) {
-
 	case ZFPM_STATE_IDLE:
 		return "idle";
 
@@ -517,16 +515,14 @@ static void zfpm_conn_up_thread_cb(struct event *thread)
 	iter = &zfpm_g->t_conn_up_state.iter;
 
 	if (zfpm_g->state != ZFPM_STATE_ESTABLISHED) {
-		zfpm_debug(
-			"Connection not up anymore, conn_up thread aborting");
+		zfpm_debug("Connection not up anymore, conn_up thread aborting");
 		zfpm_g->stats.t_conn_up_aborts++;
 		goto done;
 	}
 
 	if (!zfpm_g->fpm_mac_dump_done) {
 		/* Enqueue FPM updates for all the RMAC entries */
-		hash_iterate(zrouter.l3vni_table, zfpm_iterate_rmac_table,
-			     NULL);
+		hash_iterate(zrouter.l3vni_table, zfpm_iterate_rmac_table, NULL);
 		/* mark dump done so that its not repeated after yield */
 		zfpm_g->fpm_mac_dump_done = true;
 	}
@@ -832,7 +828,6 @@ static bool zfpm_updates_pending(void)
  */
 static int zfpm_writes_pending(void)
 {
-
 	/*
 	 * Check if there is any data in the outbound buffer that has not
 	 * been written to the socket yet.
@@ -870,7 +865,6 @@ static inline int zfpm_encode_route(rib_dest_t *dest, struct route_entry *re,
 	*msg_type = FPM_MSG_TYPE_NONE;
 
 	switch (zfpm_g->message_format) {
-
 	case ZFPM_MSG_FORMAT_PROTOBUF:
 #ifdef HAVE_PROTOBUF
 		len = zfpm_protobuf_encode_route(dest, re, (uint8_t *)in_buf,
@@ -917,10 +911,7 @@ struct route_entry *zfpm_route_for_update(rib_dest_t *dest)
  * empty or we have processed enough updates from this queue.
  * So, move on to the next queue.
  */
-enum {
-	FPM_WRITE_STOP = 0,
-	FPM_GOTO_NEXT_Q = 1
-};
+enum { FPM_WRITE_STOP = 0, FPM_GOTO_NEXT_Q = 1 };
 
 #define FPM_QUEUE_PROCESS_LIMIT 10000
 
@@ -948,7 +939,7 @@ static int zfpm_build_route_updates(void)
 	s = zfpm_g->obuf;
 	q_limit = FPM_QUEUE_PROCESS_LIMIT;
 
-	do  {
+	do {
 		/*
 		 * Make sure there is enough space to write another message.
 		 */
@@ -1041,14 +1032,13 @@ static int zfpm_build_route_updates(void)
  * Returns the number of bytes written to the buffer.
  */
 static inline int zfpm_encode_mac(struct fpm_mac_info_t *mac, char *in_buf,
-				size_t in_buf_len, fpm_msg_type_e *msg_type)
+				  size_t in_buf_len, fpm_msg_type_e *msg_type)
 {
 	size_t len = 0;
 
 	*msg_type = FPM_MSG_TYPE_NONE;
 
 	switch (zfpm_g->message_format) {
-
 	case ZFPM_MSG_FORMAT_NONE:
 		break;
 	case ZFPM_MSG_FORMAT_NETLINK:
@@ -1080,7 +1070,7 @@ static int zfpm_build_mac_updates(void)
 	s = zfpm_g->obuf;
 	q_limit = FPM_QUEUE_PROCESS_LIMIT;
 
-	do  {
+	do {
 		/* Make sure there is enough space to write another message. */
 		if (STREAM_WRITEABLE(s) < FPM_MAX_MAC_MSG_LEN)
 			return FPM_WRITE_STOP;
@@ -1104,7 +1094,7 @@ static int zfpm_build_mac_updates(void)
 
 		data = fpm_msg_data(hdr);
 		data_len = zfpm_encode_mac(mac, (char *)data, buf_end - data,
-						&msg_type);
+					   &msg_type);
 		assert(data_len);
 
 		hdr->msg_type = msg_type;
@@ -1190,8 +1180,8 @@ static void zfpm_write_cb(struct event *thread)
 		if (!bytes_to_write)
 			break;
 
-		bytes_written =
-			write(zfpm_g->sock, stream_pnt(s), bytes_to_write);
+		bytes_written = write(zfpm_g->sock, stream_pnt(s),
+				      bytes_to_write);
 		zfpm_g->stats.write_calls++;
 		num_writes++;
 
@@ -1204,7 +1194,6 @@ static void zfpm_write_cb(struct event *thread)
 		}
 
 		if (bytes_written != bytes_to_write) {
-
 			/*
 			 * Partial write.
 			 */
@@ -1246,7 +1235,7 @@ static void zfpm_connect_cb(struct event *t)
 	sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock < 0) {
 		zlog_err("Failed to create socket for connect(): %s",
-			   strerror(errno));
+			 strerror(errno));
 		zfpm_g->stats.connect_no_sock++;
 		return;
 	}
@@ -1317,14 +1306,13 @@ static void zfpm_set_state(enum zfpm_state state, const char *reason)
 		   reason);
 
 	switch (state) {
-
 	case ZFPM_STATE_IDLE:
 		assert(cur_state == ZFPM_STATE_ESTABLISHED);
 		break;
 
 	case ZFPM_STATE_ACTIVE:
-		assert(cur_state == ZFPM_STATE_IDLE
-		       || cur_state == ZFPM_STATE_CONNECTING);
+		assert(cur_state == ZFPM_STATE_IDLE ||
+		       cur_state == ZFPM_STATE_CONNECTING);
 		assert(zfpm_g->t_connect);
 		break;
 
@@ -1336,8 +1324,8 @@ static void zfpm_set_state(enum zfpm_state state, const char *reason)
 		break;
 
 	case ZFPM_STATE_ESTABLISHED:
-		assert(cur_state == ZFPM_STATE_ACTIVE
-		       || cur_state == ZFPM_STATE_CONNECTING);
+		assert(cur_state == ZFPM_STATE_ACTIVE ||
+		       cur_state == ZFPM_STATE_CONNECTING);
 		assert(zfpm_g->sock);
 		assert(zfpm_g->t_read);
 		assert(zfpm_g->t_write);
@@ -1383,9 +1371,9 @@ static void zfpm_start_connect_timer(const char *reason)
 	assert(!zfpm_g->t_connect);
 	assert(zfpm_g->sock < 0);
 
-	assert(zfpm_g->state == ZFPM_STATE_IDLE
-	       || zfpm_g->state == ZFPM_STATE_ACTIVE
-	       || zfpm_g->state == ZFPM_STATE_CONNECTING);
+	assert(zfpm_g->state == ZFPM_STATE_IDLE ||
+	       zfpm_g->state == ZFPM_STATE_ACTIVE ||
+	       zfpm_g->state == ZFPM_STATE_CONNECTING);
 
 	delay_secs = zfpm_calc_connect_delay();
 	zfpm_debug("scheduling connect in %ld seconds", delay_secs);
@@ -1510,8 +1498,8 @@ static bool zfpm_mac_info_cmp(const void *p1, const void *p2)
 	const struct fpm_mac_info_t *fpm_mac1 = p1;
 	const struct fpm_mac_info_t *fpm_mac2 = p2;
 
-	if (memcmp(fpm_mac1->macaddr.octet, fpm_mac2->macaddr.octet, ETH_ALEN)
-			!= 0)
+	if (memcmp(fpm_mac1->macaddr.octet, fpm_mac2->macaddr.octet,
+		   ETH_ALEN) != 0)
 		return false;
 	if (fpm_mac1->vni != fpm_mac2->vni)
 		return false;
@@ -1797,13 +1785,9 @@ static void zfpm_clear_stats(struct vty *vty)
 /*
  * show_zebra_fpm_stats
  */
-DEFUN (show_zebra_fpm_stats,
-       show_zebra_fpm_stats_cmd,
-       "show zebra fpm stats",
-       SHOW_STR
-       ZEBRA_STR
-       "Forwarding Path Manager information\n"
-       "Statistics\n")
+DEFUN(show_zebra_fpm_stats, show_zebra_fpm_stats_cmd, "show zebra fpm stats",
+      SHOW_STR ZEBRA_STR "Forwarding Path Manager information\n"
+			 "Statistics\n")
 {
 	zfpm_show_stats(vty);
 	return CMD_SUCCESS;
@@ -1812,13 +1796,9 @@ DEFUN (show_zebra_fpm_stats,
 /*
  * clear_zebra_fpm_stats
  */
-DEFUN (clear_zebra_fpm_stats,
-       clear_zebra_fpm_stats_cmd,
-       "clear zebra fpm stats",
-       CLEAR_STR
-       ZEBRA_STR
-       "Clear Forwarding Path Manager information\n"
-       "Statistics\n")
+DEFUN(clear_zebra_fpm_stats, clear_zebra_fpm_stats_cmd, "clear zebra fpm stats",
+      CLEAR_STR ZEBRA_STR "Clear Forwarding Path Manager information\n"
+			  "Statistics\n")
 {
 	zfpm_clear_stats(vty);
 	return CMD_SUCCESS;
@@ -1827,17 +1807,15 @@ DEFUN (clear_zebra_fpm_stats,
 /*
  * update fpm connection information
  */
-DEFUN (fpm_remote_ip,
-       fpm_remote_ip_cmd,
-       "fpm connection ip A.B.C.D port (1-65535)",
-       "Forwarding Path Manager\n"
-       "Configure FPM connection\n"
-       "Connect to IPv4 address\n"
-       "Connect to IPv4 address\n"
-       "TCP port number\n"
-       "TCP port number\n")
+DEFUN(fpm_remote_ip, fpm_remote_ip_cmd,
+      "fpm connection ip A.B.C.D port (1-65535)",
+      "Forwarding Path Manager\n"
+      "Configure FPM connection\n"
+      "Connect to IPv4 address\n"
+      "Connect to IPv4 address\n"
+      "TCP port number\n"
+      "TCP port number\n")
 {
-
 	in_addr_t fpm_server;
 	uint32_t port_no;
 
@@ -1856,19 +1834,17 @@ DEFUN (fpm_remote_ip,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_fpm_remote_ip,
-       no_fpm_remote_ip_cmd,
-       "no fpm connection ip A.B.C.D port (1-65535)",
-       NO_STR
-       "Forwarding Path Manager\n"
-       "Remove configured FPM connection\n"
-       "Connect to IPv4 address\n"
-       "Connect to IPv4 address\n"
-       "TCP port number\n"
-       "TCP port number\n")
+DEFUN(no_fpm_remote_ip, no_fpm_remote_ip_cmd,
+      "no fpm connection ip A.B.C.D port (1-65535)",
+      NO_STR "Forwarding Path Manager\n"
+	     "Remove configured FPM connection\n"
+	     "Connect to IPv4 address\n"
+	     "Connect to IPv4 address\n"
+	     "TCP port number\n"
+	     "TCP port number\n")
 {
-	if (zfpm_g->fpm_server != inet_addr(argv[4]->arg)
-	    || zfpm_g->fpm_port != atoi(argv[6]->arg))
+	if (zfpm_g->fpm_server != inet_addr(argv[4]->arg) ||
+	    zfpm_g->fpm_port != atoi(argv[6]->arg))
 		return CMD_ERR_NO_MATCH;
 
 	zfpm_g->fpm_server = FPM_DEFAULT_IP;
@@ -1919,9 +1895,8 @@ static inline void zfpm_init_message_format(const char *format)
 
 	if (!strcmp("protobuf", format)) {
 		if (!have_protobuf) {
-			flog_err(
-				EC_ZEBRA_PROTOBUF_NOT_AVAILABLE,
-				"FPM protobuf message format is not available");
+			flog_err(EC_ZEBRA_PROTOBUF_NOT_AVAILABLE,
+				 "FPM protobuf message format is not available");
 			return;
 		}
 		flog_warn(EC_ZEBRA_PROTOBUF_NOT_AVAILABLE,
@@ -1948,9 +1923,9 @@ static int fpm_remote_srv_write(struct vty *vty)
 
 	in.s_addr = zfpm_g->fpm_server;
 
-	if ((zfpm_g->fpm_server != FPM_DEFAULT_IP
-	     && zfpm_g->fpm_server != INADDR_ANY)
-	    || (zfpm_g->fpm_port != FPM_DEFAULT_PORT && zfpm_g->fpm_port != 0))
+	if ((zfpm_g->fpm_server != FPM_DEFAULT_IP &&
+	     zfpm_g->fpm_server != INADDR_ANY) ||
+	    (zfpm_g->fpm_port != FPM_DEFAULT_PORT && zfpm_g->fpm_port != 0))
 		vty_out(vty, "fpm connection ip %pI4 port %d\n", &in,
 			zfpm_g->fpm_port);
 
@@ -2066,5 +2041,4 @@ static int zebra_fpm_module_init(void)
 
 FRR_MODULE_SETUP(.name = "zebra_fpm", .version = FRR_VERSION,
 		 .description = "zebra FPM (Forwarding Plane Manager) module",
-		 .init = zebra_fpm_module_init,
-);
+		 .init = zebra_fpm_module_init, );

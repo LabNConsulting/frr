@@ -11,9 +11,9 @@
 extern "C" {
 #endif
 
-#define YANG_TRANSLATE_TO_NATIVE 0
+#define YANG_TRANSLATE_TO_NATIVE   0
 #define YANG_TRANSLATE_FROM_NATIVE 1
-#define YANG_TRANSLATE_MAX 2
+#define YANG_TRANSLATE_MAX	   2
 
 struct yang_tmodule {
 	const struct lys_module *module;

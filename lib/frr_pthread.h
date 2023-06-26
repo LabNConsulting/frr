@@ -28,7 +28,6 @@ struct frr_pthread_attr {
 };
 
 struct frr_pthread {
-
 	/*
 	 * Mutex protecting this structure. Must be taken for reading some
 	 * fields, denoted by a 'Requires: mtx'.
@@ -215,13 +214,13 @@ void frr_pthread_stop_all(void);
  * }
  */
 #define _frr_with_mutex(mutex)                                                 \
-	*NAMECTR(_mtx_) __attribute__((                                        \
-		unused, cleanup(_frr_mtx_unlock))) = _frr_mtx_lock(mutex),     \
-	/* end */
+	*NAMECTR(_mtx_) __attribute__((unused, cleanup(_frr_mtx_unlock))) =    \
+		_frr_mtx_lock(mutex), /* end */
 
 #define frr_with_mutex(...)                                                    \
-	for (pthread_mutex_t MACRO_REPEAT(_frr_with_mutex, ##__VA_ARGS__)      \
-	     *_once = NULL; _once == NULL; _once = (void *)1)                  \
+	for (pthread_mutex_t MACRO_REPEAT(_frr_with_mutex,                     \
+					  ##__VA_ARGS__) *_once = NULL;        \
+	     _once == NULL; _once = (void *)1)                                 \
 	/* end */
 
 /* variant 2:
@@ -233,8 +232,7 @@ void frr_pthread_stop_all(void);
 #define frr_mutex_lock_autounlock(mutex)                                       \
 	pthread_mutex_t *NAMECTR(_mtx_)                                        \
 		__attribute__((unused, cleanup(_frr_mtx_unlock))) =            \
-				    _frr_mtx_lock(mutex)                       \
-	/* end */
+			_frr_mtx_lock(mutex) /* end */
 
 static inline pthread_mutex_t *_frr_mtx_lock(pthread_mutex_t *mutex)
 {

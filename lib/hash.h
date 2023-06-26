@@ -19,7 +19,7 @@ extern "C" {
 #define HASH_THRESHOLD(used, size) ((used) > (size))
 
 #define HASHWALK_CONTINUE 0
-#define HASHWALK_ABORT -1
+#define HASHWALK_ABORT	  -1
 
 struct hash_bucket {
 	/*
@@ -136,8 +136,7 @@ extern struct hash *hash_create(unsigned int (*hash_key)(const void *),
  */
 extern struct hash *
 hash_create_size(unsigned int size, unsigned int (*hash_key)(const void *),
-		 bool (*hash_cmp)(const void *, const void *),
-		 const char *name);
+		 bool (*hash_cmp)(const void *, const void *), const char *name);
 
 /*
  * Retrieve or insert data from / into a hash table.

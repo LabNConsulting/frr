@@ -68,15 +68,15 @@ static inline int add_nexthop(qpb_allocator_t *allocator, Fpm__AddRoute *msg,
 
 	if_index = nexthop->ifindex;
 
-	if (nexthop->type == NEXTHOP_TYPE_IPV4
-	    || nexthop->type == NEXTHOP_TYPE_IPV4_IFINDEX) {
+	if (nexthop->type == NEXTHOP_TYPE_IPV4 ||
+	    nexthop->type == NEXTHOP_TYPE_IPV4_IFINDEX) {
 		gateway = &nexthop->gate;
 		if (nexthop->src.ipv4.s_addr != INADDR_ANY)
 			src = &nexthop->src;
 	}
 
-	if (nexthop->type == NEXTHOP_TYPE_IPV6
-	    || nexthop->type == NEXTHOP_TYPE_IPV6_IFINDEX) {
+	if (nexthop->type == NEXTHOP_TYPE_IPV6 ||
+	    nexthop->type == NEXTHOP_TYPE_IPV6_IFINDEX) {
 		gateway = &nexthop->gate;
 	}
 
@@ -102,13 +102,14 @@ static inline int add_nexthop(qpb_allocator_t *allocator, Fpm__AddRoute *msg,
 		fpm__nexthop__init(pb_nh);
 
 		if (if_index != 0) {
-			pb_nh->if_id =
-				qpb_if_identifier_create(allocator, if_index);
+			pb_nh->if_id = qpb_if_identifier_create(allocator,
+								if_index);
 		}
 
 		if (gateway) {
-			pb_nh->address = qpb_l3_address_create(
-				allocator, gateway, rib_dest_af(dest));
+			pb_nh->address =
+				qpb_l3_address_create(allocator, gateway,
+						      rib_dest_af(dest));
 		}
 
 		msg->nexthops[msg->n_nexthops++] = pb_nh;
@@ -236,8 +237,8 @@ static Fpm__Message *create_route_message(qpb_allocator_t *allocator,
 	if (!re) {
 		msg->has_type = 1;
 		msg->type = FPM__MESSAGE__TYPE__DELETE_ROUTE;
-		msg->delete_route =
-			create_delete_route_message(allocator, dest, re);
+		msg->delete_route = create_delete_route_message(allocator, dest,
+								re);
 		if (!msg->delete_route) {
 			assert(0);
 			return NULL;

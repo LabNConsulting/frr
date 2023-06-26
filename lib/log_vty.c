@@ -79,32 +79,32 @@ static const struct facility_map {
 	const char *name;
 	size_t match;
 } syslog_facilities[] = {
-	{LOG_KERN, "kern", 1},
-	{LOG_USER, "user", 2},
-	{LOG_MAIL, "mail", 1},
-	{LOG_DAEMON, "daemon", 1},
-	{LOG_AUTH, "auth", 1},
-	{LOG_SYSLOG, "syslog", 1},
-	{LOG_LPR, "lpr", 2},
-	{LOG_NEWS, "news", 1},
-	{LOG_UUCP, "uucp", 2},
-	{LOG_CRON, "cron", 1},
+	{ LOG_KERN, "kern", 1 },
+	{ LOG_USER, "user", 2 },
+	{ LOG_MAIL, "mail", 1 },
+	{ LOG_DAEMON, "daemon", 1 },
+	{ LOG_AUTH, "auth", 1 },
+	{ LOG_SYSLOG, "syslog", 1 },
+	{ LOG_LPR, "lpr", 2 },
+	{ LOG_NEWS, "news", 1 },
+	{ LOG_UUCP, "uucp", 2 },
+	{ LOG_CRON, "cron", 1 },
 #ifdef LOG_FTP
-	{LOG_FTP, "ftp", 1},
+	{ LOG_FTP, "ftp", 1 },
 #endif
-	{LOG_LOCAL0, "local0", 6},
-	{LOG_LOCAL1, "local1", 6},
-	{LOG_LOCAL2, "local2", 6},
-	{LOG_LOCAL3, "local3", 6},
-	{LOG_LOCAL4, "local4", 6},
-	{LOG_LOCAL5, "local5", 6},
-	{LOG_LOCAL6, "local6", 6},
-	{LOG_LOCAL7, "local7", 6},
-	{0, NULL, 0},
+	{ LOG_LOCAL0, "local0", 6 },
+	{ LOG_LOCAL1, "local1", 6 },
+	{ LOG_LOCAL2, "local2", 6 },
+	{ LOG_LOCAL3, "local3", 6 },
+	{ LOG_LOCAL4, "local4", 6 },
+	{ LOG_LOCAL5, "local5", 6 },
+	{ LOG_LOCAL6, "local6", 6 },
+	{ LOG_LOCAL7, "local7", 6 },
+	{ 0, NULL, 0 },
 };
 
-static const char * const zlog_priority[] = {
-	"emergencies",   "alerts",	"critical",  "errors", "warnings",
+static const char *const zlog_priority[] = {
+	"emergencies",	 "alerts",	  "critical",  "errors", "warnings",
 	"notifications", "informational", "debugging", NULL,
 };
 
@@ -168,11 +168,8 @@ void log_show_syslog(struct vty *vty)
 			zlog_progname);
 }
 
-DEFUN_NOSH (show_logging,
-	    show_logging_cmd,
-	    "show logging",
-	    SHOW_STR
-	    "Show current logging configuration\n")
+DEFUN_NOSH(show_logging, show_logging_cmd, "show logging",
+	   SHOW_STR "Show current logging configuration\n")
 {
 	int stdout_prio;
 
@@ -196,8 +193,8 @@ DEFUN_NOSH (show_logging,
 			zlog_priority[zt_file.prio_min], zt_file.filename);
 	vty_out(vty, "\n");
 
-	if (zt_filterfile.parent.prio_min != ZLOG_DISABLED
-	    && zt_filterfile.parent.filename)
+	if (zt_filterfile.parent.prio_min != ZLOG_DISABLED &&
+	    zt_filterfile.parent.filename)
 		vty_out(vty, "Filtered-file logging: level %s, filename %s\n",
 			zlog_priority[zt_filterfile.parent.prio_min],
 			zt_filterfile.parent.filename);
@@ -240,12 +237,10 @@ static void log_stdout_apply_level(void)
 	}
 }
 
-DEFPY (config_log_stdout,
-       config_log_stdout_cmd,
-       "log stdout [<emergencies|alerts|critical|errors|warnings|notifications|informational|debugging>$levelarg]",
-       "Logging control\n"
-       "Set stdout logging level\n"
-       LOG_LEVEL_DESC)
+DEFPY(config_log_stdout, config_log_stdout_cmd,
+      "log stdout [<emergencies|alerts|critical|errors|warnings|notifications|informational|debugging>$levelarg]",
+      "Logging control\n"
+      "Set stdout logging level\n" LOG_LEVEL_DESC)
 {
 	int level;
 
@@ -261,49 +256,40 @@ DEFPY (config_log_stdout,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_config_log_stdout,
-       no_config_log_stdout_cmd,
-       "no log stdout [<emergencies|alerts|critical|errors|warnings|notifications|informational|debugging>]",
-       NO_STR
-       "Logging control\n"
-       "Cancel logging to stdout\n"
-       LOG_LEVEL_DESC)
+DEFUN(no_config_log_stdout, no_config_log_stdout_cmd,
+      "no log stdout [<emergencies|alerts|critical|errors|warnings|notifications|informational|debugging>]",
+      NO_STR "Logging control\n"
+	     "Cancel logging to stdout\n" LOG_LEVEL_DESC)
 {
 	log_config_stdout_lvl = ZLOG_DISABLED;
 	log_stdout_apply_level();
 	return CMD_SUCCESS;
 }
 
-DEFUN_HIDDEN (config_log_monitor,
-       config_log_monitor_cmd,
-       "log monitor [<emergencies|alerts|critical|errors|warnings|notifications|informational|debugging>]",
-       "Logging control\n"
-       "Set terminal line (monitor) logging level\n"
-       LOG_LEVEL_DESC)
+DEFUN_HIDDEN(
+	config_log_monitor, config_log_monitor_cmd,
+	"log monitor [<emergencies|alerts|critical|errors|warnings|notifications|informational|debugging>]",
+	"Logging control\n"
+	"Set terminal line (monitor) logging level\n" LOG_LEVEL_DESC)
 {
 	vty_out(vty, "%% \"log monitor\" is deprecated and does nothing.\n");
 	return CMD_SUCCESS;
 }
 
-DEFUN_HIDDEN (no_config_log_monitor,
-       no_config_log_monitor_cmd,
-       "no log monitor [<emergencies|alerts|critical|errors|warnings|notifications|informational|debugging>]",
-       NO_STR
-       "Logging control\n"
-       "Disable terminal line (monitor) logging\n"
-       LOG_LEVEL_DESC)
+DEFUN_HIDDEN(
+	no_config_log_monitor, no_config_log_monitor_cmd,
+	"no log monitor [<emergencies|alerts|critical|errors|warnings|notifications|informational|debugging>]",
+	NO_STR "Logging control\n"
+	       "Disable terminal line (monitor) logging\n" LOG_LEVEL_DESC)
 {
 	return CMD_SUCCESS;
 }
 
-DEFPY_NOSH (debug_uid_backtrace,
-	    debug_uid_backtrace_cmd,
-	    "[no] debug unique-id UID backtrace",
-	    NO_STR
-	    DEBUG_STR
-	    "Options per individual log message, by unique ID\n"
-	    "Log message unique ID (XXXXX-XXXXX)\n"
-	    "Add backtrace to log when message is printed\n")
+DEFPY_NOSH(debug_uid_backtrace, debug_uid_backtrace_cmd,
+	   "[no] debug unique-id UID backtrace",
+	   NO_STR DEBUG_STR "Options per individual log message, by unique ID\n"
+			    "Log message unique ID (XXXXX-XXXXX)\n"
+			    "Add backtrace to log when message is printed\n")
 {
 	struct xrefdata search, *xrd;
 	struct xrefdata_logmsg *xrdl;
@@ -355,10 +341,9 @@ static int set_log_file(struct zlog_cfg_file *target, struct vty *vty,
 
 		int pr = snprintf(path, sizeof(path), "%s/%s", cwd, fname);
 		if (pr < 0 || (unsigned int)pr >= sizeof(path)) {
-			flog_err_sys(
-				EC_LIB_SYSTEM_CALL,
-				"%s: Path too long ('%s/%s'); system maximum is %u",
-				__func__, cwd, fname, MAXPATHLEN);
+			flog_err_sys(EC_LIB_SYSTEM_CALL,
+				     "%s: Path too long ('%s/%s'); system maximum is %u",
+				     __func__, cwd, fname, MAXPATHLEN);
 			return CMD_WARNING_CONFIG_FAILED;
 		}
 
@@ -439,19 +424,16 @@ void command_setup_early_logging(const char *dest, const char *level)
 	exit(1);
 }
 
-DEFUN (clear_log_cmdline,
-       clear_log_cmdline_cmd,
-       "clear log cmdline-targets",
-       CLEAR_STR
-       "Logging control\n"
-       "Disable log targets specified at startup by --log option\n")
+DEFUN(clear_log_cmdline, clear_log_cmdline_cmd, "clear log cmdline-targets",
+      CLEAR_STR "Logging control\n"
+		"Disable log targets specified at startup by --log option\n")
 {
 	zt_file_cmdline.prio_min = ZLOG_DISABLED;
 	zlog_file_set_other(&zt_file_cmdline);
 
 	log_cmdline_syslog_lvl = ZLOG_DISABLED;
-	zlog_syslog_set_prio_min(ZLOG_MAXLVL(log_config_syslog_lvl,
-					     log_cmdline_syslog_lvl));
+	zlog_syslog_set_prio_min(
+		ZLOG_MAXLVL(log_config_syslog_lvl, log_cmdline_syslog_lvl));
 
 	log_cmdline_stdout_lvl = ZLOG_DISABLED;
 	log_stdout_apply_level();
@@ -459,13 +441,11 @@ DEFUN (clear_log_cmdline,
 	return CMD_SUCCESS;
 }
 
-DEFPY (config_log_file,
-       config_log_file_cmd,
-       "log file FILENAME [<emergencies|alerts|critical|errors|warnings|notifications|informational|debugging>$levelarg]",
-       "Logging control\n"
-       "Logging to file\n"
-       "Logging filename\n"
-       LOG_LEVEL_DESC)
+DEFPY(config_log_file, config_log_file_cmd,
+      "log file FILENAME [<emergencies|alerts|critical|errors|warnings|notifications|informational|debugging>$levelarg]",
+      "Logging control\n"
+      "Logging to file\n"
+      "Logging filename\n" LOG_LEVEL_DESC)
 {
 	int level = log_default_lvl;
 
@@ -477,26 +457,22 @@ DEFPY (config_log_file,
 	return set_log_file(&zt_file, vty, filename, level);
 }
 
-DEFUN (no_config_log_file,
-       no_config_log_file_cmd,
-       "no log file [FILENAME [LEVEL]]",
-       NO_STR
-       "Logging control\n"
-       "Cancel logging to file\n"
-       "Logging file name\n"
-       "Logging level\n")
+DEFUN(no_config_log_file, no_config_log_file_cmd,
+      "no log file [FILENAME [LEVEL]]",
+      NO_STR "Logging control\n"
+	     "Cancel logging to file\n"
+	     "Logging file name\n"
+	     "Logging level\n")
 {
 	zt_file.prio_min = ZLOG_DISABLED;
 	zlog_file_set_other(&zt_file);
 	return CMD_SUCCESS;
 }
 
-DEFPY (config_log_syslog,
-       config_log_syslog_cmd,
-       "log syslog [<emergencies|alerts|critical|errors|warnings|notifications|informational|debugging>$levelarg]",
-       "Logging control\n"
-       "Set syslog logging level\n"
-       LOG_LEVEL_DESC)
+DEFPY(config_log_syslog, config_log_syslog_cmd,
+      "log syslog [<emergencies|alerts|critical|errors|warnings|notifications|informational|debugging>$levelarg]",
+      "Logging control\n"
+      "Set syslog logging level\n" LOG_LEVEL_DESC)
 {
 	int level;
 
@@ -509,32 +485,26 @@ DEFPY (config_log_syslog,
 		level = log_default_lvl;
 
 	log_config_syslog_lvl = level;
-	zlog_syslog_set_prio_min(ZLOG_MAXLVL(log_config_syslog_lvl,
-					     log_cmdline_syslog_lvl));
+	zlog_syslog_set_prio_min(
+		ZLOG_MAXLVL(log_config_syslog_lvl, log_cmdline_syslog_lvl));
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_config_log_syslog,
-       no_config_log_syslog_cmd,
-       "no log syslog [<kern|user|mail|daemon|auth|syslog|lpr|news|uucp|cron|local0|local1|local2|local3|local4|local5|local6|local7>] [<emergencies|alerts|critical|errors|warnings|notifications|informational|debugging>]",
-       NO_STR
-       "Logging control\n"
-       "Cancel logging to syslog\n"
-       LOG_FACILITY_DESC
-       LOG_LEVEL_DESC)
+DEFUN(no_config_log_syslog, no_config_log_syslog_cmd,
+      "no log syslog [<kern|user|mail|daemon|auth|syslog|lpr|news|uucp|cron|local0|local1|local2|local3|local4|local5|local6|local7>] [<emergencies|alerts|critical|errors|warnings|notifications|informational|debugging>]",
+      NO_STR "Logging control\n"
+	     "Cancel logging to syslog\n" LOG_FACILITY_DESC LOG_LEVEL_DESC)
 {
 	log_config_syslog_lvl = ZLOG_DISABLED;
-	zlog_syslog_set_prio_min(ZLOG_MAXLVL(log_config_syslog_lvl,
-					     log_cmdline_syslog_lvl));
+	zlog_syslog_set_prio_min(
+		ZLOG_MAXLVL(log_config_syslog_lvl, log_cmdline_syslog_lvl));
 	return CMD_SUCCESS;
 }
 
-DEFPY (config_log_facility,
-       config_log_facility_cmd,
-       "log facility <kern|user|mail|daemon|auth|syslog|lpr|news|uucp|cron|local0|local1|local2|local3|local4|local5|local6|local7>$facilityarg",
-       "Logging control\n"
-       "Facility parameter for syslog messages\n"
-       LOG_FACILITY_DESC)
+DEFPY(config_log_facility, config_log_facility_cmd,
+      "log facility <kern|user|mail|daemon|auth|syslog|lpr|news|uucp|cron|local0|local1|local2|local3|local4|local5|local6|local7>$facilityarg",
+      "Logging control\n"
+      "Facility parameter for syslog messages\n" LOG_FACILITY_DESC)
 {
 	int facility = facility_match(facilityarg);
 
@@ -542,23 +512,19 @@ DEFPY (config_log_facility,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_config_log_facility,
-       no_config_log_facility_cmd,
-       "no log facility [<kern|user|mail|daemon|auth|syslog|lpr|news|uucp|cron|local0|local1|local2|local3|local4|local5|local6|local7>]",
-       NO_STR
-       "Logging control\n"
-       "Reset syslog facility to default (daemon)\n"
-       LOG_FACILITY_DESC)
+DEFUN(no_config_log_facility, no_config_log_facility_cmd,
+      "no log facility [<kern|user|mail|daemon|auth|syslog|lpr|news|uucp|cron|local0|local1|local2|local3|local4|local5|local6|local7>]",
+      NO_STR "Logging control\n"
+	     "Reset syslog facility to default (daemon)\n" LOG_FACILITY_DESC)
 {
 	zlog_syslog_set_facility(LOG_DAEMON);
 	return CMD_SUCCESS;
 }
 
-DEFUN (config_log_record_priority,
-       config_log_record_priority_cmd,
-       "log record-priority",
-       "Logging control\n"
-       "Log the priority of the message within the message\n")
+DEFUN(config_log_record_priority, config_log_record_priority_cmd,
+      "log record-priority",
+      "Logging control\n"
+      "Log the priority of the message within the message\n")
 {
 	zt_file.record_priority = true;
 	zlog_file_set_other(&zt_file);
@@ -571,12 +537,10 @@ DEFUN (config_log_record_priority,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_config_log_record_priority,
-       no_config_log_record_priority_cmd,
-       "no log record-priority",
-       NO_STR
-       "Logging control\n"
-       "Do not log the priority of the message within the message\n")
+DEFUN(no_config_log_record_priority, no_config_log_record_priority_cmd,
+      "no log record-priority",
+      NO_STR "Logging control\n"
+	     "Do not log the priority of the message within the message\n")
 {
 	zt_file.record_priority = false;
 	zlog_file_set_other(&zt_file);
@@ -589,13 +553,12 @@ DEFUN (no_config_log_record_priority,
 	return CMD_SUCCESS;
 }
 
-DEFPY (config_log_timestamp_precision,
-       config_log_timestamp_precision_cmd,
-       "log timestamp precision (0-6)",
-       "Logging control\n"
-       "Timestamp configuration\n"
-       "Set the timestamp precision\n"
-       "Number of subsecond digits\n")
+DEFPY(config_log_timestamp_precision, config_log_timestamp_precision_cmd,
+      "log timestamp precision (0-6)",
+      "Logging control\n"
+      "Timestamp configuration\n"
+      "Set the timestamp precision\n"
+      "Number of subsecond digits\n")
 {
 	zt_file.ts_subsec = precision;
 	zlog_file_set_other(&zt_file);
@@ -608,14 +571,12 @@ DEFPY (config_log_timestamp_precision,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_config_log_timestamp_precision,
-       no_config_log_timestamp_precision_cmd,
-       "no log timestamp precision [(0-6)]",
-       NO_STR
-       "Logging control\n"
-       "Timestamp configuration\n"
-       "Reset the timestamp precision to the default value of 0\n"
-       "Number of subsecond digits\n")
+DEFUN(no_config_log_timestamp_precision, no_config_log_timestamp_precision_cmd,
+      "no log timestamp precision [(0-6)]",
+      NO_STR "Logging control\n"
+	     "Timestamp configuration\n"
+	     "Reset the timestamp precision to the default value of 0\n"
+	     "Number of subsecond digits\n")
 {
 	zt_file.ts_subsec = 0;
 	zlog_file_set_other(&zt_file);
@@ -628,35 +589,27 @@ DEFUN (no_config_log_timestamp_precision,
 	return CMD_SUCCESS;
 }
 
-DEFPY (config_log_ec,
-       config_log_ec_cmd,
-       "[no] log error-category",
-       NO_STR
-       "Logging control\n"
-       "Prefix log message text with [EC 9999] code\n")
+DEFPY(config_log_ec, config_log_ec_cmd, "[no] log error-category",
+      NO_STR "Logging control\n"
+	     "Prefix log message text with [EC 9999] code\n")
 {
 	zlog_set_prefix_ec(!no);
 	return CMD_SUCCESS;
 }
 
-DEFPY (config_log_xid,
-       config_log_xid_cmd,
-       "[no] log unique-id",
-       NO_STR
-       "Logging control\n"
-       "Prefix log message text with [XXXXX-XXXXX] identifier\n")
+DEFPY(config_log_xid, config_log_xid_cmd, "[no] log unique-id",
+      NO_STR "Logging control\n"
+	     "Prefix log message text with [XXXXX-XXXXX] identifier\n")
 {
 	zlog_set_prefix_xid(!no);
 	return CMD_SUCCESS;
 }
 
-DEFPY (config_log_filterfile,
-       config_log_filterfile_cmd,
-       "log filtered-file FILENAME [<emergencies|alerts|critical|errors|warnings|notifications|informational|debugging>$levelarg]",
-       "Logging control\n"
-       "Logging to file with string filter\n"
-       "Logging filename\n"
-       LOG_LEVEL_DESC)
+DEFPY(config_log_filterfile, config_log_filterfile_cmd,
+      "log filtered-file FILENAME [<emergencies|alerts|critical|errors|warnings|notifications|informational|debugging>$levelarg]",
+      "Logging control\n"
+      "Logging to file with string filter\n"
+      "Logging filename\n" LOG_LEVEL_DESC)
 {
 	int level = log_default_lvl;
 
@@ -668,27 +621,20 @@ DEFPY (config_log_filterfile,
 	return set_log_file(&zt_filterfile.parent, vty, filename, level);
 }
 
-DEFUN (no_config_log_filterfile,
-       no_config_log_filterfile_cmd,
-       "no log filtered-file [FILENAME [LEVEL]]",
-       NO_STR
-       "Logging control\n"
-       "Cancel logging to file with string filter\n"
-       "Logging file name\n"
-       "Logging level\n")
+DEFUN(no_config_log_filterfile, no_config_log_filterfile_cmd,
+      "no log filtered-file [FILENAME [LEVEL]]",
+      NO_STR "Logging control\n"
+	     "Cancel logging to file with string filter\n"
+	     "Logging file name\n"
+	     "Logging level\n")
 {
 	zt_filterfile.parent.prio_min = ZLOG_DISABLED;
 	zlog_file_set_other(&zt_filterfile.parent);
 	return CMD_SUCCESS;
 }
 
-DEFPY (log_filter,
-       log_filter_cmd,
-       "[no] log filter-text WORD$filter",
-       NO_STR
-       "Logging control\n"
-       FILTER_LOG_STR
-       "String to filter by\n")
+DEFPY(log_filter, log_filter_cmd, "[no] log filter-text WORD$filter",
+      NO_STR "Logging control\n" FILTER_LOG_STR "String to filter by\n")
 {
 	int ret = 0;
 
@@ -711,24 +657,16 @@ DEFPY (log_filter,
 }
 
 /* Clear all log filters */
-DEFPY (log_filter_clear,
-       log_filter_clear_cmd,
-       "clear log filter-text",
-       CLEAR_STR
-       "Logging control\n"
-       FILTER_LOG_STR)
+DEFPY(log_filter_clear, log_filter_clear_cmd, "clear log filter-text",
+      CLEAR_STR "Logging control\n" FILTER_LOG_STR)
 {
 	zlog_filter_clear();
 	return CMD_SUCCESS;
 }
 
 /* Show log filter */
-DEFPY (show_log_filter,
-       show_log_filter_cmd,
-       "show logging filter-text",
-       SHOW_STR
-       "Show current logging configuration\n"
-       FILTER_LOG_STR)
+DEFPY(show_log_filter, show_log_filter_cmd, "show logging filter-text",
+      SHOW_STR "Show current logging configuration\n" FILTER_LOG_STR)
 {
 	char log_filters[ZLOG_FILTERS_MAX * (ZLOG_FILTER_LENGTH_MAX + 3)] = "";
 	int len = 0;
@@ -747,12 +685,9 @@ DEFPY (show_log_filter,
 }
 
 /* Enable/disable 'immediate' mode, with no output buffering */
-DEFPY (log_immediate_mode,
-       log_immediate_mode_cmd,
-       "[no] log immediate-mode",
-       NO_STR
-       "Logging control\n"
-       "Output immediately, without buffering\n")
+DEFPY(log_immediate_mode, log_immediate_mode_cmd, "[no] log immediate-mode",
+      NO_STR "Logging control\n"
+	     "Output immediately, without buffering\n")
 {
 	zlog_set_immediate(!no);
 	return CMD_SUCCESS;
@@ -770,8 +705,8 @@ void log_config_write(struct vty *vty)
 		vty_out(vty, "\n");
 	}
 
-	if (zt_filterfile.parent.prio_min != ZLOG_DISABLED
-	    && zt_filterfile.parent.filename) {
+	if (zt_filterfile.parent.prio_min != ZLOG_DISABLED &&
+	    zt_filterfile.parent.filename) {
 		vty_out(vty, "log filtered-file %s",
 			zt_filterfile.parent.filename);
 
@@ -830,8 +765,7 @@ void log_config_write(struct vty *vty)
 		vty_out(vty, "log record-priority\n");
 
 	if (zt_file.ts_subsec > 0)
-		vty_out(vty, "log timestamp precision %d\n",
-			zt_file.ts_subsec);
+		vty_out(vty, "log timestamp precision %d\n", zt_file.ts_subsec);
 
 	if (!zlog_get_prefix_ec())
 		vty_out(vty, "no log error-category\n");
@@ -858,7 +792,7 @@ void log_config_write(struct vty *vty)
 }
 
 static int log_vty_init(const char *progname, const char *protoname,
-			 unsigned short instance, uid_t uid, gid_t gid)
+			unsigned short instance, uid_t uid, gid_t gid)
 {
 	zlog_progname = progname;
 	zlog_protoname = protoname;

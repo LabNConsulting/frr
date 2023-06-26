@@ -187,10 +187,9 @@ static size_t zlog_5424_one(struct zlt_5424 *zte, struct zlog_msg *msg,
 			  zlog_prefix);
 
 	if (zte->kw_version)
-		need += bprintfrr(
-			fbuf,
-			"[origin enterpriseId=\"50145\" software=\"FRRouting\" swVersion=\"%s\"]",
-			FRR_VERSION);
+		need += bprintfrr(fbuf,
+				  "[origin enterpriseId=\"50145\" software=\"FRRouting\" swVersion=\"%s\"]",
+				  FRR_VERSION);
 
 	const struct xref_logmsg *xref;
 	struct xrefdata *xrefdata;
@@ -207,10 +206,10 @@ static size_t zlog_5424_one(struct zlt_5424 *zte, struct zlog_msg *msg,
 		if (zte->kw_ec && prio <= LOG_WARNING)
 			need += bprintfrr(fbuf, " ec=\"%u\"", xref->ec);
 		if (zte->kw_location)
-			need += bprintfrr(
-				fbuf, " file=\"%s\" line=\"%d\" func=\"%s\"",
-				xref->xref.file, xref->xref.line,
-				xref->xref.func);
+			need += bprintfrr(fbuf,
+					  " file=\"%s\" line=\"%d\" func=\"%s\"",
+					  xref->xref.file, xref->xref.line,
+					  xref->xref.func);
 	}
 	need += bputch(fbuf, ']');
 
@@ -492,8 +491,8 @@ static void zlog_5424(struct zlog_target *zt, struct zlog_msg *msgs[],
 				if (!zte->sa_len)
 					ret = writev(fd, iov, state.iov - iov);
 				else {
-					mpos->msg_hdr.msg_iovlen =
-						state.iov - iov;
+					mpos->msg_hdr.msg_iovlen = state.iov -
+								   iov;
 					ret = sendmsg(fd, &mpos->msg_hdr, 0);
 				}
 
@@ -634,13 +633,12 @@ static void zlog_5424_sigsafe(struct zlog_target *zt, const char *text,
 	switch (zte->fmt) {
 	case ZLOG_FMT_5424:
 		gmtime_assafe(time(NULL), &tm);
-		bprintfrr(
-			&fbuf,
-			"<%d>1 %04u-%02u-%02uT%02u:%02u:%02uZ - %s %jd %.*s  ",
-			zte->facility | LOG_CRIT, tm.tm_year + 1900,
-			tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min,
-			tm.tm_sec, zlog_progname, pid, (int)(zlog_prefixsz - 2),
-			zlog_prefix);
+		bprintfrr(&fbuf,
+			  "<%d>1 %04u-%02u-%02uT%02u:%02u:%02uZ - %s %jd %.*s  ",
+			  zte->facility | LOG_CRIT, tm.tm_year + 1900,
+			  tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min,
+			  tm.tm_sec, zlog_progname, pid,
+			  (int)(zlog_prefixsz - 2), zlog_prefix);
 		break;
 
 	case ZLOG_FMT_3164:
@@ -983,10 +981,9 @@ static int zlog_5424_open(struct zlog_cfg_5424 *zcf, int sock_type)
 		if (fd == -1) {
 			zcf->sock_type = -1;
 
-			flog_err_sys(
-				EC_LIB_SYSTEM_CALL,
-				"could not connect to log unix path %pSE: %m",
-				zcf->filename);
+			flog_err_sys(EC_LIB_SYSTEM_CALL,
+				     "could not connect to log unix path %pSE: %m",
+				     zcf->filename);
 			need_reconnect = true;
 		} else {
 			/* datagram sockets are connectionless, restarting
@@ -1001,11 +998,9 @@ static int zlog_5424_open(struct zlog_cfg_5424 *zcf, int sock_type)
 	/* viable on both DST_FD and DST_UNIX path */
 	if (zcf->sock_type == SOCK_DGRAM) {
 		zcf->sa_len = sizeof(zcf->sa);
-		if (getpeername(fd, (struct sockaddr *)&zcf->sa,
-				&zcf->sa_len)) {
-			flog_err_sys(
-				EC_LIB_SYSTEM_CALL,
-				"could not get remote address for log socket.  logging may break if log receiver restarts.");
+		if (getpeername(fd, (struct sockaddr *)&zcf->sa, &zcf->sa_len)) {
+			flog_err_sys(EC_LIB_SYSTEM_CALL,
+				     "could not get remote address for log socket.  logging may break if log receiver restarts.");
 			zcf->sa_len = 0;
 		}
 	}
@@ -1019,10 +1014,9 @@ static int zlog_5424_open(struct zlog_cfg_5424 *zcf, int sock_type)
 				err = fchown(fd, uid, gid);
 			}
 			if (err)
-				flog_err_sys(
-					EC_LIB_SYSTEM_CALL,
-					"failed to chown() log file %pSE: %m",
-					zcf->filename);
+				flog_err_sys(EC_LIB_SYSTEM_CALL,
+					     "failed to chown() log file %pSE: %m",
+					     zcf->filename);
 		}
 	}
 

@@ -25,20 +25,20 @@ extern "C" {
 /* The following options disable specific command line options that
  * are not applicable for a particular daemon.
  */
-#define FRR_NO_PRIVSEP		(1 << 0)
-#define FRR_NO_TCPVTY		(1 << 1)
-#define FRR_LIMITED_CLI		(1 << 2)
-#define FRR_NO_SPLIT_CONFIG	(1 << 3)
-#define FRR_NO_PID		(1 << 4)
-#define FRR_NO_CFG_PID_DRY	(FRR_NO_PID | FRR_NO_SPLIT_CONFIG)
-#define FRR_NO_ZCLIENT		(1 << 5)
+#define FRR_NO_PRIVSEP	    (1 << 0)
+#define FRR_NO_TCPVTY	    (1 << 1)
+#define FRR_LIMITED_CLI	    (1 << 2)
+#define FRR_NO_SPLIT_CONFIG (1 << 3)
+#define FRR_NO_PID	    (1 << 4)
+#define FRR_NO_CFG_PID_DRY  (FRR_NO_PID | FRR_NO_SPLIT_CONFIG)
+#define FRR_NO_ZCLIENT	    (1 << 5)
 /* If FRR_DETACH_LATER is used, the daemon will keep its parent running
  * until frr_detach() is called.  Normally "somedaemon -d" returns once the
  * main event loop is reached in the daemon;  use this for extra startup bits.
  *
  * Does nothing if -d isn't used.
  */
-#define FRR_DETACH_LATER	(1 << 6)
+#define FRR_DETACH_LATER (1 << 6)
 /* If FRR_MANUAL_VTY_START is used, frr_run() will not automatically start
  * listening on for vty connection (either TCP or Unix socket based). The daemon
  * is responsible for calling frr_vty_serv() itself.
@@ -121,10 +121,10 @@ struct frr_daemon_info {
  * daemon should have one of these.
  */
 #define FRR_DAEMON_INFO(execname, constname, ...)                              \
-	static struct frr_daemon_info execname##_di = {.name = #execname,      \
-						       .logname = #constname,  \
-						       .module = THIS_MODULE,  \
-						       __VA_ARGS__};           \
+	static struct frr_daemon_info execname##_di = { .name = #execname,     \
+							.logname = #constname, \
+							.module = THIS_MODULE, \
+							__VA_ARGS__ };         \
 	FRR_COREMOD_SETUP(.name = #execname,                                   \
 			  .description = #execname " daemon",                  \
 			  .version = FRR_VERSION, );                           \

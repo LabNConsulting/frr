@@ -54,7 +54,8 @@ static void agentx_read(struct event *t)
 	/* fix for non blocking socket */
 	flags = fcntl(EVENT_FD(t), F_GETFL, 0);
 	if (-1 == flags) {
-		flog_err(EC_LIB_SYSTEM_CALL, "Failed to get FD settings fcntl: %s(%d)",
+		flog_err(EC_LIB_SYSTEM_CALL,
+			 "Failed to get FD settings fcntl: %s(%d)",
 			 strerror(errno), errno);
 		return;
 	}
@@ -65,7 +66,8 @@ static void agentx_read(struct event *t)
 		new_flags = fcntl(EVENT_FD(t), F_SETFL, flags | O_NONBLOCK);
 
 	if (new_flags == -1)
-		flog_err(EC_LIB_SYSTEM_CALL, "Failed to set snmp fd non blocking: %s(%d)",
+		flog_err(EC_LIB_SYSTEM_CALL,
+			 "Failed to set snmp fd non blocking: %s(%d)",
 			 strerror(errno), errno);
 
 	FD_ZERO(&fds);
@@ -77,10 +79,9 @@ static void agentx_read(struct event *t)
 		new_flags = fcntl(EVENT_FD(t), F_SETFL, flags);
 
 		if (new_flags == -1)
-			flog_err(
-				EC_LIB_SYSTEM_CALL,
-				"Failed to set snmp fd back to original settings: %s(%d)",
-				strerror(errno), errno);
+			flog_err(EC_LIB_SYSTEM_CALL,
+				 "Failed to set snmp fd back to original settings: %s(%d)",
+				 strerror(errno), errno);
 	}
 
 	netsnmp_check_outstanding_agent_requests();
@@ -91,7 +92,7 @@ static void agentx_events_update(void)
 {
 	int maxfd = 0;
 	int block = 1;
-	struct timeval timeout = {.tv_sec = 0, .tv_usec = 0};
+	struct timeval timeout = { .tv_sec = 0, .tv_usec = 0 };
 	fd_set fds;
 	struct listnode *ln;
 	struct event **thr;
@@ -204,10 +205,8 @@ static int config_write_agentx(struct vty *vty)
 	return 1;
 }
 
-DEFUN (agentx_enable,
-       agentx_enable_cmd,
-       "agentx",
-       "SNMP AgentX protocol settings\n")
+DEFUN(agentx_enable, agentx_enable_cmd, "agentx",
+      "SNMP AgentX protocol settings\n")
 {
 	if (!agentx_enabled) {
 		init_snmp(FRR_SMUX_NAME);
@@ -220,11 +219,8 @@ DEFUN (agentx_enable,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_agentx,
-       no_agentx_cmd,
-       "no agentx",
-       NO_STR
-       "SNMP AgentX protocol settings\n")
+DEFUN(no_agentx, no_agentx_cmd, "no agentx",
+      NO_STR "SNMP AgentX protocol settings\n")
 {
 	if (!agentx_enabled)
 		return CMD_SUCCESS;
@@ -301,7 +297,7 @@ int smux_trap_multi_index(struct variable *vp, size_t vp_len, const oid *ename,
 			  const struct trap_object *trapobj, size_t trapobjlen,
 			  uint8_t sptrap)
 {
-	oid objid_snmptrap[] = {1, 3, 6, 1, 6, 3, 1, 1, 4, 1, 0};
+	oid objid_snmptrap[] = { 1, 3, 6, 1, 6, 3, 1, 1, 4, 1, 0 };
 	size_t objid_snmptrap_len = sizeof(objid_snmptrap) / sizeof(oid);
 	oid notification_oid[MAX_OID_LEN];
 	size_t notification_oid_len;
@@ -360,8 +356,7 @@ int smux_trap_multi_index(struct variable *vp, size_t vp_len, const oid *ename,
 		 */
 		for (j = 0; j < vp_len; j++) {
 			if (oid_compare(trapobj[i].name, onamelen, vp[j].name,
-					vp[j].namelen)
-			    != 0)
+					vp[j].namelen) != 0)
 				continue;
 			/* We found the appropriate variable in the MIB
 			 * registry. */
@@ -374,8 +369,7 @@ int smux_trap_multi_index(struct variable *vp, size_t vp_len, const oid *ename,
 			cvp.findVar = vp[j].findVar;
 
 			/* Grab the result. */
-			val = cvp.findVar(&cvp, oid, &oid_len, 1, &val_len,
-					  &wm);
+			val = cvp.findVar(&cvp, oid, &oid_len, 1, &val_len, &wm);
 			if (!val)
 				break;
 			snmp_varlist_add_variable(&notification_vars, oid,

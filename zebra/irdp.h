@@ -28,25 +28,25 @@ extern "C" {
 
 /* Multicast groups */
 #ifndef INADDR_ALLHOSTS_GROUP
-#define INADDR_ALLHOSTS_GROUP 0xe0000001U    /* 224.0.0.1 */
-#endif /* INADDR_ALLHOSTS_GROUP */
+#define INADDR_ALLHOSTS_GROUP 0xe0000001U /* 224.0.0.1 */
+#endif					  /* INADDR_ALLHOSTS_GROUP */
 
 #ifndef INADDR_ALLRTRS_GROUP
-#define INADDR_ALLRTRS_GROUP  0xe0000002U    /* 224.0.0.2 */
-#endif /* INADDR_ALLRTRS_GROUP */
+#define INADDR_ALLRTRS_GROUP 0xe0000002U /* 224.0.0.2 */
+#endif					 /* INADDR_ALLRTRS_GROUP */
 
 /* Default irdp packet interval */
 #define IRDP_DEFAULT_INTERVAL 300
 
 /* Router constants from RFC1256 */
 #define MAX_INITIAL_ADVERT_INTERVAL 16
-#define MAX_INITIAL_ADVERTISEMENTS   3
-#define MAX_RESPONSE_DELAY           2
+#define MAX_INITIAL_ADVERTISEMENTS  3
+#define MAX_RESPONSE_DELAY	    2
 
 #define IRDP_MAXADVERTINTERVAL 600
-#define IRDP_MINADVERTINTERVAL 450 /* 0.75*600 */
-#define IRDP_LIFETIME         1350 /* 3*450 */
-#define IRDP_PREFERENCE 0
+#define IRDP_MINADVERTINTERVAL 450  /* 0.75*600 */
+#define IRDP_LIFETIME	       1350 /* 3*450 */
+#define IRDP_PREFERENCE	       0
 
 #define ICMP_MINLEN 8
 
@@ -105,13 +105,13 @@ struct irdp_interface {
 
 	uint32_t flags;
 
-#define IF_ACTIVE               (1<<0) /* ICMP Active */
-#define IF_BROADCAST            (1<<1) /* 255.255.255.255 */
-#define IF_SOLICIT              (1<<2) /* Solicit active */
-#define IF_DEBUG_MESSAGES       (1<<3)
-#define IF_DEBUG_PACKET         (1<<4)
-#define IF_DEBUG_MISC           (1<<5)
-#define IF_SHUTDOWN             (1<<6)
+#define IF_ACTIVE	  (1 << 0) /* ICMP Active */
+#define IF_BROADCAST	  (1 << 1) /* 255.255.255.255 */
+#define IF_SOLICIT	  (1 << 2) /* Solicit active */
+#define IF_DEBUG_MESSAGES (1 << 3)
+#define IF_DEBUG_PACKET	  (1 << 4)
+#define IF_DEBUG_MISC	  (1 << 5)
+#define IF_SHUTDOWN	  (1 << 6)
 
 	struct interface *ifp;
 	struct event *t_advertise;

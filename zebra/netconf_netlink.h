@@ -31,6 +31,6 @@ netlink_put_intf_netconfig(struct nl_batch *bth, struct zebra_dplane_ctx *ctx);
 }
 #endif
 
-#endif	/* HAVE_NETLINK */
+#endif /* HAVE_NETLINK */
 
-#endif	/* NETCONF_NETLINK_H */
+#endif /* NETCONF_NETLINK_H */

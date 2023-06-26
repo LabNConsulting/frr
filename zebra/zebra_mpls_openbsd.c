@@ -87,9 +87,8 @@ static int kernel_send_rtmsg_v4(int action, mpls_label_t in_label,
 		memset(&sa_label_out, 0, sizeof(sa_label_out));
 		sa_label_out.smpls_len = sizeof(sa_label_out);
 		sa_label_out.smpls_family = AF_MPLS;
-		sa_label_out.smpls_label =
-			htonl(nhlfe->nexthop->nh_label->label[0]
-			      << MPLS_LABEL_OFFSET);
+		sa_label_out.smpls_label = htonl(
+			nhlfe->nexthop->nh_label->label[0] << MPLS_LABEL_OFFSET);
 		/* adjust header */
 		hdr.rtm_addrs |= RTA_SRC;
 		hdr.rtm_flags |= RTF_MPLS;
@@ -104,7 +103,7 @@ static int kernel_send_rtmsg_v4(int action, mpls_label_t in_label,
 			hdr.rtm_mpls = MPLS_OP_SWAP;
 	}
 
-	frr_with_privs(&zserv_privs) {
+	frr_with_privs (&zserv_privs) {
 		ret = writev(kr_state.fd, iov, iovcnt);
 	}
 
@@ -194,9 +193,8 @@ static int kernel_send_rtmsg_v6(int action, mpls_label_t in_label,
 		memset(&sa_label_out, 0, sizeof(sa_label_out));
 		sa_label_out.smpls_len = sizeof(sa_label_out);
 		sa_label_out.smpls_family = AF_MPLS;
-		sa_label_out.smpls_label =
-			htonl(nhlfe->nexthop->nh_label->label[0]
-			      << MPLS_LABEL_OFFSET);
+		sa_label_out.smpls_label = htonl(
+			nhlfe->nexthop->nh_label->label[0] << MPLS_LABEL_OFFSET);
 		/* adjust header */
 		hdr.rtm_addrs |= RTA_SRC;
 		hdr.rtm_flags |= RTF_MPLS;
@@ -211,7 +209,7 @@ static int kernel_send_rtmsg_v6(int action, mpls_label_t in_label,
 			hdr.rtm_mpls = MPLS_OP_SWAP;
 	}
 
-	frr_with_privs(&zserv_privs) {
+	frr_with_privs (&zserv_privs) {
 		ret = writev(kr_state.fd, iov, iovcnt);
 	}
 
@@ -295,7 +293,7 @@ static int kernel_lsp_cmd(struct zebra_dplane_ctx *ctx)
 	}
 
 	head = dplane_ctx_get_nhlfe_list(ctx);
-	frr_each(nhlfe_list_const, head, nhlfe) {
+	frr_each (nhlfe_list_const, head, nhlfe) {
 		nexthop = nhlfe->nexthop;
 		if (!nexthop)
 			continue;
@@ -303,12 +301,12 @@ static int kernel_lsp_cmd(struct zebra_dplane_ctx *ctx)
 		if (nexthop_num >= zrouter.multipath_num)
 			break;
 
-		if (((action == RTM_ADD || action == RTM_CHANGE)
-		     && (CHECK_FLAG(nhlfe->flags, NHLFE_FLAG_SELECTED)
-			 && CHECK_FLAG(nexthop->flags, NEXTHOP_FLAG_ACTIVE)))
-		    || (action == RTM_DELETE
-			&& (CHECK_FLAG(nhlfe->flags, NHLFE_FLAG_INSTALLED)
-			    && CHECK_FLAG(nexthop->flags, NEXTHOP_FLAG_FIB)))) {
+		if (((action == RTM_ADD || action == RTM_CHANGE) &&
+		     (CHECK_FLAG(nhlfe->flags, NHLFE_FLAG_SELECTED) &&
+		      CHECK_FLAG(nexthop->flags, NEXTHOP_FLAG_ACTIVE))) ||
+		    (action == RTM_DELETE &&
+		     (CHECK_FLAG(nhlfe->flags, NHLFE_FLAG_INSTALLED) &&
+		      CHECK_FLAG(nexthop->flags, NEXTHOP_FLAG_FIB)))) {
 			if (nhlfe->nexthop->nh_label->num_labels > 1) {
 				flog_warn(EC_ZEBRA_MAX_LABELS_PUSH,
 					  "%s: can't push %u labels at once (maximum is 1)",
@@ -321,16 +319,14 @@ static int kernel_lsp_cmd(struct zebra_dplane_ctx *ctx)
 
 			switch (NHLFE_FAMILY(nhlfe)) {
 			case AF_INET:
-				kernel_send_rtmsg_v4(
-					action,
-					dplane_ctx_get_in_label(ctx),
-					nhlfe);
+				kernel_send_rtmsg_v4(action,
+						     dplane_ctx_get_in_label(ctx),
+						     nhlfe);
 				break;
 			case AF_INET6:
-				kernel_send_rtmsg_v6(
-					action,
-					dplane_ctx_get_in_label(ctx),
-					nhlfe);
+				kernel_send_rtmsg_v6(action,
+						     dplane_ctx_get_in_label(ctx),
+						     nhlfe);
 				break;
 			default:
 				break;
@@ -347,8 +343,8 @@ enum zebra_dplane_result kernel_lsp_update(struct zebra_dplane_ctx *ctx)
 
 	ret = kernel_lsp_cmd(ctx);
 
-	return (ret == 0 ?
-		ZEBRA_DPLANE_REQUEST_SUCCESS : ZEBRA_DPLANE_REQUEST_FAILURE);
+	return (ret == 0 ? ZEBRA_DPLANE_REQUEST_SUCCESS
+			 : ZEBRA_DPLANE_REQUEST_FAILURE);
 }
 
 static enum zebra_dplane_result kmpw_install(struct zebra_dplane_ctx *ctx)
@@ -405,8 +401,7 @@ static enum zebra_dplane_result kmpw_install(struct zebra_dplane_ctx *ctx)
 
 	/* ioctl */
 	memset(&ifr, 0, sizeof(ifr));
-	strlcpy(ifr.ifr_name, dplane_ctx_get_ifname(ctx),
-		sizeof(ifr.ifr_name));
+	strlcpy(ifr.ifr_name, dplane_ctx_get_ifname(ctx), sizeof(ifr.ifr_name));
 	ifr.ifr_data = (caddr_t)&imr;
 	if (ioctl(kr_state.ioctl_fd, SIOCSETMPWCFG, &ifr) == -1) {
 		flog_err_sys(EC_LIB_SYSTEM_CALL, "ioctl SIOCSETMPWCFG: %s",
@@ -424,8 +419,7 @@ static enum zebra_dplane_result kmpw_uninstall(struct zebra_dplane_ctx *ctx)
 
 	memset(&ifr, 0, sizeof(ifr));
 	memset(&imr, 0, sizeof(imr));
-	strlcpy(ifr.ifr_name, dplane_ctx_get_ifname(ctx),
-		sizeof(ifr.ifr_name));
+	strlcpy(ifr.ifr_name, dplane_ctx_get_ifname(ctx), sizeof(ifr.ifr_name));
 	ifr.ifr_data = (caddr_t)&imr;
 	if (ioctl(kr_state.ioctl_fd, SIOCSETMPWCFG, &ifr) == -1) {
 		flog_err_sys(EC_LIB_SYSTEM_CALL, "ioctl SIOCSETMPWCFG: %s",
@@ -508,7 +502,7 @@ enum zebra_dplane_result kernel_pw_update(struct zebra_dplane_ctx *ctx)
 	return result;
 }
 
-#define MAX_RTSOCK_BUF	128 * 1024
+#define MAX_RTSOCK_BUF 128 * 1024
 int mpls_kernel_init(void)
 {
 	int rcvbuf, default_rcvbuf;
@@ -519,8 +513,8 @@ int mpls_kernel_init(void)
 		return -1;
 	}
 
-	if ((kr_state.ioctl_fd = socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK, 0))
-	    == -1) {
+	if ((kr_state.ioctl_fd = socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK,
+					0)) == -1) {
 		flog_err_sys(EC_LIB_SOCKET, "%s: ioctl socket", __func__);
 		return -1;
 	}
@@ -528,17 +522,15 @@ int mpls_kernel_init(void)
 	/* grow receive buffer, don't wanna miss messages */
 	optlen = sizeof(default_rcvbuf);
 	if (getsockopt(kr_state.fd, SOL_SOCKET, SO_RCVBUF, &default_rcvbuf,
-		       &optlen)
-	    == -1)
+		       &optlen) == -1)
 		flog_err_sys(EC_LIB_SOCKET,
 			     "kr_init getsockopt SOL_SOCKET SO_RCVBUF");
 	else
 		for (rcvbuf = MAX_RTSOCK_BUF;
-		     rcvbuf > default_rcvbuf
-		     && setsockopt(kr_state.fd, SOL_SOCKET, SO_RCVBUF, &rcvbuf,
-				   sizeof(rcvbuf))
-				== -1
-		     && errno == ENOBUFS;
+		     rcvbuf > default_rcvbuf &&
+		     setsockopt(kr_state.fd, SOL_SOCKET, SO_RCVBUF, &rcvbuf,
+				sizeof(rcvbuf)) == -1 &&
+		     errno == ENOBUFS;
 		     rcvbuf /= 2)
 			; /* nothing */
 

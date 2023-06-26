@@ -75,8 +75,8 @@ static enum nb_error prefix_list_length_validate(struct nb_cb_modify_args *args)
 	 * Check rule:
 	 * ge <= le.
 	 */
-	if (yang_dnode_exists(args->dnode, xpath_le)
-	    && yang_dnode_exists(args->dnode, xpath_ge)) {
+	if (yang_dnode_exists(args->dnode, xpath_le) &&
+	    yang_dnode_exists(args->dnode, xpath_ge)) {
 		le = yang_dnode_get_uint8(args->dnode, "%s", xpath_le);
 		ge = yang_dnode_get_uint8(args->dnode, "%s", xpath_ge);
 		if (ge > le)
@@ -86,10 +86,9 @@ static enum nb_error prefix_list_length_validate(struct nb_cb_modify_args *args)
 	return NB_OK;
 
 log_and_fail:
-	snprintfrr(
-		args->errmsg, args->errmsg_len,
-		"Invalid prefix range for %pFX: Make sure that mask length <= ge <= le",
-		&p);
+	snprintfrr(args->errmsg, args->errmsg_len,
+		   "Invalid prefix range for %pFX: Make sure that mask length <= ge <= le",
+		   &p);
 	return NB_ERR_VALIDATION;
 }
 
@@ -106,9 +105,8 @@ static void prefix_list_entry_set_empty(struct prefix_list_entry *ple)
 	ple->le = 0;
 }
 
-static int
-prefix_list_nb_validate_v4_af_type(const struct lyd_node *plist_dnode,
-				   char *errmsg, size_t errmsg_len)
+static int prefix_list_nb_validate_v4_af_type(const struct lyd_node *plist_dnode,
+					      char *errmsg, size_t errmsg_len)
 {
 	int af_type;
 
@@ -122,9 +120,8 @@ prefix_list_nb_validate_v4_af_type(const struct lyd_node *plist_dnode,
 	return NB_OK;
 }
 
-static int
-prefix_list_nb_validate_v6_af_type(const struct lyd_node *plist_dnode,
-				   char *errmsg, size_t errmsg_len)
+static int prefix_list_nb_validate_v6_af_type(const struct lyd_node *plist_dnode,
+					      char *errmsg, size_t errmsg_len)
 {
 	int af_type;
 
@@ -241,8 +238,7 @@ static int _acl_is_dup(const struct lyd_node *dnode, void *arg)
 	int idx;
 
 	/* This entry is the caller, so skip it. */
-	if (ada->ada_entry_dnode
-	    && ada->ada_entry_dnode == dnode)
+	if (ada->ada_entry_dnode && ada->ada_entry_dnode == dnode)
 		return YANG_ITER_CONTINUE;
 
 	if (strcmp(yang_dnode_get_string(dnode, "action"), ada->ada_action))
@@ -275,31 +271,28 @@ bool acl_is_dup(const struct lyd_node *dnode, struct acl_dup_args *ada)
 {
 	ada->ada_found = false;
 
-	yang_dnode_iterate(
-		_acl_is_dup, ada, dnode,
-		"/frr-filter:lib/access-list[type='%s'][name='%s']/entry",
-		ada->ada_type, ada->ada_name);
+	yang_dnode_iterate(_acl_is_dup, ada, dnode,
+			   "/frr-filter:lib/access-list[type='%s'][name='%s']/entry",
+			   ada->ada_type, ada->ada_name);
 
 	return ada->ada_found;
 }
 
 static bool acl_cisco_is_dup(const struct lyd_node *dnode)
 {
-	const struct lyd_node *entry_dnode =
-		yang_dnode_get_parent(dnode, "entry");
+	const struct lyd_node *entry_dnode = yang_dnode_get_parent(dnode,
+								   "entry");
 	struct acl_dup_args ada = {};
 	int idx = 0, arg_idx = 0;
-	static const char *cisco_entries[] = {
-		"./host",
-		"./network/address",
-		"./network/mask",
-		"./source-any",
-		"./destination-host",
-		"./destination-network/address",
-		"./destination-network/mask",
-		"./destination-any",
-		NULL
-	};
+	static const char *cisco_entries[] = { "./host",
+					       "./network/address",
+					       "./network/mask",
+					       "./source-any",
+					       "./destination-host",
+					       "./destination-network/address",
+					       "./destination-network/mask",
+					       "./destination-any",
+					       NULL };
 
 	/* Initialize. */
 	ada.ada_type = "ipv4";
@@ -315,8 +308,9 @@ static bool acl_cisco_is_dup(const struct lyd_node *dnode)
 		}
 
 		ada.ada_xpath[arg_idx] = cisco_entries[idx];
-		ada.ada_value[arg_idx] = yang_dnode_get_string(
-			entry_dnode, "%s", cisco_entries[idx]);
+		ada.ada_value[arg_idx] =
+			yang_dnode_get_string(entry_dnode, "%s",
+					      cisco_entries[idx]);
 		arg_idx++;
 		idx++;
 	}
@@ -327,19 +321,17 @@ static bool acl_cisco_is_dup(const struct lyd_node *dnode)
 static bool acl_zebra_is_dup(const struct lyd_node *dnode,
 			     enum yang_access_list_type type)
 {
-	const struct lyd_node *entry_dnode =
-		yang_dnode_get_parent(dnode, "entry");
+	const struct lyd_node *entry_dnode = yang_dnode_get_parent(dnode,
+								   "entry");
 	struct acl_dup_args ada = {};
 	int idx = 0, arg_idx = 0;
-	static const char *zebra_entries[] = {
-		"./ipv4-prefix",
-		"./ipv4-exact-match",
-		"./ipv6-prefix",
-		"./ipv6-exact-match",
-		"./mac",
-		"./any",
-		NULL
-	};
+	static const char *zebra_entries[] = { "./ipv4-prefix",
+					       "./ipv4-exact-match",
+					       "./ipv6-prefix",
+					       "./ipv6-exact-match",
+					       "./mac",
+					       "./any",
+					       NULL };
 
 	/* Initialize. */
 	switch (type) {
@@ -365,8 +357,9 @@ static bool acl_zebra_is_dup(const struct lyd_node *dnode,
 		}
 
 		ada.ada_xpath[arg_idx] = zebra_entries[idx];
-		ada.ada_value[arg_idx] = yang_dnode_get_string(
-			entry_dnode, "%s", zebra_entries[idx]);
+		ada.ada_value[arg_idx] =
+			yang_dnode_get_string(entry_dnode, "%s",
+					      zebra_entries[idx]);
 		arg_idx++;
 		idx++;
 	}
@@ -391,23 +384,23 @@ static void plist_dnode_to_prefix(const struct lyd_node *dnode, bool *any,
 		yang_dnode_get_prefix(p, dnode, "./ipv4-prefix");
 		if (yang_dnode_exists(dnode,
 				      "./ipv4-prefix-length-greater-or-equal"))
-			*ge = yang_dnode_get_uint8(
-				dnode, "./ipv4-prefix-length-greater-or-equal");
+			*ge = yang_dnode_get_uint8(dnode,
+						   "./ipv4-prefix-length-greater-or-equal");
 		if (yang_dnode_exists(dnode,
 				      "./ipv4-prefix-length-lesser-or-equal"))
-			*le = yang_dnode_get_uint8(
-				dnode, "./ipv4-prefix-length-lesser-or-equal");
+			*le = yang_dnode_get_uint8(dnode,
+						   "./ipv4-prefix-length-lesser-or-equal");
 		break;
 	case YPLT_IPV6:
 		yang_dnode_get_prefix(p, dnode, "./ipv6-prefix");
 		if (yang_dnode_exists(dnode,
 				      "./ipv6-prefix-length-greater-or-equal"))
-			*ge = yang_dnode_get_uint8(
-				dnode, "./ipv6-prefix-length-greater-or-equal");
+			*ge = yang_dnode_get_uint8(dnode,
+						   "./ipv6-prefix-length-greater-or-equal");
 		if (yang_dnode_exists(dnode,
 				      "./ipv6-prefix-length-lesser-or-equal"))
-			*le = yang_dnode_get_uint8(
-				dnode, "./ipv6-prefix-length-lesser-or-equal");
+			*le = yang_dnode_get_uint8(dnode,
+						   "./ipv6-prefix-length-lesser-or-equal");
 		break;
 	}
 }
@@ -420,8 +413,7 @@ static int _plist_is_dup(const struct lyd_node *dnode, void *arg)
 	bool any;
 
 	/* This entry is the caller, so skip it. */
-	if (pda->pda_entry_dnode
-	    && pda->pda_entry_dnode == dnode)
+	if (pda->pda_entry_dnode && pda->pda_entry_dnode == dnode)
 		return YANG_ITER_CONTINUE;
 
 	if (strcmp(yang_dnode_get_string(dnode, "action"), pda->pda_action))
@@ -433,8 +425,8 @@ static int _plist_is_dup(const struct lyd_node *dnode, void *arg)
 		if (!any)
 			return YANG_ITER_CONTINUE;
 	} else {
-		if (!prefix_same(&pda->prefix, &p) || pda->ge != ge
-		    || pda->le != le)
+		if (!prefix_same(&pda->prefix, &p) || pda->ge != ge ||
+		    pda->le != le)
 			return YANG_ITER_CONTINUE;
 	}
 
@@ -448,10 +440,9 @@ bool plist_is_dup(const struct lyd_node *dnode, struct plist_dup_args *pda)
 {
 	pda->pda_found = false;
 
-	yang_dnode_iterate(
-		_plist_is_dup, pda, dnode,
-		"/frr-filter:lib/prefix-list[type='%s'][name='%s']/entry",
-		pda->pda_type, pda->pda_name);
+	yang_dnode_iterate(_plist_is_dup, pda, dnode,
+			   "/frr-filter:lib/prefix-list[type='%s'][name='%s']/entry",
+			   pda->pda_type, pda->pda_name);
 
 	return pda->pda_found;
 }
@@ -522,8 +513,7 @@ static int lib_access_list_remark_modify(struct nb_cb_modify_args *args)
 	return NB_OK;
 }
 
-static int
-lib_access_list_remark_destroy(struct nb_cb_destroy_args *args)
+static int lib_access_list_remark_destroy(struct nb_cb_destroy_args *args)
 {
 	struct access_list *acl;
 
@@ -578,8 +568,7 @@ static int lib_access_list_entry_destroy(struct nb_cb_destroy_args *args)
 /*
  * XPath: /frr-filter:lib/access-list/entry/action
  */
-static int
-lib_access_list_entry_action_modify(struct nb_cb_modify_args *args)
+static int lib_access_list_entry_action_modify(struct nb_cb_modify_args *args)
 {
 	const char *filter_type;
 	struct filter *f;
@@ -610,9 +599,9 @@ lib_access_list_entry_ipv4_prefix_modify(struct nb_cb_modify_args *args)
 
 	/* Don't allow duplicated values. */
 	if (args->event == NB_EV_VALIDATE) {
-		if (acl_zebra_is_dup(
-			    args->dnode,
-			    yang_dnode_get_enum(args->dnode, "../../type"))) {
+		if (acl_zebra_is_dup(args->dnode,
+				     yang_dnode_get_enum(args->dnode,
+							 "../../type"))) {
 			snprintfrr(args->errmsg, args->errmsg_len,
 				   "duplicated access list value: %s",
 				   yang_dnode_get_string(args->dnode, NULL));
@@ -663,9 +652,9 @@ lib_access_list_entry_ipv4_exact_match_modify(struct nb_cb_modify_args *args)
 
 	/* Don't allow duplicated values. */
 	if (args->event == NB_EV_VALIDATE) {
-		if (acl_zebra_is_dup(
-			    args->dnode,
-			    yang_dnode_get_enum(args->dnode, "../../type"))) {
+		if (acl_zebra_is_dup(args->dnode,
+				     yang_dnode_get_enum(args->dnode,
+							 "../../type"))) {
 			snprintfrr(args->errmsg, args->errmsg_len,
 				   "duplicated access list value: %s",
 				   yang_dnode_get_string(args->dnode, NULL));
@@ -707,8 +696,7 @@ lib_access_list_entry_ipv4_exact_match_destroy(struct nb_cb_destroy_args *args)
 /*
  * XPath: /frr-filter:lib/access-list/entry/host
  */
-static int
-lib_access_list_entry_host_modify(struct nb_cb_modify_args *args)
+static int lib_access_list_entry_host_modify(struct nb_cb_modify_args *args)
 {
 	struct filter_cisco *fc;
 	struct filter *f;
@@ -738,8 +726,7 @@ lib_access_list_entry_host_modify(struct nb_cb_modify_args *args)
 	return NB_OK;
 }
 
-static int
-lib_access_list_entry_host_destroy(struct nb_cb_destroy_args *args)
+static int lib_access_list_entry_host_destroy(struct nb_cb_destroy_args *args)
 {
 	struct filter_cisco *fc;
 	struct filter *f;
@@ -825,8 +812,7 @@ lib_access_list_entry_network_mask_modify(struct nb_cb_modify_args *args)
 /*
  * XPath: /frr-filter:lib/access-list/entry/source-any
  */
-static int
-lib_access_list_entry_source_any_create(struct nb_cb_create_args *args)
+static int lib_access_list_entry_source_any_create(struct nb_cb_create_args *args)
 {
 	struct filter_cisco *fc;
 	struct filter *f;
@@ -877,8 +863,8 @@ lib_access_list_entry_source_any_destroy(struct nb_cb_destroy_args *args)
 /*
  * XPath: /frr-filter:lib/access-list/entry/destination-host
  */
-static int lib_access_list_entry_destination_host_modify(
-	struct nb_cb_modify_args *args)
+static int
+lib_access_list_entry_destination_host_modify(struct nb_cb_modify_args *args)
 {
 	struct filter_cisco *fc;
 	struct filter *f;
@@ -908,8 +894,8 @@ static int lib_access_list_entry_destination_host_modify(
 	return NB_OK;
 }
 
-static int lib_access_list_entry_destination_host_destroy(
-	struct nb_cb_destroy_args *args)
+static int
+lib_access_list_entry_destination_host_destroy(struct nb_cb_destroy_args *args)
 {
 	struct filter_cisco *fc;
 	struct filter *f;
@@ -996,8 +982,8 @@ static int lib_access_list_entry_destination_network_mask_modify(
 /*
  * XPath: /frr-filter:lib/access-list/entry/destination-any
  */
-static int lib_access_list_entry_destination_any_create(
-	struct nb_cb_create_args *args)
+static int
+lib_access_list_entry_destination_any_create(struct nb_cb_create_args *args)
 {
 	struct filter_cisco *fc;
 	struct filter *f;
@@ -1027,8 +1013,8 @@ static int lib_access_list_entry_destination_any_create(
 	return NB_OK;
 }
 
-static int lib_access_list_entry_destination_any_destroy(
-	struct nb_cb_destroy_args *args)
+static int
+lib_access_list_entry_destination_any_destroy(struct nb_cb_destroy_args *args)
 {
 	struct filter_cisco *fc;
 	struct filter *f;
@@ -1057,9 +1043,9 @@ static int lib_access_list_entry_any_create(struct nb_cb_create_args *args)
 
 	/* Don't allow duplicated values. */
 	if (args->event == NB_EV_VALIDATE) {
-		if (acl_zebra_is_dup(
-			    args->dnode,
-			    yang_dnode_get_enum(args->dnode, "../../type"))) {
+		if (acl_zebra_is_dup(args->dnode,
+				     yang_dnode_get_enum(args->dnode,
+							 "../../type"))) {
 			snprintfrr(args->errmsg, args->errmsg_len,
 				   "duplicated access list value: %s",
 				   yang_dnode_get_string(args->dnode, NULL));
@@ -1313,8 +1299,9 @@ lib_prefix_list_entry_ipv4_prefix_modify(struct nb_cb_modify_args *args)
 		const struct lyd_node *plist_dnode =
 			yang_dnode_get_parent(args->dnode, "prefix-list");
 
-		return prefix_list_nb_validate_v4_af_type(
-			plist_dnode, args->errmsg, args->errmsg_len);
+		return prefix_list_nb_validate_v4_af_type(plist_dnode,
+							  args->errmsg,
+							  args->errmsg_len);
 	}
 
 	return lib_prefix_list_entry_prefix_modify(args);
@@ -1323,7 +1310,6 @@ lib_prefix_list_entry_ipv4_prefix_modify(struct nb_cb_modify_args *args)
 static int
 lib_prefix_list_entry_ipv4_prefix_destroy(struct nb_cb_destroy_args *args)
 {
-
 	if (args->event != NB_EV_APPLY)
 		return NB_OK;
 
@@ -1336,13 +1322,13 @@ lib_prefix_list_entry_ipv4_prefix_destroy(struct nb_cb_destroy_args *args)
 static int
 lib_prefix_list_entry_ipv6_prefix_modify(struct nb_cb_modify_args *args)
 {
-
 	if (args->event == NB_EV_VALIDATE) {
 		const struct lyd_node *plist_dnode =
 			yang_dnode_get_parent(args->dnode, "prefix-list");
 
-		return prefix_list_nb_validate_v6_af_type(
-			plist_dnode, args->errmsg, args->errmsg_len);
+		return prefix_list_nb_validate_v6_af_type(plist_dnode,
+							  args->errmsg,
+							  args->errmsg_len);
 	}
 
 	return lib_prefix_list_entry_prefix_modify(args);
@@ -1351,7 +1337,6 @@ lib_prefix_list_entry_ipv6_prefix_modify(struct nb_cb_modify_args *args)
 static int
 lib_prefix_list_entry_ipv6_prefix_destroy(struct nb_cb_destroy_args *args)
 {
-
 	if (args->event != NB_EV_APPLY)
 		return NB_OK;
 
@@ -1364,20 +1349,20 @@ lib_prefix_list_entry_ipv6_prefix_destroy(struct nb_cb_destroy_args *args)
 static int lib_prefix_list_entry_ipv4_prefix_length_greater_or_equal_modify(
 	struct nb_cb_modify_args *args)
 {
-	if (args->event == NB_EV_VALIDATE
-	    && prefix_list_length_validate(args) != NB_OK)
+	if (args->event == NB_EV_VALIDATE &&
+	    prefix_list_length_validate(args) != NB_OK)
 		return NB_ERR_VALIDATION;
 
 	if (args->event == NB_EV_VALIDATE) {
 		const struct lyd_node *plist_dnode =
 			yang_dnode_get_parent(args->dnode, "prefix-list");
 
-		return prefix_list_nb_validate_v4_af_type(
-			plist_dnode, args->errmsg, args->errmsg_len);
+		return prefix_list_nb_validate_v4_af_type(plist_dnode,
+							  args->errmsg,
+							  args->errmsg_len);
 	}
 
-	return lib_prefix_list_entry_prefix_length_greater_or_equal_modify(
-		args);
+	return lib_prefix_list_entry_prefix_length_greater_or_equal_modify(args);
 }
 
 static int lib_prefix_list_entry_ipv4_prefix_length_greater_or_equal_destroy(
@@ -1387,8 +1372,9 @@ static int lib_prefix_list_entry_ipv4_prefix_length_greater_or_equal_destroy(
 		const struct lyd_node *plist_dnode =
 			yang_dnode_get_parent(args->dnode, "prefix-list");
 
-		return prefix_list_nb_validate_v4_af_type(
-			plist_dnode, args->errmsg, args->errmsg_len);
+		return prefix_list_nb_validate_v4_af_type(plist_dnode,
+							  args->errmsg,
+							  args->errmsg_len);
 	}
 
 	return lib_prefix_list_entry_prefix_length_greater_or_equal_destroy(
@@ -1401,20 +1387,20 @@ static int lib_prefix_list_entry_ipv4_prefix_length_greater_or_equal_destroy(
 static int lib_prefix_list_entry_ipv4_prefix_length_lesser_or_equal_modify(
 	struct nb_cb_modify_args *args)
 {
-	if (args->event == NB_EV_VALIDATE
-	    && prefix_list_length_validate(args) != NB_OK)
+	if (args->event == NB_EV_VALIDATE &&
+	    prefix_list_length_validate(args) != NB_OK)
 		return NB_ERR_VALIDATION;
 
 	if (args->event == NB_EV_VALIDATE) {
 		const struct lyd_node *plist_dnode =
 			yang_dnode_get_parent(args->dnode, "prefix-list");
 
-		return prefix_list_nb_validate_v4_af_type(
-			plist_dnode, args->errmsg, args->errmsg_len);
+		return prefix_list_nb_validate_v4_af_type(plist_dnode,
+							  args->errmsg,
+							  args->errmsg_len);
 	}
 
-	return lib_prefix_list_entry_prefix_length_lesser_or_equal_modify(
-		args);
+	return lib_prefix_list_entry_prefix_length_lesser_or_equal_modify(args);
 }
 
 static int lib_prefix_list_entry_ipv4_prefix_length_lesser_or_equal_destroy(
@@ -1424,12 +1410,12 @@ static int lib_prefix_list_entry_ipv4_prefix_length_lesser_or_equal_destroy(
 		const struct lyd_node *plist_dnode =
 			yang_dnode_get_parent(args->dnode, "prefix-list");
 
-		return prefix_list_nb_validate_v4_af_type(
-			plist_dnode, args->errmsg, args->errmsg_len);
+		return prefix_list_nb_validate_v4_af_type(plist_dnode,
+							  args->errmsg,
+							  args->errmsg_len);
 	}
 
-	return lib_prefix_list_entry_prefix_length_lesser_or_equal_destroy(
-		args);
+	return lib_prefix_list_entry_prefix_length_lesser_or_equal_destroy(args);
 }
 
 /*
@@ -1438,20 +1424,20 @@ static int lib_prefix_list_entry_ipv4_prefix_length_lesser_or_equal_destroy(
 static int lib_prefix_list_entry_ipv6_prefix_length_greater_or_equal_modify(
 	struct nb_cb_modify_args *args)
 {
-	if (args->event == NB_EV_VALIDATE
-	    && prefix_list_length_validate(args) != NB_OK)
+	if (args->event == NB_EV_VALIDATE &&
+	    prefix_list_length_validate(args) != NB_OK)
 		return NB_ERR_VALIDATION;
 
 	if (args->event == NB_EV_VALIDATE) {
 		const struct lyd_node *plist_dnode =
 			yang_dnode_get_parent(args->dnode, "prefix-list");
 
-		return prefix_list_nb_validate_v6_af_type(
-			plist_dnode, args->errmsg, args->errmsg_len);
+		return prefix_list_nb_validate_v6_af_type(plist_dnode,
+							  args->errmsg,
+							  args->errmsg_len);
 	}
 
-	return lib_prefix_list_entry_prefix_length_greater_or_equal_modify(
-		args);
+	return lib_prefix_list_entry_prefix_length_greater_or_equal_modify(args);
 }
 
 static int lib_prefix_list_entry_ipv6_prefix_length_greater_or_equal_destroy(
@@ -1461,8 +1447,9 @@ static int lib_prefix_list_entry_ipv6_prefix_length_greater_or_equal_destroy(
 		const struct lyd_node *plist_dnode =
 			yang_dnode_get_parent(args->dnode, "prefix-list");
 
-		return prefix_list_nb_validate_v6_af_type(
-			plist_dnode, args->errmsg, args->errmsg_len);
+		return prefix_list_nb_validate_v6_af_type(plist_dnode,
+							  args->errmsg,
+							  args->errmsg_len);
 	}
 
 	return lib_prefix_list_entry_prefix_length_greater_or_equal_destroy(
@@ -1475,20 +1462,20 @@ static int lib_prefix_list_entry_ipv6_prefix_length_greater_or_equal_destroy(
 static int lib_prefix_list_entry_ipv6_prefix_length_lesser_or_equal_modify(
 	struct nb_cb_modify_args *args)
 {
-	if (args->event == NB_EV_VALIDATE
-	    && prefix_list_length_validate(args) != NB_OK)
+	if (args->event == NB_EV_VALIDATE &&
+	    prefix_list_length_validate(args) != NB_OK)
 		return NB_ERR_VALIDATION;
 
 	if (args->event == NB_EV_VALIDATE) {
 		const struct lyd_node *plist_dnode =
 			yang_dnode_get_parent(args->dnode, "prefix-list");
 
-		return prefix_list_nb_validate_v6_af_type(
-			plist_dnode, args->errmsg, args->errmsg_len);
+		return prefix_list_nb_validate_v6_af_type(plist_dnode,
+							  args->errmsg,
+							  args->errmsg_len);
 	}
 
-	return lib_prefix_list_entry_prefix_length_lesser_or_equal_modify(
-		args);
+	return lib_prefix_list_entry_prefix_length_lesser_or_equal_modify(args);
 }
 
 static int lib_prefix_list_entry_ipv6_prefix_length_lesser_or_equal_destroy(
@@ -1498,12 +1485,12 @@ static int lib_prefix_list_entry_ipv6_prefix_length_lesser_or_equal_destroy(
 		const struct lyd_node *plist_dnode =
 			yang_dnode_get_parent(args->dnode, "prefix-list");
 
-		return prefix_list_nb_validate_v6_af_type(
-			plist_dnode, args->errmsg, args->errmsg_len);
+		return prefix_list_nb_validate_v6_af_type(plist_dnode,
+							  args->errmsg,
+							  args->errmsg_len);
 	}
 
-	return lib_prefix_list_entry_prefix_length_lesser_or_equal_destroy(
-		args);
+	return lib_prefix_list_entry_prefix_length_lesser_or_equal_destroy(args);
 }
 
 /*

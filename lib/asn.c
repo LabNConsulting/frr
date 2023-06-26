@@ -24,11 +24,11 @@
 static bool relax_as_zero;
 
 static const struct message asnotation_mode_msg[] = {
-	{ASNOTATION_PLAIN, "plain"},
-	{ASNOTATION_DOT, "dot"},
-	{ASNOTATION_DOTPLUS, "dot+"},
-	{ASNOTATION_UNDEFINED, "undefined"},
-	{0}
+	{ ASNOTATION_PLAIN, "plain" },
+	{ ASNOTATION_DOT, "dot" },
+	{ ASNOTATION_DOTPLUS, "dot+" },
+	{ ASNOTATION_UNDEFINED, "undefined" },
+	{ 0 }
 };
 
 /* converts a string into an Autonomous system number
@@ -49,7 +49,7 @@ static bool asn_str2asn_internal(const char *asstring, as_t *asn,
 	if (!asstring)
 		goto end;
 
-	if  (!isdigit((unsigned char)*p))
+	if (!isdigit((unsigned char)*p))
 		goto end;
 
 	/* leading zero is forbidden */
@@ -120,7 +120,7 @@ static bool asn_str2asn_internal(const char *asstring, as_t *asn,
 	}
 	*asn = high;
 	ret = true;
- end:
+end:
 	if (next)
 		*next = p;
 	if (mode)
@@ -193,8 +193,8 @@ const char *asn_mode2str(enum asnotation_mode asnotation)
 			  "Unrecognized AS notation mode");
 }
 
-void asn_asn2json(json_object *json, const char *attr,
-		  as_t asn, enum asnotation_mode asnotation)
+void asn_asn2json(json_object *json, const char *attr, as_t asn,
+		  enum asnotation_mode asnotation)
 {
 	static char as_str[ASN_STRING_MAX_SIZE];
 
@@ -214,8 +214,7 @@ void asn_asn2json_array(json_object *jseg_list, as_t asn,
 
 	if ((asnotation == ASNOTATION_PLAIN) ||
 	    ((asnotation == ASNOTATION_DOT) && asn < UINT16_MAX))
-		json_object_array_add(jseg_list,
-				      json_object_new_int64(asn));
+		json_object_array_add(jseg_list, json_object_new_int64(asn));
 	else {
 		asn_asn2asdot(asn, as_str, sizeof(as_str));
 		json_array_string_add(jseg_list, as_str);
@@ -238,7 +237,7 @@ static ssize_t printfrr_asnotation(struct fbuf *buf, struct printfrr_eargs *ea,
 				   enum asnotation_mode asnotation)
 {
 	/* for alignemnt up to 33 chars - %33pASD for instance - */
-	char as_str[ASN_STRING_MAX_SIZE*3];
+	char as_str[ASN_STRING_MAX_SIZE * 3];
 	const as_t *asn;
 
 	if (!ptr)
@@ -257,7 +256,7 @@ static ssize_t printfrr_asplain(struct fbuf *buf, struct printfrr_eargs *ea,
 
 printfrr_ext_autoreg_p("ASD", printfrr_asdot);
 static ssize_t printfrr_asdot(struct fbuf *buf, struct printfrr_eargs *ea,
-				const void *ptr)
+			      const void *ptr)
 {
 	return printfrr_asnotation(buf, ea, ptr, ASNOTATION_DOT);
 }

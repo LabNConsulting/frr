@@ -16,11 +16,11 @@
 #ifndef HAVE_STRLCPY
 #undef strlcpy
 
-size_t strlcpy(char *__restrict dest,
-	       const char *__restrict src, size_t destsize);
+size_t strlcpy(char *__restrict dest, const char *__restrict src,
+	       size_t destsize);
 
-size_t strlcpy(char *__restrict dest,
-	       const char *__restrict src, size_t destsize)
+size_t strlcpy(char *__restrict dest, const char *__restrict src,
+	       size_t destsize)
 {
 	size_t src_length = strlen(src);
 

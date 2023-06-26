@@ -207,8 +207,8 @@ static void admin_group_extend(struct admin_group *ag, size_t idx)
 	old_m = ag->bitmap.m;
 	m = idx + 1;
 	ag->bitmap.m = m;
-	ag->bitmap.data =
-		XREALLOC(MTYPE_BITFIELD, ag->bitmap.data, m * sizeof(word_t));
+	ag->bitmap.data = XREALLOC(MTYPE_BITFIELD, ag->bitmap.data,
+				   m * sizeof(word_t));
 	memset(&ag->bitmap.data[old_m], 0, (m - old_m) * sizeof(word_t));
 }
 
@@ -254,7 +254,6 @@ int admin_group_get(const struct admin_group *ag, size_t pos)
 void admin_group_bulk_set(struct admin_group *ag, uint32_t bitmap,
 			  size_t oct_offset)
 {
-
 	if (bitmap == 0 && oct_offset == 0) {
 		admin_group_allow_explicit_zero(ag);
 		return;

@@ -59,8 +59,8 @@ extern void frrzmq_finish(void);
 
 #define _xref_zmq_a(type, f, d, call)                                          \
 	({                                                                     \
-		static const struct xref_eventsched _xref __attribute__(       \
-			(used)) = {                                            \
+		static const struct xref_eventsched _xref __attribute__((      \
+			used)) = {                                             \
 			.xref = XREF_INIT(XREFT_EVENTSCHED, NULL, __func__),   \
 			.funcname = #f,                                        \
 			.dest = #d,                                            \

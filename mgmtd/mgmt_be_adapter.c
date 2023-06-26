@@ -130,8 +130,7 @@ static struct mgmt_be_client_xpath staticd_xpaths[] = {
 		.subscribed = MGMT_SUBSCR_VALIDATE_CFG | MGMT_SUBSCR_NOTIFY_CFG,
 	},
 	{
-		.xpath =
-			"/frr-routing:routing/control-plane-protocols/control-plane-protocol/frr-staticd:staticd/*",
+		.xpath = "/frr-routing:routing/control-plane-protocols/control-plane-protocol/frr-staticd:staticd/*",
 		.subscribed = MGMT_SUBSCR_VALIDATE_CFG | MGMT_SUBSCR_NOTIFY_CFG,
 	},
 };
@@ -140,10 +139,10 @@ static struct mgmt_be_client_xpath staticd_xpaths[] = {
 static struct mgmt_be_client_xpath_map
 	mgmt_client_xpaths[MGMTD_BE_CLIENT_ID_MAX] = {
 #ifdef HAVE_STATICD
-		[MGMTD_BE_CLIENT_ID_STATICD] = {staticd_xpaths,
-						array_size(staticd_xpaths)},
+		[MGMTD_BE_CLIENT_ID_STATICD] = { staticd_xpaths,
+						 array_size(staticd_xpaths) },
 #endif
-};
+	};
 
 #define MGMTD_BE_MAX_NUM_XPATH_MAP 256
 
@@ -153,7 +152,7 @@ static struct mgmt_be_xpath_map *mgmt_xpath_map;
 static uint mgmt_num_xpath_maps;
 
 static struct event_loop *mgmt_loop;
-static struct msg_server mgmt_be_server = {.fd = -1};
+static struct msg_server mgmt_be_server = { .fd = -1 };
 
 static struct mgmt_be_adapters_head mgmt_be_adapters;
 
@@ -167,8 +166,7 @@ mgmt_be_adapter_sched_init_event(struct mgmt_be_client_adapter *adapter);
 static uint mgmt_be_get_subscr_for_xpath_and_client(
 	const char *xpath, enum mgmt_be_client_id client_id, uint subscr_mask);
 
-static struct mgmt_be_client_adapter *
-mgmt_be_find_adapter_by_fd(int conn_fd)
+static struct mgmt_be_client_adapter *mgmt_be_find_adapter_by_fd(int conn_fd)
 {
 	struct mgmt_be_client_adapter *adapter;
 
@@ -200,13 +198,14 @@ static void mgmt_be_xpath_map_init(void)
 	MGMTD_BE_ADAPTER_DBG("Init XPath Maps");
 
 	mgmt_num_xpath_maps = array_size(mgmt_xpath_map_init);
-	mgmt_xpath_map =
-		calloc(1, sizeof(*mgmt_xpath_map) * mgmt_num_xpath_maps);
+	mgmt_xpath_map = calloc(1,
+				sizeof(*mgmt_xpath_map) * mgmt_num_xpath_maps);
 	for (i = 0; i < mgmt_num_xpath_maps; i++) {
 		MGMTD_BE_ADAPTER_DBG(" - XPATH: '%s'",
 				     mgmt_xpath_map_init[i].xpath_regexp);
-		mgmt_xpath_map[i].xpath_regexp = XSTRDUP(
-			MTYPE_MGMTD_XPATH, mgmt_xpath_map_init[i].xpath_regexp);
+		mgmt_xpath_map[i].xpath_regexp =
+			XSTRDUP(MTYPE_MGMTD_XPATH,
+				mgmt_xpath_map_init[i].xpath_regexp);
 		memcpy(mgmt_xpath_map[i].subscr_info,
 		       mgmt_xpath_map_init[i].subscr_info,
 		       sizeof(mgmt_xpath_map_init[i].subscr_info));
@@ -223,8 +222,7 @@ static void mgmt_be_xpath_map_cleanup(void)
 	free(mgmt_xpath_map);
 }
 
-static int mgmt_be_eval_regexp_match(const char *xpath_regexp,
-				     const char *xpath)
+static int mgmt_be_eval_regexp_match(const char *xpath_regexp, const char *xpath)
 {
 	int match_len = 0, re_indx = 0, xp_indx = 0;
 	int rexp_len, xpath_len;
@@ -238,9 +236,9 @@ static int mgmt_be_eval_regexp_match(const char *xpath_regexp,
 	/*
 	 * Remove the trailing wildcard from the regexp and Xpath.
 	 */
-	if (rexp_len && xpath_regexp[rexp_len-1] == '*')
+	if (rexp_len && xpath_regexp[rexp_len - 1] == '*')
 		rexp_len--;
-	if (xpath_len && xpath[xpath_len-1] == '*')
+	if (xpath_len && xpath[xpath_len - 1] == '*')
 		xpath_len--;
 
 	if (!rexp_len || !xpath_len)
@@ -254,29 +252,27 @@ static int mgmt_be_eval_regexp_match(const char *xpath_regexp,
 		 * Check if we need to enter wildcard matching.
 		 */
 		if (!enter_wild_match && !match &&
-			(xpath_regexp[re_indx] == '*'
-			 || xpath[xp_indx] == '*')) {
+		    (xpath_regexp[re_indx] == '*' || xpath[xp_indx] == '*')) {
 			/*
 			 * Found wildcard
 			 */
-			enter_wild_match =
-				(xpath_regexp[re_indx-1] == '/'
-				 || xpath_regexp[re_indx-1] == '\''
-				 || xpath[xp_indx-1] == '/'
-				 || xpath[xp_indx-1] == '\'');
+			enter_wild_match = (xpath_regexp[re_indx - 1] == '/' ||
+					    xpath_regexp[re_indx - 1] == '\'' ||
+					    xpath[xp_indx - 1] == '/' ||
+					    xpath[xp_indx - 1] == '\'');
 			if (enter_wild_match) {
 				if (xpath_regexp[re_indx] == '*') {
 					/*
 					 * Begin RE wildcard match.
 					 */
 					re_wild = true;
-					wild_delim = xpath_regexp[re_indx-1];
+					wild_delim = xpath_regexp[re_indx - 1];
 				} else if (xpath[xp_indx] == '*') {
 					/*
 					 * Begin XP wildcard match.
 					 */
 					xp_wild = true;
-					wild_delim = xpath[xp_indx-1];
+					wild_delim = xpath[xp_indx - 1];
 				}
 			}
 		}
@@ -290,33 +286,30 @@ static int mgmt_be_eval_regexp_match(const char *xpath_regexp,
 				 * End RE wildcard matching.
 				 */
 				re_wild = false;
-				if (re_indx < rexp_len-1)
+				if (re_indx < rexp_len - 1)
 					re_indx++;
 				enter_wild_match = false;
-			} else if (xp_wild
-				   && xpath_regexp[re_indx] == wild_delim) {
+			} else if (xp_wild &&
+				   xpath_regexp[re_indx] == wild_delim) {
 				/*
 				 * End XP wildcard matching.
 				 */
 				xp_wild = false;
-				if (xp_indx < xpath_len-1)
+				if (xp_indx < xpath_len - 1)
 					xp_indx++;
 				enter_wild_match = false;
 			}
 		}
 
-		match = (xp_wild || re_wild
-			 || xpath_regexp[re_indx] == xpath[xp_indx]);
+		match = (xp_wild || re_wild ||
+			 xpath_regexp[re_indx] == xpath[xp_indx]);
 
 		/*
 		 * Check if we found a delimiter in both the Xpaths
 		 */
-		if ((xpath_regexp[re_indx] == '/'
-			&& xpath[xp_indx] == '/')
-			|| (xpath_regexp[re_indx] == ']'
-				&& xpath[xp_indx] == ']')
-			|| (xpath_regexp[re_indx] == '['
-				&& xpath[xp_indx] == '[')) {
+		if ((xpath_regexp[re_indx] == '/' && xpath[xp_indx] == '/') ||
+		    (xpath_regexp[re_indx] == ']' && xpath[xp_indx] == ']') ||
+		    (xpath_regexp[re_indx] == '[' && xpath[xp_indx] == '[')) {
 			/*
 			 * Increment the match count if we have a
 			 * new delimiter.
@@ -343,8 +336,7 @@ static int mgmt_be_eval_regexp_match(const char *xpath_regexp,
 	 * increment the match count appropriately.
 	 */
 	if (match && !delim &&
-		(xpath_regexp[re_indx] == '/'
-		 || xpath_regexp[re_indx] == ']'))
+	    (xpath_regexp[re_indx] == '/' || xpath_regexp[re_indx] == ']'))
 		match_len++;
 
 	return match_len;
@@ -390,10 +382,9 @@ mgmt_be_adapter_cleanup_old_conn(struct mgmt_be_client_adapter *adapter)
 			/*
 			 * We have a Zombie lingering around
 			 */
-			MGMTD_BE_ADAPTER_DBG(
-				"Client '%s' (FD:%d) seems to have reconnected. Removing old connection (FD:%d)!",
-				adapter->name, adapter->conn->fd,
-				old->conn->fd);
+			MGMTD_BE_ADAPTER_DBG("Client '%s' (FD:%d) seems to have reconnected. Removing old connection (FD:%d)!",
+					     adapter->name, adapter->conn->fd,
+					     old->conn->fd);
 			/* this will/should delete old */
 			msg_conn_disconnect(old->conn, false);
 		}
@@ -404,10 +395,12 @@ mgmt_be_adapter_cleanup_old_conn(struct mgmt_be_client_adapter *adapter)
 static int mgmt_be_adapter_send_msg(struct mgmt_be_client_adapter *adapter,
 				    Mgmtd__BeMessage *be_msg)
 {
-	return msg_conn_send_msg(
-		adapter->conn, MGMT_MSG_VERSION_PROTOBUF, be_msg,
-		mgmtd__be_message__get_packed_size(be_msg),
-		(size_t(*)(void *, void *))mgmtd__be_message__pack, false);
+	return msg_conn_send_msg(adapter->conn, MGMT_MSG_VERSION_PROTOBUF,
+				 be_msg,
+				 mgmtd__be_message__get_packed_size(be_msg),
+				 (size_t(*)(void *,
+					    void *))mgmtd__be_message__pack,
+				 false);
 }
 
 static int mgmt_be_send_subscr_reply(struct mgmt_be_client_adapter *adapter,
@@ -429,9 +422,8 @@ static int mgmt_be_send_subscr_reply(struct mgmt_be_client_adapter *adapter,
 	return mgmt_be_adapter_send_msg(adapter, &be_msg);
 }
 
-static int
-mgmt_be_adapter_handle_msg(struct mgmt_be_client_adapter *adapter,
-			      Mgmtd__BeMessage *be_msg)
+static int mgmt_be_adapter_handle_msg(struct mgmt_be_client_adapter *adapter,
+				      Mgmtd__BeMessage *be_msg)
 {
 	/*
 	 * protobuf-c adds a max size enum with an internal, and changing by
@@ -439,23 +431,21 @@ mgmt_be_adapter_handle_msg(struct mgmt_be_client_adapter *adapter,
 	 */
 	switch ((int)be_msg->message_case) {
 	case MGMTD__BE_MESSAGE__MESSAGE_SUBSCR_REQ:
-		MGMTD_BE_ADAPTER_DBG(
-			"Got SUBSCR_REQ from '%s' to %sregister %zu xpaths",
-			be_msg->subscr_req->client_name,
-			!be_msg->subscr_req->subscribe_xpaths &&
-					be_msg->subscr_req->n_xpath_reg
-				? "de"
-				: "",
-			be_msg->subscr_req->n_xpath_reg);
+		MGMTD_BE_ADAPTER_DBG("Got SUBSCR_REQ from '%s' to %sregister %zu xpaths",
+				     be_msg->subscr_req->client_name,
+				     !be_msg->subscr_req->subscribe_xpaths &&
+						     be_msg->subscr_req->n_xpath_reg
+					     ? "de"
+					     : "",
+				     be_msg->subscr_req->n_xpath_reg);
 
 		if (strlen(be_msg->subscr_req->client_name)) {
 			strlcpy(adapter->name, be_msg->subscr_req->client_name,
 				sizeof(adapter->name));
 			adapter->id = mgmt_be_client_name2id(adapter->name);
 			if (adapter->id >= MGMTD_BE_CLIENT_ID_MAX) {
-				MGMTD_BE_ADAPTER_ERR(
-					"Unable to resolve adapter '%s' to a valid ID. Disconnecting!",
-					adapter->name);
+				MGMTD_BE_ADAPTER_ERR("Unable to resolve adapter '%s' to a valid ID. Disconnecting!",
+						     adapter->name);
 				/* this will/should delete old */
 				msg_conn_disconnect(adapter->conn, false);
 				zlog_err("XXX different from original code");
@@ -475,52 +465,58 @@ mgmt_be_adapter_handle_msg(struct mgmt_be_client_adapter *adapter,
 			mgmt_be_send_subscr_reply(adapter, true);
 		break;
 	case MGMTD__BE_MESSAGE__MESSAGE_TXN_REPLY:
-		MGMTD_BE_ADAPTER_DBG(
-			"Got %s TXN_REPLY from '%s' txn-id %" PRIx64
-			" with '%s'",
-			be_msg->txn_reply->create ? "Create" : "Delete",
-			adapter->name, be_msg->txn_reply->txn_id,
-			be_msg->txn_reply->success ? "success" : "failure");
+		MGMTD_BE_ADAPTER_DBG("Got %s TXN_REPLY from '%s' txn-id %" PRIx64
+				     " with '%s'",
+				     be_msg->txn_reply->create ? "Create"
+							       : "Delete",
+				     adapter->name, be_msg->txn_reply->txn_id,
+				     be_msg->txn_reply->success ? "success"
+								: "failure");
 		/*
 		 * Forward the TXN_REPLY to txn module.
 		 */
-		mgmt_txn_notify_be_txn_reply(
-			be_msg->txn_reply->txn_id,
-			be_msg->txn_reply->create,
-			be_msg->txn_reply->success, adapter);
+		mgmt_txn_notify_be_txn_reply(be_msg->txn_reply->txn_id,
+					     be_msg->txn_reply->create,
+					     be_msg->txn_reply->success,
+					     adapter);
 		break;
 	case MGMTD__BE_MESSAGE__MESSAGE_CFG_DATA_REPLY:
-		MGMTD_BE_ADAPTER_DBG(
-			"Got CFGDATA_REPLY from '%s' txn-id %" PRIx64
-			" batch-id %" PRIu64 " err:'%s'",
-			adapter->name, be_msg->cfg_data_reply->txn_id,
-			be_msg->cfg_data_reply->batch_id,
-			be_msg->cfg_data_reply->error_if_any
-				? be_msg->cfg_data_reply->error_if_any
-				: "None");
+		MGMTD_BE_ADAPTER_DBG("Got CFGDATA_REPLY from '%s' txn-id %" PRIx64
+				     " batch-id %" PRIu64 " err:'%s'",
+				     adapter->name,
+				     be_msg->cfg_data_reply->txn_id,
+				     be_msg->cfg_data_reply->batch_id,
+				     be_msg->cfg_data_reply->error_if_any
+					     ? be_msg->cfg_data_reply->error_if_any
+					     : "None");
 		/*
 		 * Forward the CGFData-create reply to txn module.
 		 */
-		mgmt_txn_notify_be_cfgdata_reply(
-			be_msg->cfg_data_reply->txn_id,
-			be_msg->cfg_data_reply->batch_id,
-			be_msg->cfg_data_reply->success,
-			be_msg->cfg_data_reply->error_if_any, adapter);
+		mgmt_txn_notify_be_cfgdata_reply(be_msg->cfg_data_reply->txn_id,
+						 be_msg->cfg_data_reply->batch_id,
+						 be_msg->cfg_data_reply->success,
+						 be_msg->cfg_data_reply
+							 ->error_if_any,
+						 adapter);
 		break;
 	case MGMTD__BE_MESSAGE__MESSAGE_CFG_APPLY_REPLY:
-		MGMTD_BE_ADAPTER_DBG(
-			"Got %s CFG_APPLY_REPLY from '%s' txn-id %" PRIx64
-			" for %zu batches id %" PRIu64 "-%" PRIu64 " err:'%s'",
-			be_msg->cfg_apply_reply->success ? "successful"
-							 : "failed",
-			adapter->name, be_msg->cfg_apply_reply->txn_id,
-			be_msg->cfg_apply_reply->n_batch_ids,
-			be_msg->cfg_apply_reply->batch_ids[0],
-			be_msg->cfg_apply_reply->batch_ids
-				[be_msg->cfg_apply_reply->n_batch_ids - 1],
-			be_msg->cfg_apply_reply->error_if_any
-				? be_msg->cfg_apply_reply->error_if_any
-				: "None");
+		MGMTD_BE_ADAPTER_DBG("Got %s CFG_APPLY_REPLY from '%s' txn-id %" PRIx64
+				     " for %zu batches id %" PRIu64 "-%" PRIu64
+				     " err:'%s'",
+				     be_msg->cfg_apply_reply->success
+					     ? "successful"
+					     : "failed",
+				     adapter->name,
+				     be_msg->cfg_apply_reply->txn_id,
+				     be_msg->cfg_apply_reply->n_batch_ids,
+				     be_msg->cfg_apply_reply->batch_ids[0],
+				     be_msg->cfg_apply_reply
+					     ->batch_ids[be_msg->cfg_apply_reply
+								 ->n_batch_ids -
+							 1],
+				     be_msg->cfg_apply_reply->error_if_any
+					     ? be_msg->cfg_apply_reply->error_if_any
+					     : "None");
 		/*
 		 * Forward the CGFData-apply reply to txn module.
 		 */
@@ -603,10 +599,9 @@ int mgmt_be_send_cfgdata_req(struct mgmt_be_client_adapter *adapter,
 	be_msg.message_case = MGMTD__BE_MESSAGE__MESSAGE_CFG_DATA_REQ;
 	be_msg.cfg_data_req = &cfgdata_req;
 
-	MGMTD_BE_ADAPTER_DBG(
-		"Sending CFGDATA_CREATE_REQ to '%s' txn-id: %" PRIu64
-		" batch-id: %" PRIu64,
-		adapter->name, txn_id, batch_id);
+	MGMTD_BE_ADAPTER_DBG("Sending CFGDATA_CREATE_REQ to '%s' txn-id: %" PRIu64
+			     " batch-id: %" PRIu64,
+			     adapter->name, txn_id, batch_id);
 
 	return mgmt_be_adapter_send_msg(adapter, &be_msg);
 }
@@ -637,9 +632,8 @@ static void mgmt_be_adapter_process_msg(uint8_t version, uint8_t *data,
 	Mgmtd__BeMessage *be_msg = mgmtd__be_message__unpack(NULL, len, data);
 
 	if (!be_msg) {
-		MGMTD_BE_ADAPTER_DBG(
-			"Failed to decode %zu bytes for adapter: %s", len,
-			adapter->name);
+		MGMTD_BE_ADAPTER_DBG("Failed to decode %zu bytes for adapter: %s",
+				     len, adapter->name);
 		return;
 	}
 	MGMTD_BE_ADAPTER_DBG("Decoded %zu bytes of message: %u for adapter: %s",
@@ -655,8 +649,8 @@ static void mgmt_be_iter_and_get_cfg(const char *xpath, struct lyd_node *node,
 	struct mgmt_be_client_adapter *adapter = parms->adapter;
 	uint subscr;
 
-	subscr = mgmt_be_get_subscr_for_xpath_and_client(
-		xpath, adapter->id, MGMT_SUBSCR_NOTIFY_CFG);
+	subscr = mgmt_be_get_subscr_for_xpath_and_client(xpath, adapter->id,
+							 MGMT_SUBSCR_NOTIFY_CFG);
 	if (subscr)
 		nb_config_diff_created(node, &parms->seq, parms->cfg_chgs);
 }
@@ -739,8 +733,7 @@ void mgmt_be_adapter_init(struct event_loop *tm)
 	mgmt_be_xpath_map_init();
 
 	if (msg_server_init(&mgmt_be_server, MGMTD_BE_SERVER_PATH, tm,
-			    mgmt_be_create_adapter, "backend",
-			    &mgmt_debug_be)) {
+			    mgmt_be_create_adapter, "backend", &mgmt_debug_be)) {
 		zlog_err("cannot initialize backend server");
 		exit(1);
 	}
@@ -772,18 +765,19 @@ struct msg_conn *mgmt_be_create_adapter(int conn_fd, union sockunion *from)
 	adapter = XCALLOC(MTYPE_MGMTD_BE_ADPATER,
 			  sizeof(struct mgmt_be_client_adapter));
 	adapter->id = MGMTD_BE_CLIENT_ID_MAX;
-	snprintf(adapter->name, sizeof(adapter->name), "Unknown-FD-%d",
-		 conn_fd);
+	snprintf(adapter->name, sizeof(adapter->name), "Unknown-FD-%d", conn_fd);
 
 	mgmt_be_adapter_lock(adapter);
 	mgmt_be_adapters_add_tail(&mgmt_be_adapters, adapter);
 	RB_INIT(nb_config_cbs, &adapter->cfg_chgs);
 
-	adapter->conn = msg_server_conn_create(
-		mgmt_loop, conn_fd, mgmt_be_adapter_notify_disconnect,
-		mgmt_be_adapter_process_msg, MGMTD_BE_MAX_NUM_MSG_PROC,
-		MGMTD_BE_MAX_NUM_MSG_WRITE, MGMTD_BE_MSG_MAX_LEN, adapter,
-		"BE-adapter");
+	adapter->conn = msg_server_conn_create(mgmt_loop, conn_fd,
+					       mgmt_be_adapter_notify_disconnect,
+					       mgmt_be_adapter_process_msg,
+					       MGMTD_BE_MAX_NUM_MSG_PROC,
+					       MGMTD_BE_MAX_NUM_MSG_WRITE,
+					       MGMTD_BE_MSG_MAX_LEN, adapter,
+					       "BE-adapter");
 
 	MGMTD_BE_ADAPTER_DBG("Added new MGMTD Backend adapter '%s'",
 			     adapter->name);
@@ -794,12 +788,10 @@ struct msg_conn *mgmt_be_create_adapter(int conn_fd, union sockunion *from)
 struct mgmt_be_client_adapter *
 mgmt_be_get_adapter_by_id(enum mgmt_be_client_id id)
 {
-	return (id < MGMTD_BE_CLIENT_ID_MAX ? mgmt_be_adapters_by_id[id]
-					       : NULL);
+	return (id < MGMTD_BE_CLIENT_ID_MAX ? mgmt_be_adapters_by_id[id] : NULL);
 }
 
-struct mgmt_be_client_adapter *
-mgmt_be_get_adapter_by_name(const char *name)
+struct mgmt_be_client_adapter *mgmt_be_get_adapter_by_name(const char *name)
 {
 	return mgmt_be_find_adapter_by_name(name);
 }

@@ -150,16 +150,13 @@ void log_ref_display(struct vty *vty, uint32_t code, bool json)
 	list_delete(&errlist);
 }
 
-DEFUN_NOSH(show_error_code,
-	   show_error_code_cmd,
+DEFUN_NOSH(show_error_code, show_error_code_cmd,
 	   "show error <(1-4294967295)|all> [json]",
-	   SHOW_STR
-	   "Information on errors\n"
-	   "Error code to get info about\n"
-	   "Information on all errors\n"
-	   JSON_STR)
+	   SHOW_STR "Information on errors\n"
+		    "Error code to get info about\n"
+		    "Information on all errors\n" JSON_STR)
 {
-	bool json = strmatch(argv[argc-1]->text, "json");
+	bool json = strmatch(argv[argc - 1]->text, "json");
 	uint32_t arg = 0;
 
 	if (!strmatch(argv[2]->text, "all"))

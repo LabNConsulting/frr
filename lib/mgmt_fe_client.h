@@ -30,10 +30,10 @@ extern "C" {
 #define MGMTD_FE_DEFAULT_CONN_RETRY_INTVL_SEC 5
 
 #define MGMTD_FE_MSG_PROC_DELAY_USEC 10
-#define MGMTD_FE_MAX_NUM_MSG_PROC 500
+#define MGMTD_FE_MAX_NUM_MSG_PROC    500
 
 #define MGMTD_FE_MSG_WRITE_DELAY_MSEC 1
-#define MGMTD_FE_MAX_NUM_MSG_WRITE 100
+#define MGMTD_FE_MAX_NUM_MSG_WRITE    100
 
 #define GMGD_FE_MAX_NUM_REQ_ITEMS 64
 
@@ -50,11 +50,11 @@ extern "C" {
 
 #define MGMTD_CLIENT_ID_NONE 0
 
-#define MGMTD_DS_NONE MGMTD__DATASTORE_ID__DS_NONE
-#define MGMTD_DS_RUNNING MGMTD__DATASTORE_ID__RUNNING_DS
-#define MGMTD_DS_CANDIDATE MGMTD__DATASTORE_ID__CANDIDATE_DS
+#define MGMTD_DS_NONE	     MGMTD__DATASTORE_ID__DS_NONE
+#define MGMTD_DS_RUNNING     MGMTD__DATASTORE_ID__RUNNING_DS
+#define MGMTD_DS_CANDIDATE   MGMTD__DATASTORE_ID__CANDIDATE_DS
 #define MGMTD_DS_OPERATIONAL MGMTD__DATASTORE_ID__OPERATIONAL_DS
-#define MGMTD_DS_MAX_ID MGMTD_DS_OPERATIONAL + 1
+#define MGMTD_DS_MAX_ID	     MGMTD_DS_OPERATIONAL + 1
 
 struct mgmt_fe_client;
 
@@ -89,10 +89,9 @@ struct mgmt_fe_client_cbs {
 	void (*set_config_notify)(struct mgmt_fe_client *client,
 				  uintptr_t user_data, uint64_t client_id,
 				  uintptr_t session_id,
-				  uintptr_t user_session_client,
-				  uint64_t req_id, bool success,
-				  Mgmtd__DatastoreId ds_id, bool implcit_commit,
-				  char *errmsg_if_any);
+				  uintptr_t user_session_client, uint64_t req_id,
+				  bool success, Mgmtd__DatastoreId ds_id,
+				  bool implcit_commit, char *errmsg_if_any);
 
 	void (*commit_config_notify)(struct mgmt_fe_client *client,
 				     uintptr_t user_data, uint64_t client_id,

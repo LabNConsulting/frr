@@ -29,8 +29,7 @@ extern void connected_add_ipv4(struct interface *ifp, int flags,
 			       uint32_t metric);
 
 extern void connected_delete_ipv4(struct interface *ifp, int flags,
-				  const struct in_addr *addr,
-				  uint16_t prefixlen,
+				  const struct in_addr *addr, uint16_t prefixlen,
 				  const struct in_addr *dest);
 
 extern void connected_delete_ipv4_unnumbered(struct connected *ifc);

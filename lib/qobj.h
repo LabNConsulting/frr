@@ -86,7 +86,7 @@ struct qobj_node {
 /* call these at the end of any _create function (QOBJ_REG)
  * and beginning of any _destroy function (QOBJ_UNREG) */
 #define QOBJ_REG(n, structname) qobj_reg(&n->qobj_node, &qobj_t_##structname)
-#define QOBJ_UNREG(n) qobj_unreg(&n->qobj_node)
+#define QOBJ_UNREG(n)		qobj_unreg(&n->qobj_node)
 
 /* internals - should not be directly used without a good reason
  *
@@ -107,19 +107,18 @@ void *qobj_get_typed(uint64_t id, const struct qobj_nodetype *type);
 
 /* type declarations */
 #define DECLARE_QOBJ_TYPE(structname)                                          \
-	extern const struct qobj_nodetype qobj_t_##structname                  \
-	/* end */
+	extern const struct qobj_nodetype qobj_t_##structname /* end */
 #define DEFINE_QOBJ_TYPE(structname)                                           \
 	const struct qobj_nodetype qobj_t_##structname = {                     \
-		.node_member_offset =                                          \
-			(ptrdiff_t)offsetof(struct structname, qobj_node)}     \
-	/* end */
+		.node_member_offset = (ptrdiff_t)offsetof(struct structname,   \
+							  qobj_node)           \
+	} /* end */
 #define DEFINE_QOBJ_TYPE_INIT(structname, ...)                                 \
 	const struct qobj_nodetype qobj_t_##structname = {                     \
-		.node_member_offset =                                          \
-			(ptrdiff_t)offsetof(struct structname, qobj_node),     \
-		__VA_ARGS__}                                                   \
-	/* end */
+		.node_member_offset = (ptrdiff_t)offsetof(struct structname,   \
+							  qobj_node),          \
+		__VA_ARGS__                                                    \
+	} /* end */
 
 /* ID dereference with typecheck.
  * will return NULL if id not found or wrong type. */

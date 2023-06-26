@@ -70,7 +70,7 @@ static inline time_t monotime(struct timeval *tvo)
 	return ts.tv_sec;
 }
 
-#define ONE_DAY_SECOND (60 * 60 * 24)
+#define ONE_DAY_SECOND	(60 * 60 * 24)
 #define ONE_WEEK_SECOND (ONE_DAY_SECOND * 7)
 #define ONE_YEAR_SECOND (ONE_DAY_SECOND * 365)
 
@@ -130,8 +130,7 @@ static inline char *time_to_string(time_t ts, char *buf)
 }
 
 /* Convert interval to human-friendly string, used in cli output e.g. */
-static inline const char *frrtime_to_interval(time_t t, char *buf,
-					      size_t buflen)
+static inline const char *frrtime_to_interval(time_t t, char *buf, size_t buflen)
 {
 	struct tm tm;
 
@@ -188,8 +187,8 @@ enum {
 	TIMEFMT_DASHES = (1 << 31),
 
 	/* helpers for reference */
-	TIMEFMT_TIMER_DEADLINE =
-		TIMEFMT_PRESELECT | TIMEFMT_MONOTONIC | TIMEFMT_UNTIL,
+	TIMEFMT_TIMER_DEADLINE = TIMEFMT_PRESELECT | TIMEFMT_MONOTONIC |
+				 TIMEFMT_UNTIL,
 	TIMEFMT_TIMER_INTERVAL = TIMEFMT_PRESELECT,
 };
 

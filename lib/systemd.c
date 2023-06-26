@@ -131,22 +131,21 @@ void systemd_init_env(void)
 			watchdog_msec = watchdog_usec / 3000;
 		else {
 			if (watchdog_usec != 0)
-				flog_err(
-					EC_LIB_UNAVAILABLE,
-					"systemd expects a %jd microsecond watchdog timer, but FRR only supports millisecond resolution!",
-					watchdog_usec);
+				flog_err(EC_LIB_UNAVAILABLE,
+					 "systemd expects a %jd microsecond watchdog timer, but FRR only supports millisecond resolution!",
+					 watchdog_usec);
 			watchdog_msec = 0;
 		}
 	}
 
 	tmp = getenv("JOURNAL_STREAM");
-	if (tmp && sscanf(tmp, "%ju:%ju%n", &dev, &ino, &len) == 2
-	    && (size_t)len == strlen(tmp)) {
-		if (fstat(1, &st) == 0 && st.st_dev == (dev_t)dev
-		    && st.st_ino == (ino_t)ino)
+	if (tmp && sscanf(tmp, "%ju:%ju%n", &dev, &ino, &len) == 2 &&
+	    (size_t)len == strlen(tmp)) {
+		if (fstat(1, &st) == 0 && st.st_dev == (dev_t)dev &&
+		    st.st_ino == (ino_t)ino)
 			sd_stdout_is_journal = true;
-		if (fstat(2, &st) == 0 && st.st_dev == (dev_t)dev
-		    && st.st_ino == (ino_t)ino)
+		if (fstat(2, &st) == 0 && st.st_dev == (dev_t)dev &&
+		    st.st_ino == (ino_t)ino)
 			sd_stderr_is_journal = true;
 	}
 

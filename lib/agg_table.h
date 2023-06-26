@@ -90,7 +90,7 @@ static inline struct agg_node *agg_route_next_until(struct agg_node *node,
 	struct route_node *rnode;
 
 	rnode = route_next_until(agg_node_to_rnode(node),
-				agg_node_to_rnode(limit));
+				 agg_node_to_rnode(limit));
 
 	return agg_node_from_rnode(rnode);
 }
@@ -154,7 +154,7 @@ static inline unsigned int agg_node_get_lock_count(const struct agg_node *node)
 }
 
 #ifdef _FRR_ATTRIBUTE_PRINTFRR
-#pragma FRR printfrr_ext "%pRN"  (struct agg_node *)
+#pragma FRR printfrr_ext "%pRN"(struct agg_node *)
 #endif
 
 #ifdef __cplusplus

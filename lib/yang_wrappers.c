@@ -168,10 +168,10 @@ struct yang_data *yang_data_new_dec64(const char *xpath, double value)
 double yang_dnode_get_dec64(const struct lyd_node *dnode, const char *xpath_fmt,
 			    ...)
 {
-	const double denom[19] = {1e0,   1e-1,  1e-2,  1e-3,  1e-4,
-				  1e-5,  1e-6,  1e-7,  1e-8,  1e-9,
-				  1e-10, 1e-11, 1e-12, 1e-13, 1e-14,
-				  1e-15, 1e-16, 1e-17, 1e-18};
+	const double denom[19] = { 1e0,	  1e-1,	 1e-2,	1e-3,  1e-4,
+				   1e-5,  1e-6,	 1e-7,	1e-8,  1e-9,
+				   1e-10, 1e-11, 1e-12, 1e-13, 1e-14,
+				   1e-15, 1e-16, 1e-17, 1e-18 };
 	const struct lysc_type_dec *dectype;
 	const struct lyd_value *dvalue;
 
@@ -256,8 +256,8 @@ struct yang_data *yang_data_new_enum(const char *xpath, int value)
 	enums = type->enums;
 	unsigned int count = LY_ARRAY_COUNT(enums);
 	for (unsigned int i = 0; i < count; i++) {
-		if (CHECK_FLAG(enums[i].flags, LYS_SET_VALUE)
-		    && value == enums[i].value)
+		if (CHECK_FLAG(enums[i].flags, LYS_SET_VALUE) &&
+		    value == enums[i].value)
 			return yang_data_new(xpath, enums[i].name);
 	}
 
@@ -268,8 +268,7 @@ struct yang_data *yang_data_new_enum(const char *xpath, int value)
 	abort();
 }
 
-int yang_dnode_get_enum(const struct lyd_node *dnode, const char *xpath_fmt,
-			...)
+int yang_dnode_get_enum(const struct lyd_node *dnode, const char *xpath_fmt, ...)
 {
 	const struct lyd_value *dvalue;
 
@@ -631,8 +630,7 @@ void yang_dnode_get_string_buf(char *buf, size_t size,
 
 		yang_dnode_get_path(dnode, xpath, sizeof(xpath));
 		flog_warn(EC_LIB_YANG_DATA_TRUNCATED,
-			  "%s: value was truncated [xpath %s]", __func__,
-			  xpath);
+			  "%s: value was truncated [xpath %s]", __func__, xpath);
 	}
 }
 
@@ -662,8 +660,7 @@ void yang_get_default_string_buf(char *buf, size_t size, const char *xpath_fmt,
 	value = yang_get_default_value(xpath);
 	if (strlcpy(buf, value, size) >= size)
 		flog_warn(EC_LIB_YANG_DATA_TRUNCATED,
-			  "%s: value was truncated [xpath %s]", __func__,
-			  xpath);
+			  "%s: value was truncated [xpath %s]", __func__, xpath);
 }
 
 /*
@@ -716,8 +713,7 @@ size_t yang_dnode_get_binary_buf(char *buf, size_t size,
 
 		yang_dnode_get_path(dnode, xpath, sizeof(xpath));
 		flog_warn(EC_LIB_YANG_DATA_TRUNCATED,
-			  "%s: value was truncated [xpath %s]", __func__,
-			  xpath);
+			  "%s: value was truncated [xpath %s]", __func__, xpath);
 	}
 	free(value_str);
 	return ret_len;
@@ -1006,8 +1002,7 @@ void yang_get_default_ip(struct ipaddr *var, const char *xpath_fmt, ...)
 	yang_str2ip(value, var);
 }
 
-struct yang_data *yang_data_new_mac(const char *xpath,
-				    const struct ethaddr *mac)
+struct yang_data *yang_data_new_mac(const char *xpath, const struct ethaddr *mac)
 {
 	char value_str[ETHER_ADDR_STRLEN];
 

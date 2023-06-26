@@ -21,7 +21,7 @@
 #include "jhash.h"
 
 /* The golden ration: an arbitrary value */
-#define JHASH_GOLDEN_RATIO  0x9e3779b9
+#define JHASH_GOLDEN_RATIO 0x9e3779b9
 
 /* NOTE: Arguments are modified. */
 #define __jhash_mix(a, b, c)                                                   \
@@ -69,12 +69,12 @@ uint32_t jhash(const void *key, uint32_t length, uint32_t initval)
 	c = initval;
 
 	while (len >= 12) {
-		a += (k[0] + ((uint32_t)k[1] << 8) + ((uint32_t)k[2] << 16)
-		      + ((uint32_t)k[3] << 24));
-		b += (k[4] + ((uint32_t)k[5] << 8) + ((uint32_t)k[6] << 16)
-		      + ((uint32_t)k[7] << 24));
-		c += (k[8] + ((uint32_t)k[9] << 8) + ((uint32_t)k[10] << 16)
-		      + ((uint32_t)k[11] << 24));
+		a += (k[0] + ((uint32_t)k[1] << 8) + ((uint32_t)k[2] << 16) +
+		      ((uint32_t)k[3] << 24));
+		b += (k[4] + ((uint32_t)k[5] << 8) + ((uint32_t)k[6] << 16) +
+		      ((uint32_t)k[7] << 24));
+		c += (k[8] + ((uint32_t)k[9] << 8) + ((uint32_t)k[10] << 16) +
+		      ((uint32_t)k[11] << 24));
 
 		__jhash_mix(a, b, c);
 

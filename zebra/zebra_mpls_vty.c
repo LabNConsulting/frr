@@ -25,8 +25,7 @@
 
 static int zebra_mpls_transit_lsp(struct vty *vty, int add_cmd,
 				  const char *inlabel_str, const char *gate_str,
-				  const char *outlabel_str,
-				  const char *flag_str)
+				  const char *outlabel_str, const char *flag_str)
 {
 	struct zebra_vrf *zvrf;
 	int ret;
@@ -113,8 +112,7 @@ static int zebra_mpls_transit_lsp(struct vty *vty, int add_cmd,
 		ret = zebra_mpls_static_lsp_add(zvrf, in_label, out_label,
 						gtype, &gate, 0);
 	} else
-		ret = zebra_mpls_static_lsp_del(zvrf, in_label, gtype, &gate,
-						0);
+		ret = zebra_mpls_static_lsp_del(zvrf, in_label, gtype, &gate, 0);
 
 	if (ret != 0) {
 		vty_out(vty, "%% LSP cannot be %s\n",
@@ -125,31 +123,26 @@ static int zebra_mpls_transit_lsp(struct vty *vty, int add_cmd,
 	return CMD_SUCCESS;
 }
 
-DEFUN (mpls_transit_lsp,
-       mpls_transit_lsp_cmd,
-       "mpls lsp (16-1048575) <A.B.C.D|X:X::X:X> <(16-1048575)|explicit-null|implicit-null>",
-       MPLS_STR
-       "Establish label switched path\n"
-       "Incoming MPLS label\n"
-       "IPv4 gateway address\n"
-       "IPv6 gateway address\n"
-       "Outgoing MPLS label\n"
-       "Use Explicit-Null label\n"
-       "Use Implicit-Null label\n")
+DEFUN(mpls_transit_lsp, mpls_transit_lsp_cmd,
+      "mpls lsp (16-1048575) <A.B.C.D|X:X::X:X> <(16-1048575)|explicit-null|implicit-null>",
+      MPLS_STR "Establish label switched path\n"
+	       "Incoming MPLS label\n"
+	       "IPv4 gateway address\n"
+	       "IPv6 gateway address\n"
+	       "Outgoing MPLS label\n"
+	       "Use Explicit-Null label\n"
+	       "Use Implicit-Null label\n")
 {
 	return zebra_mpls_transit_lsp(vty, 1, argv[2]->arg, argv[3]->arg,
 				      argv[4]->arg, NULL);
 }
 
-DEFUN (no_mpls_transit_lsp,
-       no_mpls_transit_lsp_cmd,
-       "no mpls lsp (16-1048575) <A.B.C.D|X:X::X:X>",
-       NO_STR
-       MPLS_STR
-       "Establish label switched path\n"
-       "Incoming MPLS label\n"
-       "IPv4 gateway address\n"
-       "IPv6 gateway address\n")
+DEFUN(no_mpls_transit_lsp, no_mpls_transit_lsp_cmd,
+      "no mpls lsp (16-1048575) <A.B.C.D|X:X::X:X>",
+      NO_STR MPLS_STR "Establish label switched path\n"
+		      "Incoming MPLS label\n"
+		      "IPv4 gateway address\n"
+		      "IPv6 gateway address\n")
 {
 	return zebra_mpls_transit_lsp(vty, 0, argv[3]->arg, argv[4]->arg, NULL,
 				      NULL);
@@ -157,22 +150,18 @@ DEFUN (no_mpls_transit_lsp,
 
 ALIAS(no_mpls_transit_lsp, no_mpls_transit_lsp_out_label_cmd,
       "no mpls lsp (16-1048575) <A.B.C.D|X:X::X:X> <(16-1048575)|explicit-null|implicit-null>",
-      NO_STR MPLS_STR
-      "Establish label switched path\n"
-      "Incoming MPLS label\n"
-      "IPv4 gateway address\n"
-      "IPv6 gateway address\n"
-      "Outgoing MPLS label\n"
-      "Use Explicit-Null label\n"
-      "Use Implicit-Null label\n")
+      NO_STR MPLS_STR "Establish label switched path\n"
+		      "Incoming MPLS label\n"
+		      "IPv4 gateway address\n"
+		      "IPv6 gateway address\n"
+		      "Outgoing MPLS label\n"
+		      "Use Explicit-Null label\n"
+		      "Use Implicit-Null label\n")
 
-DEFUN (no_mpls_transit_lsp_all,
-       no_mpls_transit_lsp_all_cmd,
-       "no mpls lsp (16-1048575)",
-       NO_STR
-       MPLS_STR
-       "Establish label switched path\n"
-       "Incoming MPLS label\n")
+DEFUN(no_mpls_transit_lsp_all, no_mpls_transit_lsp_all_cmd,
+      "no mpls lsp (16-1048575)",
+      NO_STR MPLS_STR "Establish label switched path\n"
+		      "Incoming MPLS label\n")
 {
 	return zebra_mpls_transit_lsp(vty, 0, argv[3]->arg, NULL, NULL, NULL);
 }
@@ -237,32 +226,27 @@ static int zebra_mpls_bind(struct vty *vty, int add_cmd, const char *prefix,
 	return CMD_SUCCESS;
 }
 
-DEFUN (mpls_label_bind,
-       mpls_label_bind_cmd,
-       "mpls label bind <A.B.C.D/M|X:X::X:X/M> <(16-1048575)|implicit-null|explicit-null>",
-       MPLS_STR
-       "Label configuration\n"
-       "Establish FEC to label binding\n"
-       "IPv4 prefix\n"
-       "IPv6 prefix\n"
-       "MPLS Label to bind\n"
-       "Use Implicit-Null Label\n"
-       "Use Explicit-Null Label\n")
+DEFUN(mpls_label_bind, mpls_label_bind_cmd,
+      "mpls label bind <A.B.C.D/M|X:X::X:X/M> <(16-1048575)|implicit-null|explicit-null>",
+      MPLS_STR "Label configuration\n"
+	       "Establish FEC to label binding\n"
+	       "IPv4 prefix\n"
+	       "IPv6 prefix\n"
+	       "MPLS Label to bind\n"
+	       "Use Implicit-Null Label\n"
+	       "Use Explicit-Null Label\n")
 {
 	return zebra_mpls_bind(vty, 1, argv[3]->arg, argv[4]->arg);
 }
 
-DEFUN (no_mpls_label_bind,
-       no_mpls_label_bind_cmd,
-       "no mpls label bind <A.B.C.D/M|X:X::X:X/M> [<(16-1048575)|implicit-null>]",
-       NO_STR
-       MPLS_STR
-       "Label configuration\n"
-       "Establish FEC to label binding\n"
-       "IPv4 prefix\n"
-       "IPv6 prefix\n"
-       "MPLS Label to bind\n"
-       "Use Implicit-Null Label\n")
+DEFUN(no_mpls_label_bind, no_mpls_label_bind_cmd,
+      "no mpls label bind <A.B.C.D/M|X:X::X:X/M> [<(16-1048575)|implicit-null>]",
+      NO_STR MPLS_STR "Label configuration\n"
+		      "Establish FEC to label binding\n"
+		      "IPv4 prefix\n"
+		      "IPv6 prefix\n"
+		      "MPLS Label to bind\n"
+		      "Use Implicit-Null Label\n")
 {
 	return zebra_mpls_bind(vty, 0, argv[4]->arg, NULL);
 }
@@ -283,14 +267,10 @@ static int zebra_mpls_config(struct vty *vty)
 	return write;
 }
 
-DEFUN (show_mpls_fec,
-       show_mpls_fec_cmd,
-       "show mpls fec [<A.B.C.D/M|X:X::X:X/M>]",
-       SHOW_STR
-       MPLS_STR
-       "MPLS FEC table\n"
-       "FEC to display information about\n"
-       "FEC to display information about\n")
+DEFUN(show_mpls_fec, show_mpls_fec_cmd, "show mpls fec [<A.B.C.D/M|X:X::X:X/M>]",
+      SHOW_STR MPLS_STR "MPLS FEC table\n"
+			"FEC to display information about\n"
+			"FEC to display information about\n")
 {
 	struct zebra_vrf *zvrf;
 	struct prefix p;
@@ -315,13 +295,8 @@ DEFUN (show_mpls_fec,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_mpls_table,
-       show_mpls_table_cmd,
-       "show mpls table [json]",
-       SHOW_STR
-       MPLS_STR
-       "MPLS table\n"
-       JSON_STR)
+DEFUN(show_mpls_table, show_mpls_table_cmd, "show mpls table [json]",
+      SHOW_STR MPLS_STR "MPLS table\n" JSON_STR)
 {
 	struct zebra_vrf *zvrf;
 	bool uj = use_json(argc, argv);
@@ -331,14 +306,10 @@ DEFUN (show_mpls_table,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_mpls_table_lsp,
-       show_mpls_table_lsp_cmd,
-       "show mpls table (16-1048575) [json]",
-       SHOW_STR
-       MPLS_STR
-       "MPLS table\n"
-       "LSP to display information about\n"
-       JSON_STR)
+DEFUN(show_mpls_table_lsp, show_mpls_table_lsp_cmd,
+      "show mpls table (16-1048575) [json]",
+      SHOW_STR MPLS_STR "MPLS table\n"
+			"LSP to display information about\n" JSON_STR)
 {
 	uint32_t label;
 	struct zebra_vrf *zvrf;
@@ -350,12 +321,9 @@ DEFUN (show_mpls_table_lsp,
 	return CMD_SUCCESS;
 }
 
-DEFUN (show_mpls_status,
-       show_mpls_status_cmd,
-       "show mpls status",
-       SHOW_STR
-       "MPLS information\n"
-       "MPLS status\n")
+DEFUN(show_mpls_status, show_mpls_status_cmd, "show mpls status",
+      SHOW_STR "MPLS information\n"
+	       "MPLS status\n")
 {
 	vty_out(vty, "MPLS support enabled: %s\n",
 		(mpls_enabled) ? "yes"
@@ -386,8 +354,8 @@ static int zebra_mpls_global_block(struct vty *vty, int add_cmd,
 
 		start_label = atoi(start_label_str);
 		end_label = atoi(end_label_str);
-		if (!IS_MPLS_UNRESERVED_LABEL(start_label)
-		    || !IS_MPLS_UNRESERVED_LABEL(end_label)) {
+		if (!IS_MPLS_UNRESERVED_LABEL(start_label) ||
+		    !IS_MPLS_UNRESERVED_LABEL(end_label)) {
 			vty_out(vty, "%% Invalid label\n");
 			return CMD_WARNING_CONFIG_FAILED;
 		}
@@ -409,27 +377,22 @@ static int zebra_mpls_global_block(struct vty *vty, int add_cmd,
 	return CMD_SUCCESS;
 }
 
-DEFUN (mpls_label_global_block,
-       mpls_label_global_block_cmd,
-       "mpls label global-block (16-1048575) (16-1048575)",
-       MPLS_STR
-       "Label configuration\n"
-       "Configure global label block\n"
-       "Start label\n"
-       "End label\n")
+DEFUN(mpls_label_global_block, mpls_label_global_block_cmd,
+      "mpls label global-block (16-1048575) (16-1048575)",
+      MPLS_STR "Label configuration\n"
+	       "Configure global label block\n"
+	       "Start label\n"
+	       "End label\n")
 {
 	return zebra_mpls_global_block(vty, 1, argv[3]->arg, argv[4]->arg);
 }
 
-DEFUN (no_mpls_label_global_block,
-       no_mpls_label_global_block_cmd,
-       "no mpls label global-block [(16-1048575) (16-1048575)]",
-       NO_STR
-       MPLS_STR
-       "Label configuration\n"
-       "Configure global label block\n"
-       "Start label\n"
-       "End label\n")
+DEFUN(no_mpls_label_global_block, no_mpls_label_global_block_cmd,
+      "no mpls label global-block [(16-1048575) (16-1048575)]",
+      NO_STR MPLS_STR "Label configuration\n"
+		      "Configure global label block\n"
+		      "Start label\n"
+		      "End label\n")
 {
 	return zebra_mpls_global_block(vty, 0, NULL, NULL);
 }

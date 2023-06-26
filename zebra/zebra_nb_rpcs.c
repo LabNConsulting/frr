@@ -28,17 +28,16 @@ int clear_evpn_dup_addr_rpc(struct nb_cb_rpc_args *args)
 
 	zvrf = zebra_vrf_get_evpn();
 
-	if (yang_dup_choice
-	    && strcmp(yang_dup_choice->value, "all-case") == 0) {
+	if (yang_dup_choice && strcmp(yang_dup_choice->value, "all-case") == 0) {
 		zebra_vxlan_clear_dup_detect_vni_all(zvrf);
 	} else {
 		vni_t vni;
-		struct ipaddr host_ip = {.ipa_type = IPADDR_NONE};
+		struct ipaddr host_ip = { .ipa_type = IPADDR_NONE };
 		struct ethaddr mac;
 
-		yang_dup_vni = yang_data_list_find(
-			args->input, "%s/%s", args->xpath,
-			"input/clear-dup-choice/single-case/vni-id");
+		yang_dup_vni =
+			yang_data_list_find(args->input, "%s/%s", args->xpath,
+					    "input/clear-dup-choice/single-case/vni-id");
 		if (yang_dup_vni) {
 			vni = yang_str2uint32(yang_dup_vni->value);
 

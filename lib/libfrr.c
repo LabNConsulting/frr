@@ -87,32 +87,33 @@ static void opt_extend(const struct optspec *os)
 }
 
 
-#define OPTION_VTYSOCK   1000
+#define OPTION_VTYSOCK	 1000
 #define OPTION_MODULEDIR 1002
-#define OPTION_LOG       1003
-#define OPTION_LOGLEVEL  1004
-#define OPTION_TCLI      1005
-#define OPTION_DB_FILE   1006
-#define OPTION_LOGGING   1007
+#define OPTION_LOG	 1003
+#define OPTION_LOGLEVEL	 1004
+#define OPTION_TCLI	 1005
+#define OPTION_DB_FILE	 1006
+#define OPTION_LOGGING	 1007
 #define OPTION_LIMIT_FDS 1008
 #define OPTION_SCRIPTDIR 1009
 
 static const struct option lo_always[] = {
-	{"help", no_argument, NULL, 'h'},
-	{"version", no_argument, NULL, 'v'},
-	{"daemon", no_argument, NULL, 'd'},
-	{"module", no_argument, NULL, 'M'},
-	{"profile", required_argument, NULL, 'F'},
-	{"pathspace", required_argument, NULL, 'N'},
-	{"vrfdefaultname", required_argument, NULL, 'o'},
-	{"vty_socket", required_argument, NULL, OPTION_VTYSOCK},
-	{"moduledir", required_argument, NULL, OPTION_MODULEDIR},
-	{"scriptdir", required_argument, NULL, OPTION_SCRIPTDIR},
-	{"log", required_argument, NULL, OPTION_LOG},
-	{"log-level", required_argument, NULL, OPTION_LOGLEVEL},
-	{"command-log-always", no_argument, NULL, OPTION_LOGGING},
-	{"limit-fds", required_argument, NULL, OPTION_LIMIT_FDS},
-	{NULL}};
+	{ "help", no_argument, NULL, 'h' },
+	{ "version", no_argument, NULL, 'v' },
+	{ "daemon", no_argument, NULL, 'd' },
+	{ "module", no_argument, NULL, 'M' },
+	{ "profile", required_argument, NULL, 'F' },
+	{ "pathspace", required_argument, NULL, 'N' },
+	{ "vrfdefaultname", required_argument, NULL, 'o' },
+	{ "vty_socket", required_argument, NULL, OPTION_VTYSOCK },
+	{ "moduledir", required_argument, NULL, OPTION_MODULEDIR },
+	{ "scriptdir", required_argument, NULL, OPTION_SCRIPTDIR },
+	{ "log", required_argument, NULL, OPTION_LOG },
+	{ "log-level", required_argument, NULL, OPTION_LOGLEVEL },
+	{ "command-log-always", no_argument, NULL, OPTION_LOGGING },
+	{ "limit-fds", required_argument, NULL, OPTION_LIMIT_FDS },
+	{ NULL }
+};
 static const struct optspec os_always = {
 	"hvdM:F:N:o:",
 	"  -h, --help         Display this help and exit\n"
@@ -128,70 +129,78 @@ static const struct optspec os_always = {
 	"      --log          Set Logging to stdout, syslog, or file:<name>\n"
 	"      --log-level    Set Logging Level to use, debug, info, warn, etc\n"
 	"      --limit-fds    Limit number of fds supported\n",
-	lo_always};
+	lo_always
+};
 
 static bool logging_to_stdout = false; /* set when --log stdout specified */
 
-static const struct option lo_cfg[] = {
-	{"config_file", required_argument, NULL, 'f'},
-	{"dryrun", no_argument, NULL, 'C'},
-	{NULL}};
+static const struct option lo_cfg[] = { { "config_file", required_argument,
+					  NULL, 'f' },
+					{ "dryrun", no_argument, NULL, 'C' },
+					{ NULL } };
 static const struct optspec os_cfg = {
 	"f:C",
 	"  -f, --config_file  Set configuration file name\n"
 	"  -C, --dryrun       Check configuration for validity and exit\n",
-	lo_cfg};
+	lo_cfg
+};
 
 
 static const struct option lo_fullcli[] = {
-	{"terminal", no_argument, NULL, 't'},
-	{"tcli", no_argument, NULL, OPTION_TCLI},
+	{ "terminal", no_argument, NULL, 't' },
+	{ "tcli", no_argument, NULL, OPTION_TCLI },
 #ifdef HAVE_SQLITE3
-	{"db_file", required_argument, NULL, OPTION_DB_FILE},
+	{ "db_file", required_argument, NULL, OPTION_DB_FILE },
 #endif
-	{NULL}};
+	{ NULL }
+};
 static const struct optspec os_fullcli = {
 	"t",
 	"      --tcli         Use transaction-based CLI\n"
 	"  -t, --terminal     Open terminal session on stdio\n"
 	"  -d -t              Daemonize after terminal session ends\n",
-	lo_fullcli};
+	lo_fullcli
+};
 
 
-static const struct option lo_pid[] = {
-	{"pid_file", required_argument, NULL, 'i'},
-	{NULL}};
+static const struct option lo_pid[] = { { "pid_file", required_argument, NULL,
+					  'i' },
+					{ NULL } };
 static const struct optspec os_pid = {
-	"i:",
-	"  -i, --pid_file     Set process identifier file name\n",
-	lo_pid};
+	"i:", "  -i, --pid_file     Set process identifier file name\n", lo_pid
+};
 
 
-static const struct option lo_zclient[] = {
-	{"socket", required_argument, NULL, 'z'},
-	{NULL}};
+static const struct option lo_zclient[] = { { "socket", required_argument, NULL,
+					      'z' },
+					    { NULL } };
 static const struct optspec os_zclient = {
-	"z:", "  -z, --socket       Set path of zebra socket\n", lo_zclient};
+	"z:", "  -z, --socket       Set path of zebra socket\n", lo_zclient
+};
 
 
 static const struct option lo_vty[] = {
-	{"vty_addr", required_argument, NULL, 'A'},
-	{"vty_port", required_argument, NULL, 'P'},
-	{NULL}};
+	{ "vty_addr", required_argument, NULL, 'A' },
+	{ "vty_port", required_argument, NULL, 'P' },
+	{ NULL }
+};
 static const struct optspec os_vty = {
 	"A:P:",
 	"  -A, --vty_addr     Set vty's bind address\n"
 	"  -P, --vty_port     Set vty's port number\n",
-	lo_vty};
+	lo_vty
+};
 
 
-static const struct option lo_user[] = {{"user", required_argument, NULL, 'u'},
-					{"group", required_argument, NULL, 'g'},
-					{NULL}};
-static const struct optspec os_user = {"u:g:",
-				       "  -u, --user         User to run as\n"
-				       "  -g, --group        Group to run as\n",
-				       lo_user};
+static const struct option lo_user[] = {
+	{ "user", required_argument, NULL, 'u' },
+	{ "group", required_argument, NULL, 'g' },
+	{ NULL }
+};
+static const struct optspec os_user = { "u:g:",
+					"  -u, --user         User to run as\n"
+					"  -g, --group        Group to run as\n",
+					lo_user };
 
 bool frr_zclient_addr(struct sockaddr_storage *sa, socklen_t *sa_len,
 		      const char *path)
@@ -344,11 +353,11 @@ void frr_preinit(struct frr_daemon_info *daemon, int argc, char **argv)
 		 frr_sysconfdir, di->name);
 	snprintf(pidfile_default, sizeof(pidfile_default), "%s/%s.pid",
 		 frr_vtydir, di->name);
-	snprintf(frr_zclientpath, sizeof(frr_zclientpath),
-		 ZEBRA_SERV_PATH, "", "");
+	snprintf(frr_zclientpath, sizeof(frr_zclientpath), ZEBRA_SERV_PATH, "",
+		 "");
 #ifdef HAVE_SQLITE3
-	snprintf(dbfile_default, sizeof(dbfile_default), "%s/%s.db",
-		 frr_dbdir, di->name);
+	snprintf(dbfile_default, sizeof(dbfile_default), "%s/%s.db", frr_dbdir,
+		 di->name);
 #endif
 
 	strlcpy(frr_protoname, di->logname, sizeof(frr_protoname));
@@ -387,7 +396,7 @@ bool frr_is_startup_fd(int fd)
 void frr_opt_add(const char *optstr, const struct option *longopts,
 		 const char *helpstr)
 {
-	const struct optspec main_opts = {optstr, helpstr, longopts};
+	const struct optspec main_opts = { optstr, helpstr, longopts };
 	opt_extend(&main_opts);
 }
 
@@ -538,8 +547,7 @@ static int frr_opt(int opt)
 		if (di->flags & FRR_NO_TCPVTY)
 			return 1;
 		if (vty_addr_set) {
-			fprintf(stderr,
-				"-A option specified more than once!\n");
+			fprintf(stderr, "-A option specified more than once!\n");
 			errors++;
 			break;
 		}
@@ -550,8 +558,7 @@ static int frr_opt(int opt)
 		if (di->flags & FRR_NO_TCPVTY)
 			return 1;
 		if (vty_port_set) {
-			fprintf(stderr,
-				"-P option specified more than once!\n");
+			fprintf(stderr, "-P option specified more than once!\n");
 			errors++;
 			break;
 		}
@@ -585,7 +592,8 @@ static int frr_opt(int opt)
 		break;
 	case OPTION_SCRIPTDIR:
 		if (di->script_path) {
-			fprintf(stderr, "--scriptdir option specified more than once!\n");
+			fprintf(stderr,
+				"--scriptdir option specified more than once!\n");
 			errors++;
 			break;
 		}
@@ -718,8 +726,7 @@ struct event_loop *frr_init(void)
 		snprintf(p_instance, sizeof(p_instance), "-%d", di->instance);
 	}
 	if (di->pathspace)
-		snprintf(p_pathspace, sizeof(p_pathspace), "%s/",
-			 di->pathspace);
+		snprintf(p_pathspace, sizeof(p_pathspace), "%s/", di->pathspace);
 
 	snprintf(config_default, sizeof(config_default), "%s%s%s%s.conf",
 		 frr_sysconfdir, p_pathspace, di->name, p_instance);
@@ -733,12 +740,11 @@ struct event_loop *frr_init(void)
 	zprivs_preinit(di->privs);
 	zprivs_get_ids(&ids);
 
-	zlog_init(di->progname, di->logname, di->instance,
-		  ids.uid_normal, ids.gid_normal);
+	zlog_init(di->progname, di->logname, di->instance, ids.uid_normal,
+		  ids.gid_normal);
 
 	while ((log_arg = log_args_pop(di->early_logging))) {
-		command_setup_early_logging(log_arg->target,
-					    di->early_loglevel);
+		command_setup_early_logging(log_arg->target, di->early_loglevel);
 		/* this is a bit of a hack,
 		   but need to notice when
 		   the target is stdout */
@@ -851,7 +857,8 @@ static void frr_daemon_wait(int fd)
 	sigprocmask(SIG_BLOCK, &sigs, &prevsigs);
 
 	struct sigaction sa = {
-		.sa_handler = rcv_signal, .sa_flags = SA_RESETHAND,
+		.sa_handler = rcv_signal,
+		.sa_flags = SA_RESETHAND,
 	};
 	sigemptyset(&sa.sa_mask);
 	sigaction(SIGTSTP, &sa, NULL);
@@ -887,8 +894,8 @@ static void frr_daemon_wait(int fd)
 			send(fd, "S", 1, 0);
 			do {
 				nrecv = recv(fd, buf, sizeof(buf), 0);
-			} while (nrecv == -1
-				 && (errno == EINTR || errno == EAGAIN));
+			} while (nrecv == -1 &&
+				 (errno == EINTR || errno == EAGAIN));
 
 			raise(SIGTSTP);
 			sigaction(SIGTSTP, &sa, NULL);
@@ -975,8 +982,8 @@ static void frr_config_read_in(struct event *t)
 	hook_call(frr_config_pre, master);
 
 	if (!vty_read_config(vty_shared_candidate_config, di->config_file,
-			     config_default)
-	    && di->backup_config_file) {
+			     config_default) &&
+	    di->backup_config_file) {
 		char *orig = XSTRDUP(MTYPE_TMP, host_config_get());
 
 		zlog_info("Attempting to read backup config file: %s specified",
@@ -994,7 +1001,7 @@ static void frr_config_read_in(struct event *t)
 	 */
 	if (frr_get_cli_mode() == FRR_CLI_TRANSACTIONAL) {
 		struct nb_context context = {};
-		char errmsg[BUFSIZ] = {0};
+		char errmsg[BUFSIZ] = { 0 };
 		int ret;
 
 		context.client = NB_CLIENT_CLI;
@@ -1002,9 +1009,8 @@ static void frr_config_read_in(struct event *t)
 					  true, "Read configuration file", NULL,
 					  errmsg, sizeof(errmsg));
 		if (ret != NB_OK && ret != NB_ERR_NO_CHANGES)
-			zlog_err(
-				"%s: failed to read configuration file: %s (%s)",
-				__func__, nb_err_name(ret), errmsg);
+			zlog_err("%s: failed to read configuration file: %s (%s)",
+				 __func__, nb_err_name(ret), errmsg);
 	}
 
 	hook_call(frr_config_post, master);
@@ -1271,8 +1277,7 @@ void frr_fini(void)
 }
 
 #ifdef INTERP
-static const char interp[]
-	__attribute__((section(".interp"), used)) = INTERP;
+static const char interp[] __attribute__((section(".interp"), used)) = INTERP;
 #endif
 /*
  * executable entry point for libfrr.so
@@ -1284,9 +1289,8 @@ extern void _libfrr_version(void)
 	__attribute__((visibility("hidden"), noreturn));
 void _libfrr_version(void)
 {
-	const char banner[] =
-		FRR_FULL_NAME " " FRR_VERSION ".\n"
-		FRR_COPYRIGHT GIT_INFO "\n"
+	const char banner[] = FRR_FULL_NAME
+		" " FRR_VERSION ".\n" FRR_COPYRIGHT GIT_INFO "\n"
 		"configured with:\n    " FRR_CONFIG_ARGS "\n";
 	write(1, banner, sizeof(banner) - 1);
 	_exit(0);

@@ -126,7 +126,7 @@ static unsigned int distribute_hash_make(const void *arg)
 /* If two distribute-list have same value then return 1 else return
    0. This function is used by hash package. */
 static bool distribute_cmp(const struct distribute *dist1,
-			  const struct distribute *dist2)
+			   const struct distribute *dist2)
 {
 	if (dist1->ifname && dist2->ifname)
 		if (strcmp(dist1->ifname, dist2->ifname) == 0)
@@ -137,8 +137,8 @@ static bool distribute_cmp(const struct distribute *dist1,
 }
 
 /* Set access-list name to the distribute list. */
-static void distribute_list_set(struct distribute_ctx *ctx,
-				const char *ifname, enum distribute_type type,
+static void distribute_list_set(struct distribute_ctx *ctx, const char *ifname,
+				enum distribute_type type,
 				const char *alist_name)
 {
 	struct distribute *dist;
@@ -154,8 +154,7 @@ static void distribute_list_set(struct distribute_ctx *ctx,
 
 /* Unset distribute-list.  If matched distribute-list exist then
    return 1. */
-static int distribute_list_unset(struct distribute_ctx *ctx,
-				 const char *ifname,
+static int distribute_list_unset(struct distribute_ctx *ctx, const char *ifname,
 				 enum distribute_type type,
 				 const char *alist_name)
 {
@@ -322,21 +321,22 @@ int config_show_distribute(struct vty *vty, struct distribute_ctx *dist_ctxt)
 		for (mp = dist_ctxt->disthash->index[i]; mp; mp = mp->next) {
 			dist = mp->data;
 			if (dist->ifname) {
-				vty_out(vty, "    %s filtered by",
-					dist->ifname);
+				vty_out(vty, "    %s filtered by", dist->ifname);
 				has_print = 0;
 				has_print = distribute_print(vty, dist->list, 0,
 							     DISTRIBUTE_V4_OUT,
 							     has_print);
-				has_print = distribute_print(
-					vty, dist->prefix, 1, DISTRIBUTE_V4_OUT,
-					has_print);
+				has_print = distribute_print(vty, dist->prefix,
+							     1,
+							     DISTRIBUTE_V4_OUT,
+							     has_print);
 				has_print = distribute_print(vty, dist->list, 0,
 							     DISTRIBUTE_V6_OUT,
 							     has_print);
-				has_print = distribute_print(
-					vty, dist->prefix, 1, DISTRIBUTE_V6_OUT,
-					has_print);
+				has_print = distribute_print(vty, dist->prefix,
+							     1,
+							     DISTRIBUTE_V6_OUT,
+							     has_print);
 				if (has_print)
 					vty_out(vty, "\n");
 				else
@@ -368,21 +368,20 @@ int config_show_distribute(struct vty *vty, struct distribute_ctx *dist_ctxt)
 		for (mp = dist_ctxt->disthash->index[i]; mp; mp = mp->next) {
 			dist = mp->data;
 			if (dist->ifname) {
-				vty_out(vty, "    %s filtered by",
-					dist->ifname);
+				vty_out(vty, "    %s filtered by", dist->ifname);
 				has_print = 0;
 				has_print = distribute_print(vty, dist->list, 0,
 							     DISTRIBUTE_V4_IN,
 							     has_print);
-				has_print = distribute_print(
-					vty, dist->prefix, 1, DISTRIBUTE_V4_IN,
-					has_print);
+				has_print = distribute_print(vty, dist->prefix,
+							     1, DISTRIBUTE_V4_IN,
+							     has_print);
 				has_print = distribute_print(vty, dist->list, 0,
 							     DISTRIBUTE_V6_IN,
 							     has_print);
-				has_print = distribute_print(
-					vty, dist->prefix, 1, DISTRIBUTE_V6_IN,
-					has_print);
+				has_print = distribute_print(vty, dist->prefix,
+							     1, DISTRIBUTE_V6_IN,
+							     has_print);
 				if (has_print)
 					vty_out(vty, "\n");
 				else
@@ -393,8 +392,7 @@ int config_show_distribute(struct vty *vty, struct distribute_ctx *dist_ctxt)
 }
 
 /* Configuration write function. */
-int config_write_distribute(struct vty *vty,
-			    struct distribute_ctx *dist_ctxt)
+int config_write_distribute(struct vty *vty, struct distribute_ctx *dist_ctxt)
 {
 	unsigned int i;
 	int j;
@@ -410,14 +408,13 @@ int config_write_distribute(struct vty *vty,
 
 			for (j = 0; j < DISTRIBUTE_MAX; j++)
 				if (dist->list[j]) {
-					output = j == DISTRIBUTE_V4_OUT
-						 || j == DISTRIBUTE_V6_OUT;
-					v6 = j == DISTRIBUTE_V6_IN
-					     || j == DISTRIBUTE_V6_OUT;
+					output = j == DISTRIBUTE_V4_OUT ||
+						 j == DISTRIBUTE_V6_OUT;
+					v6 = j == DISTRIBUTE_V6_IN ||
+					     j == DISTRIBUTE_V6_OUT;
 					vty_out(vty,
 						" %sdistribute-list %s %s %s\n",
-						v6 ? "ipv6 " : "",
-						dist->list[j],
+						v6 ? "ipv6 " : "", dist->list[j],
 						output ? "out" : "in",
 						dist->ifname ? dist->ifname
 							     : "");
@@ -426,10 +423,10 @@ int config_write_distribute(struct vty *vty,
 
 			for (j = 0; j < DISTRIBUTE_MAX; j++)
 				if (dist->prefix[j]) {
-					output = j == DISTRIBUTE_V4_OUT
-						 || j == DISTRIBUTE_V6_OUT;
-					v6 = j == DISTRIBUTE_V6_IN
-					     || j == DISTRIBUTE_V6_OUT;
+					output = j == DISTRIBUTE_V4_OUT ||
+						 j == DISTRIBUTE_V6_OUT;
+					v6 = j == DISTRIBUTE_V6_IN ||
+					     j == DISTRIBUTE_V6_OUT;
 					vty_out(vty,
 						" %sdistribute-list prefix %s %s %s\n",
 						v6 ? "ipv6 " : "",
@@ -464,9 +461,10 @@ struct distribute_ctx *distribute_list_ctx_create(struct vrf *vrf)
 
 	ctx = XCALLOC(MTYPE_DISTRIBUTE_CTX, sizeof(struct distribute_ctx));
 	ctx->vrf = vrf;
-	ctx->disthash = hash_create(
-		distribute_hash_make,
-		(bool (*)(const void *, const void *))distribute_cmp, NULL);
+	ctx->disthash =
+		hash_create(distribute_hash_make,
+			    (bool (*)(const void *, const void *))distribute_cmp,
+			    NULL);
 	if (!dist_ctx_list)
 		dist_ctx_list = list_new();
 	listnode_add(dist_ctx_list, ctx);

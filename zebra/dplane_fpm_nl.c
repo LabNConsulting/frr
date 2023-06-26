@@ -131,7 +131,7 @@ struct fpm_nl_ctx {
 		/* Amount of buffer full events. */
 		_Atomic uint32_t buffer_full;
 	} counters;
-} *gfnc;
+} * gfnc;
 
 enum fpm_nl_events {
 	/* Ask for FPM to reconnect the external server. */
@@ -184,12 +184,11 @@ static void fpm_rmac_reset(struct event *t);
 
 DEFUN(fpm_set_address, fpm_set_address_cmd,
       "fpm address <A.B.C.D|X:X::X:X> [port (1-65535)]",
-      FPM_STR
-      "FPM remote listening server address\n"
-      "Remote IPv4 FPM server\n"
-      "Remote IPv6 FPM server\n"
-      "FPM remote listening server port\n"
-      "Remote FPM server port\n")
+      FPM_STR "FPM remote listening server address\n"
+	      "Remote IPv4 FPM server\n"
+	      "Remote IPv6 FPM server\n"
+	      "FPM remote listening server port\n"
+	      "Remote FPM server port\n")
 {
 	struct sockaddr_in *sin;
 	struct sockaddr_in6 *sin6;
@@ -205,8 +204,8 @@ DEFUN(fpm_set_address, fpm_set_address_cmd,
 
 		memset(sin, 0, sizeof(*sin));
 		sin->sin_family = AF_INET;
-		sin->sin_port =
-			port ? htons(port) : htons(SOUTHBOUND_DEFAULT_PORT);
+		sin->sin_port = port ? htons(port)
+				     : htons(SOUTHBOUND_DEFAULT_PORT);
 #ifdef HAVE_STRUCT_SOCKADDR_SA_LEN
 		sin->sin_len = sizeof(*sin);
 #endif /* HAVE_STRUCT_SOCKADDR_SA_LEN */
@@ -238,23 +237,19 @@ ask_reconnect:
 
 DEFUN(no_fpm_set_address, no_fpm_set_address_cmd,
       "no fpm address [<A.B.C.D|X:X::X:X> [port <1-65535>]]",
-      NO_STR
-      FPM_STR
-      "FPM remote listening server address\n"
-      "Remote IPv4 FPM server\n"
-      "Remote IPv6 FPM server\n"
-      "FPM remote listening server port\n"
-      "Remote FPM server port\n")
+      NO_STR FPM_STR "FPM remote listening server address\n"
+		     "Remote IPv4 FPM server\n"
+		     "Remote IPv6 FPM server\n"
+		     "FPM remote listening server port\n"
+		     "Remote FPM server port\n")
 {
 	event_add_event(gfnc->fthread->master, fpm_process_event, gfnc,
 			FNE_DISABLE, &gfnc->t_event);
 	return CMD_SUCCESS;
 }
 
-DEFUN(fpm_use_nhg, fpm_use_nhg_cmd,
-      "fpm use-next-hop-groups",
-      FPM_STR
-      "Use netlink next hop groups feature.\n")
+DEFUN(fpm_use_nhg, fpm_use_nhg_cmd, "fpm use-next-hop-groups",
+      FPM_STR "Use netlink next hop groups feature.\n")
 {
 	/* Already enabled. */
 	if (gfnc->use_nhg)
@@ -266,11 +261,8 @@ DEFUN(fpm_use_nhg, fpm_use_nhg_cmd,
 	return CMD_SUCCESS;
 }
 
-DEFUN(no_fpm_use_nhg, no_fpm_use_nhg_cmd,
-      "no fpm use-next-hop-groups",
-      NO_STR
-      FPM_STR
-      "Use netlink next hop groups feature.\n")
+DEFUN(no_fpm_use_nhg, no_fpm_use_nhg_cmd, "no fpm use-next-hop-groups",
+      NO_STR FPM_STR "Use netlink next hop groups feature.\n")
 {
 	/* Already disabled. */
 	if (!gfnc->use_nhg)
@@ -282,26 +274,20 @@ DEFUN(no_fpm_use_nhg, no_fpm_use_nhg_cmd,
 	return CMD_SUCCESS;
 }
 
-DEFUN(fpm_reset_counters, fpm_reset_counters_cmd,
-      "clear fpm counters",
-      CLEAR_STR
-      FPM_STR
-      "FPM statistic counters\n")
+DEFUN(fpm_reset_counters, fpm_reset_counters_cmd, "clear fpm counters",
+      CLEAR_STR FPM_STR "FPM statistic counters\n")
 {
 	event_add_event(gfnc->fthread->master, fpm_process_event, gfnc,
 			FNE_RESET_COUNTERS, &gfnc->t_event);
 	return CMD_SUCCESS;
 }
 
-DEFUN(fpm_show_counters, fpm_show_counters_cmd,
-      "show fpm counters",
-      SHOW_STR
-      FPM_STR
-      "FPM statistic counters\n")
+DEFUN(fpm_show_counters, fpm_show_counters_cmd, "show fpm counters",
+      SHOW_STR FPM_STR "FPM statistic counters\n")
 {
 	vty_out(vty, "%30s\n%30s\n", "FPM counters", "============");
 
-#define SHOW_COUNTER(label, counter) \
+#define SHOW_COUNTER(label, counter)                                           \
 	vty_out(vty, "%28s: %u\n", (label), (counter))
 
 	SHOW_COUNTER("Input bytes", gfnc->counters.bytes_read);
@@ -312,8 +298,7 @@ DEFUN(fpm_show_counters, fpm_show_counters_cmd,
 	SHOW_COUNTER("Connection errors", gfnc->counters.connection_errors);
 	SHOW_COUNTER("Data plane items processed",
 		     gfnc->counters.dplane_contexts);
-	SHOW_COUNTER("Data plane items enqueued",
-		     gfnc->counters.ctxqueue_len);
+	SHOW_COUNTER("Data plane items enqueued", gfnc->counters.ctxqueue_len);
 	SHOW_COUNTER("Data plane items queue peak",
 		     gfnc->counters.ctxqueue_len_peak);
 	SHOW_COUNTER("Buffer full hits", gfnc->counters.buffer_full);
@@ -327,10 +312,7 @@ DEFUN(fpm_show_counters, fpm_show_counters_cmd,
 
 DEFUN(fpm_show_counters_json, fpm_show_counters_json_cmd,
       "show fpm counters json",
-      SHOW_STR
-      FPM_STR
-      "FPM statistic counters\n"
-      JSON_STR)
+      SHOW_STR FPM_STR "FPM statistic counters\n" JSON_STR)
 {
 	struct json_object *jo;
 
@@ -508,9 +490,8 @@ static void fpm_read(struct event *t)
 		if (fpm.version != FPM_PROTO_VERSION &&
 		    fpm.msg_type != FPM_MSG_TYPE_NETLINK) {
 			stream_reset(fnc->ibuf);
-			zlog_warn(
-				"%s: Received version/msg_type %u/%u, expected 1/1",
-				__func__, fpm.version, fpm.msg_type);
+			zlog_warn("%s: Received version/msg_type %u/%u, expected 1/1",
+				  __func__, fpm.version, fpm.msg_type);
 
 			FPM_RECONNECT(fnc);
 			return;
@@ -521,9 +502,8 @@ static void fpm_read(struct event *t)
 		 * something is wrong and reset.
 		 */
 		if (fpm.msg_len < FPM_MSG_HDR_LEN) {
-			zlog_warn(
-				"%s: Received message length: %u that does not even fill the FPM header",
-				__func__, fpm.msg_len);
+			zlog_warn("%s: Received message length: %u that does not even fill the FPM header",
+				  __func__, fpm.msg_len);
 			FPM_RECONNECT(fnc);
 			return;
 		}
@@ -551,32 +531,28 @@ static void fpm_read(struct event *t)
 
 		/* Sanity check: must be at least header size. */
 		if (hdr->nlmsg_len < sizeof(*hdr)) {
-			zlog_warn(
-				"%s: [seq=%u] invalid message length %u (< %zu)",
-				__func__, hdr->nlmsg_seq, hdr->nlmsg_len,
-				sizeof(*hdr));
+			zlog_warn("%s: [seq=%u] invalid message length %u (< %zu)",
+				  __func__, hdr->nlmsg_seq, hdr->nlmsg_len,
+				  sizeof(*hdr));
 			continue;
 		}
 		if (hdr->nlmsg_len > fpm.msg_len) {
-			zlog_warn(
-				"%s: Received a inner header length of %u that is greater than the fpm total length of %u",
-				__func__, hdr->nlmsg_len, fpm.msg_len);
+			zlog_warn("%s: Received a inner header length of %u that is greater than the fpm total length of %u",
+				  __func__, hdr->nlmsg_len, fpm.msg_len);
 			FPM_RECONNECT(fnc);
 		}
 		/* Not enough bytes available. */
 		if (hdr->nlmsg_len > hdr_available_bytes) {
-			zlog_warn(
-				"%s: [seq=%u] invalid message length %u (> %zu)",
-				__func__, hdr->nlmsg_seq, hdr->nlmsg_len,
-				available_bytes);
+			zlog_warn("%s: [seq=%u] invalid message length %u (> %zu)",
+				  __func__, hdr->nlmsg_seq, hdr->nlmsg_len,
+				  available_bytes);
 			continue;
 		}
 
 		if (!(hdr->nlmsg_flags & NLM_F_REQUEST)) {
 			if (IS_ZEBRA_DEBUG_FPM)
-				zlog_debug(
-					"%s: [seq=%u] not a request, skipping",
-					__func__, hdr->nlmsg_seq);
+				zlog_debug("%s: [seq=%u] not a request, skipping",
+					   __func__, hdr->nlmsg_seq);
 
 			/*
 			 * This request is a bust, go to the next one
@@ -588,8 +564,10 @@ static void fpm_read(struct event *t)
 		case RTM_NEWROUTE:
 			ctx = dplane_ctx_alloc();
 			dplane_ctx_set_op(ctx, DPLANE_OP_ROUTE_NOTIFY);
-			if (netlink_route_change_read_unicast_internal(
-				    hdr, 0, false, ctx) != 1) {
+			if (netlink_route_change_read_unicast_internal(hdr, 0,
+								       false,
+								       ctx) !=
+			    1) {
 				dplane_ctx_fini(&ctx);
 				stream_pulldown(fnc->ibuf);
 				/*
@@ -600,9 +578,8 @@ static void fpm_read(struct event *t)
 			break;
 		default:
 			if (IS_ZEBRA_DEBUG_FPM)
-				zlog_debug(
-					"%s: Received message type %u which is not currently handled",
-					__func__, hdr->nlmsg_type);
+				zlog_debug("%s: Received message type %u which is not currently handled",
+					   __func__, hdr->nlmsg_type);
 			break;
 		}
 	}
@@ -632,9 +609,8 @@ static void fpm_write(struct event *t)
 				zlog_warn("%s: SO_ERROR failed: %s", __func__,
 					  strerror(status));
 
-			atomic_fetch_add_explicit(
-				&fnc->counters.connection_errors, 1,
-				memory_order_relaxed);
+			atomic_fetch_add_explicit(&fnc->counters.connection_errors,
+						  1, memory_order_relaxed);
 
 			FPM_RECONNECT(fnc);
 			return;
@@ -664,13 +640,11 @@ static void fpm_write(struct event *t)
 		}
 
 		/* Try to write all at once. */
-		btotal = stream_get_endp(fnc->obuf) -
-			stream_get_getp(fnc->obuf);
+		btotal = stream_get_endp(fnc->obuf) - stream_get_getp(fnc->obuf);
 		bwritten = write(fnc->socket, stream_pnt(fnc->obuf), btotal);
 		if (bwritten == 0) {
-			atomic_fetch_add_explicit(
-				&fnc->counters.connection_closes, 1,
-				memory_order_relaxed);
+			atomic_fetch_add_explicit(&fnc->counters.connection_closes,
+						  1, memory_order_relaxed);
 
 			if (IS_ZEBRA_DEBUG_FPM)
 				zlog_debug("%s: connection closed", __func__);
@@ -684,9 +658,8 @@ static void fpm_write(struct event *t)
 			if (errno == EAGAIN || errno == EWOULDBLOCK)
 				break;
 
-			atomic_fetch_add_explicit(
-				&fnc->counters.connection_errors, 1,
-				memory_order_relaxed);
+			atomic_fetch_add_explicit(&fnc->counters.connection_errors,
+						  1, memory_order_relaxed);
 			zlog_warn("%s: connection failure: %s", __func__,
 				  strerror(errno));
 
@@ -725,8 +698,7 @@ static void fpm_connect(struct event *t)
 
 	sock = socket(fnc->addr.ss_family, SOCK_STREAM, 0);
 	if (sock == -1) {
-		zlog_err("%s: fpm socket failed: %s", __func__,
-			 strerror(errno));
+		zlog_err("%s: fpm socket failed: %s", __func__, strerror(errno));
 		event_add_timer(fnc->fthread->master, fpm_connect, fnc, 3,
 				&fnc->t_connect);
 		return;
@@ -797,9 +769,9 @@ static int fpm_nl_enqueue(struct fpm_nl_ctx *fnc, struct zebra_dplane_ctx *ctx)
 	 * If we were configured to not use next hop groups, then quit as soon
 	 * as possible.
 	 */
-	if ((!fnc->use_nhg)
-	    && (op == DPLANE_OP_NH_DELETE || op == DPLANE_OP_NH_INSTALL
-		|| op == DPLANE_OP_NH_UPDATE))
+	if ((!fnc->use_nhg) &&
+	    (op == DPLANE_OP_NH_DELETE || op == DPLANE_OP_NH_INSTALL ||
+	     op == DPLANE_OP_NH_UPDATE))
 		return 0;
 
 	nl_buf_len = 0;
@@ -813,9 +785,8 @@ static int fpm_nl_enqueue(struct fpm_nl_ctx *fnc, struct zebra_dplane_ctx *ctx)
 							nl_buf, sizeof(nl_buf),
 							true, fnc->use_nhg);
 		if (rv <= 0) {
-			zlog_err(
-				"%s: netlink_route_multipath_msg_encode failed",
-				__func__);
+			zlog_err("%s: netlink_route_multipath_msg_encode failed",
+				 __func__);
 			return 0;
 		}
 
@@ -827,13 +798,14 @@ static int fpm_nl_enqueue(struct fpm_nl_ctx *fnc, struct zebra_dplane_ctx *ctx)
 
 		/* FALL THROUGH */
 	case DPLANE_OP_ROUTE_INSTALL:
-		rv = netlink_route_multipath_msg_encode(
-			RTM_NEWROUTE, ctx, &nl_buf[nl_buf_len],
-			sizeof(nl_buf) - nl_buf_len, true, fnc->use_nhg);
+		rv = netlink_route_multipath_msg_encode(RTM_NEWROUTE, ctx,
+							&nl_buf[nl_buf_len],
+							sizeof(nl_buf) -
+								nl_buf_len,
+							true, fnc->use_nhg);
 		if (rv <= 0) {
-			zlog_err(
-				"%s: netlink_route_multipath_msg_encode failed",
-				__func__);
+			zlog_err("%s: netlink_route_multipath_msg_encode failed",
+				 __func__);
 			return 0;
 		}
 
@@ -881,8 +853,7 @@ static int fpm_nl_enqueue(struct fpm_nl_ctx *fnc, struct zebra_dplane_ctx *ctx)
 	case DPLANE_OP_LSP_DELETE:
 		rv = netlink_lsp_msg_encoder(ctx, nl_buf, sizeof(nl_buf));
 		if (rv <= 0) {
-			zlog_err("%s: netlink_lsp_msg_encoder failed",
-				 __func__);
+			zlog_err("%s: netlink_lsp_msg_encoder failed", __func__);
 			return 0;
 		}
 
@@ -934,7 +905,6 @@ static int fpm_nl_enqueue(struct fpm_nl_ctx *fnc, struct zebra_dplane_ctx *ctx)
 	case DPLANE_OP_TC_FILTER_UPDATE:
 	case DPLANE_OP_NONE:
 		break;
-
 	}
 
 	/* Skip empty enqueues. */
@@ -950,10 +920,9 @@ static int fpm_nl_enqueue(struct fpm_nl_ctx *fnc, struct zebra_dplane_ctx *ctx)
 					  memory_order_relaxed);
 
 		if (IS_ZEBRA_DEBUG_FPM)
-			zlog_debug(
-				"%s: buffer full: wants to write %zu but has %zu",
-				__func__, nl_buf_len + FPM_HEADER_SIZE,
-				STREAM_WRITEABLE(fnc->obuf));
+			zlog_debug("%s: buffer full: wants to write %zu but has %zu",
+				   __func__, nl_buf_len + FPM_HEADER_SIZE,
+				   STREAM_WRITEABLE(fnc->obuf));
 
 		return -1;
 	}
@@ -1322,8 +1291,7 @@ static void fpm_rmac_reset(struct event *t)
 	hash_iterate(zrouter.l3vni_table, fpm_unset_l3vni_table, NULL);
 
 	/* Schedule next event: send RMAC entries. */
-	event_add_event(zrouter.master, fpm_rmac_send, fnc, 0,
-			&fnc->t_rmacwalk);
+	event_add_event(zrouter.master, fpm_rmac_send, fnc, 0, &fnc->t_rmacwalk);
 }
 
 static void fpm_process_queue(struct event *t)
@@ -1553,9 +1521,9 @@ static int fpm_nl_process(struct zebra_dplane_provider *prov)
 				dplane_ctx_enqueue_tail(&fnc->ctxqueue, ctx);
 			}
 
-			cur_queue = atomic_load_explicit(
-				&fnc->counters.ctxqueue_len,
-				memory_order_relaxed);
+			cur_queue =
+				atomic_load_explicit(&fnc->counters.ctxqueue_len,
+						     memory_order_relaxed);
 			if (peak_queue < cur_queue)
 				peak_queue = cur_queue;
 			continue;
@@ -1566,15 +1534,15 @@ static int fpm_nl_process(struct zebra_dplane_provider *prov)
 	}
 
 	/* Update peak queue length, if we just observed a new peak */
-	stored_peak_queue = atomic_load_explicit(
-		&fnc->counters.ctxqueue_len_peak, memory_order_relaxed);
+	stored_peak_queue =
+		atomic_load_explicit(&fnc->counters.ctxqueue_len_peak,
+				     memory_order_relaxed);
 	if (stored_peak_queue < peak_queue)
 		atomic_store_explicit(&fnc->counters.ctxqueue_len_peak,
 				      peak_queue, memory_order_relaxed);
 
 	if (atomic_load_explicit(&fnc->counters.ctxqueue_len,
-				 memory_order_relaxed)
-	    > 0)
+				 memory_order_relaxed) > 0)
 		event_add_timer(fnc->fthread->master, fpm_process_queue, fnc, 0,
 				&fnc->t_dequeue);
 
@@ -1617,9 +1585,6 @@ static int fpm_nl_init(void)
 	return 0;
 }
 
-FRR_MODULE_SETUP(
-	.name = "dplane_fpm_nl",
-	.version = "0.0.1",
-	.description = "Data plane plugin for FPM using netlink.",
-	.init = fpm_nl_init,
-);
+FRR_MODULE_SETUP(.name = "dplane_fpm_nl", .version = "0.0.1",
+		 .description = "Data plane plugin for FPM using netlink.",
+		 .init = fpm_nl_init, );

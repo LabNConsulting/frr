@@ -42,25 +42,25 @@
 
 #if defined(HAVE_LTTNG)
 
-#define frrtrace(nargs, provider, name, ...) \
-	tracepoint(provider, name, ## __VA_ARGS__)
+#define frrtrace(nargs, provider, name, ...)                                   \
+	tracepoint(provider, name, ##__VA_ARGS__)
 #define frrtrace_enabled(...) tracepoint_enabled(__VA_ARGS__)
-#define frrtracelog(...) tracelog(__VA_ARGS__)
+#define frrtracelog(...)      tracelog(__VA_ARGS__)
 
 #elif defined(HAVE_USDT)
 
 #include "sys/sdt.h"
 
-#define frrtrace(nargs, provider, name, ...) \
-	DTRACE_PROBE##nargs(provider, name, ## __VA_ARGS__)
+#define frrtrace(nargs, provider, name, ...)                                   \
+	DTRACE_PROBE##nargs(provider, name, ##__VA_ARGS__)
 #define frrtrace_enabled(...) true
 #define frrtracelog(...)
 
 #else
 
 #define frrtrace(nargs, provider, name, ...) (void)0
-#define frrtrace_enabled(...) false
-#define frrtracelog(...) (void)0
+#define frrtrace_enabled(...)		     false
+#define frrtracelog(...)		     (void)0
 
 #endif
 

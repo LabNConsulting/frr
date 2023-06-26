@@ -142,8 +142,8 @@ void lua_decode_interface(lua_State *L, int idx, struct interface *ifp)
 }
 void *lua_tointerface(lua_State *L, int idx)
 {
-	struct interface *ifp =
-		XCALLOC(MTYPE_SCRIPT_RES, sizeof(struct interface));
+	struct interface *ifp = XCALLOC(MTYPE_SCRIPT_RES,
+					sizeof(struct interface));
 
 	lua_decode_interface(L, idx, ifp);
 	return ifp;
@@ -173,8 +173,8 @@ void lua_decode_inaddr(lua_State *L, int idx, struct in_addr *inaddr)
 
 void *lua_toinaddr(lua_State *L, int idx)
 {
-	struct in_addr *inaddr =
-		XCALLOC(MTYPE_SCRIPT_RES, sizeof(struct in_addr));
+	struct in_addr *inaddr = XCALLOC(MTYPE_SCRIPT_RES,
+					 sizeof(struct in_addr));
 	lua_decode_inaddr(L, idx, inaddr);
 	return inaddr;
 }
@@ -204,8 +204,8 @@ void lua_decode_in6addr(lua_State *L, int idx, struct in6_addr *in6addr)
 
 void *lua_toin6addr(lua_State *L, int idx)
 {
-	struct in6_addr *in6addr =
-		XCALLOC(MTYPE_SCRIPT_RES, sizeof(struct in6_addr));
+	struct in6_addr *in6addr = XCALLOC(MTYPE_SCRIPT_RES,
+					   sizeof(struct in6_addr));
 	lua_decode_in6addr(L, idx, in6addr);
 	return in6addr;
 }
@@ -252,8 +252,7 @@ void lua_decode_sockunion(lua_State *L, int idx, union sockunion *su)
 
 void *lua_tosockunion(lua_State *L, int idx)
 {
-	union sockunion *su =
-		XCALLOC(MTYPE_SCRIPT_RES, sizeof(union sockunion));
+	union sockunion *su = XCALLOC(MTYPE_SCRIPT_RES, sizeof(union sockunion));
 
 	lua_decode_sockunion(L, idx, su);
 	return su;
@@ -425,12 +424,9 @@ static int frrlua_log_error(lua_State *L)
 }
 
 static const luaL_Reg log_funcs[] = {
-	{"debug", frrlua_log_debug},
-	{"info", frrlua_log_info},
-	{"notice", frrlua_log_notice},
-	{"warn", frrlua_log_warn},
-	{"error", frrlua_log_error},
-	{},
+	{ "debug", frrlua_log_debug },	 { "info", frrlua_log_info },
+	{ "notice", frrlua_log_notice }, { "warn", frrlua_log_warn },
+	{ "error", frrlua_log_error },	 {},
 };
 
 void frrlua_export_logging(lua_State *L)

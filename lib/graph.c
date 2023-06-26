@@ -32,8 +32,8 @@ void graph_delete_graph(struct graph *graph)
 struct graph_node *graph_new_node(struct graph *graph, void *data,
 				  void (*del)(void *))
 {
-	struct graph_node *node =
-		XCALLOC(MTYPE_GRAPH_NODE, sizeof(struct graph_node));
+	struct graph_node *node = XCALLOC(MTYPE_GRAPH_NODE,
+					  sizeof(struct graph_node));
 
 	node->from = vector_init(VECTOR_MIN_SIZE);
 	node->to = vector_init(VECTOR_MIN_SIZE);
@@ -98,8 +98,7 @@ void graph_delete_node(struct graph *graph, struct graph_node *node)
 	XFREE(MTYPE_GRAPH_NODE, node);
 }
 
-struct graph_node *graph_add_edge(struct graph_node *from,
-				  struct graph_node *to)
+struct graph_node *graph_add_edge(struct graph_node *from, struct graph_node *to)
 {
 	vector_set(from->to, to);
 	vector_set(to->from, from);
@@ -201,8 +200,7 @@ char *graph_dump_dot(struct graph *graph, struct graph_node *start,
 	pcb = (pcb) ? pcb : graph_dump_dot_default_print_cb;
 	buffer_putstr(buf, "digraph {\n");
 
-	graph_dfs(graph, start, (void (*)(struct graph_node *, void *))pcb,
-		  buf);
+	graph_dfs(graph, start, (void (*)(struct graph_node *, void *))pcb, buf);
 
 	buffer_putstr(buf, "}\n");
 

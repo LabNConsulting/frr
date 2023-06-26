@@ -23,7 +23,7 @@ extern void if_get_flags(struct interface *);
 extern void if_get_metric(struct interface *);
 extern void if_get_mtu(struct interface *);
 
-#define AF_IOCTL(af, request, buffer)  if_ioctl(request, buffer)
+#define AF_IOCTL(af, request, buffer) if_ioctl(request, buffer)
 
 #ifdef __cplusplus
 }

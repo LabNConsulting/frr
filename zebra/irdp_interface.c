@@ -162,8 +162,7 @@ static int if_drop_group(struct interface *ifp)
 	if (!irdp)
 		return -1;
 
-	ret = if_group(ifp, irdp_sock, INADDR_ALLRTRS_GROUP,
-		       IP_DROP_MEMBERSHIP);
+	ret = if_group(ifp, irdp_sock, INADDR_ALLRTRS_GROUP, IP_DROP_MEMBERSHIP);
 	if (ret < 0)
 		return ret;
 
@@ -193,8 +192,7 @@ static void Adv_free(struct Adv *adv)
 	XFREE(MTYPE_IRDP_IF, adv);
 }
 
-static void irdp_if_start(struct interface *ifp, int multicast,
-			  int set_defaults)
+static void irdp_if_start(struct interface *ifp, int multicast, int set_defaults)
 {
 	struct zebra_if *zi = ifp->info;
 	struct irdp_interface *irdp = zi->irdp;
@@ -262,8 +260,8 @@ static void irdp_if_start(struct interface *ifp, int multicast,
 
 	/* And this for startup. Speed limit from 1991 :-). But it's OK*/
 
-	if (irdp->irdp_sent < MAX_INITIAL_ADVERTISEMENTS
-	    && timer > MAX_INITIAL_ADVERT_INTERVAL)
+	if (irdp->irdp_sent < MAX_INITIAL_ADVERTISEMENTS &&
+	    timer > MAX_INITIAL_ADVERT_INTERVAL)
 		timer = MAX_INITIAL_ADVERT_INTERVAL;
 
 
@@ -357,7 +355,6 @@ int irdp_config_write(struct vty *vty, struct interface *ifp)
 		return 0;
 
 	if (irdp->flags & IF_ACTIVE || irdp->flags & IF_SHUTDOWN) {
-
 		if (irdp->flags & IF_SHUTDOWN)
 			vty_out(vty, " ip irdp shutdown \n");
 
@@ -385,12 +382,9 @@ int irdp_config_write(struct vty *vty, struct interface *ifp)
 }
 
 
-DEFUN (ip_irdp_multicast,
-       ip_irdp_multicast_cmd,
-       "ip irdp multicast",
-       IP_STR
-       "ICMP Router discovery on this interface\n"
-       "Use multicast mode\n")
+DEFUN(ip_irdp_multicast, ip_irdp_multicast_cmd, "ip irdp multicast",
+      IP_STR "ICMP Router discovery on this interface\n"
+	     "Use multicast mode\n")
 {
 	VTY_DECLVAR_CONTEXT(interface, ifp);
 	irdp_if_get(ifp);
@@ -399,12 +393,9 @@ DEFUN (ip_irdp_multicast,
 	return CMD_SUCCESS;
 }
 
-DEFUN (ip_irdp_broadcast,
-       ip_irdp_broadcast_cmd,
-       "ip irdp broadcast",
-       IP_STR
-       "ICMP Router discovery on this interface\n"
-       "Use broadcast mode\n")
+DEFUN(ip_irdp_broadcast, ip_irdp_broadcast_cmd, "ip irdp broadcast",
+      IP_STR "ICMP Router discovery on this interface\n"
+	     "Use broadcast mode\n")
 {
 	VTY_DECLVAR_CONTEXT(interface, ifp);
 	irdp_if_get(ifp);
@@ -413,12 +404,8 @@ DEFUN (ip_irdp_broadcast,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_ip_irdp,
-       no_ip_irdp_cmd,
-       "no ip irdp",
-       NO_STR
-       IP_STR
-       "Disable ICMP Router discovery on this interface\n")
+DEFUN(no_ip_irdp, no_ip_irdp_cmd, "no ip irdp",
+      NO_STR IP_STR "Disable ICMP Router discovery on this interface\n")
 {
 	VTY_DECLVAR_CONTEXT(interface, ifp);
 
@@ -426,12 +413,9 @@ DEFUN (no_ip_irdp,
 	return CMD_SUCCESS;
 }
 
-DEFUN (ip_irdp_shutdown,
-       ip_irdp_shutdown_cmd,
-       "ip irdp shutdown",
-       IP_STR
-       "ICMP Router discovery on this interface\n"
-       "ICMP Router discovery shutdown on this interface\n")
+DEFUN(ip_irdp_shutdown, ip_irdp_shutdown_cmd, "ip irdp shutdown",
+      IP_STR "ICMP Router discovery on this interface\n"
+	     "ICMP Router discovery shutdown on this interface\n")
 {
 	VTY_DECLVAR_CONTEXT(interface, ifp);
 
@@ -439,13 +423,9 @@ DEFUN (ip_irdp_shutdown,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_ip_irdp_shutdown,
-       no_ip_irdp_shutdown_cmd,
-       "no ip irdp shutdown",
-       NO_STR
-       IP_STR
-       "ICMP Router discovery on this interface\n"
-       "ICMP Router discovery no shutdown on this interface\n")
+DEFUN(no_ip_irdp_shutdown, no_ip_irdp_shutdown_cmd, "no ip irdp shutdown",
+      NO_STR IP_STR "ICMP Router discovery on this interface\n"
+		    "ICMP Router discovery no shutdown on this interface\n")
 {
 	VTY_DECLVAR_CONTEXT(interface, ifp);
 
@@ -453,13 +433,10 @@ DEFUN (no_ip_irdp_shutdown,
 	return CMD_SUCCESS;
 }
 
-DEFUN (ip_irdp_holdtime,
-       ip_irdp_holdtime_cmd,
-       "ip irdp holdtime (0-9000)",
-       IP_STR
-       "ICMP Router discovery on this interface\n"
-       "Set holdtime value\n"
-       "Holdtime value in seconds. Default is 1800 seconds\n")
+DEFUN(ip_irdp_holdtime, ip_irdp_holdtime_cmd, "ip irdp holdtime (0-9000)",
+      IP_STR "ICMP Router discovery on this interface\n"
+	     "Set holdtime value\n"
+	     "Holdtime value in seconds. Default is 1800 seconds\n")
 {
 	int idx_number = 3;
 	VTY_DECLVAR_CONTEXT(interface, ifp);
@@ -471,13 +448,11 @@ DEFUN (ip_irdp_holdtime,
 	return CMD_SUCCESS;
 }
 
-DEFUN (ip_irdp_minadvertinterval,
-       ip_irdp_minadvertinterval_cmd,
-       "ip irdp minadvertinterval (3-1800)",
-       IP_STR
-       "ICMP Router discovery on this interface\n"
-       "Set minimum time between advertisement\n"
-       "Minimum advertisement interval in seconds\n")
+DEFUN(ip_irdp_minadvertinterval, ip_irdp_minadvertinterval_cmd,
+      "ip irdp minadvertinterval (3-1800)",
+      IP_STR "ICMP Router discovery on this interface\n"
+	     "Set minimum time between advertisement\n"
+	     "Minimum advertisement interval in seconds\n")
 {
 	int idx_number = 3;
 	VTY_DECLVAR_CONTEXT(interface, ifp);
@@ -495,13 +470,11 @@ DEFUN (ip_irdp_minadvertinterval,
 	}
 }
 
-DEFUN (ip_irdp_maxadvertinterval,
-       ip_irdp_maxadvertinterval_cmd,
-       "ip irdp maxadvertinterval (4-1800)",
-       IP_STR
-       "ICMP Router discovery on this interface\n"
-       "Set maximum time between advertisement\n"
-       "Maximum advertisement interval in seconds\n")
+DEFUN(ip_irdp_maxadvertinterval, ip_irdp_maxadvertinterval_cmd,
+      "ip irdp maxadvertinterval (4-1800)",
+      IP_STR "ICMP Router discovery on this interface\n"
+	     "Set maximum time between advertisement\n"
+	     "Maximum advertisement interval in seconds\n")
 {
 	int idx_number = 3;
 	VTY_DECLVAR_CONTEXT(interface, ifp);
@@ -524,13 +497,11 @@ DEFUN (ip_irdp_maxadvertinterval,
  * Be positive for now. :-)
  */
 
-DEFUN (ip_irdp_preference,
-       ip_irdp_preference_cmd,
-       "ip irdp preference (0-2147483647)",
-       IP_STR
-       "ICMP Router discovery on this interface\n"
-       "Set default preference level for this interface\n"
-       "Preference level\n")
+DEFUN(ip_irdp_preference, ip_irdp_preference_cmd,
+      "ip irdp preference (0-2147483647)",
+      IP_STR "ICMP Router discovery on this interface\n"
+	     "Set default preference level for this interface\n"
+	     "Preference level\n")
 {
 	int idx_number = 3;
 	VTY_DECLVAR_CONTEXT(interface, ifp);
@@ -542,15 +513,13 @@ DEFUN (ip_irdp_preference,
 	return CMD_SUCCESS;
 }
 
-DEFUN (ip_irdp_address_preference,
-       ip_irdp_address_preference_cmd,
-       "ip irdp address A.B.C.D preference (0-2147483647)",
-       IP_STR
-       "Alter ICMP Router discovery preference on this interface\n"
-       "Set IRDP address for advertise\n"
-       "IPv4 address\n"
-       "Specify IRDP non-default preference to advertise\n"
-       "Preference level\n")
+DEFUN(ip_irdp_address_preference, ip_irdp_address_preference_cmd,
+      "ip irdp address A.B.C.D preference (0-2147483647)",
+      IP_STR "Alter ICMP Router discovery preference on this interface\n"
+	     "Set IRDP address for advertise\n"
+	     "IPv4 address\n"
+	     "Specify IRDP non-default preference to advertise\n"
+	     "Preference level\n")
 {
 	int idx_ipv4 = 3;
 	int idx_number = 5;
@@ -582,16 +551,13 @@ DEFUN (ip_irdp_address_preference,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_ip_irdp_address_preference,
-       no_ip_irdp_address_preference_cmd,
-       "no ip irdp address A.B.C.D preference (0-2147483647)",
-       NO_STR
-       IP_STR
-       "Alter ICMP Router discovery preference on this interface\n"
-       "Select IRDP address\n"
-       "IPv4 address\n"
-       "Reset ICMP Router discovery preference on this interface\n"
-       "Old preference level\n")
+DEFUN(no_ip_irdp_address_preference, no_ip_irdp_address_preference_cmd,
+      "no ip irdp address A.B.C.D preference (0-2147483647)",
+      NO_STR IP_STR "Alter ICMP Router discovery preference on this interface\n"
+		    "Select IRDP address\n"
+		    "IPv4 address\n"
+		    "Reset ICMP Router discovery preference on this interface\n"
+		    "Old preference level\n")
 {
 	int idx_ipv4 = 4;
 	VTY_DECLVAR_CONTEXT(interface, ifp);
@@ -617,13 +583,11 @@ DEFUN (no_ip_irdp_address_preference,
 	return CMD_SUCCESS;
 }
 
-DEFUN (ip_irdp_debug_messages,
-       ip_irdp_debug_messages_cmd,
-       "ip irdp debug messages",
-       IP_STR
-       "ICMP Router discovery debug Averts. and Solicits (short)\n"
-       "IRDP debugging options\n"
-       "Enable debugging for IRDP messages\n")
+DEFUN(ip_irdp_debug_messages, ip_irdp_debug_messages_cmd,
+      "ip irdp debug messages",
+      IP_STR "ICMP Router discovery debug Averts. and Solicits (short)\n"
+	     "IRDP debugging options\n"
+	     "Enable debugging for IRDP messages\n")
 {
 	VTY_DECLVAR_CONTEXT(interface, ifp);
 	struct irdp_interface *irdp = irdp_if_get(ifp);
@@ -635,13 +599,10 @@ DEFUN (ip_irdp_debug_messages,
 	return CMD_SUCCESS;
 }
 
-DEFUN (ip_irdp_debug_misc,
-       ip_irdp_debug_misc_cmd,
-       "ip irdp debug misc",
-       IP_STR
-       "ICMP Router discovery debug Averts. and Solicits (short)\n"
-       "IRDP debugging options\n"
-       "Enable debugging for miscellaneous IRDP events\n")
+DEFUN(ip_irdp_debug_misc, ip_irdp_debug_misc_cmd, "ip irdp debug misc",
+      IP_STR "ICMP Router discovery debug Averts. and Solicits (short)\n"
+	     "IRDP debugging options\n"
+	     "Enable debugging for miscellaneous IRDP events\n")
 {
 	VTY_DECLVAR_CONTEXT(interface, ifp);
 	struct irdp_interface *irdp = irdp_if_get(ifp);
@@ -653,13 +614,10 @@ DEFUN (ip_irdp_debug_misc,
 	return CMD_SUCCESS;
 }
 
-DEFUN (ip_irdp_debug_packet,
-       ip_irdp_debug_packet_cmd,
-       "ip irdp debug packet",
-       IP_STR
-       "ICMP Router discovery debug Averts. and Solicits (short)\n"
-       "IRDP debugging options\n"
-       "Enable debugging for IRDP packets\n")
+DEFUN(ip_irdp_debug_packet, ip_irdp_debug_packet_cmd, "ip irdp debug packet",
+      IP_STR "ICMP Router discovery debug Averts. and Solicits (short)\n"
+	     "IRDP debugging options\n"
+	     "Enable debugging for IRDP packets\n")
 {
 	VTY_DECLVAR_CONTEXT(interface, ifp);
 	struct irdp_interface *irdp = irdp_if_get(ifp);
@@ -672,13 +630,10 @@ DEFUN (ip_irdp_debug_packet,
 }
 
 
-DEFUN (ip_irdp_debug_disable,
-       ip_irdp_debug_disable_cmd,
-       "ip irdp debug disable",
-       IP_STR
-       "ICMP Router discovery debug Averts. and Solicits (short)\n"
-       "IRDP debugging options\n"
-       "Disable debugging for all IRDP events\n")
+DEFUN(ip_irdp_debug_disable, ip_irdp_debug_disable_cmd, "ip irdp debug disable",
+      IP_STR "ICMP Router discovery debug Averts. and Solicits (short)\n"
+	     "IRDP debugging options\n"
+	     "Disable debugging for all IRDP events\n")
 {
 	VTY_DECLVAR_CONTEXT(interface, ifp);
 	struct irdp_interface *irdp = irdp_if_get(ifp);

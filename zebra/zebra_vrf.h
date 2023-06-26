@@ -54,8 +54,8 @@ struct zebra_vrf {
 
 	/* Flags. */
 	uint16_t flags;
-#define ZEBRA_VRF_RETAIN          (1 << 0)
-#define ZEBRA_PIM_SEND_VXLAN_SG   (1 << 1)
+#define ZEBRA_VRF_RETAIN	(1 << 0)
+#define ZEBRA_PIM_SEND_VXLAN_SG (1 << 1)
 
 	uint32_t table_id;
 
@@ -112,7 +112,7 @@ struct zebra_vrf {
 
 	/* MPLS processing flags */
 	uint16_t mpls_flags;
-#define MPLS_FLAG_SCHEDULE_LSPS    (1 << 0)
+#define MPLS_FLAG_SCHEDULE_LSPS (1 << 0)
 
 	/*
 	 * EVPN hash table. Only in the EVPN instance.
@@ -169,9 +169,9 @@ struct zebra_vrf {
 	bool zebra_rnh_ipv6_default_route;
 };
 #define PROTO_RM_NAME(zvrf, afi, rtype) zvrf->proto_rm[afi][rtype].name
-#define NHT_RM_NAME(zvrf, afi, rtype) zvrf->nht_rm[afi][rtype].name
-#define PROTO_RM_MAP(zvrf, afi, rtype) zvrf->proto_rm[afi][rtype].map
-#define NHT_RM_MAP(zvrf, afi, rtype) zvrf->nht_rm[afi][rtype].map
+#define NHT_RM_NAME(zvrf, afi, rtype)	zvrf->nht_rm[afi][rtype].name
+#define PROTO_RM_MAP(zvrf, afi, rtype)	zvrf->proto_rm[afi][rtype].map
+#define NHT_RM_MAP(zvrf, afi, rtype)	zvrf->nht_rm[afi][rtype].map
 
 /*
  * special macro to allow us to get the correct zebra_vrf

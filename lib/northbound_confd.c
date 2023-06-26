@@ -21,7 +21,7 @@
 
 DEFINE_MTYPE_STATIC(LIB, CONFD, "ConfD module");
 
-static struct debug nb_dbg_client_confd = {0, "Northbound client: ConfD"};
+static struct debug nb_dbg_client_confd = { 0, "Northbound client: ConfD" };
 
 static struct event_loop *master;
 static struct sockaddr confd_addr;
@@ -73,8 +73,8 @@ static int frr_confd_val2str(const char *xpath, const confd_value_t *value,
 		flog_err_confd("confd_cs_node_cd");
 		return -1;
 	}
-	if (confd_val2str(csp->info.type, value, string, string_size)
-	    == CONFD_ERR) {
+	if (confd_val2str(csp->info.type, value, string, string_size) ==
+	    CONFD_ERR) {
 		flog_err_confd("confd_val2str");
 		return -1;
 	}
@@ -129,8 +129,9 @@ static int frr_confd_hkeypath_get_list_entry(const confd_hkeypath_t *kp,
 
 		/* Obtain list entry. */
 		if (!CHECK_FLAG(nb_node_list->flags, F_NB_NODE_KEYLESS_LIST)) {
-			*list_entry = nb_callback_lookup_entry(
-				nb_node, *list_entry, &keys);
+			*list_entry = nb_callback_lookup_entry(nb_node,
+							       *list_entry,
+							       &keys);
 			if (*list_entry == NULL)
 				return -1;
 		} else {
@@ -242,10 +243,9 @@ frr_confd_cdb_diff_iter(confd_hkeypath_t *kp, enum cdb_iter_op cdb_op,
 	}
 
 	/* Convert ConfD value to a string. */
-	if (nb_node->snode->nodetype != LYS_LEAFLIST && newv
-	    && frr_confd_val2str(nb_node->xpath, newv, value_str,
-				 sizeof(value_str))
-		       != 0) {
+	if (nb_node->snode->nodetype != LYS_LEAFLIST && newv &&
+	    frr_confd_val2str(nb_node->xpath, newv, value_str,
+			      sizeof(value_str)) != 0) {
 		flog_err(EC_LIB_CONFD_DATA_CONVERT,
 			 "%s: failed to convert ConfD value to a string",
 			 __func__);
@@ -259,10 +259,9 @@ frr_confd_cdb_diff_iter(confd_hkeypath_t *kp, enum cdb_iter_op cdb_op,
 				NULL, data);
 	yang_data_free(data);
 	if (ret != NB_OK) {
-		flog_warn(
-			EC_LIB_NB_CANDIDATE_EDIT_ERROR,
-			"%s: failed to edit candidate configuration: operation [%s] xpath [%s]",
-			__func__, nb_operation_name(nb_op), xpath);
+		flog_warn(EC_LIB_NB_CANDIDATE_EDIT_ERROR,
+			  "%s: failed to edit candidate configuration: operation [%s] xpath [%s]",
+			  __func__, nb_operation_name(nb_op), xpath);
 		iter_args->error = true;
 		return ITER_STOP;
 	}
@@ -275,7 +274,7 @@ static void frr_confd_cdb_read_cb_prepare(int fd, int *subp, int reslen)
 	struct nb_context context = {};
 	struct nb_config *candidate;
 	struct cdb_iter_args iter_args;
-	char errmsg[BUFSIZ] = {0};
+	char errmsg[BUFSIZ] = { 0 };
 	int ret;
 
 	candidate = nb_config_dup(running_config);
@@ -285,8 +284,7 @@ static void frr_confd_cdb_read_cb_prepare(int fd, int *subp, int reslen)
 	iter_args.error = false;
 	for (int i = 0; i < reslen; i++) {
 		if (cdb_diff_iterate(fd, subp[i], frr_confd_cdb_diff_iter,
-				     ITER_WANT_PREV, &iter_args)
-		    != CONFD_OK) {
+				     ITER_WANT_PREV, &iter_args) != CONFD_OK) {
 			flog_err_confd("cdb_diff_iterate");
 		}
 	}
@@ -295,10 +293,10 @@ static void frr_confd_cdb_read_cb_prepare(int fd, int *subp, int reslen)
 	if (iter_args.error) {
 		nb_config_free(candidate);
 
-		if (cdb_sub_abort_trans(
-			    cdb_sub_sock, CONFD_ERRCODE_APPLICATION_INTERNAL, 0,
-			    0, "Couldn't apply configuration changes")
-		    != CONFD_OK) {
+		if (cdb_sub_abort_trans(cdb_sub_sock,
+					CONFD_ERRCODE_APPLICATION_INTERNAL, 0, 0,
+					"Couldn't apply configuration changes") !=
+		    CONFD_OK) {
 			flog_err_confd("cdb_sub_abort_trans");
 			return;
 		}
@@ -311,9 +309,8 @@ static void frr_confd_cdb_read_cb_prepare(int fd, int *subp, int reslen)
 	 */
 	transaction = NULL;
 	context.client = NB_CLIENT_CONFD;
-	ret = nb_candidate_commit_prepare(context, candidate, NULL,
-					  &transaction, false, false, errmsg,
-					  sizeof(errmsg));
+	ret = nb_candidate_commit_prepare(context, candidate, NULL, &transaction,
+					  false, false, errmsg, sizeof(errmsg));
 	if (ret != NB_OK && ret != NB_ERR_NO_CHANGES) {
 		enum confd_errcode errcode;
 
@@ -331,15 +328,14 @@ static void frr_confd_cdb_read_cb_prepare(int fd, int *subp, int reslen)
 
 		/* Reject the configuration changes. */
 		if (cdb_sub_abort_trans(cdb_sub_sock, errcode, 0, 0, "%s",
-					errmsg)
-		    != CONFD_OK) {
+					errmsg) != CONFD_OK) {
 			flog_err_confd("cdb_sub_abort_trans");
 			return;
 		}
 	} else {
 		/* Acknowledge the notification. */
-		if (cdb_sync_subscription_socket(fd, CDB_DONE_PRIORITY)
-		    != CONFD_OK) {
+		if (cdb_sync_subscription_socket(fd, CDB_DONE_PRIORITY) !=
+		    CONFD_OK) {
 			flog_err_confd("cdb_sync_subscription_socket");
 			return;
 		}
@@ -361,7 +357,7 @@ static void frr_confd_cdb_read_cb_commit(int fd, int *subp, int reslen)
 	/* Apply the transaction. */
 	if (transaction) {
 		struct nb_config *candidate = transaction->config;
-		char errmsg[BUFSIZ] = {0};
+		char errmsg[BUFSIZ] = { 0 };
 
 		nb_candidate_commit_apply(transaction, true, NULL, errmsg,
 					  sizeof(errmsg));
@@ -386,7 +382,7 @@ static int frr_confd_cdb_read_cb_abort(int fd, int *subp, int reslen)
 	/* Abort the transaction. */
 	if (transaction) {
 		struct nb_config *candidate = transaction->config;
-		char errmsg[BUFSIZ] = {0};
+		char errmsg[BUFSIZ] = { 0 };
 
 		nb_candidate_commit_abort(transaction, errmsg, sizeof(errmsg));
 		nb_config_free(candidate);
@@ -411,8 +407,8 @@ static void frr_confd_cdb_read_cb(struct event *thread)
 
 	event_add_read(master, frr_confd_cdb_read_cb, NULL, fd, &t_cdb_sub);
 
-	if (cdb_read_subscription_socket2(fd, &cdb_ev, &flags, &subp, &reslen)
-	    != CONFD_OK) {
+	if (cdb_read_subscription_socket2(fd, &cdb_ev, &flags, &subp,
+					  &reslen) != CONFD_OK) {
 		flog_err_confd("cdb_read_subscription_socket2");
 		return;
 	}
@@ -451,8 +447,7 @@ static void *thread_cdb_trigger_subscriptions(void *data)
 	}
 
 	if (cdb_connect(sock, CDB_DATA_SOCKET, &confd_addr,
-			sizeof(struct sockaddr_in))
-	    != CONFD_OK) {
+			sizeof(struct sockaddr_in)) != CONFD_OK) {
 		flog_err_confd("cdb_connect");
 		return NULL;
 	}
@@ -533,8 +528,7 @@ static int frr_confd_init_cdb(void)
 	}
 
 	if (cdb_connect(cdb_sub_sock, CDB_SUBSCRIPTION_SOCKET, &confd_addr,
-			sizeof(struct sockaddr_in))
-	    != CONFD_OK) {
+			sizeof(struct sockaddr_in)) != CONFD_OK) {
 		flog_err_confd("cdb_connect");
 		goto error;
 	}
@@ -544,10 +538,9 @@ static int frr_confd_init_cdb(void)
 	RB_FOREACH (module, yang_modules, &yang_modules) {
 		module->confd_hash = confd_str2hash(module->info->ns);
 		if (module->confd_hash == 0) {
-			flog_err(
-				EC_LIB_LIBCONFD,
-				"%s: failed to find hash value for namespace %s",
-				__func__, module->info->ns);
+			flog_err(EC_LIB_LIBCONFD,
+				 "%s: failed to find hash value for namespace %s",
+				 __func__, module->info->ns);
 			goto error;
 		}
 
@@ -661,8 +654,8 @@ static int frr_confd_data_get_next(struct confd_trans_ctx *tctx,
 		return CONFD_OK;
 	}
 
-	if (frr_confd_hkeypath_get_list_entry(kp, nb_node, &parent_list_entry)
-	    != 0) {
+	if (frr_confd_hkeypath_get_list_entry(kp, nb_node,
+					      &parent_list_entry) != 0) {
 		/* List entry doesn't exist anymore. */
 		confd_data_reply_next_key(tctx, NULL, -1, -1);
 		return CONFD_OK;
@@ -682,8 +675,8 @@ static int frr_confd_data_get_next(struct confd_trans_ctx *tctx,
 			struct yang_list_keys keys;
 
 			memset(&keys, 0, sizeof(keys));
-			if (nb_callback_get_keys(nb_node, nb_next, &keys)
-			    != NB_OK) {
+			if (nb_callback_get_keys(nb_node, nb_next, &keys) !=
+			    NB_OK) {
 				flog_warn(EC_LIB_NB_CB_STATE,
 					  "%s: failed to get list keys",
 					  __func__);
@@ -804,10 +797,10 @@ static int frr_confd_data_get_object(struct confd_trans_ctx *tctx,
 				CONFD_SET_STR(v, data->value);
 			else {
 				/* Presence containers and empty leafs. */
-				CONFD_SET_XMLTAG(
-					v, nb_node_child->confd_hash,
-					confd_str2hash(nb_node_child->snode
-							       ->module->ns));
+				CONFD_SET_XMLTAG(v, nb_node_child->confd_hash,
+						 confd_str2hash(
+							 nb_node_child->snode
+								 ->module->ns));
 			}
 			listnode_add(elements, data);
 		} else
@@ -848,8 +841,8 @@ static int frr_confd_data_get_next_object(struct confd_trans_ctx *tctx,
 		return CONFD_OK;
 	}
 
-	if (frr_confd_hkeypath_get_list_entry(kp, nb_node, &parent_list_entry)
-	    != 0) {
+	if (frr_confd_hkeypath_get_list_entry(kp, nb_node,
+					      &parent_list_entry) != 0) {
 		confd_data_reply_next_object_array(tctx, NULL, 0, 0);
 		return CONFD_OK;
 	}
@@ -885,9 +878,8 @@ static int frr_confd_data_get_next_object(struct confd_trans_ctx *tctx,
 			goto next;
 		}
 
-		object->v =
-			XMALLOC(MTYPE_CONFD,
-				CONFD_MAX_CHILD_NODES * sizeof(confd_value_t));
+		object->v = XMALLOC(MTYPE_CONFD, CONFD_MAX_CHILD_NODES *
+							 sizeof(confd_value_t));
 
 		/*
 		 * ConfD 6.6 user guide, chapter 6.11 (Operational data lists
@@ -937,17 +929,19 @@ static int frr_confd_data_get_next_object(struct confd_trans_ctx *tctx,
 					/*
 					 * Presence containers and empty leafs.
 					 */
-					CONFD_SET_XMLTAG(
-						v, nb_node_child->confd_hash,
-						confd_str2hash(
-							nb_node_child->snode
-								->module->ns));
+					CONFD_SET_XMLTAG(v,
+							 nb_node_child->confd_hash,
+							 confd_str2hash(
+								 nb_node_child
+									 ->snode
+									 ->module
+									 ->ns));
 				}
 				listnode_add(elements, data);
 			} else
 				CONFD_SET_NOEXISTS(v);
 		}
-	next:
+next:
 		object->n = nvalues;
 		nobjects++;
 	}
@@ -981,8 +975,7 @@ static int frr_confd_data_get_next_object(struct confd_trans_ctx *tctx,
 	return CONFD_OK;
 }
 
-static int frr_confd_notification_send(const char *xpath,
-				       struct list *arguments)
+static int frr_confd_notification_send(const char *xpath, struct list *arguments)
 {
 	struct nb_node *nb_node;
 	struct yang_module *module;
@@ -1062,7 +1055,7 @@ static int frr_confd_action_execute(struct confd_user_info *uinfo,
 	struct yang_data *data;
 	confd_tag_value_t *reply;
 	int ret = CONFD_OK;
-	char errmsg[BUFSIZ] = {0};
+	char errmsg[BUFSIZ] = { 0 };
 
 	/* Getting the XPath is tricky. */
 	if (kp) {
@@ -1095,12 +1088,10 @@ static int frr_confd_action_execute(struct confd_user_info *uinfo,
 			 confd_hash2str(params[i].tag.tag));
 
 		if (frr_confd_val2str(xpath_input, &params[i].v, value_str,
-				      sizeof(value_str))
-		    != 0) {
-			flog_err(
-				EC_LIB_CONFD_DATA_CONVERT,
-				"%s: failed to convert ConfD value to a string",
-				__func__);
+				      sizeof(value_str)) != 0) {
+			flog_err(EC_LIB_CONFD_DATA_CONVERT,
+				 "%s: failed to convert ConfD value to a string",
+				 __func__);
 			ret = CONFD_ERR;
 			goto exit;
 		}
@@ -1111,8 +1102,7 @@ static int frr_confd_action_execute(struct confd_user_info *uinfo,
 
 	/* Execute callback registered for this XPath. */
 	if (nb_callback_rpc(nb_node, xpath, input, output, errmsg,
-			    sizeof(errmsg))
-	    != NB_OK) {
+			    sizeof(errmsg)) != NB_OK) {
 		flog_warn(EC_LIB_NB_CB_RPC, "%s: rpc callback failed: %s",
 			  __func__, xpath);
 		ret = CONFD_ERR;
@@ -1124,8 +1114,7 @@ static int frr_confd_action_execute(struct confd_user_info *uinfo,
 		struct listnode *node;
 		int i = 0;
 
-		reply = XMALLOC(MTYPE_CONFD,
-				listcount(output) * sizeof(*reply));
+		reply = XMALLOC(MTYPE_CONFD, listcount(output) * sizeof(*reply));
 
 		for (ALL_LIST_ELEMENTS_RO(output, node, data)) {
 			struct nb_node *nb_node_output;
@@ -1188,8 +1177,7 @@ static void frr_confd_dp_worker_read(struct event *thread)
 	struct confd_daemon_ctx *dctx = EVENT_ARG(thread);
 	int fd = EVENT_FD(thread);
 
-	event_add_read(master, frr_confd_dp_worker_read, dctx, fd,
-		       &t_dp_worker);
+	event_add_read(master, frr_confd_dp_worker_read, dctx, fd, &t_dp_worker);
 
 	frr_confd_dp_read(dctx, fd);
 }
@@ -1205,9 +1193,8 @@ static int frr_confd_subscribe_state(const struct lysc_node *snode, void *arg)
 	if (snode->parent && CHECK_FLAG(snode->parent->flags, LYS_CONFIG_R))
 		return YANG_ITER_CONTINUE;
 
-	DEBUGD(&nb_dbg_client_confd,
-	       "%s: providing data to '%s' (callpoint %s)", __func__,
-	       nb_node->xpath, snode->name);
+	DEBUGD(&nb_dbg_client_confd, "%s: providing data to '%s' (callpoint %s)",
+	       __func__, nb_node->xpath, snode->name);
 
 	strlcpy(data_cbs->callpoint, snode->name, sizeof(data_cbs->callpoint));
 	if (confd_register_data_cb(dctx, data_cbs) != CONFD_OK)
@@ -1246,8 +1233,7 @@ static int frr_confd_init_dp(const char *program_name)
 	}
 
 	if (confd_connect(dctx, dp_ctl_sock, CONTROL_SOCKET, &confd_addr,
-			  sizeof(struct sockaddr_in))
-	    != CONFD_OK) {
+			  sizeof(struct sockaddr_in)) != CONFD_OK) {
 		flog_err_confd("confd_connect");
 		goto error;
 	}
@@ -1263,8 +1249,7 @@ static int frr_confd_init_dp(const char *program_name)
 		goto error;
 	}
 	if (confd_connect(dctx, dp_worker_sock, WORKER_SOCKET, &confd_addr,
-			  sizeof(struct sockaddr_in))
-	    != CONFD_OK) {
+			  sizeof(struct sockaddr_in)) != CONFD_OK) {
 		flog_err_confd("confd_connect");
 		goto error;
 	}
@@ -1299,8 +1284,8 @@ static int frr_confd_init_dp(const char *program_name)
 	 * supported by the NETCONF server.
 	 */
 	strlcpy(ncbs.streamname, "NETCONF", sizeof(ncbs.streamname));
-	if (confd_register_notification_stream(dctx, &ncbs, &live_ctx)
-	    != CONFD_OK) {
+	if (confd_register_notification_stream(dctx, &ncbs, &live_ctx) !=
+	    CONFD_OK) {
 		flog_err_confd("confd_register_notification_stream");
 		goto error;
 	}
@@ -1350,14 +1335,10 @@ static void frr_confd_finish_dp(void)
 
 /* ------------ CLI ------------ */
 
-DEFUN (debug_nb_confd,
-       debug_nb_confd_cmd,
-       "[no] debug northbound client confd",
-       NO_STR
-       DEBUG_STR
-       "Northbound debugging\n"
-       "Client\n"
-       "ConfD\n")
+DEFUN(debug_nb_confd, debug_nb_confd_cmd, "[no] debug northbound client confd",
+      NO_STR DEBUG_STR "Northbound debugging\n"
+		       "Client\n"
+		       "ConfD\n")
 {
 	uint32_t mode = DEBUG_NODE2MODE(vty->node);
 	bool no = strmatch(argv[0]->text, "no");
@@ -1421,8 +1402,8 @@ static int frr_confd_init(const char *program_name)
 	confd_addr4->sin_family = AF_INET;
 	confd_addr4->sin_addr.s_addr = inet_addr("127.0.0.1");
 	confd_addr4->sin_port = htons(CONFD_PORT);
-	if (confd_load_schemas(&confd_addr, sizeof(struct sockaddr_in))
-	    != CONFD_OK) {
+	if (confd_load_schemas(&confd_addr, sizeof(struct sockaddr_in)) !=
+	    CONFD_OK) {
 		flog_err_confd("confd_load_schemas");
 		return -1;
 	}
@@ -1490,5 +1471,4 @@ static int frr_confd_module_init(void)
 
 FRR_MODULE_SETUP(.name = "frr_confd", .version = FRR_VERSION,
 		 .description = "FRR ConfD integration module",
-		 .init = frr_confd_module_init,
-);
+		 .init = frr_confd_module_init, );

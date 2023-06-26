@@ -67,11 +67,9 @@ int irdp_sock_init(void)
 	int save_errno;
 	int sock;
 
-	frr_with_privs(&zserv_privs) {
-
+	frr_with_privs (&zserv_privs) {
 		sock = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
 		save_errno = errno;
-
 	}
 
 	if (sock < 0) {
@@ -172,11 +170,10 @@ static void irdp_send(struct interface *ifp, struct prefix *p, struct stream *s)
 		dst = htonl(INADDR_ALLHOSTS_GROUP);
 
 	if (irdp->flags & IF_DEBUG_MESSAGES)
-		zlog_debug(
-			"IRDP: TX Advert on %s %pFX Holdtime=%d Preference=%d",
-			ifp->name, p,
-			irdp->flags & IF_SHUTDOWN ? 0 : irdp->Lifetime,
-			get_pref(irdp, p));
+		zlog_debug("IRDP: TX Advert on %s %pFX Holdtime=%d Preference=%d",
+			   ifp->name, p,
+			   irdp->flags & IF_SHUTDOWN ? 0 : irdp->Lifetime,
+			   get_pref(irdp, p));
 
 	send_packet(ifp, s, dst, p, ttl);
 }
@@ -220,13 +217,12 @@ void irdp_send_thread(struct event *t_advert)
 	timer = frr_weak_random() % (tmp + 1);
 	timer = irdp->MinAdvertInterval + timer;
 
-	if (irdp->irdp_sent < MAX_INITIAL_ADVERTISEMENTS
-	    && timer > MAX_INITIAL_ADVERT_INTERVAL)
+	if (irdp->irdp_sent < MAX_INITIAL_ADVERTISEMENTS &&
+	    timer > MAX_INITIAL_ADVERT_INTERVAL)
 		timer = MAX_INITIAL_ADVERT_INTERVAL;
 
 	if (irdp->flags & IF_DEBUG_MISC)
-		zlog_debug("IRDP: New timer for %s set to %u", ifp->name,
-			   timer);
+		zlog_debug("IRDP: New timer for %s set to %u", ifp->name, timer);
 
 	irdp->t_advertise = NULL;
 	event_add_timer(zrouter.master, irdp_send_thread, ifp, timer,
@@ -331,5 +327,4 @@ static int irdp_module_init(void)
 }
 
 FRR_MODULE_SETUP(.name = "zebra_irdp", .version = FRR_VERSION,
-		 .description = "zebra IRDP module", .init = irdp_module_init,
-);
+		 .description = "zebra IRDP module", .init = irdp_module_init, );

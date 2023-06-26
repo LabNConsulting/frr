@@ -30,9 +30,8 @@ DEFINE_MTYPE_STATIC(LIB, CMD_MATCHSTACK, "Command Match Stack");
 static int add_nexthops(struct list *, struct graph_node *,
 			struct graph_node **, size_t, bool);
 
-static enum matcher_rv command_match_r(struct graph_node *, vector,
-				       unsigned int, struct graph_node **,
-				       struct list **);
+static enum matcher_rv command_match_r(struct graph_node *, vector, unsigned int,
+				       struct graph_node **, struct list **);
 
 static int score_precedence(enum cmd_token_type);
 
@@ -82,8 +81,7 @@ enum matcher_rv command_match(struct graph *cmdgraph, vector vline,
 	// prepend a dummy token to match that pesky start node
 	vector vvline = vector_init(vline->alloced + 1);
 	vector_set_index(vvline, 0, XSTRDUP(MTYPE_TMP, "dummy"));
-	memcpy(vvline->index + 1, vline->index,
-	       sizeof(void *) * vline->alloced);
+	memcpy(vvline->index + 1, vline->index, sizeof(void *) * vline->alloced);
 	vvline->active = vline->active + 1;
 
 	struct graph_node *start = vector_slot(cmdgraph->nodes, 0);
@@ -179,8 +177,7 @@ enum matcher_rv command_match(struct graph *cmdgraph, vector vline,
  * If no match was found, the return value is NULL.
  */
 static enum matcher_rv command_match_r(struct graph_node *start, vector vline,
-				       unsigned int n,
-				       struct graph_node **stack,
+				       unsigned int n, struct graph_node **stack,
 				       struct list **currbest)
 {
 	assert(n < vector_active(vline));
@@ -259,8 +256,7 @@ static enum matcher_rv command_match_r(struct graph_node *start, vector vline,
 				*currbest = list_new();
 				// node should have one child node with the
 				// element
-				struct graph_node *leaf =
-					vector_slot(gn->to, 0);
+				struct graph_node *leaf = vector_slot(gn->to, 0);
 				// last node in the list will hold the
 				// cmd_element; this is important because
 				// list_delete() expects that all nodes have
@@ -268,8 +264,8 @@ static enum matcher_rv command_match_r(struct graph_node *start, vector vline,
 				// list the last node must be manually deleted
 				struct cmd_element *el = leaf->data;
 				listnode_add(*currbest, el);
-				(*currbest)->del =
-					(void (*)(void *)) & cmd_token_del;
+				(*currbest)->del = (void (*)(void *)) &
+						   cmd_token_del;
 				// do not break immediately; continue walking
 				// through the follow set to ensure that there
 				// is exactly one END_TKN
@@ -279,34 +275,33 @@ static enum matcher_rv command_match_r(struct graph_node *start, vector vline,
 
 		// else recurse on candidate child node
 		struct list *result = NULL;
-		enum matcher_rv rstat =
-			command_match_r(gn, vline, n + 1, stack, &result);
+		enum matcher_rv rstat = command_match_r(gn, vline, n + 1, stack,
+							&result);
 
 		// save the best match
 		if (result && *currbest) {
 			// pick the best of two matches
-			struct list *newbest =
-				disambiguate(*currbest, result, vline, n + 1);
+			struct list *newbest = disambiguate(*currbest, result,
+							    vline, n + 1);
 
 			// current best and result are ambiguous
 			if (!newbest)
 				status = MATCHER_AMBIGUOUS;
 			// current best is still the best, but ambiguous
-			else if (newbest == *currbest
-				 && status == MATCHER_AMBIGUOUS)
+			else if (newbest == *currbest &&
+				 status == MATCHER_AMBIGUOUS)
 				status = MATCHER_AMBIGUOUS;
 			// result is better, but also ambiguous
-			else if (newbest == result
-				 && rstat == MATCHER_AMBIGUOUS)
+			else if (newbest == result && rstat == MATCHER_AMBIGUOUS)
 				status = MATCHER_AMBIGUOUS;
 			// one or the other is superior and not ambiguous
 			else
 				status = MATCHER_OK;
 
 			// delete the unnecessary result
-			struct list *todelete =
-				((newbest && newbest == result) ? *currbest
-								: result);
+			struct list *todelete = ((newbest && newbest == result)
+							 ? *currbest
+							 : result);
 			del_arglist(todelete);
 
 			*currbest = newbest ? newbest : *currbest;
@@ -344,9 +339,8 @@ enum matcher_rv command_complete(struct graph *graph, vector vline,
 	char *input_token;
 	bool neg = is_neg(vline, 0);
 
-	struct list *
-		current =
-		       list_new(), // current nodes to match input token against
+	struct list *current =
+			    list_new(), // current nodes to match input token against
 		*next = list_new(); // possible next hops after current input
 				    // token
 	current->del = next->del = stack_del;
@@ -373,8 +367,8 @@ enum matcher_rv command_complete(struct graph *graph, vector vline,
 			if (!exact_match_exists)
 				exact_match_exists =
 					(match_token(gstack[0]->data,
-						     input_token)
-					 == exact_match);
+						     input_token) ==
+					 exact_match);
 			else
 				break;
 
@@ -388,10 +382,10 @@ enum matcher_rv command_complete(struct graph *graph, vector vline,
 			trace_matcher("\"%s\" matches \"%s\" (%d) ? ",
 				      input_token, token->text, token->type);
 
-			unsigned int last_token =
-				(vector_active(vline) - 1 == idx);
-			enum match_type matchtype =
-				match_token(token, input_token);
+			unsigned int last_token = (vector_active(vline) - 1 ==
+						   idx);
+			enum match_type matchtype = match_token(token,
+								input_token);
 			switch (matchtype) {
 			// occurs when last token is whitespace
 			case trivial_match:
@@ -412,9 +406,10 @@ enum matcher_rv command_complete(struct graph *graph, vector vline,
 			case exact_match:
 				trace_matcher("exact_match\n");
 				if (last_token) {
-					newstack = XMALLOC(
-						MTYPE_CMD_MATCHSTACK,
-						sizeof(struct graph_node *));
+					newstack =
+						XMALLOC(MTYPE_CMD_MATCHSTACK,
+							sizeof(struct graph_node
+								       *));
 					/* same as above, not recursing on this
 					 */
 					newstack[0] = gstack[0];
@@ -492,14 +487,13 @@ static int add_nexthops(struct list *list, struct graph_node *node,
 			continue;
 
 		if (token->type >= SPECIAL_TKN && token->type != END_TKN) {
-			added +=
-				add_nexthops(list, child, stack, stackpos, neg);
+			added += add_nexthops(list, child, stack, stackpos, neg);
 		} else {
 			if (stack) {
-				nextstack = XMALLOC(
-					MTYPE_CMD_MATCHSTACK,
-					(stackpos + 1)
-						* sizeof(struct graph_node *));
+				nextstack =
+					XMALLOC(MTYPE_CMD_MATCHSTACK,
+						(stackpos +
+						 1) * sizeof(struct graph_node *));
 				nextstack[0] = child;
 				memcpy(nextstack + 1, stack,
 				       stackpos * sizeof(struct graph_node *));
@@ -714,7 +708,7 @@ static enum match_type match_token(struct cmd_token *token, char *input_token)
 	assert(!"Reached end of function we should never hit");
 }
 
-#define IPV4_ADDR_STR   "0123456789."
+#define IPV4_ADDR_STR	"0123456789."
 #define IPV4_PREFIX_STR "0123456789./"
 
 static enum match_type match_ipv4(const char *str)
@@ -845,15 +839,15 @@ static enum match_type match_ipv4_prefix(const char *str)
 	return exact_match;
 }
 
-#define IPV6_ADDR_STR   "0123456789abcdefABCDEF:."
+#define IPV6_ADDR_STR	"0123456789abcdefABCDEF:."
 #define IPV6_PREFIX_STR "0123456789abcdefABCDEF:./"
-#define STATE_START     1
-#define STATE_COLON     2
-#define STATE_DOUBLE    3
-#define STATE_ADDR      4
-#define STATE_DOT       5
-#define STATE_SLASH     6
-#define STATE_MASK      7
+#define STATE_START	1
+#define STATE_COLON	2
+#define STATE_DOUBLE	3
+#define STATE_ADDR	4
+#define STATE_DOT	5
+#define STATE_SLASH	6
+#define STATE_MASK	7
 
 static enum match_type match_ipv6_prefix(const char *str, bool prefix)
 {
@@ -866,8 +860,7 @@ static enum match_type match_ipv6_prefix(const char *str, bool prefix)
 	if (str == NULL)
 		return partly_match;
 
-	if (strspn(str, prefix ? IPV6_PREFIX_STR : IPV6_ADDR_STR)
-	    != strlen(str))
+	if (strspn(str, prefix ? IPV6_PREFIX_STR : IPV6_ADDR_STR) != strlen(str))
 		return no_match;
 
 	while (*str != '\0' && state != STATE_MASK) {
@@ -916,8 +909,8 @@ static enum match_type match_ipv6_prefix(const char *str, bool prefix)
 			nums += 1;
 			break;
 		case STATE_ADDR:
-			if (*(str + 1) == ':' || *(str + 1) == '.'
-			    || *(str + 1) == '\0' || *(str + 1) == '/') {
+			if (*(str + 1) == ':' || *(str + 1) == '.' ||
+			    *(str + 1) == '\0' || *(str + 1) == '/') {
 				if (str - sp > 3)
 					return no_match;
 

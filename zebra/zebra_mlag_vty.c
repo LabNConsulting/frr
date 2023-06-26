@@ -15,12 +15,8 @@
 
 #include "zebra/zebra_mlag_vty_clippy.c"
 
-DEFUN_HIDDEN (show_mlag,
-	      show_mlag_cmd,
-	      "show zebra mlag",
-	      SHOW_STR
-	      ZEBRA_STR
-	      "The mlag role on this machine\n")
+DEFUN_HIDDEN(show_mlag, show_mlag_cmd, "show zebra mlag",
+	     SHOW_STR ZEBRA_STR "The mlag role on this machine\n")
 {
 	char buf[MLAG_ROLE_STRSIZE];
 
@@ -32,9 +28,7 @@ DEFUN_HIDDEN (show_mlag,
 
 DEFPY_HIDDEN(test_mlag, test_mlag_cmd,
 	     "test zebra mlag <none$none|primary$primary|secondary$secondary>",
-	     "Test code\n"
-	     ZEBRA_STR
-	     "Modify the Mlag state\n"
+	     "Test code\n" ZEBRA_STR "Modify the Mlag state\n"
 	     "Mlag is not setup on the machine\n"
 	     "Mlag is setup to be primary\n"
 	     "Mlag is setup to be the secondary\n")

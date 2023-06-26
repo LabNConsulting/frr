@@ -19,7 +19,7 @@
 
 #include "lib/filter_cli_clippy.c"
 
-#define ACCESS_LIST_STR "Access list entry\n"
+#define ACCESS_LIST_STR	      "Access list entry\n"
 #define ACCESS_LIST_ZEBRA_STR "Access list name\n"
 #define ACCESS_LIST_SEQ_STR                                                    \
 	"Sequence number of an entry\n"                                        \
@@ -27,7 +27,7 @@
 #define ACCESS_LIST_ACTION_STR                                                 \
 	"Specify packets to reject\n"                                          \
 	"Specify packets to forward\n"
-#define ACCESS_LIST_REMARK_STR "Access list entry comment\n"
+#define ACCESS_LIST_REMARK_STR	    "Access list entry comment\n"
 #define ACCESS_LIST_REMARK_LINE_STR "Comment up to 100 characters\n"
 
 #define PREFIX_LIST_NAME_STR "Prefix list entry name\n"
@@ -103,10 +103,10 @@ static int acl_remove(struct vty *vty, const char *iptype, const char *name,
 	char xpath[XPATH_MAXLEN];
 	int rv;
 
-	snprintfrr(
-		xpath, sizeof(xpath),
-		"/frr-filter:lib/access-list[type='%s'][name='%s']/entry[sequence='%" PRId64 "']",
-		iptype, name, sseq);
+	snprintfrr(xpath, sizeof(xpath),
+		   "/frr-filter:lib/access-list[type='%s'][name='%s']/entry[sequence='%" PRId64
+		   "']",
+		   iptype, name, sseq);
 	nb_cli_enqueue_change(vty, xpath, NB_OP_DESTROY, NULL);
 
 	rv = nb_cli_apply_changes(vty, NULL);
@@ -122,14 +122,11 @@ static int acl_remove(struct vty *vty, const char *iptype, const char *name,
 DEFPY_YANG(
 	access_list_std, access_list_std_cmd,
 	"access-list WORD$name [seq (1-4294967295)$seq] <deny|permit>$action <[host] A.B.C.D$host|A.B.C.D$host A.B.C.D$mask>",
-	ACCESS_LIST_STR
-	ACCESS_LIST_ZEBRA_STR
-	ACCESS_LIST_SEQ_STR
-	ACCESS_LIST_ACTION_STR
-	"A single host address\n"
-	"Address to match\n"
-	"Address to match\n"
-	"Wildcard bits\n")
+	ACCESS_LIST_STR ACCESS_LIST_ZEBRA_STR ACCESS_LIST_SEQ_STR
+		ACCESS_LIST_ACTION_STR "A single host address\n"
+				       "Address to match\n"
+				       "Address to match\n"
+				       "Wildcard bits\n")
 {
 	int64_t sseq;
 	struct acl_dup_args ada = {};
@@ -198,15 +195,11 @@ DEFPY_YANG(
 DEFPY_YANG(
 	no_access_list_std, no_access_list_std_cmd,
 	"no access-list WORD$name [seq (1-4294967295)$seq] <deny|permit>$action <[host] A.B.C.D$host|A.B.C.D$host A.B.C.D$mask>",
-	NO_STR
-	ACCESS_LIST_STR
-	ACCESS_LIST_ZEBRA_STR
-	ACCESS_LIST_SEQ_STR
-	ACCESS_LIST_ACTION_STR
-	"A single host address\n"
-	"Address to match\n"
-	"Address to match\n"
-	"Wildcard bits\n")
+	NO_STR ACCESS_LIST_STR ACCESS_LIST_ZEBRA_STR ACCESS_LIST_SEQ_STR
+		ACCESS_LIST_ACTION_STR "A single host address\n"
+				       "Address to match\n"
+				       "Address to match\n"
+				       "Wildcard bits\n")
 {
 	int64_t sseq;
 	struct acl_dup_args ada = {};
@@ -243,21 +236,18 @@ DEFPY_YANG(
 DEFPY_YANG(
 	access_list_ext, access_list_ext_cmd,
 	"access-list WORD$name [seq (1-4294967295)$seq] <deny|permit>$action ip <A.B.C.D$src A.B.C.D$src_mask|host A.B.C.D$src|any> <A.B.C.D$dst A.B.C.D$dst_mask|host A.B.C.D$dst|any>",
-	ACCESS_LIST_STR
-	ACCESS_LIST_ZEBRA_STR
-	ACCESS_LIST_SEQ_STR
-	ACCESS_LIST_ACTION_STR
-	"IPv4 address\n"
-	"Source address to match\n"
-	"Source address mask to apply\n"
-	"Single source host\n"
-	"Source address to match\n"
-	"Any source host\n"
-	"Destination address to match\n"
-	"Destination address mask to apply\n"
-	"Single destination host\n"
-	"Destination address to match\n"
-	"Any destination host\n")
+	ACCESS_LIST_STR ACCESS_LIST_ZEBRA_STR ACCESS_LIST_SEQ_STR
+		ACCESS_LIST_ACTION_STR "IPv4 address\n"
+				       "Source address to match\n"
+				       "Source address mask to apply\n"
+				       "Single source host\n"
+				       "Source address to match\n"
+				       "Any source host\n"
+				       "Destination address to match\n"
+				       "Destination address mask to apply\n"
+				       "Single destination host\n"
+				       "Destination address to match\n"
+				       "Any destination host\n")
 {
 	int idx = 0;
 	int64_t sseq;
@@ -361,22 +351,18 @@ DEFPY_YANG(
 DEFPY_YANG(
 	no_access_list_ext, no_access_list_ext_cmd,
 	"no access-list WORD$name [seq (1-4294967295)$seq] <deny|permit>$action ip <A.B.C.D$src A.B.C.D$src_mask|host A.B.C.D$src|any> <A.B.C.D$dst A.B.C.D$dst_mask|host A.B.C.D$dst|any>",
-	NO_STR
-	ACCESS_LIST_STR
-	ACCESS_LIST_ZEBRA_STR
-	ACCESS_LIST_SEQ_STR
-	ACCESS_LIST_ACTION_STR
-	"Any Internet Protocol\n"
-	"Source address to match\n"
-	"Source address mask to apply\n"
-	"Single source host\n"
-	"Source address to match\n"
-	"Any source host\n"
-	"Destination address to match\n"
-	"Destination address mask to apply\n"
-	"Single destination host\n"
-	"Destination address to match\n"
-	"Any destination host\n")
+	NO_STR ACCESS_LIST_STR ACCESS_LIST_ZEBRA_STR ACCESS_LIST_SEQ_STR
+		ACCESS_LIST_ACTION_STR "Any Internet Protocol\n"
+				       "Source address to match\n"
+				       "Source address mask to apply\n"
+				       "Single source host\n"
+				       "Source address to match\n"
+				       "Any source host\n"
+				       "Destination address to match\n"
+				       "Destination address mask to apply\n"
+				       "Single destination host\n"
+				       "Destination address to match\n"
+				       "Any destination host\n")
 {
 	int idx = 0;
 	int64_t sseq;
@@ -438,13 +424,10 @@ DEFPY_YANG(
 DEFPY_YANG(
 	access_list, access_list_cmd,
 	"access-list WORD$name [seq (1-4294967295)$seq] <deny|permit>$action <A.B.C.D/M$prefix [exact-match$exact]|any>",
-	ACCESS_LIST_STR
-	ACCESS_LIST_ZEBRA_STR
-	ACCESS_LIST_SEQ_STR
-	ACCESS_LIST_ACTION_STR
-	"Prefix to match. e.g. 10.0.0.0/8\n"
-	"Exact match of the prefixes\n"
-	"Match any IPv4\n")
+	ACCESS_LIST_STR ACCESS_LIST_ZEBRA_STR ACCESS_LIST_SEQ_STR
+		ACCESS_LIST_ACTION_STR "Prefix to match. e.g. 10.0.0.0/8\n"
+				       "Exact match of the prefixes\n"
+				       "Match any IPv4\n")
 {
 	int64_t sseq;
 	struct acl_dup_args ada = {};
@@ -511,14 +494,10 @@ DEFPY_YANG(
 DEFPY_YANG(
 	no_access_list, no_access_list_cmd,
 	"no access-list WORD$name [seq (1-4294967295)$seq] <deny|permit>$action <A.B.C.D/M$prefix [exact-match$exact]|any>",
-	NO_STR
-	ACCESS_LIST_STR
-	ACCESS_LIST_ZEBRA_STR
-	ACCESS_LIST_SEQ_STR
-	ACCESS_LIST_ACTION_STR
-	"Prefix to match. e.g. 10.0.0.0/8\n"
-	"Exact match of the prefixes\n"
-	"Match any IPv4\n")
+	NO_STR ACCESS_LIST_STR ACCESS_LIST_ZEBRA_STR ACCESS_LIST_SEQ_STR
+		ACCESS_LIST_ACTION_STR "Prefix to match. e.g. 10.0.0.0/8\n"
+				       "Exact match of the prefixes\n"
+				       "Match any IPv4\n")
 {
 	int64_t sseq;
 	struct acl_dup_args ada = {};
@@ -552,12 +531,9 @@ DEFPY_YANG(
 	return acl_remove(vty, "ipv4", name, sseq);
 }
 
-DEFPY_YANG(
-	no_access_list_all, no_access_list_all_cmd,
-	"no access-list WORD$name",
-	NO_STR
-	ACCESS_LIST_STR
-	ACCESS_LIST_ZEBRA_STR)
+DEFPY_YANG(no_access_list_all, no_access_list_all_cmd,
+	   "no access-list WORD$name",
+	   NO_STR ACCESS_LIST_STR ACCESS_LIST_ZEBRA_STR)
 {
 	char xpath[XPATH_MAXLEN];
 
@@ -568,13 +544,10 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	access_list_remark, access_list_remark_cmd,
-	"access-list WORD$name remark LINE...",
-	ACCESS_LIST_STR
-	ACCESS_LIST_ZEBRA_STR
-	ACCESS_LIST_REMARK_STR
-	ACCESS_LIST_REMARK_LINE_STR)
+DEFPY_YANG(access_list_remark, access_list_remark_cmd,
+	   "access-list WORD$name remark LINE...",
+	   ACCESS_LIST_STR ACCESS_LIST_ZEBRA_STR ACCESS_LIST_REMARK_STR
+		   ACCESS_LIST_REMARK_LINE_STR)
 {
 	int rv;
 	char *remark;
@@ -592,13 +565,9 @@ DEFPY_YANG(
 	return rv;
 }
 
-DEFPY_YANG(
-	no_access_list_remark, no_access_list_remark_cmd,
-	"no access-list WORD$name remark",
-	NO_STR
-	ACCESS_LIST_STR
-	ACCESS_LIST_ZEBRA_STR
-	ACCESS_LIST_REMARK_STR)
+DEFPY_YANG(no_access_list_remark, no_access_list_remark_cmd,
+	   "no access-list WORD$name remark",
+	   NO_STR ACCESS_LIST_STR ACCESS_LIST_ZEBRA_STR ACCESS_LIST_REMARK_STR)
 {
 	char xpath[XPATH_MAXLEN];
 	int rv;
@@ -615,26 +584,18 @@ DEFPY_YANG(
 	return rv;
 }
 
-ALIAS(
-	no_access_list_remark, no_access_list_remark_line_cmd,
-	"no access-list WORD$name remark LINE...",
-	NO_STR
-	ACCESS_LIST_STR
-	ACCESS_LIST_ZEBRA_STR
-	ACCESS_LIST_REMARK_STR
-	ACCESS_LIST_REMARK_LINE_STR)
+ALIAS(no_access_list_remark, no_access_list_remark_line_cmd,
+      "no access-list WORD$name remark LINE...",
+      NO_STR ACCESS_LIST_STR ACCESS_LIST_ZEBRA_STR ACCESS_LIST_REMARK_STR
+	      ACCESS_LIST_REMARK_LINE_STR)
 
 DEFPY_YANG(
 	ipv6_access_list, ipv6_access_list_cmd,
 	"ipv6 access-list WORD$name [seq (1-4294967295)$seq] <deny|permit>$action <X:X::X:X/M$prefix [exact-match$exact]|any>",
-	IPV6_STR
-	ACCESS_LIST_STR
-	ACCESS_LIST_ZEBRA_STR
-	ACCESS_LIST_SEQ_STR
-	ACCESS_LIST_ACTION_STR
-	"IPv6 prefix\n"
-	"Exact match of the prefixes\n"
-	"Match any IPv6\n")
+	IPV6_STR ACCESS_LIST_STR ACCESS_LIST_ZEBRA_STR ACCESS_LIST_SEQ_STR
+		ACCESS_LIST_ACTION_STR "IPv6 prefix\n"
+				       "Exact match of the prefixes\n"
+				       "Match any IPv6\n")
 {
 	int64_t sseq;
 	struct acl_dup_args ada = {};
@@ -701,15 +662,10 @@ DEFPY_YANG(
 DEFPY_YANG(
 	no_ipv6_access_list, no_ipv6_access_list_cmd,
 	"no ipv6 access-list WORD$name [seq (1-4294967295)$seq] <deny|permit>$action <X:X::X:X/M$prefix [exact-match$exact]|any>",
-	NO_STR
-	IPV6_STR
-	ACCESS_LIST_STR
-	ACCESS_LIST_ZEBRA_STR
-	ACCESS_LIST_SEQ_STR
-	ACCESS_LIST_ACTION_STR
-	"IPv6 prefix\n"
-	"Exact match of the prefixes\n"
-	"Match any IPv6\n")
+	NO_STR IPV6_STR ACCESS_LIST_STR ACCESS_LIST_ZEBRA_STR ACCESS_LIST_SEQ_STR
+		ACCESS_LIST_ACTION_STR "IPv6 prefix\n"
+				       "Exact match of the prefixes\n"
+				       "Match any IPv6\n")
 {
 	int64_t sseq;
 	struct acl_dup_args ada = {};
@@ -743,13 +699,9 @@ DEFPY_YANG(
 	return acl_remove(vty, "ipv6", name, sseq);
 }
 
-DEFPY_YANG(
-	no_ipv6_access_list_all, no_ipv6_access_list_all_cmd,
-	"no ipv6 access-list WORD$name",
-	NO_STR
-	IPV6_STR
-	ACCESS_LIST_STR
-	ACCESS_LIST_ZEBRA_STR)
+DEFPY_YANG(no_ipv6_access_list_all, no_ipv6_access_list_all_cmd,
+	   "no ipv6 access-list WORD$name",
+	   NO_STR IPV6_STR ACCESS_LIST_STR ACCESS_LIST_ZEBRA_STR)
 {
 	char xpath[XPATH_MAXLEN];
 
@@ -760,14 +712,10 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	ipv6_access_list_remark, ipv6_access_list_remark_cmd,
-	"ipv6 access-list WORD$name remark LINE...",
-	IPV6_STR
-	ACCESS_LIST_STR
-	ACCESS_LIST_ZEBRA_STR
-	ACCESS_LIST_REMARK_STR
-	ACCESS_LIST_REMARK_LINE_STR)
+DEFPY_YANG(ipv6_access_list_remark, ipv6_access_list_remark_cmd,
+	   "ipv6 access-list WORD$name remark LINE...",
+	   IPV6_STR ACCESS_LIST_STR ACCESS_LIST_ZEBRA_STR ACCESS_LIST_REMARK_STR
+		   ACCESS_LIST_REMARK_LINE_STR)
 {
 	int rv;
 	char *remark;
@@ -785,14 +733,10 @@ DEFPY_YANG(
 	return rv;
 }
 
-DEFPY_YANG(
-	no_ipv6_access_list_remark, no_ipv6_access_list_remark_cmd,
-	"no ipv6 access-list WORD$name remark",
-	NO_STR
-	IPV6_STR
-	ACCESS_LIST_STR
-	ACCESS_LIST_ZEBRA_STR
-	ACCESS_LIST_REMARK_STR)
+DEFPY_YANG(no_ipv6_access_list_remark, no_ipv6_access_list_remark_cmd,
+	   "no ipv6 access-list WORD$name remark",
+	   NO_STR IPV6_STR ACCESS_LIST_STR ACCESS_LIST_ZEBRA_STR
+		   ACCESS_LIST_REMARK_STR)
 {
 	char xpath[XPATH_MAXLEN];
 	int rv;
@@ -809,26 +753,17 @@ DEFPY_YANG(
 	return rv;
 }
 
-ALIAS(
-	no_ipv6_access_list_remark, no_ipv6_access_list_remark_line_cmd,
-	"no ipv6 access-list ACCESSLIST6_NAME$name remark LINE...",
-	NO_STR
-	IPV6_STR
-	ACCESS_LIST_STR
-	ACCESS_LIST_ZEBRA_STR
-	ACCESS_LIST_REMARK_STR
-	ACCESS_LIST_REMARK_LINE_STR)
+ALIAS(no_ipv6_access_list_remark, no_ipv6_access_list_remark_line_cmd,
+      "no ipv6 access-list ACCESSLIST6_NAME$name remark LINE...",
+      NO_STR IPV6_STR ACCESS_LIST_STR ACCESS_LIST_ZEBRA_STR
+	      ACCESS_LIST_REMARK_STR ACCESS_LIST_REMARK_LINE_STR)
 
 DEFPY_YANG(
 	mac_access_list, mac_access_list_cmd,
 	"mac access-list ACCESSLIST_MAC_NAME$name [seq (1-4294967295)$seq] <deny|permit>$action <X:X:X:X:X:X$mac|any>",
-	MAC_STR
-	ACCESS_LIST_STR
-	ACCESS_LIST_ZEBRA_STR
-	ACCESS_LIST_SEQ_STR
-	ACCESS_LIST_ACTION_STR
-	"MAC address\n"
-	"Match any MAC address\n")
+	MAC_STR ACCESS_LIST_STR ACCESS_LIST_ZEBRA_STR ACCESS_LIST_SEQ_STR
+		ACCESS_LIST_ACTION_STR "MAC address\n"
+				       "Match any MAC address\n")
 {
 	int64_t sseq;
 	struct acl_dup_args ada = {};
@@ -888,14 +823,9 @@ DEFPY_YANG(
 DEFPY_YANG(
 	no_mac_access_list, no_mac_access_list_cmd,
 	"no mac access-list ACCESSLIST_MAC_NAME$name [seq (1-4294967295)$seq] <deny|permit>$action <X:X:X:X:X:X$mac|any>",
-	NO_STR
-	MAC_STR
-	ACCESS_LIST_STR
-	ACCESS_LIST_ZEBRA_STR
-	ACCESS_LIST_SEQ_STR
-	ACCESS_LIST_ACTION_STR
-	"MAC address\n"
-	"Match any MAC address\n")
+	NO_STR MAC_STR ACCESS_LIST_STR ACCESS_LIST_ZEBRA_STR ACCESS_LIST_SEQ_STR
+		ACCESS_LIST_ACTION_STR "MAC address\n"
+				       "Match any MAC address\n")
 {
 	int64_t sseq;
 	struct acl_dup_args ada = {};
@@ -925,13 +855,9 @@ DEFPY_YANG(
 	return acl_remove(vty, "mac", name, sseq);
 }
 
-DEFPY_YANG(
-	no_mac_access_list_all, no_mac_access_list_all_cmd,
-	"no mac access-list ACCESSLIST_MAC_NAME$name",
-	NO_STR
-	MAC_STR
-	ACCESS_LIST_STR
-	ACCESS_LIST_ZEBRA_STR)
+DEFPY_YANG(no_mac_access_list_all, no_mac_access_list_all_cmd,
+	   "no mac access-list ACCESSLIST_MAC_NAME$name",
+	   NO_STR MAC_STR ACCESS_LIST_STR ACCESS_LIST_ZEBRA_STR)
 {
 	char xpath[XPATH_MAXLEN];
 
@@ -942,14 +868,10 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	mac_access_list_remark, mac_access_list_remark_cmd,
-	"mac access-list ACCESSLIST_MAC_NAME$name remark LINE...",
-	MAC_STR
-	ACCESS_LIST_STR
-	ACCESS_LIST_ZEBRA_STR
-	ACCESS_LIST_REMARK_STR
-	ACCESS_LIST_REMARK_LINE_STR)
+DEFPY_YANG(mac_access_list_remark, mac_access_list_remark_cmd,
+	   "mac access-list ACCESSLIST_MAC_NAME$name remark LINE...",
+	   MAC_STR ACCESS_LIST_STR ACCESS_LIST_ZEBRA_STR ACCESS_LIST_REMARK_STR
+		   ACCESS_LIST_REMARK_LINE_STR)
 {
 	int rv;
 	char *remark;
@@ -967,14 +889,10 @@ DEFPY_YANG(
 	return rv;
 }
 
-DEFPY_YANG(
-	no_mac_access_list_remark, no_mac_access_list_remark_cmd,
-	"no mac access-list ACCESSLIST_MAC_NAME$name remark",
-	NO_STR
-	MAC_STR
-	ACCESS_LIST_STR
-	ACCESS_LIST_ZEBRA_STR
-	ACCESS_LIST_REMARK_STR)
+DEFPY_YANG(no_mac_access_list_remark, no_mac_access_list_remark_cmd,
+	   "no mac access-list ACCESSLIST_MAC_NAME$name remark",
+	   NO_STR MAC_STR ACCESS_LIST_STR ACCESS_LIST_ZEBRA_STR
+		   ACCESS_LIST_REMARK_STR)
 {
 	char xpath[XPATH_MAXLEN];
 	int rv;
@@ -991,18 +909,12 @@ DEFPY_YANG(
 	return rv;
 }
 
-ALIAS(
-	no_mac_access_list_remark, no_mac_access_list_remark_line_cmd,
-	"no mac access-list ACCESSLIST_MAC_NAME$name remark LINE...",
-	NO_STR
-	MAC_STR
-	ACCESS_LIST_STR
-	ACCESS_LIST_ZEBRA_STR
-	ACCESS_LIST_REMARK_STR
-	ACCESS_LIST_REMARK_LINE_STR)
+ALIAS(no_mac_access_list_remark, no_mac_access_list_remark_line_cmd,
+      "no mac access-list ACCESSLIST_MAC_NAME$name remark LINE...",
+      NO_STR MAC_STR ACCESS_LIST_STR ACCESS_LIST_ZEBRA_STR
+	      ACCESS_LIST_REMARK_STR ACCESS_LIST_REMARK_LINE_STR)
 
-int access_list_cmp(const struct lyd_node *dnode1,
-		    const struct lyd_node *dnode2)
+int access_list_cmp(const struct lyd_node *dnode1, const struct lyd_node *dnode2)
 {
 	uint32_t seq1 = yang_dnode_get_uint32(dnode1, "./sequence");
 	uint32_t seq2 = yang_dnode_get_uint32(dnode2, "./sequence");
@@ -1028,14 +940,14 @@ void access_list_show(struct vty *vty, const struct lyd_node *dnode,
 		if (is_any)
 			break;
 
-		if (yang_dnode_exists(dnode, "./host")
-		    || yang_dnode_exists(dnode, "./network/address")
-		    || yang_dnode_exists(dnode, "./source-any")) {
+		if (yang_dnode_exists(dnode, "./host") ||
+		    yang_dnode_exists(dnode, "./network/address") ||
+		    yang_dnode_exists(dnode, "./source-any")) {
 			cisco_style = true;
-			if (yang_dnode_exists(dnode, "./destination-host")
-			    || yang_dnode_exists(
-				    dnode, "./destination-network/address")
-			    || yang_dnode_exists(dnode, "./destination-any"))
+			if (yang_dnode_exists(dnode, "./destination-host") ||
+			    yang_dnode_exists(dnode,
+					      "./destination-network/address") ||
+			    yang_dnode_exists(dnode, "./destination-any"))
 				cisco_extended = true;
 		} else {
 			yang_dnode_get_prefix(&p, dnode, "./ipv4-prefix");
@@ -1193,10 +1105,9 @@ static int plist_remove(struct vty *vty, const char *iptype, const char *name,
 
 	/* If the user provided sequence number, then just go for it. */
 	if (seq != NULL) {
-		snprintf(
-			xpath, sizeof(xpath),
-			"/frr-filter:lib/prefix-list[type='%s'][name='%s']/entry[sequence='%s']",
-			iptype, name, seq);
+		snprintf(xpath, sizeof(xpath),
+			 "/frr-filter:lib/prefix-list[type='%s'][name='%s']/entry[sequence='%s']",
+			 iptype, name, seq);
 		nb_cli_enqueue_change(vty, xpath, NB_OP_DESTROY, NULL);
 
 		rv = nb_cli_apply_changes(vty, NULL);
@@ -1224,10 +1135,10 @@ static int plist_remove(struct vty *vty, const char *iptype, const char *name,
 	else
 		return CMD_WARNING_CONFIG_FAILED;
 
-	snprintfrr(
-		xpath_entry, sizeof(xpath_entry),
-		"/frr-filter:lib/prefix-list[type='%s'][name='%s']/entry[sequence='%" PRId64 "']",
-		iptype, name, sseq);
+	snprintfrr(xpath_entry, sizeof(xpath_entry),
+		   "/frr-filter:lib/prefix-list[type='%s'][name='%s']/entry[sequence='%" PRId64
+		   "']",
+		   iptype, name, sseq);
 	nb_cli_enqueue_change(vty, xpath_entry, NB_OP_DESTROY, NULL);
 
 	rv = nb_cli_apply_changes(vty, NULL);
@@ -1240,11 +1151,8 @@ static int plist_remove(struct vty *vty, const char *iptype, const char *name,
 DEFPY_YANG(
 	ip_prefix_list, ip_prefix_list_cmd,
 	"ip prefix-list WORD$name [seq (1-4294967295)$seq] <deny|permit>$action <any|A.B.C.D/M$prefix [{ge (0-32)$ge|le (0-32)$le}]>",
-	IP_STR
-	PREFIX_LIST_STR
-	PREFIX_LIST_NAME_STR
-	ACCESS_LIST_SEQ_STR
-	ACCESS_LIST_ACTION_STR
+	IP_STR PREFIX_LIST_STR PREFIX_LIST_NAME_STR ACCESS_LIST_SEQ_STR
+		ACCESS_LIST_ACTION_STR
 	"Any prefix match.  Same as \"0.0.0.0/0 le 32\"\n"
 	"IP prefix <network>/<length>, e.g., 35.0.0.0/8\n"
 	"Minimum prefix length to be matched\n"
@@ -1299,29 +1207,29 @@ DEFPY_YANG(
 				      prefix_str);
 
 		if (ge_str) {
-			nb_cli_enqueue_change(
-				vty, "./ipv4-prefix-length-greater-or-equal",
-				NB_OP_MODIFY, ge_str);
+			nb_cli_enqueue_change(vty,
+					      "./ipv4-prefix-length-greater-or-equal",
+					      NB_OP_MODIFY, ge_str);
 		} else {
 			/*
 			 * Remove old ge if not being modified
 			 */
-			nb_cli_enqueue_change(
-				vty, "./ipv4-prefix-length-greater-or-equal",
-				NB_OP_DESTROY, NULL);
+			nb_cli_enqueue_change(vty,
+					      "./ipv4-prefix-length-greater-or-equal",
+					      NB_OP_DESTROY, NULL);
 		}
 
 		if (le_str) {
-			nb_cli_enqueue_change(
-				vty, "./ipv4-prefix-length-lesser-or-equal",
-				NB_OP_MODIFY, le_str);
+			nb_cli_enqueue_change(vty,
+					      "./ipv4-prefix-length-lesser-or-equal",
+					      NB_OP_MODIFY, le_str);
 		} else {
 			/*
 			 * Remove old le if not being modified
 			 */
-			nb_cli_enqueue_change(
-				vty, "./ipv4-prefix-length-lesser-or-equal",
-				NB_OP_DESTROY, NULL);
+			nb_cli_enqueue_change(vty,
+					      "./ipv4-prefix-length-lesser-or-equal",
+					      NB_OP_DESTROY, NULL);
 		}
 		nb_cli_enqueue_change(vty, "./any", NB_OP_DESTROY, NULL);
 	} else {
@@ -1334,12 +1242,8 @@ DEFPY_YANG(
 DEFPY_YANG(
 	no_ip_prefix_list, no_ip_prefix_list_cmd,
 	"no ip prefix-list WORD$name [seq (1-4294967295)$seq] <deny|permit>$action <any|A.B.C.D/M$prefix [{ge (0-32)|le (0-32)}]>",
-	NO_STR
-	IP_STR
-	PREFIX_LIST_STR
-	PREFIX_LIST_NAME_STR
-	ACCESS_LIST_SEQ_STR
-	ACCESS_LIST_ACTION_STR
+	NO_STR IP_STR PREFIX_LIST_STR PREFIX_LIST_NAME_STR ACCESS_LIST_SEQ_STR
+		ACCESS_LIST_ACTION_STR
 	"Any prefix match.  Same as \"0.0.0.0/0 le 32\"\n"
 	"IP prefix <network>/<length>, e.g., 35.0.0.0/8\n"
 	"Minimum prefix length to be matched\n"
@@ -1351,25 +1255,16 @@ DEFPY_YANG(
 			    prefix_str ? prefix : NULL, ge, le);
 }
 
-DEFPY_YANG(
-	no_ip_prefix_list_seq, no_ip_prefix_list_seq_cmd,
-	"no ip prefix-list WORD$name seq (1-4294967295)$seq",
-	NO_STR
-	IP_STR
-	PREFIX_LIST_STR
-	PREFIX_LIST_NAME_STR
-	ACCESS_LIST_SEQ_STR)
+DEFPY_YANG(no_ip_prefix_list_seq, no_ip_prefix_list_seq_cmd,
+	   "no ip prefix-list WORD$name seq (1-4294967295)$seq",
+	   NO_STR IP_STR PREFIX_LIST_STR PREFIX_LIST_NAME_STR ACCESS_LIST_SEQ_STR)
 {
 	return plist_remove(vty, "ipv4", name, seq_str, NULL, NULL, 0, 0);
 }
 
-DEFPY_YANG(
-	no_ip_prefix_list_all, no_ip_prefix_list_all_cmd,
-	"no ip prefix-list WORD$name",
-	NO_STR
-	IP_STR
-	PREFIX_LIST_STR
-	PREFIX_LIST_NAME_STR)
+DEFPY_YANG(no_ip_prefix_list_all, no_ip_prefix_list_all_cmd,
+	   "no ip prefix-list WORD$name",
+	   NO_STR IP_STR PREFIX_LIST_STR PREFIX_LIST_NAME_STR)
 {
 	char xpath[XPATH_MAXLEN];
 
@@ -1380,14 +1275,10 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	ip_prefix_list_remark, ip_prefix_list_remark_cmd,
-	"ip prefix-list WORD$name description LINE...",
-	IP_STR
-	PREFIX_LIST_STR
-	PREFIX_LIST_NAME_STR
-	ACCESS_LIST_REMARK_STR
-	ACCESS_LIST_REMARK_LINE_STR)
+DEFPY_YANG(ip_prefix_list_remark, ip_prefix_list_remark_cmd,
+	   "ip prefix-list WORD$name description LINE...",
+	   IP_STR PREFIX_LIST_STR PREFIX_LIST_NAME_STR ACCESS_LIST_REMARK_STR
+		   ACCESS_LIST_REMARK_LINE_STR)
 {
 	int rv;
 	char *remark;
@@ -1405,14 +1296,10 @@ DEFPY_YANG(
 	return rv;
 }
 
-DEFPY_YANG(
-	no_ip_prefix_list_remark, no_ip_prefix_list_remark_cmd,
-	"no ip prefix-list WORD$name description",
-	NO_STR
-	IP_STR
-	PREFIX_LIST_STR
-	PREFIX_LIST_NAME_STR
-	ACCESS_LIST_REMARK_STR)
+DEFPY_YANG(no_ip_prefix_list_remark, no_ip_prefix_list_remark_cmd,
+	   "no ip prefix-list WORD$name description",
+	   NO_STR IP_STR PREFIX_LIST_STR PREFIX_LIST_NAME_STR
+		   ACCESS_LIST_REMARK_STR)
 {
 	char xpath[XPATH_MAXLEN];
 	int rv;
@@ -1429,24 +1316,16 @@ DEFPY_YANG(
 	return rv;
 }
 
-ALIAS(
-	no_ip_prefix_list_remark, no_ip_prefix_list_remark_line_cmd,
-	"no ip prefix-list WORD$name description LINE...",
-	NO_STR
-	IP_STR
-	PREFIX_LIST_STR
-	PREFIX_LIST_NAME_STR
-	ACCESS_LIST_REMARK_STR
-	ACCESS_LIST_REMARK_LINE_STR)
+ALIAS(no_ip_prefix_list_remark, no_ip_prefix_list_remark_line_cmd,
+      "no ip prefix-list WORD$name description LINE...",
+      NO_STR IP_STR PREFIX_LIST_STR PREFIX_LIST_NAME_STR ACCESS_LIST_REMARK_STR
+	      ACCESS_LIST_REMARK_LINE_STR)
 
 DEFPY_YANG(
 	ipv6_prefix_list, ipv6_prefix_list_cmd,
 	"ipv6 prefix-list WORD$name [seq (1-4294967295)] <deny|permit>$action <any|X:X::X:X/M$prefix [{ge (0-128)$ge|le (0-128)$le}]>",
-	IPV6_STR
-	PREFIX_LIST_STR
-	PREFIX_LIST_NAME_STR
-	ACCESS_LIST_SEQ_STR
-	ACCESS_LIST_ACTION_STR
+	IPV6_STR PREFIX_LIST_STR PREFIX_LIST_NAME_STR ACCESS_LIST_SEQ_STR
+		ACCESS_LIST_ACTION_STR
 	"Any prefix match.  Same as \"::0/0 le 128\"\n"
 	"IPv6 prefix <network>/<length>, e.g., 3ffe::/16\n"
 	"Maximum prefix length to be matched\n"
@@ -1501,29 +1380,29 @@ DEFPY_YANG(
 				      prefix_str);
 
 		if (ge_str) {
-			nb_cli_enqueue_change(
-				vty, "./ipv6-prefix-length-greater-or-equal",
-				NB_OP_MODIFY, ge_str);
+			nb_cli_enqueue_change(vty,
+					      "./ipv6-prefix-length-greater-or-equal",
+					      NB_OP_MODIFY, ge_str);
 		} else {
 			/*
 			 * Remove old ge if not being modified
 			 */
-			nb_cli_enqueue_change(
-				vty, "./ipv6-prefix-length-greater-or-equal",
-				NB_OP_DESTROY, NULL);
+			nb_cli_enqueue_change(vty,
+					      "./ipv6-prefix-length-greater-or-equal",
+					      NB_OP_DESTROY, NULL);
 		}
 
 		if (le_str) {
-			nb_cli_enqueue_change(
-				vty, "./ipv6-prefix-length-lesser-or-equal",
-				NB_OP_MODIFY, le_str);
+			nb_cli_enqueue_change(vty,
+					      "./ipv6-prefix-length-lesser-or-equal",
+					      NB_OP_MODIFY, le_str);
 		} else {
 			/*
 			 * Remove old le if not being modified
 			 */
-			nb_cli_enqueue_change(
-				vty, "./ipv6-prefix-length-lesser-or-equal",
-				NB_OP_DESTROY, NULL);
+			nb_cli_enqueue_change(vty,
+					      "./ipv6-prefix-length-lesser-or-equal",
+					      NB_OP_DESTROY, NULL);
 		}
 		nb_cli_enqueue_change(vty, "./any", NB_OP_DESTROY, NULL);
 	} else {
@@ -1536,12 +1415,8 @@ DEFPY_YANG(
 DEFPY_YANG(
 	no_ipv6_prefix_list, no_ipv6_prefix_list_cmd,
 	"no ipv6 prefix-list WORD$name [seq (1-4294967295)$seq] <deny|permit>$action <any|X:X::X:X/M$prefix [{ge (0-128)$ge|le (0-128)$le}]>",
-	NO_STR
-	IPV6_STR
-	PREFIX_LIST_STR
-	PREFIX_LIST_NAME_STR
-	ACCESS_LIST_SEQ_STR
-	ACCESS_LIST_ACTION_STR
+	NO_STR IPV6_STR PREFIX_LIST_STR PREFIX_LIST_NAME_STR ACCESS_LIST_SEQ_STR
+		ACCESS_LIST_ACTION_STR
 	"Any prefix match.  Same as \"::0/0 le 128\"\n"
 	"IPv6 prefix <network>/<length>, e.g., 3ffe::/16\n"
 	"Maximum prefix length to be matched\n"
@@ -1553,25 +1428,17 @@ DEFPY_YANG(
 			    prefix_str ? prefix : NULL, ge, le);
 }
 
-DEFPY_YANG(
-	no_ipv6_prefix_list_seq, no_ipv6_prefix_list_seq_cmd,
-	"no ipv6 prefix-list WORD$name seq (1-4294967295)$seq",
-	NO_STR
-	IPV6_STR
-	PREFIX_LIST_STR
-	PREFIX_LIST_NAME_STR
-	ACCESS_LIST_SEQ_STR)
+DEFPY_YANG(no_ipv6_prefix_list_seq, no_ipv6_prefix_list_seq_cmd,
+	   "no ipv6 prefix-list WORD$name seq (1-4294967295)$seq",
+	   NO_STR IPV6_STR PREFIX_LIST_STR PREFIX_LIST_NAME_STR
+		   ACCESS_LIST_SEQ_STR)
 {
 	return plist_remove(vty, "ipv6", name, seq_str, NULL, NULL, 0, 0);
 }
 
-DEFPY_YANG(
-	no_ipv6_prefix_list_all, no_ipv6_prefix_list_all_cmd,
-	"no ipv6 prefix-list WORD$name",
-	NO_STR
-	IPV6_STR
-	PREFIX_LIST_STR
-	PREFIX_LIST_NAME_STR)
+DEFPY_YANG(no_ipv6_prefix_list_all, no_ipv6_prefix_list_all_cmd,
+	   "no ipv6 prefix-list WORD$name",
+	   NO_STR IPV6_STR PREFIX_LIST_STR PREFIX_LIST_NAME_STR)
 {
 	char xpath[XPATH_MAXLEN];
 
@@ -1582,14 +1449,10 @@ DEFPY_YANG(
 	return nb_cli_apply_changes(vty, NULL);
 }
 
-DEFPY_YANG(
-	ipv6_prefix_list_remark, ipv6_prefix_list_remark_cmd,
-	"ipv6 prefix-list WORD$name description LINE...",
-	IPV6_STR
-	PREFIX_LIST_STR
-	PREFIX_LIST_NAME_STR
-	ACCESS_LIST_REMARK_STR
-	ACCESS_LIST_REMARK_LINE_STR)
+DEFPY_YANG(ipv6_prefix_list_remark, ipv6_prefix_list_remark_cmd,
+	   "ipv6 prefix-list WORD$name description LINE...",
+	   IPV6_STR PREFIX_LIST_STR PREFIX_LIST_NAME_STR ACCESS_LIST_REMARK_STR
+		   ACCESS_LIST_REMARK_LINE_STR)
 {
 	int rv;
 	char *remark;
@@ -1607,14 +1470,10 @@ DEFPY_YANG(
 	return rv;
 }
 
-DEFPY_YANG(
-	no_ipv6_prefix_list_remark, no_ipv6_prefix_list_remark_cmd,
-	"no ipv6 prefix-list WORD$name description",
-	NO_STR
-	IPV6_STR
-	PREFIX_LIST_STR
-	PREFIX_LIST_NAME_STR
-	ACCESS_LIST_REMARK_STR)
+DEFPY_YANG(no_ipv6_prefix_list_remark, no_ipv6_prefix_list_remark_cmd,
+	   "no ipv6 prefix-list WORD$name description",
+	   NO_STR IPV6_STR PREFIX_LIST_STR PREFIX_LIST_NAME_STR
+		   ACCESS_LIST_REMARK_STR)
 {
 	char xpath[XPATH_MAXLEN];
 	int rv;
@@ -1631,18 +1490,12 @@ DEFPY_YANG(
 	return rv;
 }
 
-ALIAS(
-	no_ipv6_prefix_list_remark, no_ipv6_prefix_list_remark_line_cmd,
-	"no ipv6 prefix-list WORD$name description LINE...",
-	NO_STR
-	IPV6_STR
-	PREFIX_LIST_STR
-	PREFIX_LIST_NAME_STR
-	ACCESS_LIST_REMARK_STR
-	ACCESS_LIST_REMARK_LINE_STR)
+ALIAS(no_ipv6_prefix_list_remark, no_ipv6_prefix_list_remark_line_cmd,
+      "no ipv6 prefix-list WORD$name description LINE...",
+      NO_STR IPV6_STR PREFIX_LIST_STR PREFIX_LIST_NAME_STR
+	      ACCESS_LIST_REMARK_STR ACCESS_LIST_REMARK_LINE_STR)
 
-int prefix_list_cmp(const struct lyd_node *dnode1,
-		    const struct lyd_node *dnode2)
+int prefix_list_cmp(const struct lyd_node *dnode1, const struct lyd_node *dnode2)
 {
 	uint32_t seq1 = yang_dnode_get_uint32(dnode1, "./sequence");
 	uint32_t seq2 = yang_dnode_get_uint32(dnode2, "./sequence");

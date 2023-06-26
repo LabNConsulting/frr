@@ -53,8 +53,8 @@ static ssize_t printfrr_iso_sysid(struct fbuf *buf, struct printfrr_eargs *ea,
 	if (!id)
 		return bputs(buf, "(null)");
 
-	return bprintfrr(buf, "%02x%02x.%02x%02x.%02x%02x",
-			 id[0], id[1], id[2], id[3], id[4], id[5]);
+	return bprintfrr(buf, "%02x%02x.%02x%02x.%02x%02x", id[0], id[1], id[2],
+			 id[3], id[4], id[5]);
 }
 
 /**
@@ -75,8 +75,8 @@ static ssize_t printfrr_iso_pseudo(struct fbuf *buf, struct printfrr_eargs *ea,
 	if (!id)
 		return bputs(buf, "(null)");
 
-	return bprintfrr(buf, "%02x%02x.%02x%02x.%02x%02x.%02x",
-			 id[0], id[1], id[2], id[3], id[4], id[5], id[6]);
+	return bprintfrr(buf, "%02x%02x.%02x%02x.%02x%02x.%02x", id[0], id[1],
+			 id[2], id[3], id[4], id[5], id[6]);
 }
 
 /**
@@ -97,9 +97,8 @@ static ssize_t printfrr_iso_frag_id(struct fbuf *buf, struct printfrr_eargs *ea,
 	if (!id)
 		return bputs(buf, "(null)");
 
-	return bprintfrr(buf, "%02x%02x.%02x%02x.%02x%02x.%02x-%02x",
-			 id[0], id[1], id[2], id[3], id[4], id[5], id[6],
-			 id[7]);
+	return bprintfrr(buf, "%02x%02x.%02x%02x.%02x%02x.%02x-%02x", id[0],
+			 id[1], id[2], id[3], id[4], id[5], id[6], id[7]);
 }
 
 /**
@@ -141,4 +140,3 @@ static ssize_t printfrr_iso_addr(struct fbuf *buf, struct printfrr_eargs *ea,
 
 	return ret;
 }
-

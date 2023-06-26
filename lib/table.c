@@ -105,8 +105,7 @@ static void route_table_free(struct route_table *rt)
 		node = node->parent;
 
 		tmp_node->table->count--;
-		tmp_node->lock =
-			0; /* to cause assert if unlocked after this */
+		tmp_node->lock = 0; /* to cause assert if unlocked after this */
 		rn_hash_node_del(&rt->hash, tmp_node);
 		route_node_free(rt, tmp_node);
 
@@ -128,8 +127,8 @@ static void route_table_free(struct route_table *rt)
 }
 
 /* Utility mask array. */
-static const uint8_t maskbit[] = {0x00, 0x80, 0xc0, 0xe0, 0xf0,
-				  0xf8, 0xfc, 0xfe, 0xff};
+static const uint8_t maskbit[] = { 0x00, 0x80, 0xc0, 0xe0, 0xf0,
+				   0xf8, 0xfc, 0xfe, 0xff };
 
 /* Common prefix route genaration. */
 static void route_common(const struct prefix *n, const struct prefix *p,
@@ -190,8 +189,8 @@ struct route_node *route_node_match(struct route_table *table,
 
 	/* Walk down tree.  If there is matched route then store it to
 	   matched. */
-	while (node && node->p.prefixlen <= p->prefixlen
-	       && prefix_match(&node->p, p)) {
+	while (node && node->p.prefixlen <= p->prefixlen &&
+	       prefix_match(&node->p, p)) {
 		if (node->info)
 			matched = node;
 
@@ -286,8 +285,8 @@ struct route_node *route_node_get(struct route_table *table,
 
 	match = NULL;
 	node = table->top;
-	while (node && node->p.prefixlen <= prefixlen
-	       && prefix_match(&node->p, p)) {
+	while (node && node->p.prefixlen <= prefixlen &&
+	       prefix_match(&node->p, p)) {
 		if (node->p.prefixlen == prefixlen)
 			return route_lock_node(node);
 
@@ -498,7 +497,8 @@ void route_node_destroy(route_table_delegate_t *delegate,
  */
 static route_table_delegate_t default_delegate = {
 	.create_node = route_node_create,
-	.destroy_node = route_node_destroy};
+	.destroy_node = route_node_destroy
+};
 
 route_table_delegate_t *route_table_get_default_delegate(void)
 {
@@ -523,22 +523,19 @@ struct route_table *route_table_init(void)
  *          0 if the prefixes are identical (p1 == p2)
  *         +1 if p1 occurs after p2 (p1 > p2)
  */
-int route_table_prefix_iter_cmp(const struct prefix *p1,
-				const struct prefix *p2)
+int route_table_prefix_iter_cmp(const struct prefix *p1, const struct prefix *p2)
 {
 	struct prefix common_space;
 	struct prefix *common = &common_space;
 
 	if (p1->prefixlen <= p2->prefixlen) {
 		if (prefix_match(p1, p2)) {
-
 			/*
 			 * p1 contains p2, or is equal to it.
 			 */
 			return (p1->prefixlen == p2->prefixlen) ? 0 : -1;
 		}
 	} else {
-
 		/*
 		 * Check if p2 contains p1.
 		 */
@@ -557,7 +554,6 @@ int route_table_prefix_iter_cmp(const struct prefix *p1,
 	 * which one comes later.
 	 */
 	if (prefix_bit(&p1->u.prefix, common->prefixlen)) {
-
 		/*
 		 * We branch to the right to get to p1 from the common prefix.
 		 */
@@ -599,8 +595,7 @@ static struct route_node *route_get_subtree_next(struct route_node *node)
  * @see route_table_get_next
  */
 static struct route_node *
-route_table_get_next_internal(struct route_table *table,
-			      const struct prefix *p)
+route_table_get_next_internal(struct route_table *table, const struct prefix *p)
 {
 	struct route_node *node, *tmp_node;
 	int cmp;
@@ -617,7 +612,6 @@ route_table_get_next_internal(struct route_table *table,
 
 		if (match) {
 			if (node->p.prefixlen == p->prefixlen) {
-
 				/*
 				 * The prefix p exists in the tree, just return
 				 * the next
@@ -632,7 +626,6 @@ route_table_get_next_internal(struct route_table *table,
 			}
 
 			if (node->p.prefixlen > p->prefixlen) {
-
 				/*
 				 * Node is in the subtree of p, and hence
 				 * greater than p.
@@ -673,7 +666,6 @@ route_table_get_next_internal(struct route_table *table,
 		 */
 		cmp = route_table_prefix_iter_cmp(&node->p, p);
 		if (cmp > 0) {
-
 			/*
 			 * Node follows p in iteration order. Return it.
 			 */
@@ -735,7 +727,6 @@ void route_table_iter_init(route_table_iter_t *iter, struct route_table *table)
 void route_table_iter_pause(route_table_iter_t *iter)
 {
 	switch (iter->state) {
-
 	case RT_ITER_STATE_INIT:
 	case RT_ITER_STATE_PAUSED:
 	case RT_ITER_STATE_DONE:

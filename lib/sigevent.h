@@ -17,7 +17,7 @@ extern "C" {
 #define FRR_SIGNAL_TIMER_INTERVAL 2L
 
 struct frr_signal_t {
-	int signal;	    /* signal number    */
+	int signal;	       /* signal number    */
 	void (*handler)(void); /* handler to call  */
 
 	volatile sig_atomic_t caught; /* private member   */

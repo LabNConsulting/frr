@@ -28,7 +28,7 @@ extern "C" {
  *  - A main loop over all vertices to find the shortest path
  */
 
-#define MAX_COST	0xFFFFFFFF
+#define MAX_COST 0xFFFFFFFF
 
 /* Status of the path */
 enum path_status {
@@ -39,13 +39,13 @@ enum path_status {
 	IN_PROGRESS,
 	SUCCESS
 };
-enum path_type {RSVP_TE = 1, SR_TE, SRV6_TE};
-enum metric_type {CSPF_METRIC = 1, CSPF_TE_METRIC, CSPF_DELAY};
+enum path_type { RSVP_TE = 1, SR_TE, SRV6_TE };
+enum metric_type { CSPF_METRIC = 1, CSPF_TE_METRIC, CSPF_DELAY };
 
 /* Constrained metrics structure */
 struct constraints {
 	uint32_t cost;		/* total cost (metric) of the path */
-	enum metric_type ctype;	/* Metric Type: standard, TE or Delay */
+	enum metric_type ctype; /* Metric Type: standard, TE or Delay */
 	float bw;		/* bandwidth of the path */
 	uint8_t cos;		/* Class of Service of the path */
 	enum path_type type;	/* RSVP-TE or SR-TE path */
@@ -61,10 +61,10 @@ PREDECL_RBTREE_UNIQ(processed);
 /* Constrained Path structure */
 struct c_path {
 	struct pqueue_item q_itm;    /* entry in the Priority Queue */
-	uint32_t weight;             /* Weight to sort path in Priority Queue */
+	uint32_t weight;	     /* Weight to sort path in Priority Queue */
 	struct processed_item p_itm; /* entry in the Processed RB Tree */
-	uint64_t dst;                /* Destination vertex key of this path */
-	struct list *edges;          /* List of Edges that compose this path */
+	uint64_t dst;		     /* Destination vertex key of this path */
+	struct list *edges;	     /* List of Edges that compose this path */
 	enum path_status status;     /* status of the computed path */
 };
 
@@ -96,12 +96,12 @@ DECLARE_RBTREE_UNIQ(visited, struct v_node, item, v_cmp);
 
 /* Path Computation algorithms structure */
 struct cspf {
-	struct pqueue_head pqueue;       /* Priority Queue */
+	struct pqueue_head pqueue;	 /* Priority Queue */
 	struct processed_head processed; /* Paths that have been processed */
-	struct visited_head visited;     /* Vertices that have been visited */
-	struct constraints csts;         /* Constraints of the path */
-	struct c_path *path;             /* Current Computed Path */
-	struct c_path *pdst;             /* Computed Path to the destination */
+	struct visited_head visited;	 /* Vertices that have been visited */
+	struct constraints csts;	 /* Constraints of the path */
+	struct c_path *path;		 /* Current Computed Path */
+	struct c_path *pdst;		 /* Computed Path to the destination */
 };
 
 /**

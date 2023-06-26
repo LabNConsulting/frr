@@ -26,7 +26,7 @@ void route_read(struct zebra_ns *zns)
 	struct rt_msghdr *rtm;
 
 #define MIBSIZ 6
-	int mib[MIBSIZ] = {CTL_NET, PF_ROUTE, 0, 0, NET_RT_DUMP, 0};
+	int mib[MIBSIZ] = { CTL_NET, PF_ROUTE, 0, 0, NET_RT_DUMP, 0 };
 
 	if (zns->ns_id != NS_DEFAULT)
 		return;

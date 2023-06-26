@@ -10,7 +10,6 @@
 #include "routing_nb.h"
 
 
-
 /* clang-format off */
 const struct frr_yang_module_info frr_routing_info = {
 	.name = "frr-routing",

@@ -72,12 +72,11 @@ static inline void puthex(uint16_t word, char **posx)
 
 #undef pos
 
-const char *frr_inet_ntop(int af, const void * restrict src,
-			  char * restrict dst, socklen_t size)
-	__attribute__((flatten)) OPTIMIZE;
+const char *frr_inet_ntop(int af, const void *restrict src, char *restrict dst,
+			  socklen_t size) __attribute__((flatten)) OPTIMIZE;
 
-const char *frr_inet_ntop(int af, const void * restrict src,
-			  char * restrict dst, socklen_t size)
+const char *frr_inet_ntop(int af, const void *restrict src, char *restrict dst,
+			  socklen_t size)
 {
 	const uint8_t *b = src;
 	/* 8 * "abcd:" for IPv6
@@ -163,5 +162,5 @@ inet4:
  * as frr_inet_ntop (to avoid confusion while debugging)
  */
 const char *inet_ntop(int af, const void *src, char *dst, socklen_t size)
-	__attribute__((alias ("frr_inet_ntop")));
+	__attribute__((alias("frr_inet_ntop")));
 #endif

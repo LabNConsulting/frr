@@ -57,11 +57,27 @@ extern float ntohf(float);
 #endif
 
 #if BYTE_ORDER == LITTLE_ENDIAN
-#define be64toh(x)	({ uint64_t r = __builtin_bswap64(x); r; })
-#define htobe64(x)	({ uint64_t r = __builtin_bswap64(x); r; })
+#define be64toh(x)                                                             \
+	({                                                                     \
+		uint64_t r = __builtin_bswap64(x);                             \
+		r;                                                             \
+	})
+#define htobe64(x)                                                             \
+	({                                                                     \
+		uint64_t r = __builtin_bswap64(x);                             \
+		r;                                                             \
+	})
 #elif BYTE_ORDER == BIG_ENDIAN
-#define be64toh(x)	({ uint64_t r = (x); r; })
-#define htobe64(x)	({ uint64_t r = (x); r; })
+#define be64toh(x)                                                             \
+	({                                                                     \
+		uint64_t r = (x);                                              \
+		r;                                                             \
+	})
+#define htobe64(x)                                                             \
+	({                                                                     \
+		uint64_t r = (x);                                              \
+		r;                                                             \
+	})
 #else
 #error nobody expects the endianish inquisition. check OS endian.h headers.
 #endif

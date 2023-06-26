@@ -388,8 +388,8 @@ void list_sort(struct list *list, int (*cmp)(const void **, const void **))
 	void *data;
 	size_t n = list->count;
 	void **items;
-	int (*realcmp)(const void *, const void *) =
-		(int (*)(const void *, const void *))cmp;
+	int (*realcmp)(const void *,
+		       const void *) = (int (*)(const void *, const void *))cmp;
 
 	if (!n)
 		return;

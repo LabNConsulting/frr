@@ -46,19 +46,19 @@ struct list {
 	void (*del)(void *val);
 };
 
-#define listnextnode(X) ((X) ? ((X)->next) : NULL)
+#define listnextnode(X)		  ((X) ? ((X)->next) : NULL)
 #define listnextnode_unchecked(X) ((X)->next)
-#define listhead(X) ((X) ? ((X)->head) : NULL)
-#define listhead_unchecked(X) ((X)->head)
-#define listtail(X) ((X) ? ((X)->tail) : NULL)
-#define listtail_unchecked(X) ((X)->tail)
-#define listcount(X) ((X)->count)
-#define list_isempty(X) ((X)->head == NULL && (X)->tail == NULL)
+#define listhead(X)		  ((X) ? ((X)->head) : NULL)
+#define listhead_unchecked(X)	  ((X)->head)
+#define listtail(X)		  ((X) ? ((X)->tail) : NULL)
+#define listtail_unchecked(X)	  ((X)->tail)
+#define listcount(X)		  ((X)->count)
+#define list_isempty(X)		  ((X)->head == NULL && (X)->tail == NULL)
 /* return X->data only if X and X->data are not NULL */
 #define listgetdata(X) (assert(X), assert((X)->data != NULL), (X)->data)
 /* App is going to manage listnode memory */
 #define listset_app_node_mem(X) ((X)->flags |= LINKLIST_FLAG_NODE_MEM_BY_APP)
-#define listnode_init(X, val) ((X)->data = (val))
+#define listnode_init(X, val)	((X)->data = (val))
 
 /*
  * Create a new linked list.
@@ -318,9 +318,8 @@ extern struct list *list_dup(struct list *list);
  */
 #define ALL_LIST_ELEMENTS(list, node, nextnode, data)                          \
 	(node) = listhead(list), ((data) = NULL);                              \
-	(node) != NULL                                                         \
-		&& ((data) = static_cast(data, listgetdata(node)),             \
-		    (nextnode) = node->next, 1);                               \
+	(node) != NULL && ((data) = static_cast(data, listgetdata(node)),      \
+			   (nextnode) = node->next, 1);                        \
 	(node) = (nextnode), ((data) = NULL)
 
 /* read-only list iteration macro.

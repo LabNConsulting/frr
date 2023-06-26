@@ -66,8 +66,8 @@ static int interface_list_ioctl(void)
 	/* Loop until SIOCGIFCONF success. */
 	for (;;) {
 		ifconf.ifc_len = sizeof(struct ifreq) * ifnum;
-		ifconf.ifc_buf =
-			XREALLOC(MTYPE_TMP, ifconf.ifc_buf, ifconf.ifc_len);
+		ifconf.ifc_buf = XREALLOC(MTYPE_TMP, ifconf.ifc_buf,
+					  ifconf.ifc_len);
 
 		ret = ioctl(sock, SIOCGIFCONF, &ifconf);
 
@@ -173,11 +173,10 @@ static int if_getaddrs(void)
 
 	for (ifapfree = ifap; ifap; ifap = ifap->ifa_next) {
 		if (ifap->ifa_addr == NULL) {
-			flog_err(
-				EC_LIB_INTERFACE,
-				"%s: nonsensical ifaddr with NULL ifa_addr, ifname %s",
-				__func__,
-				(ifap->ifa_name ? ifap->ifa_name : "(null)"));
+			flog_err(EC_LIB_INTERFACE,
+				 "%s: nonsensical ifaddr with NULL ifa_addr, ifname %s",
+				 __func__,
+				 (ifap->ifa_name ? ifap->ifa_name : "(null)"));
 			continue;
 		}
 
@@ -202,22 +201,20 @@ static int if_getaddrs(void)
 
 			dest_pnt = NULL;
 
-			if (if_is_pointopoint(ifp) && ifap->ifa_dstaddr
-			    && !IPV4_ADDR_SAME(&addr->sin_addr,
-					       &((struct sockaddr_in *)
-							 ifap->ifa_dstaddr)
-							->sin_addr)) {
+			if (if_is_pointopoint(ifp) && ifap->ifa_dstaddr &&
+			    !IPV4_ADDR_SAME(&addr->sin_addr,
+					    &((struct sockaddr_in *)
+						      ifap->ifa_dstaddr)
+						     ->sin_addr)) {
 				dest = (struct sockaddr_in *)ifap->ifa_dstaddr;
 				dest_pnt = &dest->sin_addr;
 				flags = ZEBRA_IFA_PEER;
-			} else if (ifap->ifa_broadaddr
-				   && !IPV4_ADDR_SAME(
-					      &addr->sin_addr,
-					      &((struct sockaddr_in *)
-							ifap->ifa_broadaddr)
-						       ->sin_addr)) {
-				dest = (struct sockaddr_in *)
-					       ifap->ifa_broadaddr;
+			} else if (ifap->ifa_broadaddr &&
+				   !IPV4_ADDR_SAME(&addr->sin_addr,
+						   &((struct sockaddr_in *)
+							     ifap->ifa_broadaddr)
+							    ->sin_addr)) {
+				dest = (struct sockaddr_in *)ifap->ifa_broadaddr;
 				dest_pnt = &dest->sin_addr;
 			}
 
@@ -236,9 +233,8 @@ static int if_getaddrs(void)
 
 #if defined(KAME)
 			if (IN6_IS_ADDR_LINKLOCAL(&addr->sin6_addr)) {
-				addr->sin6_scope_id =
-					ntohs(*(uint16_t *)&addr->sin6_addr
-						       .s6_addr[2]);
+				addr->sin6_scope_id = ntohs(
+					*(uint16_t *)&addr->sin6_addr.s6_addr[2]);
 				addr->sin6_addr.s6_addr[2] =
 					addr->sin6_addr.s6_addr[3] = 0;
 			}
@@ -274,7 +270,6 @@ static void interface_info_ioctl()
 /* Lookup all interface information. */
 void interface_list(struct zebra_ns *zns)
 {
-
 	zlog_info("%s: NS %u", __func__, zns->ns_id);
 
 /* Linux can do both proc & ioctl, ioctl is the only way to get

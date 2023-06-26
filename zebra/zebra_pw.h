@@ -19,7 +19,7 @@
 extern "C" {
 #endif
 
-#define PW_INSTALL_RETRY_INTERVAL	30
+#define PW_INSTALL_RETRY_INTERVAL 30
 
 struct zebra_pw {
 	RB_ENTRY(zebra_pw) pw_entry, static_pw_entry;

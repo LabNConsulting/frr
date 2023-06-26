@@ -70,14 +70,12 @@ struct memgroup {
 #define DECLARE_MGROUP(name) extern struct memgroup _mg_##name
 #define _DEFINE_MGROUP(mname, desc, ...)                                       \
 	struct memgroup _mg_##mname                                            \
-		__attribute__((section(".data.mgroups"))) = {                  \
-			.name = desc,                                          \
-			.types = NULL,                                         \
-			.next = NULL,                                          \
-			.insert = NULL,                                        \
-			.ref = NULL,                                           \
-			__VA_ARGS__                                            \
-	};                                                                     \
+		__attribute__((section(".data.mgroups"))) = { .name = desc,    \
+							      .types = NULL,   \
+							      .next = NULL,    \
+							      .insert = NULL,  \
+							      .ref = NULL,     \
+							      __VA_ARGS__ };   \
 	static void _mginit_##mname(void) __attribute__((_CONSTRUCTOR(1000))); \
 	static void _mginit_##mname(void)                                      \
 	{                                                                      \
@@ -95,14 +93,11 @@ struct memgroup {
 	}                                                                      \
 	MACRO_REQUIRE_SEMICOLON() /* end */
 
-#define DEFINE_MGROUP(mname, desc) \
-	_DEFINE_MGROUP(mname, desc, )
-#define DEFINE_MGROUP_ACTIVEATEXIT(mname, desc) \
+#define DEFINE_MGROUP(mname, desc) _DEFINE_MGROUP(mname, desc, )
+#define DEFINE_MGROUP_ACTIVEATEXIT(mname, desc)                                \
 	_DEFINE_MGROUP(mname, desc, .active_at_exit = true)
 
-#define DECLARE_MTYPE(name)                                                    \
-	extern struct memtype MTYPE_##name[1]                                  \
-	/* end */
+#define DECLARE_MTYPE(name) extern struct memtype MTYPE_##name[1] /* end */
 
 #define DEFINE_MTYPE_ATTR(group, mname, attr, desc)                            \
 	attr struct memtype MTYPE_##mname[1]                                   \
@@ -112,7 +107,7 @@ struct memgroup {
 			.n_alloc = 0,                                          \
 			.size = 0,                                             \
 			.ref = NULL,                                           \
-	} };                                                                   \
+		} };                                                           \
 	static void _mtinit_##mname(void) __attribute__((_CONSTRUCTOR(1001))); \
 	static void _mtinit_##mname(void)                                      \
 	{                                                                      \
@@ -120,7 +115,7 @@ struct memgroup {
 			_mg_##group.insert = &_mg_##group.types;               \
 		MTYPE_##mname->ref = _mg_##group.insert;                       \
 		*_mg_##group.insert = MTYPE_##mname;                           \
-		_mg_##group.insert = &MTYPE_##mname->next;                      \
+		_mg_##group.insert = &MTYPE_##mname->next;                     \
 	}                                                                      \
 	static void _mtfini_##mname(void) __attribute__((_DESTRUCTOR(1001)));  \
 	static void _mtfini_##mname(void)                                      \
@@ -155,11 +150,11 @@ extern void qcountfree(struct memtype *mt, void *ptr)
 	__attribute__((nonnull(1)));
 extern void qfree(struct memtype *mt, void *ptr) __attribute__((nonnull(1)));
 
-#define XMALLOC(mtype, size)		qmalloc(mtype, size)
-#define XCALLOC(mtype, size)		qcalloc(mtype, size)
-#define XREALLOC(mtype, ptr, size)	qrealloc(mtype, ptr, size)
-#define XSTRDUP(mtype, str)		qstrdup(mtype, str)
-#define XCOUNTFREE(mtype, ptr)		qcountfree(mtype, ptr)
+#define XMALLOC(mtype, size)	   qmalloc(mtype, size)
+#define XCALLOC(mtype, size)	   qcalloc(mtype, size)
+#define XREALLOC(mtype, ptr, size) qrealloc(mtype, ptr, size)
+#define XSTRDUP(mtype, str)	   qstrdup(mtype, str)
+#define XCOUNTFREE(mtype, ptr)	   qcountfree(mtype, ptr)
 #define XFREE(mtype, ptr)                                                      \
 	do {                                                                   \
 		qfree(mtype, ptr);                                             \

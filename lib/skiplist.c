@@ -55,11 +55,11 @@ DEFINE_MTYPE_STATIC(LIB, SKIP_LIST_STATS, "Skiplist Counters");
 #define BitsInRandom 31
 
 #define MaxNumberOfLevels 16
-#define MaxLevel (MaxNumberOfLevels-1)
+#define MaxLevel	  (MaxNumberOfLevels - 1)
 #define newNodeOfLevel(l)                                                      \
 	XCALLOC(MTYPE_SKIP_LIST_NODE,                                          \
-		sizeof(struct skiplistnode)                                    \
-			+ (l) * sizeof(struct skiplistnode *))
+		sizeof(struct skiplistnode) +                                  \
+			(l) * sizeof(struct skiplistnode *))
 
 /* XXX must match type of (struct skiplist).level_stats */
 #define newStatsOfLevel(l)                                                     \
@@ -189,9 +189,8 @@ int skiplist_insert(register struct skiplist *l, register void *key,
 		update[k] = p;
 	} while (--k >= 0);
 
-	if (!(l->flags & SKIPLIST_FLAG_ALLOW_DUPLICATES) && q
-	    && ((*l->cmp)(q->key, key) == 0)) {
-
+	if (!(l->flags & SKIPLIST_FLAG_ALLOW_DUPLICATES) && q &&
+	    ((*l->cmp)(q->key, key) == 0)) {
 		return -1;
 	}
 
@@ -257,8 +256,8 @@ int skiplist_delete(register struct skiplist *l, register void *key,
 	} while (--k >= 0);
 
 	if (l->flags & SKIPLIST_FLAG_ALLOW_DUPLICATES) {
-		while (q && ((*l->cmp)(q->key, key) == 0)
-		       && (q->value != value)) {
+		while (q && ((*l->cmp)(q->key, key) == 0) &&
+		       (q->value != value)) {
 			int i;
 			for (i = 0; i <= l->level; ++i) {
 				if (update[i]->forward[i] == q)
@@ -269,9 +268,8 @@ int skiplist_delete(register struct skiplist *l, register void *key,
 	}
 
 	if (q && (*l->cmp)(q->key, key) == 0) {
-		if (!(l->flags & SKIPLIST_FLAG_ALLOW_DUPLICATES)
-		    || (q->value == value)) {
-
+		if (!(l->flags & SKIPLIST_FLAG_ALLOW_DUPLICATES) ||
+		    (q->value == value)) {
 /*
  * found node to delete
  */
@@ -366,8 +364,8 @@ int skiplist_search(register struct skiplist *l, register void *key,
  * last element with the given key, -1 is returned.
  */
 int skiplist_next_value(register struct skiplist *l, /* in */
-			register const void *key,	  /* in */
-			void **valuePointer,	 /* in/out */
+			register const void *key,    /* in */
+			void **valuePointer,	     /* in/out */
 			void **cursor)		     /* in/out */
 {
 	register int k;
@@ -395,13 +393,13 @@ int skiplist_next_value(register struct skiplist *l, /* in */
 		/*
 		 * Find matching value
 		 */
-		while (q && ((*l->cmp)(q->key, key) == 0)
-		       && (q->value != *valuePointer)) {
+		while (q && ((*l->cmp)(q->key, key) == 0) &&
+		       (q->value != *valuePointer)) {
 			q = q->forward[0];
 		}
 
-		if (!q || ((*l->cmp)(q->key, key) != 0)
-		    || (q->value != *valuePointer)) {
+		if (!q || ((*l->cmp)(q->key, key) != 0) ||
+		    (q->value != *valuePointer)) {
 			/*
 			 * No matching value
 			 */
@@ -483,8 +481,8 @@ int skiplist_empty(register struct skiplist *l)
  * returned, otherwise NULL cursor arg or EOL.
  */
 int skiplist_next(register struct skiplist *l, /* in */
-		  void **keyPointer,	   /* out */
-		  void **valuePointer,	 /* out */
+		  void **keyPointer,	       /* out */
+		  void **valuePointer,	       /* out */
 		  void **cursor)	       /* in/out */
 {
 	struct skiplistnode *p;
@@ -533,8 +531,8 @@ int skiplist_delete_first(register struct skiplist *l)
 	for (k = l->level; k >= 0; --k) {
 		if (p->forward[k] == q) {
 			p->forward[k] = q->forward[k];
-			if ((k == l->level) && (p->forward[k] == NULL)
-			    && (l->level > 0))
+			if ((k == l->level) && (p->forward[k] == NULL) &&
+			    (l->level > 0))
 				--(l->level);
 			if (!nodelevel)
 				nodelevel = k;
@@ -607,7 +605,6 @@ void skiplist_test(struct vty *vty)
 	zlog_debug("%s: skiplist_new returned %p", __func__, l);
 
 	for (i = 0; i < 4; i++) {
-
 		for (k = 0; k < sampleSize; k++) {
 			if (!(k % 1000)) {
 				zlog_debug("%s: (%d:%d)", __func__, i, k);
@@ -621,7 +618,6 @@ void skiplist_test(struct vty *vty)
 		zlog_debug("%s: inserts done", __func__);
 
 		for (k = 0; k < sampleSize; k++) {
-
 			if (!(k % 1000))
 				zlog_debug("[%d:%d]", i, k);
 			if (skiplist_search(l, keys[k], &v))
@@ -633,7 +629,6 @@ void skiplist_test(struct vty *vty)
 
 
 		for (k = 0; k < sampleSize; k++) {
-
 			if (!(k % 1000))
 				zlog_debug("<%d:%d>", i, k);
 			if (skiplist_delete(l, keys[k], keys[k]))
@@ -644,7 +639,6 @@ void skiplist_test(struct vty *vty)
 		}
 
 		for (k = 0; k < sampleSize; k++) {
-
 			if (!(k % 1000))
 				zlog_debug("{%d:%d}", i, k);
 			if (skiplist_delete_first(l))

@@ -31,7 +31,6 @@ void lua_pushnh_grp(lua_State *L, const struct nh_grp *nh_grp)
 
 void lua_pushzebra_dplane_ctx(lua_State *L, const struct zebra_dplane_ctx *ctx)
 {
-
 	lua_newtable(L);
 	lua_pushinteger(L, dplane_ctx_get_op(ctx));
 	lua_setfield(L, -2, "zd_op");
@@ -108,18 +107,17 @@ void lua_pushzebra_dplane_ctx(lua_State *L, const struct zebra_dplane_ctx *ctx)
 				lua_pushinteger(L,
 						dplane_ctx_get_nhe_vrf_id(ctx));
 				lua_setfield(L, -2, "vrf_id");
-				lua_pushinteger(L,
-						dplane_ctx_get_nhe_type(ctx));
+				lua_pushinteger(L, dplane_ctx_get_nhe_type(ctx));
 				lua_setfield(L, -2, "type");
-				lua_pushnexthop_group(
-					L, dplane_ctx_get_nhe_ng(ctx));
+				lua_pushnexthop_group(L, dplane_ctx_get_nhe_ng(
+								 ctx));
 				lua_setfield(L, -2, "ng");
 				lua_pushnh_grp(L,
 					       dplane_ctx_get_nhe_nh_grp(ctx));
 				lua_setfield(L, -2, "nh_grp");
-				lua_pushinteger(
-					L,
-					dplane_ctx_get_nhe_nh_grp_count(ctx));
+				lua_pushinteger(L,
+						dplane_ctx_get_nhe_nh_grp_count(
+							ctx));
 				lua_setfield(L, -2, "nh_grp_count");
 			}
 			lua_setfield(L, -2, "nhe");
@@ -131,8 +129,8 @@ void lua_pushzebra_dplane_ctx(lua_State *L, const struct zebra_dplane_ctx *ctx)
 			lua_setfield(L, -2, "backup_ng");
 			lua_pushnexthop_group(L, dplane_ctx_get_old_ng(ctx));
 			lua_setfield(L, -2, "zd_old_ng");
-			lua_pushnexthop_group(
-				L, dplane_ctx_get_old_backup_ng(ctx));
+			lua_pushnexthop_group(L,
+					      dplane_ctx_get_old_backup_ng(ctx));
 			lua_setfield(L, -2, "old_backup_ng");
 		}
 		lua_setfield(L, -2, "rinfo");
@@ -185,8 +183,7 @@ void lua_pushzebra_dplane_ctx(lua_State *L, const struct zebra_dplane_ctx *ctx)
 			lua_setfield(L, -2, "is_sticky");
 			lua_pushinteger(L, dplane_ctx_mac_get_nhg_id(ctx));
 			lua_setfield(L, -2, "nhg_id");
-			lua_pushinteger(L,
-					dplane_ctx_mac_get_update_flags(ctx));
+			lua_pushinteger(L, dplane_ctx_mac_get_update_flags(ctx));
 			lua_setfield(L, -2, "update_flags");
 		}
 		lua_setfield(L, -2, "macinfo");
@@ -225,13 +222,11 @@ void lua_pushzebra_dplane_ctx(lua_State *L, const struct zebra_dplane_ctx *ctx)
 			lua_setfield(L, -2, "old_fwmark");
 			lua_pushinteger(L, dplane_ctx_rule_get_dsfield(ctx));
 			lua_setfield(L, -2, "dsfield");
-			lua_pushinteger(L,
-					dplane_ctx_rule_get_old_dsfield(ctx));
+			lua_pushinteger(L, dplane_ctx_rule_get_old_dsfield(ctx));
 			lua_setfield(L, -2, "old_dsfield");
 			lua_pushinteger(L, dplane_ctx_rule_get_ipproto(ctx));
 			lua_setfield(L, -2, "ip_proto");
-			lua_pushinteger(L,
-					dplane_ctx_rule_get_old_ipproto(ctx));
+			lua_pushinteger(L, dplane_ctx_rule_get_old_ipproto(ctx));
 			lua_setfield(L, -2, "old_ip_proto");
 			lua_pushprefix(L, dplane_ctx_rule_get_src_ip(ctx));
 			lua_setfield(L, -2, "src_ip");
@@ -333,8 +328,8 @@ void lua_pushzebra_dplane_ctx(lua_State *L, const struct zebra_dplane_ctx *ctx)
 				lua_pushethaddr(L,
 						dplane_ctx_neigh_get_mac(ctx));
 				lua_setfield(L, -2, "mac");
-				lua_pushipaddr(
-					L, dplane_ctx_neigh_get_link_ip(ctx));
+				lua_pushipaddr(L, dplane_ctx_neigh_get_link_ip(
+							  ctx));
 				lua_setfield(L, -2, "ip_addr");
 			}
 			lua_setfield(L, -2, "link");
@@ -355,13 +350,13 @@ void lua_pushzebra_dplane_ctx(lua_State *L, const struct zebra_dplane_ctx *ctx)
 		/* br_port */
 		lua_newtable(L);
 		{
-			lua_pushinteger(
-				L, dplane_ctx_get_br_port_sph_filter_cnt(ctx));
+			lua_pushinteger(L, dplane_ctx_get_br_port_sph_filter_cnt(
+						   ctx));
 			lua_setfield(L, -2, "sph_filter_cnt");
 			lua_pushinteger(L, dplane_ctx_get_br_port_flags(ctx));
 			lua_setfield(L, -2, "flags");
-			lua_pushinteger(
-				L, dplane_ctx_get_br_port_backup_nhg_id(ctx));
+			lua_pushinteger(L, dplane_ctx_get_br_port_backup_nhg_id(
+						   ctx));
 			lua_setfield(L, -2, "backup_nhg_id");
 		}
 		lua_setfield(L, -2, "br_port");
@@ -373,14 +368,16 @@ void lua_pushzebra_dplane_ctx(lua_State *L, const struct zebra_dplane_ctx *ctx)
 			lua_pushinteger(L,
 					dplane_ctx_neightable_get_family(ctx));
 			lua_setfield(L, -2, "family");
-			lua_pushinteger(
-				L, dplane_ctx_neightable_get_app_probes(ctx));
+			lua_pushinteger(L, dplane_ctx_neightable_get_app_probes(
+						   ctx));
 			lua_setfield(L, -2, "app_probes");
-			lua_pushinteger(
-				L, dplane_ctx_neightable_get_mcast_probes(ctx));
+			lua_pushinteger(L,
+					dplane_ctx_neightable_get_mcast_probes(
+						ctx));
 			lua_setfield(L, -2, "ucast_probes");
-			lua_pushinteger(
-				L, dplane_ctx_neightable_get_ucast_probes(ctx));
+			lua_pushinteger(L,
+					dplane_ctx_neightable_get_ucast_probes(
+						ctx));
 			lua_setfield(L, -2, "mcast_probes");
 		}
 		lua_setfield(L, -2, "neightable");
@@ -389,8 +386,7 @@ void lua_pushzebra_dplane_ctx(lua_State *L, const struct zebra_dplane_ctx *ctx)
 		/* gre */
 		lua_newtable(L);
 		{
-			lua_pushinteger(L,
-					dplane_ctx_gre_get_link_ifindex(ctx));
+			lua_pushinteger(L, dplane_ctx_gre_get_link_ifindex(ctx));
 			lua_setfield(L, -2, "link_ifindex");
 			lua_pushinteger(L, dplane_ctx_gre_get_mtu(ctx));
 			lua_setfield(L, -2, "mtu");

@@ -23,25 +23,18 @@
 
 extern struct frr_daemon_info *mgmt_daemon_info;
 
-DEFPY(show_mgmt_be_adapter,
-      show_mgmt_be_adapter_cmd,
+DEFPY(show_mgmt_be_adapter, show_mgmt_be_adapter_cmd,
       "show mgmt backend-adapter all",
-      SHOW_STR
-      MGMTD_STR
-      MGMTD_BE_ADAPTER_STR
-      "Display all Backend Adapters\n")
+      SHOW_STR MGMTD_STR MGMTD_BE_ADAPTER_STR "Display all Backend Adapters\n")
 {
 	mgmt_be_adapter_status_write(vty);
 
 	return CMD_SUCCESS;
 }
 
-DEFPY(show_mgmt_be_xpath_reg,
-      show_mgmt_be_xpath_reg_cmd,
+DEFPY(show_mgmt_be_xpath_reg, show_mgmt_be_xpath_reg_cmd,
       "show mgmt backend-yang-xpath-registry",
-      SHOW_STR
-      MGMTD_STR
-      "Backend Adapter YANG Xpath Registry\n")
+      SHOW_STR MGMTD_STR "Backend Adapter YANG Xpath Registry\n")
 {
 	mgmt_be_xpath_register_write(vty);
 
@@ -50,23 +43,17 @@ DEFPY(show_mgmt_be_xpath_reg,
 
 DEFPY(show_mgmt_fe_adapter, show_mgmt_fe_adapter_cmd,
       "show mgmt frontend-adapter all [detail$detail]",
-      SHOW_STR
-      MGMTD_STR
-      MGMTD_FE_ADAPTER_STR
-      "Display all Frontend Adapters\n"
-      "Display more details\n")
+      SHOW_STR MGMTD_STR MGMTD_FE_ADAPTER_STR "Display all Frontend Adapters\n"
+					      "Display more details\n")
 {
 	mgmt_fe_adapter_status_write(vty, !!detail);
 
 	return CMD_SUCCESS;
 }
 
-DEFPY_HIDDEN(mgmt_performance_measurement,
-	     mgmt_performance_measurement_cmd,
+DEFPY_HIDDEN(mgmt_performance_measurement, mgmt_performance_measurement_cmd,
 	     "[no] mgmt performance-measurement",
-	     NO_STR
-	     MGMTD_STR
-	     "Enable performance measurement\n")
+	     NO_STR MGMTD_STR "Enable performance measurement\n")
 {
 	if (no)
 		mgmt_fe_adapter_perf_measurement(vty, false);
@@ -76,40 +63,29 @@ DEFPY_HIDDEN(mgmt_performance_measurement,
 	return CMD_SUCCESS;
 }
 
-DEFPY(mgmt_reset_performance_stats,
-      mgmt_reset_performance_stats_cmd,
+DEFPY(mgmt_reset_performance_stats, mgmt_reset_performance_stats_cmd,
       "mgmt reset-statistics",
-      MGMTD_STR
-      "Reset the Performance measurement statistics\n")
+      MGMTD_STR "Reset the Performance measurement statistics\n")
 {
 	mgmt_fe_adapter_reset_perf_stats(vty);
 
 	return CMD_SUCCESS;
 }
 
-DEFPY(show_mgmt_txn,
-      show_mgmt_txn_cmd,
-      "show mgmt transaction all",
-      SHOW_STR
-      MGMTD_STR
-      MGMTD_TXN_STR
-      "Display all Transactions\n")
+DEFPY(show_mgmt_txn, show_mgmt_txn_cmd, "show mgmt transaction all",
+      SHOW_STR MGMTD_STR MGMTD_TXN_STR "Display all Transactions\n")
 {
 	mgmt_txn_status_write(vty);
 
 	return CMD_SUCCESS;
 }
 
-DEFPY(show_mgmt_ds,
-      show_mgmt_ds_cmd,
+DEFPY(show_mgmt_ds, show_mgmt_ds_cmd,
       "show mgmt datastore [all|candidate|operational|running]$dsname",
-      SHOW_STR
-      MGMTD_STR
-      MGMTD_DS_STR
-      "All datastores (default)\n"
-      "Candidate datastore\n"
-      "Operational datastore\n"
-      "Running datastore\n")
+      SHOW_STR MGMTD_STR MGMTD_DS_STR "All datastores (default)\n"
+				      "Candidate datastore\n"
+				      "Operational datastore\n"
+				      "Running datastore\n")
 {
 	struct mgmt_ds_ctx *ds_ctx;
 
@@ -127,14 +103,11 @@ DEFPY(show_mgmt_ds,
 	return CMD_SUCCESS;
 }
 
-DEFPY(mgmt_commit,
-      mgmt_commit_cmd,
-      "mgmt commit <check|apply|abort>$type",
-      MGMTD_STR
-      "Commit action\n"
-      "Validate the set of config commands\n"
-      "Validate and apply the set of config commands\n"
-      "Abort and drop the set of config commands recently added\n")
+DEFPY(mgmt_commit, mgmt_commit_cmd, "mgmt commit <check|apply|abort>$type",
+      MGMTD_STR "Commit action\n"
+		"Validate the set of config commands\n"
+		"Validate and apply the set of config commands\n"
+		"Abort and drop the set of config commands recently added\n")
 {
 	bool validate_only = type[0] == 'c';
 	bool abort = type[1] == 'b';
@@ -146,10 +119,9 @@ DEFPY(mgmt_commit,
 
 DEFPY(mgmt_set_config_data, mgmt_set_config_data_cmd,
       "mgmt set-config WORD$path VALUE",
-      MGMTD_STR
-      "Set configuration data\n"
-      "XPath expression specifying the YANG data path\n"
-      "Value of the data to set\n")
+      MGMTD_STR "Set configuration data\n"
+		"XPath expression specifying the YANG data path\n"
+		"Value of the data to set\n")
 {
 	strlcpy(vty->cfg_changes[0].xpath, path,
 		sizeof(vty->cfg_changes[0].xpath));
@@ -163,11 +135,9 @@ DEFPY(mgmt_set_config_data, mgmt_set_config_data_cmd,
 
 DEFPY(mgmt_delete_config_data, mgmt_delete_config_data_cmd,
       "mgmt delete-config WORD$path",
-      MGMTD_STR
-      "Delete configuration data\n"
-      "XPath expression specifying the YANG data path\n")
+      MGMTD_STR "Delete configuration data\n"
+		"XPath expression specifying the YANG data path\n")
 {
-
 	strlcpy(vty->cfg_changes[0].xpath, path,
 		sizeof(vty->cfg_changes[0].xpath));
 	vty->cfg_changes[0].value = NULL;
@@ -187,7 +157,7 @@ DEFPY(show_mgmt_get_config, show_mgmt_get_config_cmd,
       "Running datastore\n"
       "XPath expression specifying the YANG data path\n")
 {
-	const char *xpath_list[VTY_MAXCFGCHANGES] = {0};
+	const char *xpath_list[VTY_MAXCFGCHANGES] = { 0 };
 	Mgmtd__DatastoreId datastore = MGMTD_DS_CANDIDATE;
 
 	if (dsname)
@@ -200,14 +170,13 @@ DEFPY(show_mgmt_get_config, show_mgmt_get_config_cmd,
 
 DEFPY(show_mgmt_get_data, show_mgmt_get_data_cmd,
       "show mgmt get-data [candidate|operational|running]$dsname WORD$path",
-      SHOW_STR MGMTD_STR
-      "Get data from a specific datastore\n"
-      "Candidate datastore\n"
-      "Operational datastore (default)\n"
-      "Running datastore\n"
-      "XPath expression specifying the YANG data path\n")
+      SHOW_STR MGMTD_STR "Get data from a specific datastore\n"
+			 "Candidate datastore\n"
+			 "Operational datastore (default)\n"
+			 "Running datastore\n"
+			 "XPath expression specifying the YANG data path\n")
 {
-	const char *xpath_list[VTY_MAXCFGCHANGES] = {0};
+	const char *xpath_list[VTY_MAXCFGCHANGES] = { 0 };
 	Mgmtd__DatastoreId datastore = MGMTD_DS_OPERATIONAL;
 
 	if (dsname)
@@ -218,21 +187,18 @@ DEFPY(show_mgmt_get_data, show_mgmt_get_data_cmd,
 	return CMD_SUCCESS;
 }
 
-DEFPY(show_mgmt_dump_data,
-      show_mgmt_dump_data_cmd,
+DEFPY(show_mgmt_dump_data, show_mgmt_dump_data_cmd,
       "show mgmt datastore-contents [candidate|operational|running]$dsname [xpath WORD$path] [file WORD$filepath] <json|xml>$fmt",
-      SHOW_STR
-      MGMTD_STR
-      "Get Datastore contents from a specific datastore\n"
-      "Candidate datastore (default)\n"
-      "Operational datastore\n"
-      "Running datastore\n"
-      "XPath expression specifying the YANG data path\n"
-      "XPath string\n"
-      "Dump the contents to a file\n"
-      "Full path of the file\n"
-      "json output\n"
-      "xml output\n")
+      SHOW_STR MGMTD_STR "Get Datastore contents from a specific datastore\n"
+			 "Candidate datastore (default)\n"
+			 "Operational datastore\n"
+			 "Running datastore\n"
+			 "XPath expression specifying the YANG data path\n"
+			 "XPath string\n"
+			 "Dump the contents to a file\n"
+			 "Full path of the file\n"
+			 "json output\n"
+			 "xml output\n")
 {
 	struct mgmt_ds_ctx *ds_ctx;
 	Mgmtd__DatastoreId datastore = MGMTD_DS_CANDIDATE;
@@ -265,34 +231,28 @@ DEFPY(show_mgmt_dump_data,
 	return CMD_SUCCESS;
 }
 
-DEFPY(show_mgmt_map_xpath,
-      show_mgmt_map_xpath_cmd,
+DEFPY(show_mgmt_map_xpath, show_mgmt_map_xpath_cmd,
       "show mgmt yang-xpath-subscription WORD$path",
-      SHOW_STR
-      MGMTD_STR
-      "Get YANG Backend Subscription\n"
-      "XPath expression specifying the YANG data path\n")
+      SHOW_STR MGMTD_STR "Get YANG Backend Subscription\n"
+			 "XPath expression specifying the YANG data path\n")
 {
 	mgmt_be_xpath_subscr_info_write(vty, path);
 	return CMD_SUCCESS;
 }
 
-DEFPY(mgmt_load_config,
-      mgmt_load_config_cmd,
+DEFPY(mgmt_load_config, mgmt_load_config_cmd,
       "mgmt load-config WORD$filepath <merge|replace>$type",
-      MGMTD_STR
-      "Load configuration onto Candidate Datastore\n"
-      "Full path of the file\n"
-      "Merge configuration with contents of Candidate Datastore\n"
-      "Replace the existing contents of Candidate datastore\n")
+      MGMTD_STR "Load configuration onto Candidate Datastore\n"
+		"Full path of the file\n"
+		"Merge configuration with contents of Candidate Datastore\n"
+		"Replace the existing contents of Candidate datastore\n")
 {
 	bool merge = type[0] == 'm' ? true : false;
 	struct mgmt_ds_ctx *ds_ctx;
 	int ret;
 
 	if (access(filepath, F_OK) == -1) {
-		vty_out(vty, "ERROR: File %s : %s\n", filepath,
-			strerror(errno));
+		vty_out(vty, "ERROR: File %s : %s\n", filepath, strerror(errno));
 		return CMD_ERR_NO_FILE;
 	}
 
@@ -309,14 +269,12 @@ DEFPY(mgmt_load_config,
 	return CMD_SUCCESS;
 }
 
-DEFPY(mgmt_save_config,
-      mgmt_save_config_cmd,
+DEFPY(mgmt_save_config, mgmt_save_config_cmd,
       "mgmt save-config <candidate|running>$dsname WORD$filepath",
-      MGMTD_STR
-      "Save configuration from datastore\n"
-      "Candidate datastore\n"
-      "Running datastore\n"
-      "Full path of the file\n")
+      MGMTD_STR "Save configuration from datastore\n"
+		"Candidate datastore\n"
+		"Running datastore\n"
+		"Full path of the file\n")
 {
 	Mgmtd__DatastoreId datastore = mgmt_ds_name2id(dsname);
 	struct mgmt_ds_ctx *ds_ctx;
@@ -348,26 +306,20 @@ DEFPY(mgmt_save_config,
 	return CMD_SUCCESS;
 }
 
-DEFPY(show_mgmt_cmt_hist,
-      show_mgmt_cmt_hist_cmd,
-      "show mgmt commit-history",
-      SHOW_STR
-      MGMTD_STR
-      "Show commit history\n")
+DEFPY(show_mgmt_cmt_hist, show_mgmt_cmt_hist_cmd, "show mgmt commit-history",
+      SHOW_STR MGMTD_STR "Show commit history\n")
 {
 	show_mgmt_cmt_history(vty);
 	return CMD_SUCCESS;
 }
 
-DEFPY(mgmt_rollback,
-      mgmt_rollback_cmd,
+DEFPY(mgmt_rollback, mgmt_rollback_cmd,
       "mgmt rollback <commit-id WORD$commit | last [(1-10)]$last>",
-      MGMTD_STR
-      "Rollback commits\n"
-      "Rollback to commit ID\n"
-      "Commit-ID\n"
-      "Rollbak n commits\n"
-      "Number of commits\n")
+      MGMTD_STR "Rollback commits\n"
+		"Rollback to commit ID\n"
+		"Commit-ID\n"
+		"Rollbak n commits\n"
+		"Number of commits\n")
 {
 	if (commit)
 		mgmt_history_rollback_by_id(vty, commit);
@@ -430,11 +382,10 @@ DEFPY_NOSH(show_debugging_mgmt, show_debugging_mgmt_cmd,
 
 DEFPY(debug_mgmt, debug_mgmt_cmd,
       "[no$no] debug mgmt {backend$be|datastore$ds|frontend$fe|transaction$txn}",
-      NO_STR DEBUG_STR MGMTD_STR
-      "Backend debug\n"
-      "Datastore debug\n"
-      "Frontend debug\n"
-      "Transaction debug\n")
+      NO_STR DEBUG_STR MGMTD_STR "Backend debug\n"
+				 "Datastore debug\n"
+				 "Frontend debug\n"
+				 "Transaction debug\n")
 {
 	uint32_t mode = DEBUG_NODE2MODE(vty->node);
 

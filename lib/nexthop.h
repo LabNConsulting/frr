@@ -27,11 +27,11 @@ union g_addr {
 
 enum nexthop_types_t {
 	NEXTHOP_TYPE_IFINDEX = 1,  /* Directly connected.  */
-	NEXTHOP_TYPE_IPV4,	 /* IPv4 nexthop.  */
+	NEXTHOP_TYPE_IPV4,	   /* IPv4 nexthop.  */
 	NEXTHOP_TYPE_IPV4_IFINDEX, /* IPv4 nexthop with ifindex.  */
-	NEXTHOP_TYPE_IPV6,	 /* IPv6 nexthop.  */
+	NEXTHOP_TYPE_IPV6,	   /* IPv6 nexthop.  */
 	NEXTHOP_TYPE_IPV6_IFINDEX, /* IPv6 nexthop with ifindex.  */
-	NEXTHOP_TYPE_BLACKHOLE,    /* Null0 nexthop.  */
+	NEXTHOP_TYPE_BLACKHOLE,	   /* Null0 nexthop.  */
 };
 
 enum blackhole_type {
@@ -46,7 +46,7 @@ enum nh_encap_type {
 };
 
 /* Fixed limit on the number of backup nexthops per primary nexthop */
-#define NEXTHOP_MAX_BACKUPS  8
+#define NEXTHOP_MAX_BACKUPS 8
 
 /* Backup index value is limited */
 #define NEXTHOP_BACKUP_IDX_MAX 255
@@ -67,24 +67,26 @@ struct nexthop {
 	enum nexthop_types_t type;
 
 	uint16_t flags;
-#define NEXTHOP_FLAG_ACTIVE     (1 << 0) /* This nexthop is alive. */
-#define NEXTHOP_FLAG_FIB        (1 << 1) /* FIB nexthop. */
-#define NEXTHOP_FLAG_RECURSIVE  (1 << 2) /* Recursive nexthop. */
-#define NEXTHOP_FLAG_ONLINK     (1 << 3) /* Nexthop should be installed
+#define NEXTHOP_FLAG_ACTIVE    (1 << 0) /* This nexthop is alive. */
+#define NEXTHOP_FLAG_FIB       (1 << 1) /* FIB nexthop. */
+#define NEXTHOP_FLAG_RECURSIVE (1 << 2) /* Recursive nexthop. */
+#define NEXTHOP_FLAG_ONLINK                                                    \
+	(1 << 3) /* Nexthop should be installed
 					  * onlink.
 					  */
-#define NEXTHOP_FLAG_DUPLICATE  (1 << 4) /* nexthop duplicates another
+#define NEXTHOP_FLAG_DUPLICATE                                                 \
+	(1 << 4)			   /* nexthop duplicates another
 					  * active one
 					  */
-#define NEXTHOP_FLAG_RNH_FILTERED  (1 << 5) /* rmap filtered, used by rnh */
-#define NEXTHOP_FLAG_HAS_BACKUP (1 << 6)    /* Backup nexthop index is set */
-#define NEXTHOP_FLAG_SRTE       (1 << 7) /* SR-TE color used for BGP traffic */
-#define NEXTHOP_FLAG_EVPN       (1 << 8) /* nexthop is EVPN */
-#define NEXTHOP_FLAG_LINKDOWN   (1 << 9) /* is not removed on link down */
+#define NEXTHOP_FLAG_RNH_FILTERED (1 << 5) /* rmap filtered, used by rnh */
+#define NEXTHOP_FLAG_HAS_BACKUP	  (1 << 6) /* Backup nexthop index is set */
+#define NEXTHOP_FLAG_SRTE	  (1 << 7) /* SR-TE color used for BGP traffic */
+#define NEXTHOP_FLAG_EVPN	  (1 << 8) /* nexthop is EVPN */
+#define NEXTHOP_FLAG_LINKDOWN	  (1 << 9) /* is not removed on link down */
 
 #define NEXTHOP_IS_ACTIVE(flags)                                               \
-	(CHECK_FLAG(flags, NEXTHOP_FLAG_ACTIVE)                                \
-	 && !CHECK_FLAG(flags, NEXTHOP_FLAG_DUPLICATE))
+	(CHECK_FLAG(flags, NEXTHOP_FLAG_ACTIVE) &&                             \
+	 !CHECK_FLAG(flags, NEXTHOP_FLAG_DUPLICATE))
 
 	/* Nexthop address */
 	union {
@@ -133,11 +135,11 @@ struct nexthop {
 };
 
 /* Utility to append one nexthop to another. */
-#define NEXTHOP_APPEND(to, new)           \
-	do {                              \
-		(to)->next = (new);       \
-		(new)->prev = (to);       \
-		(new)->next = NULL;       \
+#define NEXTHOP_APPEND(to, new)                                                \
+	do {                                                                   \
+		(to)->next = (new);                                            \
+		(new)->prev = (to);                                            \
+		(new)->next = NULL;                                            \
 	} while (0)
 
 struct nexthop *nexthop_new(void);
@@ -151,8 +153,7 @@ void nexthop_del_labels(struct nexthop *);
 void nexthop_add_srv6_seg6local(struct nexthop *nexthop, uint32_t action,
 				const struct seg6local_context *ctx);
 void nexthop_del_srv6_seg6local(struct nexthop *nexthop);
-void nexthop_add_srv6_seg6(struct nexthop *nexthop,
-			   const struct in6_addr *segs);
+void nexthop_add_srv6_seg6(struct nexthop *nexthop, const struct in6_addr *segs);
 void nexthop_del_srv6_seg6(struct nexthop *nexthop);
 
 /*
@@ -160,13 +161,11 @@ void nexthop_del_srv6_seg6(struct nexthop *nexthop);
  */
 struct nexthop *nexthop_from_ifindex(ifindex_t ifindex, vrf_id_t vrf_id);
 struct nexthop *nexthop_from_ipv4(const struct in_addr *ipv4,
-				  const struct in_addr *src,
-				  vrf_id_t vrf_id);
+				  const struct in_addr *src, vrf_id_t vrf_id);
 struct nexthop *nexthop_from_ipv4_ifindex(const struct in_addr *ipv4,
 					  const struct in_addr *src,
 					  ifindex_t ifindex, vrf_id_t vrf_id);
-struct nexthop *nexthop_from_ipv6(const struct in6_addr *ipv6,
-				  vrf_id_t vrf_id);
+struct nexthop *nexthop_from_ipv6(const struct in6_addr *ipv6, vrf_id_t vrf_id);
 struct nexthop *nexthop_from_ipv6_ifindex(const struct in6_addr *ipv6,
 					  ifindex_t ifindex, vrf_id_t vrf_id);
 struct nexthop *nexthop_from_blackhole(enum blackhole_type bh_type,
@@ -214,8 +213,8 @@ extern const char *nexthop_type_to_str(enum nexthop_types_t nh_type);
 extern bool nexthop_labels_match(const struct nexthop *nh1,
 				 const struct nexthop *nh2);
 
-extern const char *nexthop2str(const struct nexthop *nexthop,
-			       char *str, int size);
+extern const char *nexthop2str(const struct nexthop *nexthop, char *str,
+			       int size);
 extern struct nexthop *nexthop_next(const struct nexthop *nexthop);
 extern struct nexthop *
 nexthop_next_active_resolved(const struct nexthop *nexthop);
@@ -243,11 +242,10 @@ extern bool nexthop_is_ifindex_type(const struct nexthop *nh);
  * in size. Mails back the number of values converted, and returns 0 on
  * success, <0 if an error in parsing.
  */
-int nexthop_str2backups(const char *str, int *num_backups,
-			uint8_t *backups);
+int nexthop_str2backups(const char *str, int *num_backups, uint8_t *backups);
 
 #ifdef _FRR_ATTRIBUTE_PRINTFRR
-#pragma FRR printfrr_ext "%pNH"  (struct nexthop *)
+#pragma FRR printfrr_ext "%pNH"(struct nexthop *)
 #endif
 
 ssize_t printfrr_nhs(struct fbuf *buf, const struct nexthop *nh);

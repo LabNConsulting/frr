@@ -15,11 +15,9 @@
 
 
 void explicit_bzero(void *buf, size_t len);
-__attribute__((__weak__)) void
-__explicit_bzero_hook(void *buf, size_t len);
+__attribute__((__weak__)) void __explicit_bzero_hook(void *buf, size_t len);
 
-__attribute__((__weak__)) void
-__explicit_bzero_hook(void *buf, size_t len)
+__attribute__((__weak__)) void __explicit_bzero_hook(void *buf, size_t len)
 {
 }
 
@@ -29,8 +27,7 @@ __explicit_bzero_hook(void *buf, size_t len)
 #pragma GCC optimize("00")
 #endif
 
-void
-explicit_bzero(void *buf, size_t len)
+void explicit_bzero(void *buf, size_t len)
 {
 	memset(buf, 0, len);
 	__explicit_bzero_hook(buf, len);

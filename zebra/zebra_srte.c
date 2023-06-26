@@ -22,8 +22,7 @@ static inline int
 zebra_sr_policy_instance_compare(const struct zebra_sr_policy *a,
 				 const struct zebra_sr_policy *b)
 {
-	return sr_policy_compare(&a->endpoint, &b->endpoint, a->color,
-				 b->color);
+	return sr_policy_compare(&a->endpoint, &b->endpoint, a->color, b->color);
 }
 RB_GENERATE(zebra_sr_policy_instance_head, zebra_sr_policy, entry,
 	    zebra_sr_policy_instance_compare)
@@ -135,8 +134,8 @@ static int zebra_sr_policy_notify_update_client(struct zebra_sr_policy *policy,
 
 	num = 0;
 	frr_each (nhlfe_list_const, &policy->lsp->nhlfe_list, nhlfe) {
-		if (!CHECK_FLAG(nhlfe->flags, NHLFE_FLAG_SELECTED)
-		    || CHECK_FLAG(nhlfe->flags, NHLFE_FLAG_DELETED))
+		if (!CHECK_FLAG(nhlfe->flags, NHLFE_FLAG_SELECTED) ||
+		    CHECK_FLAG(nhlfe->flags, NHLFE_FLAG_DELETED))
 			continue;
 
 		if (num == 0) {
@@ -228,13 +227,12 @@ static void zebra_sr_policy_update(struct zebra_sr_policy *policy,
 
 	policy->lsp = lsp;
 
-	bsid_changed =
-		policy->segment_list.local_label != old_tunnel->local_label;
+	bsid_changed = policy->segment_list.local_label !=
+		       old_tunnel->local_label;
 	segment_list_changed =
-		policy->segment_list.label_num != old_tunnel->label_num
-		|| memcmp(policy->segment_list.labels, old_tunnel->labels,
-			  sizeof(mpls_label_t)
-				  * policy->segment_list.label_num);
+		policy->segment_list.label_num != old_tunnel->label_num ||
+		memcmp(policy->segment_list.labels, old_tunnel->labels,
+		       sizeof(mpls_label_t) * policy->segment_list.label_num);
 
 	/* Re-install label stack if necessary. */
 	if (bsid_changed || segment_list_changed) {
@@ -254,8 +252,7 @@ static void zebra_sr_policy_deactivate(struct zebra_sr_policy *policy)
 {
 	policy->status = ZEBRA_SR_POLICY_DOWN;
 	policy->lsp = NULL;
-	zebra_sr_policy_bsid_uninstall(policy,
-				       policy->segment_list.local_label);
+	zebra_sr_policy_bsid_uninstall(policy, policy->segment_list.local_label);
 	zsend_sr_policy_notify_status(policy->color, &policy->endpoint,
 				      policy->name, ZEBRA_SR_POLICY_DOWN);
 	zebra_sr_policy_notify_update(policy);
@@ -272,8 +269,8 @@ int zebra_sr_policy_validate(struct zebra_sr_policy *policy,
 
 	/* Try to resolve the Binding-SID nexthops. */
 	lsp = mpls_lsp_find(policy->zvrf, policy->segment_list.labels[0]);
-	if (!lsp || !lsp->best_nhlfe
-	    || lsp->addr_family != ipaddr_family(&policy->endpoint)) {
+	if (!lsp || !lsp->best_nhlfe ||
+	    lsp->addr_family != ipaddr_family(&policy->endpoint)) {
 		if (policy->status == ZEBRA_SR_POLICY_UP)
 			zebra_sr_policy_deactivate(policy);
 		return -1;
@@ -301,18 +298,18 @@ int zebra_sr_policy_bsid_install(struct zebra_sr_policy *policy)
 		mpls_label_t *out_labels;
 		mpls_label_t null_label = MPLS_LABEL_IMPLICIT_NULL;
 
-		if (!CHECK_FLAG(nhlfe->flags, NHLFE_FLAG_SELECTED)
-		    || CHECK_FLAG(nhlfe->flags, NHLFE_FLAG_DELETED))
+		if (!CHECK_FLAG(nhlfe->flags, NHLFE_FLAG_SELECTED) ||
+		    CHECK_FLAG(nhlfe->flags, NHLFE_FLAG_DELETED))
 			continue;
 
 		/*
 		 * Don't push the first SID if the corresponding action in the
 		 * LFIB is POP.
 		 */
-		if (!nhlfe->nexthop->nh_label
-		    || !nhlfe->nexthop->nh_label->num_labels
-		    || nhlfe->nexthop->nh_label->label[0]
-			       == MPLS_LABEL_IMPLICIT_NULL) {
+		if (!nhlfe->nexthop->nh_label ||
+		    !nhlfe->nexthop->nh_label->num_labels ||
+		    nhlfe->nexthop->nh_label->label[0] ==
+			    MPLS_LABEL_IMPLICIT_NULL) {
 			if (zt->label_num > 1) {
 				num_out_labels = zt->label_num - 1;
 				out_labels = &zt->labels[1];
@@ -325,11 +322,10 @@ int zebra_sr_policy_bsid_install(struct zebra_sr_policy *policy)
 			out_labels = zt->labels;
 		}
 
-		if (mpls_lsp_install(
-			    policy->zvrf, zt->type, zt->local_label,
-			    num_out_labels, out_labels, nhlfe->nexthop->type,
-			    &nhlfe->nexthop->gate, nhlfe->nexthop->ifindex)
-		    < 0)
+		if (mpls_lsp_install(policy->zvrf, zt->type, zt->local_label,
+				     num_out_labels, out_labels,
+				     nhlfe->nexthop->type, &nhlfe->nexthop->gate,
+				     nhlfe->nexthop->ifindex) < 0)
 			return -1;
 	}
 

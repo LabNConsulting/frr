@@ -83,7 +83,7 @@
 #ifndef HAVE_LIBCRYPT
 #ifdef HAVE_LIBCRYPTO
 #include <openssl/des.h>
-#      define crypt DES_crypt
+#define crypt DES_crypt
 #endif
 #endif
 
@@ -120,7 +120,7 @@
 #include <linux/rtnetlink.h>
 #include <linux/filter.h>
 #else
-#define RT_TABLE_MAIN		0
+#define RT_TABLE_MAIN 0
 #endif /* HAVE_NETLINK */
 
 #include <netdb.h>
@@ -161,16 +161,16 @@
  * e.g. this makes life easier for FBSD 4.11 users.
  */
 #ifndef INT16_MAX
-#define INT16_MAX	(32767)
+#define INT16_MAX (32767)
 #endif
 #ifndef INT32_MAX
-#define INT32_MAX	(2147483647)
+#define INT32_MAX (2147483647)
 #endif
 #ifndef UINT16_MAX
-#define UINT16_MAX	(65535U)
+#define UINT16_MAX (65535U)
 #endif
 #ifndef UINT32_MAX
-#define UINT32_MAX	(4294967295U)
+#define UINT32_MAX (4294967295U)
 #endif
 
 #ifdef HAVE_GLIBC_BACKTRACE
@@ -198,12 +198,12 @@ extern "C" {
 #endif
 
 #ifndef HAVE_STRLCAT
-size_t strlcat(char *__restrict dest,
-	       const char *__restrict src, size_t destsize);
+size_t strlcat(char *__restrict dest, const char *__restrict src,
+	       size_t destsize);
 #endif
 #ifndef HAVE_STRLCPY
-size_t strlcpy(char *__restrict dest,
-	       const char *__restrict src, size_t destsize);
+size_t strlcpy(char *__restrict dest, const char *__restrict src,
+	       size_t destsize);
 #endif
 
 #ifndef HAVE_EXPLICIT_BZERO
@@ -212,7 +212,7 @@ void explicit_bzero(void *buf, size_t len);
 
 #if !defined(HAVE_STRUCT_MMSGHDR_MSG_HDR) || !defined(HAVE_SENDMMSG)
 /* avoid conflicts in case we have partial support */
-#define mmsghdr frr_mmsghdr
+#define mmsghdr	 frr_mmsghdr
 #define sendmmsg frr_sendmmsg
 
 struct mmsghdr {
@@ -240,11 +240,11 @@ static inline int sendmmsg(int fd, struct mmsghdr *mmh, unsigned int len,
  * These are likely wrong on other than ILP32 machines, so warn.
  */
 #ifndef _CMSG_DATA_ALIGN
-#define _CMSG_DATA_ALIGN(n)           (((n) + 3) & ~3)
+#define _CMSG_DATA_ALIGN(n) (((n) + 3) & ~3)
 #endif /* _CMSG_DATA_ALIGN */
 
 #ifndef _CMSG_HDR_ALIGN
-#define _CMSG_HDR_ALIGN(n)            (((n) + 3) & ~3)
+#define _CMSG_HDR_ALIGN(n) (((n) + 3) & ~3)
 #endif /* _CMSG_HDR_ALIGN */
 
 /*
@@ -259,7 +259,7 @@ static inline int sendmmsg(int fd, struct mmsghdr *mmh, unsigned int len,
 
 
 #ifndef CMSG_LEN
-#define CMSG_LEN(l)         (_CMSG_DATA_ALIGN(sizeof(struct cmsghdr)) + (l))
+#define CMSG_LEN(l) (_CMSG_DATA_ALIGN(sizeof(struct cmsghdr)) + (l))
 #warning "assuming 4-byte alignment for CMSG_LEN"
 #endif /* CMSG_LEN */
 
@@ -283,10 +283,9 @@ struct in_pktinfo {
  * OpenBSD: network byte order, apart from older versions which are as per
  *          *BSD
  */
-#if defined(__NetBSD__)                                                        \
-	|| (defined(__FreeBSD__) && (__FreeBSD_version < 1100030))             \
-	|| (defined(__OpenBSD__) && (OpenBSD < 200311))                        \
-	|| (defined(__APPLE__))
+#if defined(__NetBSD__) ||                                                     \
+	(defined(__FreeBSD__) && (__FreeBSD_version < 1100030)) ||             \
+	(defined(__OpenBSD__) && (OpenBSD < 200311)) || (defined(__APPLE__))
 #define HAVE_IP_HDRINCL_BSD_ORDER
 #endif
 
@@ -301,7 +300,7 @@ struct in_pktinfo {
 #endif /* IN6_ARE_ADDR_EQUAL */
 
 /* default zebra TCP port for zclient */
-#define ZEBRA_PORT			2600
+#define ZEBRA_PORT 2600
 
 /*
  * The compiler.h header is used for anyone using the CPP_NOTICE
@@ -312,7 +311,7 @@ struct in_pktinfo {
 /* Zebra route's types are defined in route_types.h */
 #include "lib/route_types.h"
 
-#define strmatch(a,b) (!strcmp((a), (b)))
+#define strmatch(a, b) (!strcmp((a), (b)))
 
 #if BYTE_ORDER == LITTLE_ENDIAN
 #define htonll(x) (((uint64_t)htonl((x)&0xFFFFFFFF) << 32) | htonl((x) >> 32))
@@ -323,7 +322,7 @@ struct in_pktinfo {
 #endif
 
 #ifndef INADDR_LOOPBACK
-#define	INADDR_LOOPBACK	0x7f000001	/* Internet address 127.0.0.1.  */
+#define INADDR_LOOPBACK 0x7f000001 /* Internet address 127.0.0.1.  */
 #endif
 
 /* Address family numbers from RFC1700. */
@@ -359,32 +358,32 @@ typedef enum {
 		for (safi = SAFI_UNICAST; safi <= SAFI_MPLS_VPN; safi++)
 
 /* Default Administrative Distance of each protocol. */
-#define ZEBRA_KERNEL_DISTANCE_DEFAULT       0
-#define ZEBRA_CONNECT_DISTANCE_DEFAULT      0
-#define ZEBRA_STATIC_DISTANCE_DEFAULT       1
-#define ZEBRA_RIP_DISTANCE_DEFAULT        120
-#define ZEBRA_RIPNG_DISTANCE_DEFAULT      120
-#define ZEBRA_OSPF_DISTANCE_DEFAULT       110
-#define ZEBRA_OSPF6_DISTANCE_DEFAULT      110
-#define ZEBRA_ISIS_DISTANCE_DEFAULT       115
-#define ZEBRA_IBGP_DISTANCE_DEFAULT       200
-#define ZEBRA_EBGP_DISTANCE_DEFAULT        20
-#define ZEBRA_TABLE_DISTANCE_DEFAULT       15
-#define ZEBRA_EIGRP_DISTANCE_DEFAULT       90
-#define ZEBRA_NHRP_DISTANCE_DEFAULT        10
-#define ZEBRA_LDP_DISTANCE_DEFAULT        150
-#define ZEBRA_BABEL_DISTANCE_DEFAULT      100
-#define ZEBRA_SHARP_DISTANCE_DEFAULT      150
-#define ZEBRA_PBR_DISTANCE_DEFAULT        200
+#define ZEBRA_KERNEL_DISTANCE_DEFAULT	  0
+#define ZEBRA_CONNECT_DISTANCE_DEFAULT	  0
+#define ZEBRA_STATIC_DISTANCE_DEFAULT	  1
+#define ZEBRA_RIP_DISTANCE_DEFAULT	  120
+#define ZEBRA_RIPNG_DISTANCE_DEFAULT	  120
+#define ZEBRA_OSPF_DISTANCE_DEFAULT	  110
+#define ZEBRA_OSPF6_DISTANCE_DEFAULT	  110
+#define ZEBRA_ISIS_DISTANCE_DEFAULT	  115
+#define ZEBRA_IBGP_DISTANCE_DEFAULT	  200
+#define ZEBRA_EBGP_DISTANCE_DEFAULT	  20
+#define ZEBRA_TABLE_DISTANCE_DEFAULT	  15
+#define ZEBRA_EIGRP_DISTANCE_DEFAULT	  90
+#define ZEBRA_NHRP_DISTANCE_DEFAULT	  10
+#define ZEBRA_LDP_DISTANCE_DEFAULT	  150
+#define ZEBRA_BABEL_DISTANCE_DEFAULT	  100
+#define ZEBRA_SHARP_DISTANCE_DEFAULT	  150
+#define ZEBRA_PBR_DISTANCE_DEFAULT	  200
 #define ZEBRA_OPENFABRIC_DISTANCE_DEFAULT 115
-#define ZEBRA_MAX_DISTANCE_DEFAULT        255
+#define ZEBRA_MAX_DISTANCE_DEFAULT	  255
 
 /* Flag manipulation macros. */
-#define CHECK_FLAG(V,F)      ((V) & (F))
-#define SET_FLAG(V,F)        (V) |= (F)
-#define UNSET_FLAG(V,F)      (V) &= ~(F)
-#define RESET_FLAG(V)        (V) = 0
-#define COND_FLAG(V, F, C)   ((C) ? (SET_FLAG(V, F)) : (UNSET_FLAG(V, F)))
+#define CHECK_FLAG(V, F)   ((V) & (F))
+#define SET_FLAG(V, F)	   (V) |= (F)
+#define UNSET_FLAG(V, F)   (V) &= ~(F)
+#define RESET_FLAG(V)	   (V) = 0
+#define COND_FLAG(V, F, C) ((C) ? (SET_FLAG(V, F)) : (UNSET_FLAG(V, F)))
 
 /* Atomic flag manipulation macros. */
 #define CHECK_FLAG_ATOMIC(PV, F)                                               \

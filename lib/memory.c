@@ -48,8 +48,7 @@ static inline void mt_count_alloc(struct memtype *mt, size_t size, void *ptr)
 		oldsize = atomic_exchange_explicit(&mt->size, size,
 						   memory_order_relaxed);
 	if (oldsize != 0 && oldsize != size && oldsize != SIZE_VAR)
-		atomic_store_explicit(&mt->size, SIZE_VAR,
-				      memory_order_relaxed);
+		atomic_store_explicit(&mt->size, SIZE_VAR, memory_order_relaxed);
 
 #ifdef HAVE_MALLOC_USABLE_SIZE
 	size_t mallocsz = malloc_usable_size(ptr);
@@ -175,7 +174,7 @@ static int qmem_exit_walker(void *arg, struct memgroup *mg, struct memtype *mt)
 
 int log_memstats(FILE *fp, const char *prefix)
 {
-	struct exit_dump_args eda = {.fp = fp, .prefix = prefix, .error = 0};
+	struct exit_dump_args eda = { .fp = fp, .prefix = prefix, .error = 0 };
 	qmem_walk(qmem_exit_walker, &eda);
 	return eda.error;
 }

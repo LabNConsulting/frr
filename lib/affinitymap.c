@@ -47,7 +47,7 @@ DEFINE_MTYPE_STATIC(LIB, AFFINITY_MAP_INDEX, "Affinity map index");
 DEFINE_QOBJ_TYPE(affinity_maps);
 DEFINE_QOBJ_TYPE(affinity_map);
 
-struct affinity_maps affinity_map_master = {NULL, NULL, NULL, NULL};
+struct affinity_maps affinity_map_master = { NULL, NULL, NULL, NULL };
 
 static void affinity_map_free(struct affinity_map *map)
 {

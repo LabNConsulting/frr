@@ -29,14 +29,12 @@ unsigned long zebra_debug_pbr;
 unsigned long zebra_debug_neigh;
 unsigned long zebra_debug_tc;
 
-DEFINE_HOOK(zebra_debug_show_debugging, (struct vty *vty), (vty));
+DEFINE_HOOK(zebra_debug_show_debugging, (struct vty * vty), (vty));
 
-DEFUN_NOSH (show_debugging_zebra,
-	    show_debugging_zebra_cmd,
-	    "show debugging [zebra]",
-	    SHOW_STR
-	    "Debugging information\n"
-	    "Zebra configuration\n")
+DEFUN_NOSH(show_debugging_zebra, show_debugging_zebra_cmd,
+	   "show debugging [zebra]",
+	   SHOW_STR "Debugging information\n"
+		    "Zebra configuration\n")
 {
 	vty_out(vty, "Zebra debugging status:\n");
 
@@ -77,7 +75,8 @@ DEFUN_NOSH (show_debugging_zebra,
 	if (IS_ZEBRA_DEBUG_FPM)
 		vty_out(vty, "  Zebra FPM debugging is on\n");
 	if (IS_ZEBRA_DEBUG_NHT_DETAILED)
-		vty_out(vty, "  Zebra detailed next-hop tracking debugging is on\n");
+		vty_out(vty,
+			"  Zebra detailed next-hop tracking debugging is on\n");
 	else if (IS_ZEBRA_DEBUG_NHT)
 		vty_out(vty, "  Zebra next-hop tracking debugging is on\n");
 	if (IS_ZEBRA_DEBUG_MPLS_DETAIL)
@@ -106,7 +105,8 @@ DEFUN_NOSH (show_debugging_zebra,
 		vty_out(vty, "  Zebra nexthop debugging is on\n");
 
 	if (IS_ZEBRA_DEBUG_EVPN_MH_ES)
-		vty_out(vty, "  Zebra EVPN-MH ethernet segment debugging is on\n");
+		vty_out(vty,
+			"  Zebra EVPN-MH ethernet segment debugging is on\n");
 
 	if (IS_ZEBRA_DEBUG_EVPN_MH_NH)
 		vty_out(vty, "  Zebra EVPN-MH nexthop debugging is on\n");
@@ -127,24 +127,18 @@ DEFUN_NOSH (show_debugging_zebra,
 	return CMD_SUCCESS;
 }
 
-DEFUN (debug_zebra_events,
-       debug_zebra_events_cmd,
-       "debug zebra events",
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug option set for zebra events\n")
+DEFUN(debug_zebra_events, debug_zebra_events_cmd, "debug zebra events",
+      DEBUG_STR "Zebra configuration\n"
+		"Debug option set for zebra events\n")
 {
 	zebra_debug_event = ZEBRA_DEBUG_EVENT;
 	return CMD_SUCCESS;
 }
 
-DEFUN (debug_zebra_nht,
-       debug_zebra_nht_cmd,
-       "debug zebra nht [detailed]",
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug option set for zebra next hop tracking\n"
-       "Debug option set for detailed info\n")
+DEFUN(debug_zebra_nht, debug_zebra_nht_cmd, "debug zebra nht [detailed]",
+      DEBUG_STR "Zebra configuration\n"
+		"Debug option set for zebra next hop tracking\n"
+		"Debug option set for detailed info\n")
 {
 	int idx = 0;
 
@@ -156,13 +150,11 @@ DEFUN (debug_zebra_nht,
 	return CMD_SUCCESS;
 }
 
-DEFPY (debug_zebra_mpls,
-       debug_zebra_mpls_cmd,
-       "debug zebra mpls [detailed$detail]",
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug option set for zebra MPLS LSPs\n"
-       "Debug option for detailed info\n")
+DEFPY(debug_zebra_mpls, debug_zebra_mpls_cmd,
+      "debug zebra mpls [detailed$detail]",
+      DEBUG_STR "Zebra configuration\n"
+		"Debug option set for zebra MPLS LSPs\n"
+		"Debug option for detailed info\n")
 {
 	zebra_debug_mpls = ZEBRA_DEBUG_MPLS;
 
@@ -172,24 +164,17 @@ DEFPY (debug_zebra_mpls,
 	return CMD_SUCCESS;
 }
 
-DEFPY (debug_zebra_vxlan,
-       debug_zebra_vxlan_cmd,
-       "debug zebra vxlan",
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug option set for zebra VxLAN (EVPN)\n")
+DEFPY(debug_zebra_vxlan, debug_zebra_vxlan_cmd, "debug zebra vxlan",
+      DEBUG_STR "Zebra configuration\n"
+		"Debug option set for zebra VxLAN (EVPN)\n")
 {
 	zebra_debug_vxlan = ZEBRA_DEBUG_VXLAN;
 	return CMD_SUCCESS;
 }
 
-DEFUN (debug_zebra_pw,
-       debug_zebra_pw_cmd,
-       "[no] debug zebra pseudowires",
-       NO_STR
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug option set for zebra pseudowires\n")
+DEFUN(debug_zebra_pw, debug_zebra_pw_cmd, "[no] debug zebra pseudowires",
+      NO_STR DEBUG_STR "Zebra configuration\n"
+		       "Debug option set for zebra pseudowires\n")
 {
 	if (strmatch(argv[0]->text, "no"))
 		UNSET_FLAG(zebra_debug_pw, ZEBRA_DEBUG_PW);
@@ -198,15 +183,13 @@ DEFUN (debug_zebra_pw,
 	return CMD_SUCCESS;
 }
 
-DEFUN (debug_zebra_packet,
-       debug_zebra_packet_cmd,
-       "debug zebra packet [<recv|send>] [detail]",
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug option set for zebra packet\n"
-       "Debug option set for receive packet\n"
-       "Debug option set for send packet\n"
-       "Debug option set for detailed info\n")
+DEFUN(debug_zebra_packet, debug_zebra_packet_cmd,
+      "debug zebra packet [<recv|send>] [detail]",
+      DEBUG_STR "Zebra configuration\n"
+		"Debug option set for zebra packet\n"
+		"Debug option set for receive packet\n"
+		"Debug option set for send packet\n"
+		"Debug option set for detailed info\n")
 {
 	int idx = 0;
 	zebra_debug_packet = ZEBRA_DEBUG_PACKET;
@@ -226,12 +209,9 @@ DEFUN (debug_zebra_packet,
 	return CMD_SUCCESS;
 }
 
-DEFUN (debug_zebra_kernel,
-       debug_zebra_kernel_cmd,
-       "debug zebra kernel",
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug option set for zebra between kernel interface\n")
+DEFUN(debug_zebra_kernel, debug_zebra_kernel_cmd, "debug zebra kernel",
+      DEBUG_STR "Zebra configuration\n"
+		"Debug option set for zebra between kernel interface\n")
 {
 	SET_FLAG(zebra_debug_kernel, ZEBRA_DEBUG_KERNEL);
 
@@ -239,15 +219,13 @@ DEFUN (debug_zebra_kernel,
 }
 
 #if defined(HAVE_NETLINK)
-DEFUN (debug_zebra_kernel_msgdump,
-       debug_zebra_kernel_msgdump_cmd,
-       "debug zebra kernel msgdump [<recv|send>]",
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug option set for zebra between kernel interface\n"
-       "Dump raw netlink messages, sent and received\n"
-       "Dump raw netlink messages received\n"
-       "Dump raw netlink messages sent\n")
+DEFUN(debug_zebra_kernel_msgdump, debug_zebra_kernel_msgdump_cmd,
+      "debug zebra kernel msgdump [<recv|send>]",
+      DEBUG_STR "Zebra configuration\n"
+		"Debug option set for zebra between kernel interface\n"
+		"Dump raw netlink messages, sent and received\n"
+		"Dump raw netlink messages received\n"
+		"Dump raw netlink messages sent\n")
 {
 	int idx = 0;
 
@@ -264,13 +242,10 @@ DEFUN (debug_zebra_kernel_msgdump,
 }
 #endif
 
-DEFUN (debug_zebra_rib,
-       debug_zebra_rib_cmd,
-       "debug zebra rib [detailed]",
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug RIB events\n"
-       "Detailed debugs\n")
+DEFUN(debug_zebra_rib, debug_zebra_rib_cmd, "debug zebra rib [detailed]",
+      DEBUG_STR "Zebra configuration\n"
+		"Debug RIB events\n"
+		"Detailed debugs\n")
 {
 	int idx = 0;
 	SET_FLAG(zebra_debug_rib, ZEBRA_DEBUG_RIB);
@@ -281,24 +256,19 @@ DEFUN (debug_zebra_rib,
 	return CMD_SUCCESS;
 }
 
-DEFUN (debug_zebra_fpm,
-       debug_zebra_fpm_cmd,
-       "debug zebra fpm",
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug zebra FPM events\n")
+DEFUN(debug_zebra_fpm, debug_zebra_fpm_cmd, "debug zebra fpm",
+      DEBUG_STR "Zebra configuration\n"
+		"Debug zebra FPM events\n")
 {
 	SET_FLAG(zebra_debug_fpm, ZEBRA_DEBUG_FPM);
 	return CMD_SUCCESS;
 }
 
-DEFUN (debug_zebra_dplane,
-       debug_zebra_dplane_cmd,
-       "debug zebra dplane [detailed]",
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug zebra dataplane events\n"
-       "Detailed debug information\n")
+DEFUN(debug_zebra_dplane, debug_zebra_dplane_cmd,
+      "debug zebra dplane [detailed]",
+      DEBUG_STR "Zebra configuration\n"
+		"Debug zebra dataplane events\n"
+		"Detailed debug information\n")
 {
 	int idx = 0;
 
@@ -312,11 +282,10 @@ DEFUN (debug_zebra_dplane,
 
 DEFPY(debug_zebra_dplane_dpdk, debug_zebra_dplane_dpdk_cmd,
       "[no$no] debug zebra dplane dpdk [detailed$detail]",
-      NO_STR DEBUG_STR
-      "Zebra configuration\n"
-      "Debug zebra dataplane events\n"
-      "Debug zebra DPDK offload events\n"
-      "Detailed debug information\n")
+      NO_STR DEBUG_STR "Zebra configuration\n"
+		       "Debug zebra dataplane events\n"
+		       "Debug zebra DPDK offload events\n"
+		       "Detailed debug information\n")
 {
 	if (no) {
 		UNSET_FLAG(zebra_debug_dplane_dpdk, ZEBRA_DEBUG_DPLANE_DPDK);
@@ -333,24 +302,17 @@ DEFPY(debug_zebra_dplane_dpdk, debug_zebra_dplane_dpdk_cmd,
 	return CMD_SUCCESS;
 }
 
-DEFUN (debug_zebra_pbr,
-       debug_zebra_pbr_cmd,
-       "debug zebra pbr",
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug zebra pbr events\n")
+DEFUN(debug_zebra_pbr, debug_zebra_pbr_cmd, "debug zebra pbr",
+      DEBUG_STR "Zebra configuration\n"
+		"Debug zebra pbr events\n")
 {
 	SET_FLAG(zebra_debug_pbr, ZEBRA_DEBUG_PBR);
 	return CMD_SUCCESS;
 }
 
-DEFPY (debug_zebra_neigh,
-       debug_zebra_neigh_cmd,
-       "[no$no] debug zebra neigh",
-       NO_STR
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug zebra neigh events\n")
+DEFPY(debug_zebra_neigh, debug_zebra_neigh_cmd, "[no$no] debug zebra neigh",
+      NO_STR DEBUG_STR "Zebra configuration\n"
+		       "Debug zebra neigh events\n")
 {
 	if (no)
 		UNSET_FLAG(zebra_debug_neigh, ZEBRA_DEBUG_NEIGH);
@@ -360,24 +322,17 @@ DEFPY (debug_zebra_neigh,
 	return CMD_SUCCESS;
 }
 
-DEFUN (debug_zebra_tc,
-       debug_zebra_tc_cmd,
-       "debug zebra tc",
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug zebra tc events\n")
+DEFUN(debug_zebra_tc, debug_zebra_tc_cmd, "debug zebra tc",
+      DEBUG_STR "Zebra configuration\n"
+		"Debug zebra tc events\n")
 {
 	SET_FLAG(zebra_debug_tc, ZEBRA_DEBUG_TC);
 	return CMD_SUCCESS;
 }
 
-DEFPY (debug_zebra_mlag,
-       debug_zebra_mlag_cmd,
-       "[no$no] debug zebra mlag",
-       NO_STR
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug option set for mlag events\n")
+DEFPY(debug_zebra_mlag, debug_zebra_mlag_cmd, "[no$no] debug zebra mlag",
+      NO_STR DEBUG_STR "Zebra configuration\n"
+		       "Debug option set for mlag events\n")
 {
 	if (no)
 		UNSET_FLAG(zebra_debug_mlag, ZEBRA_DEBUG_MLAG);
@@ -386,18 +341,15 @@ DEFPY (debug_zebra_mlag,
 	return CMD_SUCCESS;
 }
 
-DEFPY (debug_zebra_evpn_mh,
-       debug_zebra_evpn_mh_cmd,
-       "[no$no] debug zebra evpn mh <es$es|mac$mac|neigh$neigh|nh$nh>",
-       NO_STR
-       DEBUG_STR
-       "Zebra configuration\n"
-       "EVPN\n"
-       "Multihoming\n"
-       "Ethernet Segment Debugging\n"
-       "MAC Debugging\n"
-       "Neigh Debugging\n"
-       "Nexthop Debugging\n")
+DEFPY(debug_zebra_evpn_mh, debug_zebra_evpn_mh_cmd,
+      "[no$no] debug zebra evpn mh <es$es|mac$mac|neigh$neigh|nh$nh>",
+      NO_STR DEBUG_STR "Zebra configuration\n"
+		       "EVPN\n"
+		       "Multihoming\n"
+		       "Ethernet Segment Debugging\n"
+		       "MAC Debugging\n"
+		       "Neigh Debugging\n"
+		       "Nexthop Debugging\n")
 {
 	if (es) {
 		if (no)
@@ -408,8 +360,7 @@ DEFPY (debug_zebra_evpn_mh,
 
 	if (mac) {
 		if (no)
-			UNSET_FLAG(zebra_debug_evpn_mh,
-					ZEBRA_DEBUG_EVPN_MH_MAC);
+			UNSET_FLAG(zebra_debug_evpn_mh, ZEBRA_DEBUG_EVPN_MH_MAC);
 		else
 			SET_FLAG(zebra_debug_evpn_mh, ZEBRA_DEBUG_EVPN_MH_MAC);
 	}
@@ -417,10 +368,9 @@ DEFPY (debug_zebra_evpn_mh,
 	if (neigh) {
 		if (no)
 			UNSET_FLAG(zebra_debug_evpn_mh,
-					ZEBRA_DEBUG_EVPN_MH_NEIGH);
+				   ZEBRA_DEBUG_EVPN_MH_NEIGH);
 		else
-			SET_FLAG(zebra_debug_evpn_mh,
-					ZEBRA_DEBUG_EVPN_MH_NEIGH);
+			SET_FLAG(zebra_debug_evpn_mh, ZEBRA_DEBUG_EVPN_MH_NEIGH);
 	}
 
 	if (nh) {
@@ -433,78 +383,57 @@ DEFPY (debug_zebra_evpn_mh,
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_debug_zebra_events,
-       no_debug_zebra_events_cmd,
-       "no debug zebra events",
-       NO_STR
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug option set for zebra events\n")
+DEFUN(no_debug_zebra_events, no_debug_zebra_events_cmd, "no debug zebra events",
+      NO_STR DEBUG_STR "Zebra configuration\n"
+		       "Debug option set for zebra events\n")
 {
 	zebra_debug_event = 0;
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_debug_zebra_nht,
-       no_debug_zebra_nht_cmd,
-       "no debug zebra nht [detailed]",
-       NO_STR
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug option set for zebra next hop tracking\n"
-       "Debug option set for detailed info\n")
+DEFUN(no_debug_zebra_nht, no_debug_zebra_nht_cmd,
+      "no debug zebra nht [detailed]",
+      NO_STR DEBUG_STR "Zebra configuration\n"
+		       "Debug option set for zebra next hop tracking\n"
+		       "Debug option set for detailed info\n")
 {
 	zebra_debug_nht = 0;
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_debug_zebra_mpls,
-       no_debug_zebra_mpls_cmd,
-       "no debug zebra mpls [detailed]",
-       NO_STR
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug option set for zebra MPLS LSPs\n"
-       "Debug option for zebra detailed info\n")
+DEFUN(no_debug_zebra_mpls, no_debug_zebra_mpls_cmd,
+      "no debug zebra mpls [detailed]",
+      NO_STR DEBUG_STR "Zebra configuration\n"
+		       "Debug option set for zebra MPLS LSPs\n"
+		       "Debug option for zebra detailed info\n")
 {
 	zebra_debug_mpls = 0;
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_debug_zebra_vxlan,
-       no_debug_zebra_vxlan_cmd,
-       "no debug zebra vxlan",
-       NO_STR
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug option set for zebra VxLAN (EVPN)\n")
+DEFUN(no_debug_zebra_vxlan, no_debug_zebra_vxlan_cmd, "no debug zebra vxlan",
+      NO_STR DEBUG_STR "Zebra configuration\n"
+		       "Debug option set for zebra VxLAN (EVPN)\n")
 {
 	zebra_debug_vxlan = 0;
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_debug_zebra_packet,
-       no_debug_zebra_packet_cmd,
-       "no debug zebra packet [<recv|send>] [detail]",
-       NO_STR
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug option set for zebra packet\n"
-       "Debug option set for receive packet\n"
-       "Debug option set for send packet\n"
-       "Debug option set for detailed info\n")
+DEFUN(no_debug_zebra_packet, no_debug_zebra_packet_cmd,
+      "no debug zebra packet [<recv|send>] [detail]",
+      NO_STR DEBUG_STR "Zebra configuration\n"
+		       "Debug option set for zebra packet\n"
+		       "Debug option set for receive packet\n"
+		       "Debug option set for send packet\n"
+		       "Debug option set for detailed info\n")
 {
 	zebra_debug_packet = 0;
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_debug_zebra_kernel,
-       no_debug_zebra_kernel_cmd,
-       "no debug zebra kernel",
-       NO_STR
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug option set for zebra between kernel interface\n")
+DEFUN(no_debug_zebra_kernel, no_debug_zebra_kernel_cmd, "no debug zebra kernel",
+      NO_STR DEBUG_STR "Zebra configuration\n"
+		       "Debug option set for zebra between kernel interface\n")
 {
 	UNSET_FLAG(zebra_debug_kernel, ZEBRA_DEBUG_KERNEL);
 
@@ -512,16 +441,13 @@ DEFUN (no_debug_zebra_kernel,
 }
 
 #if defined(HAVE_NETLINK)
-DEFUN (no_debug_zebra_kernel_msgdump,
-       no_debug_zebra_kernel_msgdump_cmd,
-       "no debug zebra kernel msgdump [<recv|send>]",
-       NO_STR
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug option set for zebra between kernel interface\n"
-       "Dump raw netlink messages, sent and received\n"
-       "Dump raw netlink messages received\n"
-       "Dump raw netlink messages sent\n")
+DEFUN(no_debug_zebra_kernel_msgdump, no_debug_zebra_kernel_msgdump_cmd,
+      "no debug zebra kernel msgdump [<recv|send>]",
+      NO_STR DEBUG_STR "Zebra configuration\n"
+		       "Debug option set for zebra between kernel interface\n"
+		       "Dump raw netlink messages, sent and received\n"
+		       "Dump raw netlink messages received\n"
+		       "Dump raw netlink messages sent\n")
 {
 	int idx = 0;
 
@@ -538,63 +464,45 @@ DEFUN (no_debug_zebra_kernel_msgdump,
 }
 #endif
 
-DEFUN (no_debug_zebra_rib,
-       no_debug_zebra_rib_cmd,
-       "no debug zebra rib [detailed]",
-       NO_STR
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug zebra RIB\n"
-       "Detailed debugs\n")
+DEFUN(no_debug_zebra_rib, no_debug_zebra_rib_cmd,
+      "no debug zebra rib [detailed]",
+      NO_STR DEBUG_STR "Zebra configuration\n"
+		       "Debug zebra RIB\n"
+		       "Detailed debugs\n")
 {
 	zebra_debug_rib = 0;
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_debug_zebra_fpm,
-       no_debug_zebra_fpm_cmd,
-       "no debug zebra fpm",
-       NO_STR
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug zebra FPM events\n")
+DEFUN(no_debug_zebra_fpm, no_debug_zebra_fpm_cmd, "no debug zebra fpm",
+      NO_STR DEBUG_STR "Zebra configuration\n"
+		       "Debug zebra FPM events\n")
 {
 	zebra_debug_fpm = 0;
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_debug_zebra_dplane,
-       no_debug_zebra_dplane_cmd,
-       "no debug zebra dplane",
-       NO_STR
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug zebra dataplane events\n")
+DEFUN(no_debug_zebra_dplane, no_debug_zebra_dplane_cmd, "no debug zebra dplane",
+      NO_STR DEBUG_STR "Zebra configuration\n"
+		       "Debug zebra dataplane events\n")
 {
 	zebra_debug_dplane = 0;
 	return CMD_SUCCESS;
 }
 
-DEFUN (no_debug_zebra_pbr,
-       no_debug_zebra_pbr_cmd,
-       "no debug zebra pbr",
-       NO_STR
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug zebra pbr events\n")
+DEFUN(no_debug_zebra_pbr, no_debug_zebra_pbr_cmd, "no debug zebra pbr",
+      NO_STR DEBUG_STR "Zebra configuration\n"
+		       "Debug zebra pbr events\n")
 {
 	zebra_debug_pbr = 0;
 	return CMD_SUCCESS;
 }
 
-DEFPY (debug_zebra_nexthop,
-       debug_zebra_nexthop_cmd,
-       "[no$no] debug zebra nexthop [detail$detail]",
-       NO_STR
-       DEBUG_STR
-       "Zebra configuration\n"
-       "Debug zebra nexthop events\n"
-       "Detailed information\n")
+DEFPY(debug_zebra_nexthop, debug_zebra_nexthop_cmd,
+      "[no$no] debug zebra nexthop [detail$detail]",
+      NO_STR DEBUG_STR "Zebra configuration\n"
+		       "Debug zebra nexthop events\n"
+		       "Detailed information\n")
 {
 	if (no)
 		zebra_debug_nexthop = 0;
@@ -602,8 +510,7 @@ DEFPY (debug_zebra_nexthop,
 		SET_FLAG(zebra_debug_nexthop, ZEBRA_DEBUG_NHG);
 
 		if (detail)
-			SET_FLAG(zebra_debug_nexthop,
-				 ZEBRA_DEBUG_NHG_DETAILED);
+			SET_FLAG(zebra_debug_nexthop, ZEBRA_DEBUG_NHG_DETAILED);
 	}
 
 	return CMD_SUCCESS;
@@ -642,8 +549,8 @@ static int config_write_debug(struct vty *vty)
 		}
 	}
 
-	if (IS_ZEBRA_DEBUG_KERNEL_MSGDUMP_SEND
-	    && IS_ZEBRA_DEBUG_KERNEL_MSGDUMP_RECV) {
+	if (IS_ZEBRA_DEBUG_KERNEL_MSGDUMP_SEND &&
+	    IS_ZEBRA_DEBUG_KERNEL_MSGDUMP_RECV) {
 		vty_out(vty, "debug zebra kernel msgdump\n");
 		write++;
 	} else if (IS_ZEBRA_DEBUG_KERNEL_MSGDUMP_RECV) {
@@ -725,12 +632,10 @@ static int config_write_debug(struct vty *vty)
 		write++;
 	}
 
-	if (CHECK_FLAG(zebra_debug_dplane_dpdk,
-		       ZEBRA_DEBUG_DPLANE_DPDK_DETAIL)) {
+	if (CHECK_FLAG(zebra_debug_dplane_dpdk, ZEBRA_DEBUG_DPLANE_DPDK_DETAIL)) {
 		vty_out(vty, "debug zebra dplane dpdk detailed\n");
 		write++;
-	} else if (CHECK_FLAG(zebra_debug_dplane_dpdk,
-			      ZEBRA_DEBUG_DPLANE_DPDK)) {
+	} else if (CHECK_FLAG(zebra_debug_dplane_dpdk, ZEBRA_DEBUG_DPLANE_DPDK)) {
 		vty_out(vty, "debug zebra dplane dpdk\n");
 		write++;
 	}

@@ -9,15 +9,15 @@
 extern "C" {
 #endif
 
-#define PTMLIB_MSG_SZ           1024
-#define PTMLIB_MSG_HDR_LEN      37
-#define PTMLIB_MSG_VERSION      2
-#define PTMLIB_MAXNAMELEN       32
+#define PTMLIB_MSG_SZ	   1024
+#define PTMLIB_MSG_HDR_LEN 37
+#define PTMLIB_MSG_VERSION 2
+#define PTMLIB_MAXNAMELEN  32
 
-#define    PTMLIB_CMD_GET_STATUS        "get-status"
-#define    PTMLIB_CMD_GET_BFD_CLIENT    "get-bfd-client"
-#define    PTMLIB_CMD_START_BFD_SESS    "start-bfd-sess"
-#define    PTMLIB_CMD_STOP_BFD_SESS     "stop-bfd-sess"
+#define PTMLIB_CMD_GET_STATUS	  "get-status"
+#define PTMLIB_CMD_GET_BFD_CLIENT "get-bfd-client"
+#define PTMLIB_CMD_START_BFD_SESS "start-bfd-sess"
+#define PTMLIB_CMD_STOP_BFD_SESS  "stop-bfd-sess"
 
 typedef enum {
 	PTMLIB_MSG_TYPE_NOTIFICATION = 1,

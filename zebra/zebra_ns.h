@@ -38,8 +38,8 @@ struct zebra_ns {
 	ns_id_t ns_id;
 
 #ifdef HAVE_NETLINK
-	struct nlsock netlink;        /* kernel messages */
-	struct nlsock netlink_cmd;    /* command channel */
+	struct nlsock netlink;	   /* kernel messages */
+	struct nlsock netlink_cmd; /* command channel */
 
 	/* dplane system's channels: one for outgoing programming,
 	 * for the FIB e.g., and one for incoming events from the OS.

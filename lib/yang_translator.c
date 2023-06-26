@@ -30,8 +30,7 @@ struct yang_translators yang_translators = RB_INITIALIZER(&yang_translators);
 /* Separate libyang context for the translator module. */
 static struct ly_ctx *ly_translator_ctx;
 
-static unsigned int
-yang_translator_validate(struct yang_translator *translator);
+static unsigned int yang_translator_validate(struct yang_translator *translator);
 static unsigned int yang_module_nodes_count(const struct lys_module *module);
 
 struct yang_mapping_node {
@@ -95,7 +94,7 @@ static void yang_mapping_add(struct yang_translator *translator, int dir,
 	strlcpy(mapping->xpath_to_fmt, xpath_to_fmt,
 		sizeof(mapping->xpath_to_fmt));
 
-	const char *keys[] = {"KEY1", "KEY2", "KEY3", "KEY4"};
+	const char *keys[] = { "KEY1", "KEY2", "KEY3", "KEY4" };
 	char *xpfmt;
 
 	for (unsigned int i = 0; i < array_size(keys); i++) {
@@ -179,8 +178,8 @@ struct yang_translator *yang_translator_load(const char *path)
 	for (size_t i = 0; i < set->count; i++) {
 		const char *module_name;
 
-		tmodule =
-			XCALLOC(MTYPE_YANG_TRANSLATOR_MODULE, sizeof(*tmodule));
+		tmodule = XCALLOC(MTYPE_YANG_TRANSLATOR_MODULE,
+				  sizeof(*tmodule));
 
 		module_name = yang_dnode_get_string(set->dnodes[i], "./name");
 		tmodule->module = ly_ctx_load_module(translator->ly_ctx,
@@ -203,8 +202,9 @@ struct yang_translator *yang_translator_load(const char *path)
 	/* Load the deviations and count nodes again */
 	for (ALL_LIST_ELEMENTS_RO(translator->modules, ln, tmodule)) {
 		const char *module_name = tmodule->module->name;
-		tmodule->deviations = ly_ctx_load_module(
-			translator->ly_ctx, module_name, NULL, NULL);
+		tmodule->deviations = ly_ctx_load_module(translator->ly_ctx,
+							 module_name, NULL,
+							 NULL);
 		if (!tmodule->deviations) {
 			flog_warn(EC_LIB_YANG_TRANSLATOR_LOAD,
 				  "%s: failed to load module: %s", __func__,
@@ -220,9 +220,9 @@ struct yang_translator *yang_translator_load(const char *path)
 
 	/* Calculate the coverage. */
 	for (ALL_LIST_ELEMENTS_RO(translator->modules, ln, tmodule)) {
-		tmodule->coverage = ((double)tmodule->nodes_after_deviations
-				     / (double)tmodule->nodes_before_deviations)
-				    * 100;
+		tmodule->coverage = ((double)tmodule->nodes_after_deviations /
+				     (double)tmodule->nodes_before_deviations) *
+				    100;
 	}
 
 	/* Load mappings. */
@@ -232,11 +232,10 @@ struct yang_translator *yang_translator_load(const char *path)
 		const char *xpath_custom, *xpath_native;
 		const struct lysc_node *snode_custom, *snode_native;
 
-		xpath_custom =
-			yang_dnode_get_string(set->dnodes[i], "./custom");
+		xpath_custom = yang_dnode_get_string(set->dnodes[i], "./custom");
 
-		snode_custom =
-			yang_find_snode(translator->ly_ctx, xpath_custom, 0);
+		snode_custom = yang_find_snode(translator->ly_ctx, xpath_custom,
+					       0);
 		if (!snode_custom) {
 			flog_warn(EC_LIB_YANG_TRANSLATOR_LOAD,
 				  "%s: unknown data path: %s", __func__,
@@ -245,8 +244,7 @@ struct yang_translator *yang_translator_load(const char *path)
 			goto error;
 		}
 
-		xpath_native =
-			yang_dnode_get_string(set->dnodes[i], "./native");
+		xpath_native = yang_dnode_get_string(set->dnodes[i], "./native");
 		snode_native = yang_find_snode(ly_native_ctx, xpath_native, 0);
 		if (!snode_native) {
 			flog_warn(EC_LIB_YANG_TRANSLATOR_LOAD,
@@ -384,15 +382,15 @@ int yang_translate_dnode(const struct yang_translator *translator, int dir,
 
 			/* Create new node in the tree of translated data. */
 			if (lyd_new_path(new, ly_ctx, xpath,
-					 (void *)yang_dnode_get_string(
-						 dnode_iter, NULL),
+					 (void *)yang_dnode_get_string(dnode_iter,
+								       NULL),
 					 LYD_NEW_PATH_UPDATE, NULL)) {
 				flog_err(EC_LIB_LIBYANG,
 					 "%s: lyd_new_path() failed", __func__);
 				goto error;
 			}
 
-		next:
+next:
 			LYD_TREE_DFS_END(root, dnode_iter);
 		}
 	}
@@ -433,8 +431,8 @@ static int yang_translator_validate_cb(const struct lysc_node *snode_custom,
 		return YANG_ITER_CONTINUE;
 	}
 
-	snode_native =
-		lys_find_path(ly_native_ctx, NULL, mapping->xpath_to_fmt, 0);
+	snode_native = lys_find_path(ly_native_ctx, NULL, mapping->xpath_to_fmt,
+				     0);
 	assert(snode_native);
 
 	/* Check if the YANG types are compatible. */
@@ -442,10 +440,9 @@ static int yang_translator_validate_cb(const struct lysc_node *snode_custom,
 	stype_native = yang_snode_get_type(snode_native);
 	if (stype_custom && stype_native) {
 		if (stype_custom->basetype != stype_native->basetype) {
-			flog_warn(
-				EC_LIB_YANG_TRANSLATOR_LOAD,
-				"%s: YANG types are incompatible (xpath: \"%s\")",
-				__func__, xpath);
+			flog_warn(EC_LIB_YANG_TRANSLATOR_LOAD,
+				  "%s: YANG types are incompatible (xpath: \"%s\")",
+				  __func__, xpath);
 			args->errors += 1;
 			return YANG_ITER_CONTINUE;
 		}
@@ -470,19 +467,17 @@ static unsigned int yang_translator_validate(struct yang_translator *translator)
 	args.errors = 0;
 
 	for (ALL_LIST_ELEMENTS_RO(translator->modules, ln, tmodule)) {
-		yang_snodes_iterate(tmodule->module,
-				    yang_translator_validate_cb,
-				    YANG_ITER_FILTER_NPCONTAINERS
-					    | YANG_ITER_FILTER_LIST_KEYS
-					    | YANG_ITER_FILTER_INPUT_OUTPUT,
+		yang_snodes_iterate(tmodule->module, yang_translator_validate_cb,
+				    YANG_ITER_FILTER_NPCONTAINERS |
+					    YANG_ITER_FILTER_LIST_KEYS |
+					    YANG_ITER_FILTER_INPUT_OUTPUT,
 				    &args);
 	}
 
 	if (args.errors)
-		flog_warn(
-			EC_LIB_YANG_TRANSLATOR_LOAD,
-			"%s: failed to validate \"%s\" module translator: %u error(s)",
-			__func__, translator->family, args.errors);
+		flog_warn(EC_LIB_YANG_TRANSLATOR_LOAD,
+			  "%s: failed to validate \"%s\" module translator: %u error(s)",
+			  __func__, translator->family, args.errors);
 
 	return args.errors;
 }
@@ -502,9 +497,9 @@ static unsigned int yang_module_nodes_count(const struct lys_module *module)
 	unsigned int total = 0;
 
 	yang_snodes_iterate(module, yang_module_nodes_count_cb,
-			    YANG_ITER_FILTER_NPCONTAINERS
-				    | YANG_ITER_FILTER_LIST_KEYS
-				    | YANG_ITER_FILTER_INPUT_OUTPUT,
+			    YANG_ITER_FILTER_NPCONTAINERS |
+				    YANG_ITER_FILTER_LIST_KEYS |
+				    YANG_ITER_FILTER_INPUT_OUTPUT,
 			    &total);
 
 	return total;
@@ -520,10 +515,9 @@ void yang_translator_init(void)
 
 	if (!ly_ctx_load_module(ly_translator_ctx, "frr-module-translator",
 				NULL, NULL)) {
-		flog_err(
-			EC_LIB_YANG_MODULE_LOAD,
-			"%s: failed to load the \"frr-module-translator\" module",
-			__func__);
+		flog_err(EC_LIB_YANG_MODULE_LOAD,
+			 "%s: failed to load the \"frr-module-translator\" module",
+			 __func__);
 		exit(1);
 	}
 }

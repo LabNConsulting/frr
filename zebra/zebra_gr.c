@@ -70,23 +70,20 @@ void zebra_gr_stale_client_cleanup(struct list *client_list)
 
 	/* Find the stale client */
 	for (ALL_LIST_ELEMENTS(client_list, node, nnode, s_client)) {
-
 		LOG_GR("%s: Stale client %s is being deleted", __func__,
 		       zebra_route_string(s_client->proto));
 
 		TAILQ_FOREACH_SAFE (info, &s_client->gr_info_queue, gr_info,
 				    ninfo) {
-
 			/* Cancel the stale timer */
 			if (info->t_stale_removal != NULL) {
 				EVENT_OFF(info->t_stale_removal);
 				info->t_stale_removal = NULL;
 				info->do_delete = true;
 				/* Process the stale routes */
-				event_execute(
-					zrouter.master,
-					zebra_gr_route_stale_delete_timer_expiry,
-					info, 0);
+				event_execute(zrouter.master,
+					      zebra_gr_route_stale_delete_timer_expiry,
+					      info, 0);
 			}
 		}
 	}
@@ -155,15 +152,14 @@ int32_t zebra_gr_client_disconnect(struct zserv *client)
 
 	/* For all the GR instance start the stale removal timer. */
 	TAILQ_FOREACH (info, &client->gr_info_queue, gr_info) {
-		if (ZEBRA_CLIENT_GR_ENABLED(info->capabilities)
-		    && (info->t_stale_removal == NULL)) {
+		if (ZEBRA_CLIENT_GR_ENABLED(info->capabilities) &&
+		    (info->t_stale_removal == NULL)) {
 			struct vrf *vrf = vrf_lookup_by_id(info->vrf_id);
 
-			event_add_timer(
-				zrouter.master,
-				zebra_gr_route_stale_delete_timer_expiry, info,
-				info->stale_removal_time,
-				&info->t_stale_removal);
+			event_add_timer(zrouter.master,
+					zebra_gr_route_stale_delete_timer_expiry,
+					info, info->stale_removal_time,
+					&info->t_stale_removal);
 			info->stale_client_ptr = client;
 			info->stale_client = true;
 			LOG_GR("%s: Client %s vrf %s(%u) Stale timer update to %d",
@@ -202,8 +198,7 @@ static void zebra_gr_delete_stale_client(struct client_gr_info *info)
 	TAILQ_REMOVE(&(s_client->gr_info_queue), info, gr_info);
 
 	LOG_GR("%s: Client %s gr count %d", __func__,
-	       zebra_route_string(s_client->proto),
-	       s_client->gr_instance_count);
+	       zebra_route_string(s_client->proto), s_client->gr_instance_count);
 
 	TAILQ_FOREACH (bgp_info, &s_client->gr_info_queue, gr_info) {
 		if (bgp_info->t_stale_removal != NULL)
@@ -232,8 +227,8 @@ static struct zserv *zebra_gr_find_stale_client(struct zserv *client)
 	/* Find the stale client */
 	for (ALL_LIST_ELEMENTS(zrouter.stale_client_list, node, nnode,
 			       stale_client)) {
-		if (client->proto == stale_client->proto
-		    && client->instance == stale_client->instance) {
+		if (client->proto == stale_client->proto &&
+		    client->instance == stale_client->instance) {
 			return stale_client;
 		}
 	}
@@ -253,8 +248,8 @@ void zebra_gr_client_reconnect(struct zserv *client)
 	/* Find the stale client */
 	for (ALL_LIST_ELEMENTS(zrouter.stale_client_list, node, nnode,
 			       old_client)) {
-		if (client->proto == old_client->proto
-		    && client->instance == old_client->instance)
+		if (client->proto == old_client->proto &&
+		    client->instance == old_client->instance)
 			break;
 	}
 
@@ -384,11 +379,9 @@ void zread_client_capabilities(ZAPI_HANDLER_ARGS)
 
 		/* Update the stale removal timer */
 		if (info && info->t_stale_removal == NULL) {
-
 			LOG_GR("%s: vrf %s(%u) Stale time: %d is now update to: %d",
 			       __func__, VRF_LOGNAME(vrf), info->vrf_id,
-			       info->stale_removal_time,
-			       api.stale_removal_time);
+			       info->stale_removal_time, api.stale_removal_time);
 
 			info->stale_removal_time = api.stale_removal_time;
 		}
@@ -523,8 +516,8 @@ static void zebra_gr_delete_stale_route_table_afi(struct event *event)
 
 			if (re->type == gac->proto &&
 			    re->instance == gac->instance &&
-			    zebra_gr_process_route_entry(
-				    gac->info->stale_client_ptr, rn, re))
+			    zebra_gr_process_route_entry(gac->info->stale_client_ptr,
+							 rn, re))
 				n++;
 
 			/* If the max route count is reached
@@ -533,11 +526,11 @@ static void zebra_gr_delete_stale_route_table_afi(struct event *event)
 			 */
 			if ((n >= ZEBRA_MAX_STALE_ROUTE_COUNT) &&
 			    (gac->info->do_delete == false)) {
-				event_add_timer(
-					zrouter.master,
-					zebra_gr_delete_stale_route_table_afi,
-					gac, ZEBRA_DEFAULT_STALE_UPDATE_DELAY,
-					&gac->t_gac);
+				event_add_timer(zrouter.master,
+						zebra_gr_delete_stale_route_table_afi,
+						gac,
+						ZEBRA_DEFAULT_STALE_UPDATE_DELAY,
+						&gac->t_gac);
 			}
 		}
 	}
@@ -574,7 +567,6 @@ static int32_t zebra_gr_delete_stale_route(struct client_gr_info *info,
 
 	/* Process routes for all AFI */
 	for (afi = AFI_IP; afi < AFI_MAX; afi++) {
-
 		/*
 		 * Schedule for immediately after anything in the
 		 * meta-Q

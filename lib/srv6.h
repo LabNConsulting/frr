@@ -14,15 +14,14 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
-#define SRV6_MAX_SIDS 16
+#define SRV6_MAX_SIDS	  16
 #define SRV6_LOCNAME_SIZE 256
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define sid2str(sid, str, size) \
-	inet_ntop(AF_INET6, sid, str, size)
+#define sid2str(sid, str, size) inet_ntop(AF_INET6, sid, str, size)
 
 enum seg6_mode_t {
 	INLINE,
@@ -31,23 +30,23 @@ enum seg6_mode_t {
 };
 
 enum seg6local_action_t {
-	ZEBRA_SEG6_LOCAL_ACTION_UNSPEC       = 0,
-	ZEBRA_SEG6_LOCAL_ACTION_END          = 1,
-	ZEBRA_SEG6_LOCAL_ACTION_END_X        = 2,
-	ZEBRA_SEG6_LOCAL_ACTION_END_T        = 3,
-	ZEBRA_SEG6_LOCAL_ACTION_END_DX2      = 4,
-	ZEBRA_SEG6_LOCAL_ACTION_END_DX6      = 5,
-	ZEBRA_SEG6_LOCAL_ACTION_END_DX4      = 6,
-	ZEBRA_SEG6_LOCAL_ACTION_END_DT6      = 7,
-	ZEBRA_SEG6_LOCAL_ACTION_END_DT4      = 8,
-	ZEBRA_SEG6_LOCAL_ACTION_END_B6       = 9,
+	ZEBRA_SEG6_LOCAL_ACTION_UNSPEC = 0,
+	ZEBRA_SEG6_LOCAL_ACTION_END = 1,
+	ZEBRA_SEG6_LOCAL_ACTION_END_X = 2,
+	ZEBRA_SEG6_LOCAL_ACTION_END_T = 3,
+	ZEBRA_SEG6_LOCAL_ACTION_END_DX2 = 4,
+	ZEBRA_SEG6_LOCAL_ACTION_END_DX6 = 5,
+	ZEBRA_SEG6_LOCAL_ACTION_END_DX4 = 6,
+	ZEBRA_SEG6_LOCAL_ACTION_END_DT6 = 7,
+	ZEBRA_SEG6_LOCAL_ACTION_END_DT4 = 8,
+	ZEBRA_SEG6_LOCAL_ACTION_END_B6 = 9,
 	ZEBRA_SEG6_LOCAL_ACTION_END_B6_ENCAP = 10,
-	ZEBRA_SEG6_LOCAL_ACTION_END_BM       = 11,
-	ZEBRA_SEG6_LOCAL_ACTION_END_S        = 12,
-	ZEBRA_SEG6_LOCAL_ACTION_END_AS       = 13,
-	ZEBRA_SEG6_LOCAL_ACTION_END_AM       = 14,
-	ZEBRA_SEG6_LOCAL_ACTION_END_BPF      = 15,
-	ZEBRA_SEG6_LOCAL_ACTION_END_DT46     = 16,
+	ZEBRA_SEG6_LOCAL_ACTION_END_BM = 11,
+	ZEBRA_SEG6_LOCAL_ACTION_END_S = 12,
+	ZEBRA_SEG6_LOCAL_ACTION_END_AS = 13,
+	ZEBRA_SEG6_LOCAL_ACTION_END_AM = 14,
+	ZEBRA_SEG6_LOCAL_ACTION_END_BPF = 15,
+	ZEBRA_SEG6_LOCAL_ACTION_END_DT46 = 16,
 };
 
 struct seg6_segs {
@@ -115,14 +114,14 @@ struct srv6_locator_chunk {
  * https://www.iana.org/assignments/segment-routing/segment-routing.xhtml
  */
 enum srv6_endpoint_behavior_codepoint {
-	SRV6_ENDPOINT_BEHAVIOR_RESERVED       = 0x0000,
-	SRV6_ENDPOINT_BEHAVIOR_END_DT6        = 0x0012,
-	SRV6_ENDPOINT_BEHAVIOR_END_DT4        = 0x0013,
-	SRV6_ENDPOINT_BEHAVIOR_END_DT46       = 0x0014,
-	SRV6_ENDPOINT_BEHAVIOR_END_DT6_USID   = 0x003E,
-	SRV6_ENDPOINT_BEHAVIOR_END_DT4_USID   = 0x003F,
-	SRV6_ENDPOINT_BEHAVIOR_END_DT46_USID  = 0x0040,
-	SRV6_ENDPOINT_BEHAVIOR_OPAQUE         = 0xFFFF,
+	SRV6_ENDPOINT_BEHAVIOR_RESERVED = 0x0000,
+	SRV6_ENDPOINT_BEHAVIOR_END_DT6 = 0x0012,
+	SRV6_ENDPOINT_BEHAVIOR_END_DT4 = 0x0013,
+	SRV6_ENDPOINT_BEHAVIOR_END_DT46 = 0x0014,
+	SRV6_ENDPOINT_BEHAVIOR_END_DT6_USID = 0x003E,
+	SRV6_ENDPOINT_BEHAVIOR_END_DT4_USID = 0x003F,
+	SRV6_ENDPOINT_BEHAVIOR_END_DT46_USID = 0x0040,
+	SRV6_ENDPOINT_BEHAVIOR_OPAQUE = 0xFFFF,
 };
 
 struct nexthop_srv6 {
@@ -148,9 +147,7 @@ static inline const char *seg6_mode2str(enum seg6_mode_t mode)
 	}
 }
 
-static inline bool sid_same(
-		const struct in6_addr *a,
-		const struct in6_addr *b)
+static inline bool sid_same(const struct in6_addr *a, const struct in6_addr *b)
 {
 	if (!a && !b)
 		return true;
@@ -160,36 +157,30 @@ static inline bool sid_same(
 		return memcmp(a, b, sizeof(struct in6_addr)) == 0;
 }
 
-static inline bool sid_diff(
-		const struct in6_addr *a,
-		const struct in6_addr *b)
+static inline bool sid_diff(const struct in6_addr *a, const struct in6_addr *b)
 {
 	return !sid_same(a, b);
 }
 
-static inline bool sid_zero(
-		const struct in6_addr *a)
+static inline bool sid_zero(const struct in6_addr *a)
 {
 	struct in6_addr zero = {};
 
 	return sid_same(a, &zero);
 }
 
-static inline void *sid_copy(struct in6_addr *dst,
-		const struct in6_addr *src)
+static inline void *sid_copy(struct in6_addr *dst, const struct in6_addr *src)
 {
 	return memcpy(dst, src, sizeof(struct in6_addr));
 }
 
-const char *
-seg6local_action2str(uint32_t action);
+const char *seg6local_action2str(uint32_t action);
 
 const char *seg6local_context2str(char *str, size_t size,
 				  const struct seg6local_context *ctx,
 				  uint32_t action);
 
-int snprintf_seg6_segs(char *str,
-		size_t size, const struct seg6_segs *segs);
+int snprintf_seg6_segs(char *str, size_t size, const struct seg6_segs *segs);
 
 extern struct srv6_locator *srv6_locator_alloc(const char *name);
 extern struct srv6_locator_chunk *srv6_locator_chunk_alloc(void);

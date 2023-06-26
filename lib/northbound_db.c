@@ -22,27 +22,26 @@ int nb_db_init(void)
 	 * where only the last N transactions are recorded in the configuration
 	 * log.
 	 */
-	if (db_execute(
-		    "BEGIN TRANSACTION;\n"
-		    "  CREATE TABLE IF NOT EXISTS transactions(\n"
-		    "    client         CHAR(32)             NOT NULL,\n"
-		    "    date           DATETIME             DEFAULT CURRENT_TIMESTAMP,\n"
-		    "    comment        CHAR(80)             ,\n"
-		    "    configuration  TEXT                 NOT NULL\n"
-		    "  );\n"
-		    "  CREATE TRIGGER IF NOT EXISTS delete_tail\n"
-		    "    AFTER INSERT ON transactions\n"
-		    "    FOR EACH ROW\n"
-		    "    BEGIN\n"
-		    "    DELETE\n"
-		    "    FROM\n"
-		    "      transactions\n"
-		    "    WHERE\n"
-		    "      rowid%%%u=NEW.rowid%%%u AND rowid!=NEW.rowid;\n"
-		    "    END;\n"
-		    "COMMIT;",
-		    NB_DLFT_MAX_CONFIG_ROLLBACKS, NB_DLFT_MAX_CONFIG_ROLLBACKS)
-	    != 0)
+	if (db_execute("BEGIN TRANSACTION;\n"
+		       "  CREATE TABLE IF NOT EXISTS transactions(\n"
+		       "    client         CHAR(32)             NOT NULL,\n"
+		       "    date           DATETIME             DEFAULT CURRENT_TIMESTAMP,\n"
+		       "    comment        CHAR(80)             ,\n"
+		       "    configuration  TEXT                 NOT NULL\n"
+		       "  );\n"
+		       "  CREATE TRIGGER IF NOT EXISTS delete_tail\n"
+		       "    AFTER INSERT ON transactions\n"
+		       "    FOR EACH ROW\n"
+		       "    BEGIN\n"
+		       "    DELETE\n"
+		       "    FROM\n"
+		       "      transactions\n"
+		       "    WHERE\n"
+		       "      rowid%%%u=NEW.rowid%%%u AND rowid!=NEW.rowid;\n"
+		       "    END;\n"
+		       "COMMIT;",
+		       NB_DLFT_MAX_CONFIG_ROLLBACKS,
+		       NB_DLFT_MAX_CONFIG_ROLLBACKS) != 0)
 		return NB_ERR;
 #endif /* HAVE_CONFIG_ROLLBACKS */
 
@@ -65,11 +64,10 @@ int nb_db_transaction_save(const struct nb_transaction *transaction,
 	if (db_execute("BEGIN TRANSACTION;") != 0)
 		return NB_ERR;
 
-	ss = db_prepare(
-		"INSERT INTO transactions\n"
-		"  (client, comment, configuration)\n"
-		"VALUES\n"
-		"  (?, ?, ?);");
+	ss = db_prepare("INSERT INTO transactions\n"
+			"  (client, comment, configuration)\n"
+			"VALUES\n"
+			"  (?, ?, ?);");
 	if (!ss)
 		goto exit;
 
@@ -79,15 +77,13 @@ int nb_db_transaction_save(const struct nb_transaction *transaction,
 	 * values too, as this covers the case where defaults may change.
 	 */
 	if (lyd_print_mem(&config_str, transaction->config->dnode, LYD_XML,
-			  LYD_PRINT_WITHSIBLINGS | LYD_PRINT_WD_ALL)
-	    != 0)
+			  LYD_PRINT_WITHSIBLINGS | LYD_PRINT_WD_ALL) != 0)
 		goto exit;
 
 	if (db_bindf(ss, "%s%s%s", client_name, strlen(client_name),
 		     transaction->comment, strlen(transaction->comment),
 		     config_str ? config_str : "",
-		     config_str ? strlen(config_str) : 0)
-	    != 0)
+		     config_str ? strlen(config_str) : 0) != 0)
 		goto exit;
 
 	if (db_run(ss) != SQLITE_OK)
@@ -141,13 +137,12 @@ struct nb_config *nb_db_transaction_load(uint32_t transaction_id)
 	struct sqlite3_stmt *ss;
 	LY_ERR err;
 
-	ss = db_prepare(
-		"SELECT\n"
-		"  configuration\n"
-		"FROM\n"
-		"  transactions\n"
-		"WHERE\n"
-		"  rowid=?;");
+	ss = db_prepare("SELECT\n"
+			"  configuration\n"
+			"FROM\n"
+			"  transactions\n"
+			"WHERE\n"
+			"  rowid=?;");
 	if (!ss)
 		return NULL;
 
@@ -191,8 +186,7 @@ int nb_db_clear_transactions(unsigned int n_oldest)
 		       "      transactions\n"
 		       "    ORDER BY ROWID ASC LIMIT %u\n"
 		       "  );",
-		       n_oldest)
-	    != 0)
+		       n_oldest) != 0)
 		return NB_ERR;
 #endif /* HAVE_CONFIG_ROLLBACKS */
 
@@ -230,8 +224,7 @@ int nb_db_set_max_transactions(unsigned int max)
 		       "      rowid%%%u=NEW.rowid%%%u AND rowid!=NEW.rowid;\n"
 		       "    END;\n"
 		       "COMMIT;",
-		       max, max, max)
-	    != 0)
+		       max, max, max) != 0)
 		return NB_ERR;
 #endif /* HAVE_CONFIG_ROLLBACKS */
 
@@ -248,13 +241,12 @@ int nb_db_transactions_iterate(void (*func)(void *arg, int transaction_id,
 	struct sqlite3_stmt *ss;
 
 	/* Send SQL query and parse the result. */
-	ss = db_prepare(
-		"SELECT\n"
-		"  rowid, client, date, comment\n"
-		"FROM\n"
-		"  transactions\n"
-		"ORDER BY\n"
-		"  rowid DESC;");
+	ss = db_prepare("SELECT\n"
+			"  rowid, client, date, comment\n"
+			"FROM\n"
+			"  transactions\n"
+			"ORDER BY\n"
+			"  rowid DESC;");
 	if (!ss)
 		return NB_ERR;
 

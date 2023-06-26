@@ -87,10 +87,11 @@ extern int nb_db_set_max_transactions(unsigned int max);
  * Returns:
  *    NB_OK on success, NB_ERR otherwise.
  */
-extern int nb_db_transactions_iterate(
-	void (*func)(void *arg, int transaction_id, const char *client_name,
-		     const char *date, const char *comment),
-	void *arg);
+extern int nb_db_transactions_iterate(void (*func)(void *arg, int transaction_id,
+						   const char *client_name,
+						   const char *date,
+						   const char *comment),
+				      void *arg);
 
 #ifdef __cplusplus
 }

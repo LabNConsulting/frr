@@ -64,12 +64,12 @@ static uint32_t resolver_fd_hash(const struct resolver_fd *item)
 DECLARE_HASH(resolver_fds, struct resolver_fd, itm, resolver_fd_cmp,
 	     resolver_fd_hash);
 
-static struct resolver_fds_head resfds[1] = {INIT_HASH(resfds[0])};
+static struct resolver_fds_head resfds[1] = { INIT_HASH(resfds[0]) };
 
 static struct resolver_fd *resolver_fd_get(int fd,
 					   struct resolver_state *newstate)
 {
-	struct resolver_fd ref = {.fd = fd}, *res;
+	struct resolver_fd ref = { .fd = fd }, *res;
 
 	res = resolver_fds_find(resfds, &ref);
 	if (!res && newstate) {
@@ -194,8 +194,8 @@ static void ares_address_cb(void *arg, int status, int timeouts,
 
 	if (status != ARES_SUCCESS) {
 		if (resolver_debug)
-			zlog_debug("[%p] Resolving failed (%s)",
-				   query, ares_strerror(status));
+			zlog_debug("[%p] Resolving failed (%s)", query,
+				   ares_strerror(status));
 
 		callback(query, ares_strerror(status), -1, NULL);
 		return;
@@ -245,10 +245,9 @@ void resolver_resolve(struct resolver_query *query, int af, vrf_id_t vrf_id,
 		return;
 
 	if (query->callback != NULL) {
-		flog_err(
-			EC_LIB_RESOLVER,
-			"Trying to resolve '%s', but previous query was not finished yet",
-			hostname);
+		flog_err(EC_LIB_RESOLVER,
+			 "Trying to resolve '%s', but previous query was not finished yet",
+			 hostname);
 		return;
 	}
 
@@ -258,8 +257,8 @@ void resolver_resolve(struct resolver_query *query, int af, vrf_id_t vrf_id,
 	ret = str2sockunion(hostname, &query->literal_addr);
 	if (ret == 0) {
 		if (resolver_debug)
-			zlog_debug("[%p] Resolving '%s' (IP literal)",
-				   query, hostname);
+			zlog_debug("[%p] Resolving '%s' (IP literal)", query,
+				   hostname);
 
 		/* for consistency with proper name lookup, don't call the
 		 * callback immediately; defer to thread loop
@@ -287,12 +286,8 @@ void resolver_resolve(struct resolver_query *query, int af, vrf_id_t vrf_id,
 	resolver_update_timeouts(&state);
 }
 
-DEFUN(debug_resolver,
-      debug_resolver_cmd,
-      "[no] debug resolver",
-      NO_STR
-      DEBUG_STR
-      "Debug DNS resolver actions\n")
+DEFUN(debug_resolver, debug_resolver_cmd, "[no] debug resolver",
+      NO_STR DEBUG_STR "Debug DNS resolver actions\n")
 {
 	resolver_debug = (argc == 2);
 	return CMD_SUCCESS;
@@ -328,8 +323,8 @@ void resolver_init(struct event_loop *tm)
 	};
 
 	ares_init_options(&state.channel, &ares_opts,
-			  ARES_OPT_SOCK_STATE_CB | ARES_OPT_TIMEOUT
-				  | ARES_OPT_TRIES);
+			  ARES_OPT_SOCK_STATE_CB | ARES_OPT_TIMEOUT |
+				  ARES_OPT_TRIES);
 
 	install_node(&resolver_debug_node);
 	install_element(CONFIG_NODE, &debug_resolver_cmd);

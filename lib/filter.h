@@ -15,22 +15,22 @@ extern "C" {
 #endif
 
 /* Maximum ACL name length */
-#define ACL_NAMSIZ                128
+#define ACL_NAMSIZ 128
 
 /** Cisco host wildcard mask. */
-#define CISCO_HOST_WILDCARD_MASK  "0.0.0.0"
+#define CISCO_HOST_WILDCARD_MASK "0.0.0.0"
 /** Cisco host wildcard binary mask. */
 #define CISCO_BIN_HOST_WILDCARD_MASK INADDR_ANY
 
 /** Cisco any wildcard mask. */
-#define CISCO_ANY_WILDCARD_MASK   "255.255.255.255"
+#define CISCO_ANY_WILDCARD_MASK "255.255.255.255"
 /** Cisco binary any wildcard mask. */
 #define CISCO_BIN_ANY_WILDCARD_MASK INADDR_NONE
 
 /* Filter direction.  */
-#define FILTER_IN                 0
-#define FILTER_OUT                1
-#define FILTER_MAX                2
+#define FILTER_IN  0
+#define FILTER_OUT 1
+#define FILTER_MAX 2
 
 /* Filter type is made by `permit', `deny' and `dynamic'. */
 enum filter_type { FILTER_DENY, FILTER_PERMIT, FILTER_DYNAMIC };
@@ -124,8 +124,7 @@ extern enum filter_type access_list_apply(struct access_list *access,
 struct access_list *access_list_get(afi_t afi, const char *name);
 void access_list_delete(struct access_list *access);
 struct filter *filter_new(void);
-void access_list_filter_add(struct access_list *access,
-			    struct filter *filter);
+void access_list_filter_add(struct access_list *access, struct filter *filter);
 void access_list_filter_delete(struct access_list *access,
 			       struct filter *filter);
 int64_t filter_new_seq_get(struct access_list *access);

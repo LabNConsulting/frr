@@ -41,9 +41,9 @@ static void wheel_timer_thread_helper(struct event *t)
 			       nextnode, data))
 		(*wheel->slot_run)(data);
 
-	while (list_isempty(wheel->wheel_slot_lists[(curr_slot + slots_to_skip)
-						    % wheel->slots])
-	       && (curr_slot + slots_to_skip) % wheel->slots != curr_slot)
+	while (list_isempty(wheel->wheel_slot_lists[(curr_slot + slots_to_skip) %
+						    wheel->slots]) &&
+	       (curr_slot + slots_to_skip) % wheel->slots != curr_slot)
 		slots_to_skip++;
 
 	wheel->slots_to_skip = slots_to_skip;

@@ -164,7 +164,7 @@ struct zebra_router {
 	_Atomic uint32_t sequence_num;
 
 	/* rib work queue */
-#define ZEBRA_RIB_PROCESS_HOLD_TIME 10
+#define ZEBRA_RIB_PROCESS_HOLD_TIME  10
 #define ZEBRA_RIB_PROCESS_RETRY_TIME 1
 	struct work_queue *ribq;
 
@@ -267,7 +267,7 @@ static inline vrf_id_t zebra_vrf_get_evpn_id(void)
 static inline struct zebra_vrf *zebra_vrf_get_evpn(void)
 {
 	return zrouter.evpn_vrf ? zrouter.evpn_vrf
-			        : zebra_vrf_lookup_by_id(VRF_DEFAULT);
+				: zebra_vrf_lookup_by_id(VRF_DEFAULT);
 }
 
 extern void multicast_mode_ipv4_set(enum multicast_mode mode);

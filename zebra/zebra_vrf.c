@@ -246,8 +246,8 @@ static int zebra_vrf_delete(struct vrf *vrf)
 
 	otable = otable_pop(&zvrf->other_tables);
 	while (otable) {
-		zebra_router_release_table(zvrf, otable->table_id,
-					   otable->afi, otable->safi);
+		zebra_router_release_table(zvrf, otable->table_id, otable->afi,
+					   otable->safi);
 		XFREE(MTYPE_OTHER_TABLE, otable);
 
 		otable = otable_pop(&zvrf->other_tables);
@@ -348,8 +348,8 @@ static void zebra_vrf_table_create(struct zebra_vrf *zvrf, afi_t afi,
 
 	assert(!zvrf->table[afi][safi]);
 
-	zvrf->table[afi][safi] =
-		zebra_router_get_table(zvrf, zvrf->table_id, afi, safi);
+	zvrf->table[afi][safi] = zebra_router_get_table(zvrf, zvrf->table_id,
+							afi, safi);
 
 	memset(&p, 0, sizeof(p));
 	p.family = afi2family(afi);
@@ -435,8 +435,8 @@ static int vrf_config_write(struct vty *vty)
 			if (zvrf->zebra_rnh_ipv6_default_route)
 				vty_out(vty, "ipv6 nht resolve-via-default\n");
 
-			if (zvrf->tbl_mgr
-			    && (zvrf->tbl_mgr->start || zvrf->tbl_mgr->end))
+			if (zvrf->tbl_mgr &&
+			    (zvrf->tbl_mgr->start || zvrf->tbl_mgr->end))
 				vty_out(vty, "ip table range %u %u\n",
 					zvrf->tbl_mgr->start,
 					zvrf->tbl_mgr->end);
@@ -455,8 +455,8 @@ static int vrf_config_write(struct vty *vty)
 			if (zvrf->zebra_rnh_ipv6_default_route)
 				vty_out(vty, " ipv6 nht resolve-via-default\n");
 
-			if (zvrf->tbl_mgr && vrf_is_backend_netns()
-			    && (zvrf->tbl_mgr->start || zvrf->tbl_mgr->end))
+			if (zvrf->tbl_mgr && vrf_is_backend_netns() &&
+			    (zvrf->tbl_mgr->start || zvrf->tbl_mgr->end))
 				vty_out(vty, " ip table range %u %u\n",
 					zvrf->tbl_mgr->start,
 					zvrf->tbl_mgr->end);
@@ -474,11 +474,9 @@ static int vrf_config_write(struct vty *vty)
 	return 0;
 }
 
-DEFPY (vrf_netns,
-       vrf_netns_cmd,
-       "netns NAME$netns_name",
-       "Attach VRF to a Namespace\n"
-       "The file name in " NS_RUN_DIR ", or a full pathname\n")
+DEFPY(vrf_netns, vrf_netns_cmd, "netns NAME$netns_name",
+      "Attach VRF to a Namespace\n"
+      "The file name in " NS_RUN_DIR ", or a full pathname\n")
 {
 	char *pathname = ns_netns_pathname(vty, netns_name);
 	int ret;
@@ -488,20 +486,18 @@ DEFPY (vrf_netns,
 	if (!pathname)
 		return CMD_WARNING_CONFIG_FAILED;
 
-	frr_with_privs(&zserv_privs) {
-		ret = zebra_vrf_netns_handler_create(
-			vty, vrf, pathname, NS_UNKNOWN, NS_UNKNOWN, NS_UNKNOWN);
+	frr_with_privs (&zserv_privs) {
+		ret = zebra_vrf_netns_handler_create(vty, vrf, pathname,
+						     NS_UNKNOWN, NS_UNKNOWN,
+						     NS_UNKNOWN);
 	}
 
 	return ret;
 }
 
-DEFUN (no_vrf_netns,
-       no_vrf_netns_cmd,
-       "no netns [NAME]",
-       NO_STR
-       "Detach VRF from a Namespace\n"
-       "The file name in " NS_RUN_DIR ", or a full pathname\n")
+DEFUN(no_vrf_netns, no_vrf_netns_cmd, "no netns [NAME]",
+      NO_STR "Detach VRF from a Namespace\n"
+	     "The file name in " NS_RUN_DIR ", or a full pathname\n")
 {
 	struct ns *ns = NULL;
 
@@ -553,8 +549,7 @@ static void vrf_update_vrf_id(ns_id_t ns_id, void *opaqueptr)
 
 int zebra_vrf_netns_handler_create(struct vty *vty, struct vrf *vrf,
 				   char *pathname, ns_id_t ns_id,
-				   ns_id_t internal_ns_id,
-				   ns_id_t rel_def_ns_id)
+				   ns_id_t internal_ns_id, ns_id_t rel_def_ns_id)
 {
 	struct ns *ns = NULL;
 
@@ -578,9 +573,8 @@ int zebra_vrf_netns_handler_create(struct vty *vty, struct vrf *vrf,
 					"VRF %u already configured with NETNS %s\n",
 					vrf->vrf_id, ns->name);
 			else
-				zlog_info(
-					"VRF %u already configured with NETNS %s",
-					vrf->vrf_id, ns->name);
+				zlog_info("VRF %u already configured with NETNS %s",
+					  vrf->vrf_id, ns->name);
 			return CMD_WARNING;
 		}
 	}
