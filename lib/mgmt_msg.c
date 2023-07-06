@@ -13,6 +13,7 @@
 #include "stream.h"
 #include "frrevent.h"
 #include "mgmt_msg.h"
+#include "mgmt_msg_native.h"
 
 
 #define MGMT_MSG_DBG(dbgtag, fmt, ...)                                         \
@@ -292,23 +293,23 @@ int mgmt_msg_send_msg(struct mgmt_msg_state *ms, uint8_t version, void *msg,
 	size_t endp, n;
 	size_t mlen = len + sizeof(*mhdr);
 
-	if (mlen > ms->max_msg_sz) {
-		MGMT_MSG_ERR(ms, "Message %zu > max size %zu, dropping", mlen,
-			     ms->max_msg_sz);
-		return -1;
-	}
+	if (mlen > ms->max_msg_sz)
+		MGMT_MSG_DBG(dbgtag, "Sending large msg size %zu > max size %zu",
+			     mlen, ms->max_msg_sz);
 
 	if (!ms->outs) {
-		MGMT_MSG_DBG(dbgtag, "creating new stream for msg len %zu",
-			     len);
-		ms->outs = stream_new(ms->max_msg_sz);
+		MGMT_MSG_DBG(dbgtag, "creating new stream for msg len %zu", len);
+		ms->outs = stream_new(MAX(ms->max_msg_sz, mlen));
+	} else if (mlen > ms->max_msg_sz && ms->outs->endp == 0) {
+		/* msg is larger than stream max size get a fit-to-size stream */
+		stream_free(ms->outs);
+		ms->outs = stream_new(mlen);
 	} else if (STREAM_WRITEABLE(ms->outs) < mlen) {
-		MGMT_MSG_DBG(
-			dbgtag,
-			"enq existing stream len %zu and creating new stream for msg len %zu",
-			STREAM_WRITEABLE(ms->outs), mlen);
+		MGMT_MSG_DBG(dbgtag,
+			     "enq existing stream len %zu and creating new stream for msg len %zu",
+			     STREAM_WRITEABLE(ms->outs), mlen);
 		stream_fifo_push(&ms->outq, ms->outs);
-		ms->outs = stream_new(ms->max_msg_sz);
+		ms->outs = stream_new(MAX(ms->max_msg_sz, mlen));
 	} else {
 		MGMT_MSG_DBG(
 			dbgtag,
@@ -316,6 +317,16 @@ int mgmt_msg_send_msg(struct mgmt_msg_state *ms, uint8_t version, void *msg,
 			STREAM_WRITEABLE(ms->outs), mlen);
 	}
 	s = ms->outs;
+
+	if (dbgtag && version == MGMT_MSG_VERSION_NATIVE) {
+		struct mgmt_msg_header *native_msg = msg;
+
+		MGMT_MSG_DBG(
+			dbgtag,
+			"Sending native msg sess/txn-id %"PRIu64" req-id %"PRIu64" code %u",
+			native_msg->session_id, native_msg->req_id, native_msg->code);
+
+	}
 
 	/* We have a stream with space, pack the message into it. */
 	mhdr = (struct mgmt_msg_hdr *)(STREAM_DATA(s) + s->endp);
@@ -671,6 +682,9 @@ static bool msg_client_connect_short_circuit(struct msg_client *client)
 	/* server side */
 	memset(&su, 0, sizeof(union sockunion));
 	server_conn = server->create(sockets[1], &su);
+	server_conn->debug = DEBUG_MODE_CHECK(server->debug, DEBUG_MODE_ALL)
+				     ? true
+				     : false;
 
 	client->conn.remote_conn = server_conn;
 	server_conn->remote_conn = &client->conn;
@@ -764,8 +778,9 @@ void msg_client_cleanup(struct msg_client *client)
 static void msg_server_accept(struct event *event)
 {
 	struct msg_server *server = EVENT_ARG(event);
-	int fd;
+	struct msg_conn *conn;
 	union sockunion su;
+	int fd;
 
 	if (server->fd < 0)
 		return;
@@ -788,7 +803,11 @@ static void msg_server_accept(struct event *event)
 
 	DEBUGD(server->debug, "Accepted new %s connection", server->idtag);
 
-	server->create(fd, &su);
+	conn = server->create(fd, &su);
+	if (conn)
+		conn->debug = DEBUG_MODE_CHECK(server->debug, DEBUG_MODE_ALL)
+				      ? true
+				      : false;
 }
 
 int msg_server_init(struct msg_server *server, const char *sopath,
