@@ -37,6 +37,12 @@ enum mgmt_be_client_id {
 	for ((id) = MGMTD_BE_CLIENT_ID_MIN;		\
 	     (id) < MGMTD_BE_CLIENT_ID_MAX; (id)++)
 
+#define FOREACH_BE_CLIENT_BITS(id, bits)                                       \
+	FOREACH_MGMTD_BE_CLIENT_ID (id)                                        \
+		if (IS_IDBIT_UNSET((bits), (id)))                              \
+			continue;                                              \
+		else
+
 #define IS_IDBIT_UNSET(v, id) (!((v) & (1ull << (id))))
 #define IS_IDBIT_SET(v, id)   (!IS_IDBIT_UNSET(v, id))
 

@@ -702,11 +702,9 @@ uint64_t mgmt_be_interested_clients(const char *xpath, bool config)
 			clients |= map->clients;
 
 	if (DEBUG_MODE_CHECK(&mgmt_debug_be, DEBUG_MODE_ALL)) {
-		FOREACH_MGMTD_BE_CLIENT_ID (id) {
-			if (IS_IDBIT_SET(clients, id))
-				MGMTD_BE_ADAPTER_DBG("Cient: %s: subscribed",
-						     mgmt_be_client_id2name(id));
-		}
+		FOREACH_BE_CLIENT_BITS (id, clients)
+			MGMTD_BE_ADAPTER_DBG("Cient: %s: subscribed",
+					     mgmt_be_client_id2name(id));
 	}
 	return clients;
 }
@@ -780,9 +778,7 @@ static void be_show_xpath_register(struct vty *vty,
 	const char *astr;
 
 	vty_out(vty, " - xpath: '%s'\n", map->xpath_regexp);
-	FOREACH_MGMTD_BE_CLIENT_ID (id) {
-		if (IS_IDBIT_UNSET(map->clients, id))
-			continue;
+	FOREACH_BE_CLIENT_BITS (id, map->clients) {
 		astr = mgmt_be_get_adapter_by_id(id) ? "active" : "inactive";
 		vty_out(vty, "   -- %s-client: '%s'\n", astr,
 			mgmt_be_client_id2name(id));
@@ -814,9 +810,7 @@ void mgmt_be_show_xpath_registries(struct vty *vty, const char *xpath)
 	combined = cclients | oclients;
 
 	vty_out(vty, "XPath: '%s'\n", xpath);
-	FOREACH_MGMTD_BE_CLIENT_ID (id) {
-		if (IS_IDBIT_UNSET(combined, id))
-			continue;
+	FOREACH_BE_CLIENT_BITS (id, combined) {
 		vty_out(vty, "  -- Client: '%s'\tconfig:%d oper:%d\n",
 			mgmt_be_client_id2name(id), IS_IDBIT_SET(cclients, id),
 			IS_IDBIT_SET(oclients, id));

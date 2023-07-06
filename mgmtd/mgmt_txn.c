@@ -1042,10 +1042,7 @@ static int mgmt_txn_create_config_batches(struct mgmt_txn_req *txn_req,
 
 		xpath_len = strlen(xpath) + 1;
 		value_len = strlen(value) + 1;
-		FOREACH_MGMTD_BE_CLIENT_ID (id) {
-			if (IS_IDBIT_UNSET(clients, id))
-				continue;
-
+		FOREACH_BE_CLIENT_BITS (id, clients) {
 			adapter = mgmt_be_get_adapter_by_id(id);
 			if (!adapter)
 				continue;
