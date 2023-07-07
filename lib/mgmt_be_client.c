@@ -8,10 +8,13 @@
 #include <zebra.h>
 #include "debug.h"
 #include "compiler.h"
+#include "darr.h"
 #include "libfrr.h"
+#include "lib_errors.h"
 #include "mgmtd/mgmt.h"
 #include "mgmt_be_client.h"
 #include "mgmt_msg.h"
+#include "mgmt_msg_native.h"
 #include "mgmt_pb.h"
 #include "network.h"
 #include "northbound.h"
@@ -47,6 +50,11 @@ struct mgmt_be_txn_req {
 		struct mgmt_be_set_cfg_req set_cfg;
 		struct mgmt_be_get_data_req get_data;
 	} req;
+};
+
+struct be_oper_iter_arg {
+	struct lyd_node *root; /* the tree we are building */
+	struct lyd_node *hint; /* last node added */
 };
 
 PREDECL_LIST(mgmt_be_batches);
@@ -124,6 +132,15 @@ const char *mgmt_be_client_names[MGMTD_BE_CLIENT_ID_MAX + 1] = {
 #endif
 	[MGMTD_BE_CLIENT_ID_MAX] = "Unknown/Invalid",
 };
+
+static int be_client_send_native_msg(struct mgmt_be_client *client_ctx,
+				     void *msg, size_t len,
+				     bool short_circuit_ok)
+{
+	return msg_conn_send_msg(&client_ctx->client.conn,
+				 MGMT_MSG_VERSION_NATIVE, msg, len, NULL,
+				 short_circuit_ok);
+}
 
 static int mgmt_be_client_send_msg(struct mgmt_be_client *client_ctx,
 				   Mgmtd__BeMessage *be_msg)
@@ -218,7 +235,8 @@ mgmt_be_find_txn_by_id(struct mgmt_be_client *client_ctx, uint64_t txn_id,
 		if (txn->txn_id == txn_id)
 			return txn;
 	if (warn)
-		MGMTD_BE_CLIENT_ERR("Unknown txn-id: %" PRIu64, txn_id);
+		MGMTD_BE_CLIENT_ERR("client %s unkonwn txn-id: %" PRIu64,
+				    client_ctx->name, txn_id);
 
 	return NULL;
 }
@@ -289,6 +307,41 @@ static void mgmt_be_cleanup_all_txns(struct mgmt_be_client *client_ctx)
 	FOREACH_BE_TXN_IN_LIST (client_ctx, txn) {
 		mgmt_be_txn_delete(client_ctx, &txn);
 	}
+}
+
+
+/**
+ * Send an error back to MGMTD using native messaging.
+ *
+ * Args:
+ *	client: the BE client.
+ *	txn_id: the txn_id this error pertains to.
+ *	short_circuit_ok: True if OK to short-circuit the call.
+ *	error: An integer error value.
+ *	errfmt: An error format string (i.e., printfrr)
+ *      ...: args for use by the `errfmt` format string.
+ *
+ * Return:
+ *	the return value from the underlying send message function.
+ */
+static int be_client_send_error(struct mgmt_be_client *client, uint64_t txn_id,
+				uint64_t req_id, bool short_circuit_ok,
+				int16_t error, const char *errfmt, ...)
+	PRINTFRR(6, 7);
+
+static int be_client_send_error(struct mgmt_be_client *client, uint64_t txn_id,
+				uint64_t req_id, bool short_circuit_ok,
+				int16_t error, const char *errfmt, ...)
+{
+	va_list ap;
+	int ret;
+
+	va_start(ap, errfmt);
+	ret = vmgmt_msg_native_send_error(&client->client.conn, txn_id, req_id,
+					  short_circuit_ok, error, errfmt, ap);
+	va_end(ap);
+
+	return ret;
 }
 
 static int mgmt_be_send_txn_reply(struct mgmt_be_client *client_ctx,
@@ -773,6 +826,135 @@ static int mgmt_be_client_handle_msg(struct mgmt_be_client *client_ctx,
 	return 0;
 }
 
+
+static int be_client_oper_data_cb(const struct lysc_node *snode,
+				  struct yang_translator *translator,
+				  struct yang_data *data, void *arg)
+{
+	struct be_oper_iter_arg *iarg = arg;
+	struct ly_ctx *ly_ctx = ly_native_ctx;
+	struct lyd_node *hint = iarg->hint;
+	struct lyd_node *dnode = NULL;
+	LY_ERR err;
+
+	if (hint &&
+	    (snode == hint->schema || snode->parent == hint->schema->parent)) {
+		/* This node and the previous node share the same parent, use
+		 * this fact to create the sibling node directly in the tree.
+		 */
+		err = lyd_new_term_canon(&hint->parent->node, snode->module,
+					 snode->name, data->value, true, &dnode);
+	} else if (hint && snode->parent == hint->schema) {
+		/* This node is a child of the previous added element (e.g., a list) */
+		err = lyd_new_term_canon(hint, snode->module, snode->name,
+					 data->value, true, &dnode);
+	} else {
+		/* Use the generic xpath parsing create function. This is
+		 * required for creating list entries (along with their child
+		 * key leafs) and other multiple node adding operations.
+		 */
+		err = lyd_new_path(iarg->root, ly_ctx, data->xpath,
+				   (void *)data->value, LYD_NEW_PATH_UPDATE,
+				   &dnode);
+	}
+	if (err)
+		flog_warn(EC_LIB_LIBYANG, "%s: failed creating node: %s: %s",
+			  __func__, data->xpath, ly_errmsg(ly_native_ctx));
+	iarg->hint = dnode;
+	yang_data_free(data);
+	return err ? NB_ERR : NB_OK;
+}
+
+/*
+ * Process the get-tree request on our local oper state
+ */
+static void be_client_handle_get_tree(struct mgmt_be_client *client,
+				      uint64_t txn_id, void *msgbuf,
+				      size_t msg_len)
+{
+	struct mgmt_msg_get_tree *get_tree_msg = msgbuf;
+	struct mgmt_msg_tree_data *tree_msg = NULL;
+	struct be_oper_iter_arg iter_arg = {};
+	struct lyd_node *dnode;
+	uint8_t *buf = NULL;
+	int ret;
+
+	MGMTD_BE_CLIENT_DBG("Received get-tree request for client %s txn-id %" PRIu64
+			    " req-id %" PRIu64,
+			    client->name, txn_id, get_tree_msg->req_id);
+
+	/* NOTE: removed the translator, if put back merge with northbound_cli
+	 * code
+	 */
+
+	/* Obtain data. */
+	dnode = yang_dnode_new(ly_native_ctx, false);
+	iter_arg.root = dnode;
+	ret = nb_oper_data_iterate(get_tree_msg->xpath, NULL, 0,
+				   be_client_oper_data_cb, &iter_arg);
+	if (ret != NB_OK) {
+fail:
+		yang_dnode_free(dnode);
+		darr_free(buf);
+		be_client_send_error(client, get_tree_msg->txn_id,
+				     get_tree_msg->req_id, false, -EINVAL,
+				     "FE cilent %s txn-id %" PRIu64
+				     " error fetching oper state %d",
+				     client->name, get_tree_msg->txn_id, ret);
+		return;
+	}
+
+	// (void)lyd_validate_all(&dnode, ly_native_ctx, 0, NULL);
+
+	darr_append_n(buf, offsetof(typeof(*tree_msg), result));
+	tree_msg = (typeof(tree_msg))buf;
+	tree_msg->session_id = get_tree_msg->session_id;
+	tree_msg->req_id = get_tree_msg->req_id;
+	tree_msg->code = MGMT_MSG_CODE_TREE_DATA;
+	tree_msg->result_type = get_tree_msg->result_type;
+	tree_msg->partial_error = 0;
+	ret = yang_print_tree_append(&buf, dnode, get_tree_msg->result_type,
+				     (LYD_PRINT_WD_EXPLICIT |
+				      LYD_PRINT_WITHSIBLINGS));
+	/* buf may have been reallocated and moved */
+	tree_msg = (typeof(tree_msg))buf;
+
+	if (ret != LY_SUCCESS)
+		goto fail;
+
+	(void)be_client_send_native_msg(client, buf, darr_len(buf), false);
+
+	darr_free(buf);
+	yang_dnode_free(dnode);
+}
+
+/*
+ * Handle a native encoded message
+ *
+ * We don't create transactions with native messaging.
+ */
+static void be_client_handle_native_msg(struct mgmt_be_client *client,
+					struct mgmt_msg_header *msg,
+					size_t msg_len)
+{
+	uint64_t txn_id = msg->txn_id;
+
+	switch (msg->code) {
+	case MGMT_MSG_CODE_GET_TREE:
+		be_client_handle_get_tree(client, txn_id, msg, msg_len);
+		break;
+	default:
+		MGMTD_BE_CLIENT_ERR("unknown native message txn-id %" PRIu64
+				    " req-id %" PRIu64 " code %u to client %s",
+				    txn_id, msg->req_id, msg->code,
+				    client->name);
+		be_client_send_error(client, msg->txn_id, msg->req_id, false, -1,
+				     "BE cilent %s recv msg unknown txn-id %" PRIu64,
+				     client->name, txn_id);
+		break;
+	}
+}
+
 static void mgmt_be_client_process_msg(uint8_t version, uint8_t *data,
 				       size_t len, struct msg_conn *conn)
 {
@@ -782,6 +964,17 @@ static void mgmt_be_client_process_msg(uint8_t version, uint8_t *data,
 
 	client = container_of(conn, struct msg_client, conn);
 	client_ctx = container_of(client, struct mgmt_be_client, client);
+
+	if (version == MGMT_MSG_VERSION_NATIVE) {
+		struct mgmt_msg_header *msg = (typeof(msg))data;
+
+		if (len >= sizeof(*msg))
+			be_client_handle_native_msg(client_ctx, msg, len);
+		else
+			MGMTD_BE_CLIENT_ERR("native message to client %s too short %zu",
+					    client_ctx->name, len);
+		return;
+	}
 
 	be_msg = mgmtd__be_message__unpack(NULL, len, data);
 	if (!be_msg) {
@@ -816,10 +1009,9 @@ int mgmt_be_send_subscr_req(struct mgmt_be_client *client_ctx,
 	be_msg.message_case = MGMTD__BE_MESSAGE__MESSAGE_SUBSCR_REQ;
 	be_msg.subscr_req = &subscr_req;
 
-	MGMTD_FE_CLIENT_DBG(
-		"Sending SUBSCR_REQ name: %s subscr_xpaths: %u num_xpaths: %zu",
-		subscr_req.client_name, subscr_req.subscribe_xpaths,
-		subscr_req.n_xpath_reg);
+	MGMTD_BE_CLIENT_DBG("Sending SUBSCR_REQ name: %s subscr_xpaths: %u num_xpaths: %zu",
+			    subscr_req.client_name, subscr_req.subscribe_xpaths,
+			    subscr_req.n_xpath_reg);
 
 	return mgmt_be_client_send_msg(client_ctx, &be_msg);
 }
@@ -887,7 +1079,7 @@ static void mgmt_debug_client_be_set_all(uint32_t flags, bool set)
 static int mgmt_debug_be_client_config_write(struct vty *vty)
 {
 	if (DEBUG_MODE_CHECK(&mgmt_dbg_be_client, DEBUG_MODE_CONF))
-		vty_out(vty, "debug mgmt client frontend\n");
+		vty_out(vty, "debug mgmt client backend\n");
 
 	return 1;
 }
