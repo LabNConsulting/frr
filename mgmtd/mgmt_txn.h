@@ -13,17 +13,14 @@
 #include "mgmtd/mgmt.h"
 #include "mgmtd/mgmt_ds.h"
 
-#define MGMTD_TXN_PROC_DELAY_MSEC 5
 #define MGMTD_TXN_PROC_DELAY_USEC 10
 #define MGMTD_TXN_MAX_NUM_SETCFG_PROC 128
 #define MGMTD_TXN_MAX_NUM_GETCFG_PROC 128
 #define MGMTD_TXN_MAX_NUM_GETDATA_PROC 128
 
-#define MGMTD_TXN_SEND_CFGVALIDATE_DELAY_MSEC 100
-#define MGMTD_TXN_SEND_CFGAPPLY_DELAY_MSEC 100
-#define MGMTD_TXN_CFG_COMMIT_MAX_DELAY_MSEC 30000 /* 30 seconds */
+#define MGMTD_TXN_CFG_COMMIT_MAX_DELAY_SEC 600
+#define MGMTD_TXN_GET_TREE_MAX_DELAY_SEC   600
 
-#define MGMTD_TXN_CLEANUP_DELAY_MSEC 100
 #define MGMTD_TXN_CLEANUP_DELAY_USEC 10
 
 /*
@@ -77,6 +74,12 @@ extern void mgmt_txn_destroy(void);
  *    session ID if in-progress, MGMTD_SESSION_ID_NONE otherwise.
  */
 extern uint64_t mgmt_config_txn_in_progress(void);
+
+/**
+ * Get the session ID associated with the given ``txn-id``.
+ *
+ */
+extern uint64_t mgmt_txn_get_session_id(uint64_t txn_id);
 
 /*
  * Create transaction.
@@ -188,6 +191,23 @@ extern int mgmt_txn_send_get_req(uint64_t txn_id, uint64_t req_id,
 				 Mgmtd__YangGetDataReq **data_req,
 				 size_t num_reqs);
 
+
+/**
+ * Send get-tree to the backend `clients`.
+ *
+ * Args:
+ *	txn_id: Transaction identifier.
+ *	req_id: FE client request identifier.
+ *	clients: Bitmask of clients to send get-tree to.
+ *	result_type: LYD_FORMAT result format.
+ *	xpath: The xpath to get the tree from.
+ * Return:
+ *	0 on success.
+ */
+extern int mgmt_txn_send_get_tree_oper(uint64_t txn_id, uint64_t req_id,
+				       uint64_t clients, LYD_FORMAT result_type,
+				       const char *xpath);
+
 /*
  * Notifiy backend adapter on connection.
  */
@@ -225,6 +245,38 @@ extern int
 mgmt_txn_notify_be_cfg_apply_reply(uint64_t txn_id, bool success,
 				       char *error_if_any,
 				       struct mgmt_be_client_adapter *adapter);
+
+
+/**
+ * Process a reply from a backend client to our get-tree request
+ *
+ * Args:
+ *	adapter: The adapter that received the result.
+ *	txn_id: The transaction for this get-tree request.
+ *	req_id: The request ID for this transaction.
+ *	error: the integer error value (negative)
+ *	errstr: the string description of the error.
+ */
+int mgmt_txn_notify_error(struct mgmt_be_client_adapter *adapter,
+			  uint64_t txn_id, uint64_t req_id, int error,
+			  const char *errstr);
+
+/**
+ * Process a reply from a backend client to our get-tree request
+ *
+ * Args:
+ *	adapter: The adapter that received the result.
+ *	txn_id: The transaction for this get-tree request.
+ *	result_type: LYD_FORMAT the format of the result data.
+ *	result: the result data in result_type format.
+ *	result_len: the length of the data.
+ *	partial_error: if an error occurred during data gathering.
+ */
+extern int
+mgmt_txn_notify_tree_data_reply(struct mgmt_be_client_adapter *adapter,
+				uint64_t txn_id, uint64_t req_id,
+				LYD_FORMAT result_type, void *result,
+				size_t result_len, int partial_error);
 
 /*
  * Dump transaction status to vty.
