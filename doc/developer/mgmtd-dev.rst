@@ -62,6 +62,7 @@ Back-End Interface:
 
 5. Add XPATHs mappings to a couple arrays to direct ``mgmtd`` at your daemon in
    ``mgmtd/mgmt_be_adapter.c``
+6. Add ``VTYSH_xxxD`` to the ``lib/mgmt_be_client.c`` under ``daemon_flags``.
 
 
 Add YANG and CLI into MGMTD
