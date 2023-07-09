@@ -254,8 +254,13 @@ void yang_snode_get_path(const struct lysc_node *snode,
 struct lysc_node *yang_find_snode(struct ly_ctx *ly_ctx, const char *xpath,
 				  uint32_t options)
 {
+#if 1
 	struct lysc_node *snode;
-	struct ly_set *set;
+
+	snode = (struct lysc_node *)lys_find_path(ly_ctx, NULL, xpath, 0);
+#else
+	struct lysc_node *snode;
+	struct ly_set *set = NULL;
 	LY_ERR err;
 
 	err = lys_find_xpath(ly_native_ctx, NULL, xpath, options, &set);
@@ -264,6 +269,7 @@ struct lysc_node *yang_find_snode(struct ly_ctx *ly_ctx, const char *xpath,
 
 	snode = set->snodes[0];
 	ly_set_free(set, NULL);
+#endif
 
 	return snode;
 }
