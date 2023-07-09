@@ -48,7 +48,9 @@ struct mgmt_fe_client {
 #define FOREACH_SESSION_IN_LIST(client, session)                               \
 	frr_each_safe (mgmt_sessions, &(client)->sessions, (session))
 
-struct debug mgmt_dbg_fe_client = {0, "Management frontend client operations"};
+struct debug mgmt_dbg_fe_client = {
+	.flags = DEBUG_MODE_ALL,
+	.desc = "Management frontend client operations"};
 
 
 static inline const char *dsid2name(Mgmtd__DatastoreId id)

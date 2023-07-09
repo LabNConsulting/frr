@@ -119,7 +119,10 @@ struct mgmt_be_client {
 #define FOREACH_BE_TXN_IN_LIST(client_ctx, txn)                                \
 	frr_each_safe (mgmt_be_txns, &(client_ctx)->txn_head, (txn))
 
-struct debug mgmt_dbg_be_client = {0, "Management backend client operations"};
+struct debug mgmt_dbg_be_client = {
+	.flags = DEBUG_MODE_ALL,
+	.desc = "Management frontend client operations"
+};
 
 const char *mgmt_be_client_names[MGMTD_BE_CLIENT_ID_MAX + 1] = {
 #ifdef HAVE_STATICD
