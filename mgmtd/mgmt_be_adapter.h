@@ -49,8 +49,6 @@ struct mgmt_be_client_adapter {
 	enum mgmt_be_client_id id;
 	uint32_t flags;
 	char name[MGMTD_CLIENT_NAME_MAX_LEN];
-	uint8_t num_xpath_reg;
-	char xpath_reg[MGMTD_MAX_NUM_XPATH_REG][MGMTD_MAX_XPATH_LEN];
 
 	int refcount;
 
@@ -80,10 +78,6 @@ DECLARE_LIST(mgmt_be_adapters, struct mgmt_be_client_adapter, list_linkage);
 #define MGMT_SUBSCR_NOTIFY_CFG 0x2
 #define MGMT_SUBSCR_OPER_OWN 0x4
 #define MGMT_SUBSCR_ALL 0x7
-
-struct mgmt_be_client_subscr_info {
-	uint xpath_subscr[MGMTD_BE_CLIENT_ID_MAX];
-};
 
 /* Initialise backend adapter module. */
 extern void mgmt_be_adapter_init(struct event_loop *tm);
@@ -177,17 +171,13 @@ extern void mgmt_be_xpath_register_write(struct vty *vty);
  *
  * Args:
  *     xpath - the xpath to check for subscription information.
- *     subscr_info - An array of uint indexed by client id
- *                   each eleemnt holds the subscription info
- *                   for that client.
+ *     config - true for config interest false for oper interest.
  */
-extern void mgmt_be_get_subscr_info_for_xpath(
-	const char *xpath, struct mgmt_be_client_subscr_info *subscr_info);
+extern uint64_t mgmt_be_interested_clients(const char *xpath, bool config);
 
 /*
  * Dump backend client information for a given xpath to vty.
  */
-extern void mgmt_be_xpath_subscr_info_write(struct vty *vty,
-					       const char *xpath);
+extern void mgmt_be_show_xpath_registries(struct vty *vty, const char *xpath);
 
 #endif /* _FRR_MGMTD_BE_ADAPTER_H_ */
