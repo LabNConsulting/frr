@@ -221,3 +221,8 @@ The server (mgmtd) side of a CLI change
 
 .. figure:: ../figures/cli-change-mgmtd.svg
    :align: center
+
+Native messaging for show operational state.
+
+.. figure:: ../figures/cli-oper-state.svg
+   :align: center
