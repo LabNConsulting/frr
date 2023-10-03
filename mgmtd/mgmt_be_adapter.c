@@ -43,7 +43,7 @@ struct mgmt_be_xpath_map {
  * above map as well.
  */
 #if HAVE_STATICD
-static const char *staticd_xpaths[] = {
+static const char *const staticd_xpaths[] = {
 	"/frr-vrf:lib/*",
 	"/frr-interface:lib/*",
 	"/frr-routing:routing/control-plane-protocols/control-plane-protocol/frr-staticd:staticd/*",
@@ -58,7 +58,7 @@ static const char **be_client_xpaths[] = {
 };
 
 #if HAVE_OSPFD
-static const char *ospfd_oper_xpaths[] = {
+static const char *const ospfd_oper_xpaths[] = {
 	"/frr-interface:lib/interface/state/frr-ospfd-lite:ospf/state/*",
 	"/frr-ospfd-lite:ospf/instance/state/*",
 	NULL,

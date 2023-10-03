@@ -254,22 +254,9 @@ void yang_snode_get_path(const struct lysc_node *snode,
 struct lysc_node *yang_find_snode(struct ly_ctx *ly_ctx, const char *xpath,
 				  uint32_t options)
 {
-#if 1
 	struct lysc_node *snode;
 
 	snode = (struct lysc_node *)lys_find_path(ly_ctx, NULL, xpath, 0);
-#else
-	struct lysc_node *snode;
-	struct ly_set *set = NULL;
-	LY_ERR err;
-
-	err = lys_find_xpath(ly_native_ctx, NULL, xpath, options, &set);
-	if (err || !set->count)
-		return NULL;
-
-	snode = set->snodes[0];
-	ly_set_free(set, NULL);
-#endif
 
 	return snode;
 }
@@ -711,6 +698,7 @@ uint8_t *yang_print_tree(const struct lyd_node *root, LYD_FORMAT format,
 			 uint32_t options)
 {
 	uint8_t *darr = NULL;
+
 	if (yang_print_tree_append(&darr, root, format, options))
 		return NULL;
 	return darr;
@@ -759,6 +747,7 @@ struct ly_ctx *yang_ctx_new_setup(bool embedded_modules, bool explicit_compile)
 {
 	struct ly_ctx *ctx = NULL;
 	const char *yang_models_path = YANG_MODELS_PATH;
+	uint options = LY_CTX_NO_YANGLIBRARY | LY_CTX_DISABLE_SEARCHDIR_CWD;
 	LY_ERR err;
 
 	if (access(yang_models_path, R_OK | X_OK)) {
@@ -772,7 +761,6 @@ struct ly_ctx *yang_ctx_new_setup(bool embedded_modules, bool explicit_compile)
 				     YANG_MODELS_PATH);
 	}
 
-	uint options = LY_CTX_NO_YANGLIBRARY | LY_CTX_DISABLE_SEARCHDIR_CWD;
 	if (explicit_compile)
 		options |= LY_CTX_EXPLICIT_COMPILE;
 	err = ly_ctx_new(yang_models_path, options, &ctx);

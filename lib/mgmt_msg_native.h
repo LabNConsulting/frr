@@ -56,7 +56,8 @@ struct mgmt_msg_header {
 struct mgmt_msg_error {
 	struct mgmt_msg_header;
 	int16_t error;
-	alignas(8) char errstr[];
+	uint32_t _alignas64; /* checkpatch warns when using _Alignas(8) */
+	char errstr[];
 };
 _Static_assert(sizeof(struct mgmt_msg_error) ==
 		       offsetof(struct mgmt_msg_error, errstr),
@@ -67,7 +68,8 @@ struct mgmt_msg_get_tree {
 	uint8_t is_config : 1;
 	uint8_t ds_id : 7;
 	uint8_t result_type;
-	alignas(8) char xpath[];
+	uint32_t _alignas64; /* checkpatch warns when using _Alignas(8) */
+	char xpath[];
 };
 _Static_assert(sizeof(struct mgmt_msg_get_tree) ==
 		       offsetof(struct mgmt_msg_get_tree, xpath),
@@ -77,7 +79,8 @@ struct mgmt_msg_tree_data {
 	struct mgmt_msg_header;
 	int8_t partial_error;
 	uint8_t result_type;
-	alignas(8) uint8_t result[];
+	uint32_t _alignas64; /* checkpatch warns when using _Alignas(8) */
+	uint8_t result[];
 };
 _Static_assert(sizeof(struct mgmt_msg_tree_data) ==
 		       offsetof(struct mgmt_msg_tree_data, result),
