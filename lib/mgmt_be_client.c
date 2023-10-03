@@ -120,6 +120,7 @@ struct mgmt_be_client {
 struct debug mgmt_dbg_be_client = {0, "Management backend client operations"};
 
 const char *mgmt_be_client_names[MGMTD_BE_CLIENT_ID_MAX + 1] = {
+	[MGMTD_BE_CLIENT_ID_ZEBRA] = "zebra",
 #ifdef HAVE_STATICD
 	[MGMTD_BE_CLIENT_ID_STATICD] = "staticd",
 #endif

@@ -59,7 +59,16 @@ static const char *const *be_client_xpaths[MGMTD_BE_CLIENT_ID_MAX] = {
 #endif
 };
 
-static const char *const *be_client_oper_xpaths[MGMTD_BE_CLIENT_ID_MAX] = {};
+static const char *const zebra_oper_xpaths[] = {
+	"/frr-interface:lib/interface/frr-zebra:zebra",
+	"/frr-vrf:lib/vrf/frr-zebra:zebra",
+	"/frr-zebra:zebra",
+	NULL,
+};
+
+static const char *const *be_client_oper_xpaths[MGMTD_BE_CLIENT_ID_MAX] = {
+	[MGMTD_BE_CLIENT_ID_ZEBRA] = zebra_oper_xpaths,
+};
 
 /*
  * We would like to have a better ADT than one with O(n) comparisons
