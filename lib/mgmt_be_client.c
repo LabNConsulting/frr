@@ -27,6 +27,7 @@ DEFINE_MTYPE_STATIC(LIB, MGMTD_BE_CLIENT, "backend client");
 DEFINE_MTYPE_STATIC(LIB, MGMTD_BE_CLIENT_NAME, "backend client name");
 DEFINE_MTYPE_STATIC(LIB, MGMTD_BE_BATCH, "backend transaction batch data");
 DEFINE_MTYPE_STATIC(LIB, MGMTD_BE_TXN, "backend transaction data");
+DEFINE_MTYPE_STATIC(LIB, MGMTD_BE_GT_CB_ARGS, "backend get-tree cb args");
 
 enum mgmt_be_txn_event {
 	MGMTD_BE_TXN_PROC_SETCFG = 1,
@@ -812,6 +813,58 @@ static int mgmt_be_client_handle_msg(struct mgmt_be_client *client_ctx,
 	return 0;
 }
 
+struct be_client_get_tree_finish_args {
+	struct mgmt_be_client *client;
+	uint64_t txn_id;
+	uint64_t req_id;
+	LYD_FORMAT result_type;
+};
+
+/*
+ * Process the get-tree request on our local oper state
+ */
+static void be_client_get_tree_finish(struct lyd_node *tree, void *arg, int ret)
+{
+	struct be_client_get_tree_finish_args *args = arg;
+	struct mgmt_be_client *client = args->client;
+	struct mgmt_msg_tree_data *tree_msg = NULL;
+	uint8_t *buf = NULL;
+	LY_ERR err;
+
+	if (ret != NB_OK)
+		goto done;
+
+	darr_append_n(buf, offsetof(typeof(*tree_msg), result));
+	tree_msg = (typeof(tree_msg))buf;
+	tree_msg->txn_id = args->txn_id;
+	tree_msg->req_id = args->req_id;
+	tree_msg->code = MGMT_MSG_CODE_TREE_DATA;
+	tree_msg->result_type = args->result_type;
+	tree_msg->partial_error = 0;
+	err = yang_print_tree_append(&buf, tree, args->result_type,
+				     (LYD_PRINT_WD_EXPLICIT |
+				      LYD_PRINT_WITHSIBLINGS));
+	/* buf may have been reallocated and moved */
+	tree_msg = (typeof(tree_msg))buf;
+
+	if (err) {
+		ret = NB_ERR;
+		goto done;
+	}
+	(void)be_client_send_native_msg(client, buf, darr_len(buf), false);
+done:
+	darr_free(buf);
+	if (tree)
+		yang_dnode_free(tree);
+	if (ret)
+		be_client_send_error(client, args->txn_id, args->req_id, false,
+				     -EINVAL,
+				     "FE cilent %s txn-id %" PRIu64
+				     " error fetching oper state %d",
+				     client->name, args->txn_id, ret);
+	XFREE(MTYPE_MGMTD_BE_GT_CB_ARGS, args);
+}
+
 /*
  * Process the get-tree request on our local oper state
  */
@@ -820,10 +873,7 @@ static void be_client_handle_get_tree(struct mgmt_be_client *client,
 				      size_t msg_len)
 {
 	struct mgmt_msg_get_tree *get_tree_msg = msgbuf;
-	struct mgmt_msg_tree_data *tree_msg = NULL;
-	struct lyd_node *dnode = NULL;
-	uint8_t *buf = NULL;
-	int ret;
+	struct be_client_get_tree_finish_args *args;
 
 	MGMTD_BE_CLIENT_DBG("Received get-tree request for client %s txn-id %" PRIu64
 			    " req-id %" PRIu64,
@@ -833,44 +883,13 @@ static void be_client_handle_get_tree(struct mgmt_be_client *client,
 	 * code
 	 */
 
-	/* Obtain data. */
-	ret = nb_oper_data_iterate(get_tree_msg->xpath, NULL, 0,
-				   NULL, NULL, &dnode);
-	if (ret != NB_OK) {
-fail:
-		if (dnode)
-			yang_dnode_free(dnode);
-		darr_free(buf);
-		be_client_send_error(client, get_tree_msg->txn_id,
-				     get_tree_msg->req_id, false, -EINVAL,
-				     "FE cilent %s txn-id %" PRIu64
-				     " error fetching oper state %d",
-				     client->name, get_tree_msg->txn_id, ret);
-		return;
-	}
-
-	// (void)lyd_validate_all(&dnode, ly_native_ctx, 0, NULL);
-
-	darr_append_n(buf, offsetof(typeof(*tree_msg), result));
-	tree_msg = (typeof(tree_msg))buf;
-	tree_msg->session_id = get_tree_msg->session_id;
-	tree_msg->req_id = get_tree_msg->req_id;
-	tree_msg->code = MGMT_MSG_CODE_TREE_DATA;
-	tree_msg->result_type = get_tree_msg->result_type;
-	tree_msg->partial_error = 0;
-	ret = yang_print_tree_append(&buf, dnode, get_tree_msg->result_type,
-				     (LYD_PRINT_WD_EXPLICIT |
-				      LYD_PRINT_WITHSIBLINGS));
-	/* buf may have been reallocated and moved */
-	tree_msg = (typeof(tree_msg))buf;
-
-	if (ret != LY_SUCCESS)
-		goto fail;
-
-	(void)be_client_send_native_msg(client, buf, darr_len(buf), false);
-
-	darr_free(buf);
-	yang_dnode_free(dnode);
+	args = XMALLOC(MTYPE_MGMTD_BE_GT_CB_ARGS, sizeof(*args));
+	args->client = client;
+	args->txn_id = get_tree_msg->txn_id;
+	args->req_id = get_tree_msg->req_id;
+	args->result_type = get_tree_msg->result_type;
+	nb_op_iterate_yielding(get_tree_msg->xpath, NULL, 0, NULL, NULL,
+			       be_client_get_tree_finish, args);
 }
 
 /*

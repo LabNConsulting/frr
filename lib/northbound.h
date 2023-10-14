@@ -485,6 +485,22 @@ struct nb_callbacks {
 	const void *(*lookup_entry)(struct nb_cb_lookup_entry_args *args);
 
 	/*
+	 * Operational data callback for YANG lists.
+	 *
+	 * The callback function should return the next list entry that would
+	 * follow a list entry with the keys given as a parameter. Keyless
+	 * lists don't need to implement this  callback.
+	 *
+	 * args
+	 *    Refer to the documentation comments of nb_cb_lookup_entry_args for
+	 *    details.
+	 *
+	 * Returns:
+	 *    Pointer to the list entry if found, or NULL if not found.
+	 */
+	const void *(*lookup_next)(struct nb_cb_lookup_entry_args *args);
+
+	/*
 	 * RPC and action callback.
 	 *
 	 * Both 'input' and 'output' are lists of 'yang_data' structures. The
@@ -644,6 +660,7 @@ enum nb_error {
 	NB_ERR_VALIDATION,
 	NB_ERR_RESOURCE,
 	NB_ERR_INCONSISTENCY,
+	NB_YIELD,
 };
 
 /* Default priority. */
@@ -711,6 +728,10 @@ typedef int (*nb_oper_data_cb)(const struct lysc_node *snode,
 			       struct yang_translator *translator,
 			       struct yang_data *data, void *arg);
 
+/* Callback function used by nb_oper_data_iter_yielding(). */
+typedef void (*nb_oper_data_finish_cb)(struct lyd_node *tree, void *arg,
+				       int ret);
+
 /* Iterate over direct child nodes only. */
 #define NB_OPER_DATA_ITER_NORECURSE 0x0001
 
@@ -744,6 +765,9 @@ extern int nb_callback_get_keys(const struct nb_node *nb_node,
 extern const void *nb_callback_lookup_entry(const struct nb_node *nb_node,
 					    const void *parent_list_entry,
 					    const struct yang_list_keys *keys);
+extern const void *nb_callback_lookup_next(const struct nb_node *nb_node,
+					   const void *parent_list_entry,
+					   const struct yang_list_keys *keys);
 extern int nb_callback_rpc(const struct nb_node *nb_node, const char *xpath,
 			   const struct list *input, struct list *output,
 			   char *errmsg, size_t errmsg_len);
@@ -1286,6 +1310,17 @@ extern int nb_oper_data_iterate(const char *xpath,
 				uint32_t flags, nb_oper_data_cb cb, void *arg,
 				struct lyd_node **tree);
 
+extern enum nb_error nb_op_iterate_legacy(const char *xpath,
+					  struct yang_translator *translator,
+					  uint32_t flags, nb_oper_data_cb cb,
+					  void *arg, struct lyd_node **tree);
+
+extern void nb_op_iterate_yielding(const char *xpath,
+				   struct yang_translator *translator,
+				   uint32_t flags, nb_oper_data_cb cb,
+				   void *arg, nb_oper_data_finish_cb finish,
+				   void *finish_arg);
+
 /*
  * Validate if the northbound operation is valid for the given node.
  *
@@ -1491,6 +1526,9 @@ extern void nb_init(struct event_loop *tm,
  * is exiting.
  */
 extern void nb_terminate(void);
+
+extern void nb_op_init(struct event_loop *loop);
+extern void nb_op_terminate(void);
 
 #ifdef __cplusplus
 }
