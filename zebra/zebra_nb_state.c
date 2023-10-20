@@ -289,6 +289,25 @@ lib_vrf_zebra_ribs_rib_route_lookup_entry(struct nb_cb_lookup_entry_args *args)
 	return rn;
 }
 
+const void *
+lib_vrf_zebra_ribs_rib_route_lookup_next(struct nb_cb_lookup_entry_args *args)
+{
+	const struct zebra_router_table *zrt = args->parent_list_entry;
+	struct prefix p;
+	struct route_node *rn;
+
+	yang_str2prefix(args->keys->key[0], &p);
+
+	rn = route_table_get_next(zrt->table, &p);
+
+	if (!rn)
+		return NULL;
+
+	route_unlock_node(rn);
+
+	return rn;
+}
+
 /*
  * XPath: /frr-vrf:lib/vrf/frr-zebra:zebra/ribs/rib/route/prefix
  */
