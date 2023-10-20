@@ -616,6 +616,21 @@ extern uint8_t *yang_print_tree(const struct lyd_node *root, LYD_FORMAT format,
 				uint32_t options);
 
 /*
+ * "Print" the yang tree in `root` into dynamic sized array, up to a maximum
+ * capacity.
+ *
+ * Args:
+ *	root: root of the subtree to "print" along with siblings.
+ *	format: LYD_FORMAT of output (see lyd_print_mem)
+ *	options: printing options (see lyd_print_mem)
+ *
+ * Return:
+ *	A darr dynamic array with the "printed" output or NULL on failure.
+ */
+uint8_t *yang_print_tree_cap(const struct lyd_node *root, LYD_FORMAT format,
+			     uint32_t options, size_t maxcap);
+
+/*
  * "Print" the yang tree in `root` into an existing dynamic sized array.
  *
  * This function does not initialize or free the dynamic array, the array can
@@ -725,6 +740,19 @@ bool yang_is_last_list_dnode(const struct lyd_node *dnode);
 
 /* API to check if the given node is last node in the data tree level */
 bool yang_is_last_level_dnode(const struct lyd_node *dnode);
+
+/* Create a YANG predicate string based on the keys */
+extern int yang_get_key_preds(char *s, const struct lysc_node *snode,
+			      struct yang_list_keys *keys, ssize_t space);
+
+/* Create a new list lyd_node using `yang_list_keys` */
+extern LY_ERR yang_lyd_new_list(struct lyd_node_inner *parent,
+				const struct lysc_node *snode,
+				const struct yang_list_keys *keys,
+				struct lyd_node_inner **node);
+
+/* Log the tree content, useful for debugging */
+void yang_zlog_tree(const char *tag, struct lyd_node *tree, size_t maxlen);
 
 #ifdef __cplusplus
 }

@@ -681,33 +681,76 @@ static void ly_log_cb(LY_LOG_LEVEL level, const char *msg, const char *path)
 		zlog(priority, "libyang: %s", msg);
 }
 
+struct yang_print_cb_args {
+	uint8_t *buf;
+	size_t maxcap;
+};
+
 static ssize_t yang_print_darr(void *arg, const void *buf, size_t count)
 {
-	uint8_t *dst = darr_append_n(*(uint8_t **)arg, count);
-	memcpy(dst, buf, count);
+	struct yang_print_cb_args *args = arg;
+	uint8_t *dst;
+
+	if (args->maxcap && count + darr_len(args->buf) > args->maxcap) {
+		if (darr_len(args->buf) >= args->maxcap)
+			count = 0;
+		else
+			count = args->maxcap - darr_len(args->buf);
+	}
+	if (count) {
+		dst = darr_append_n(args->buf, count);
+		memcpy(dst, buf, count);
+	}
 	return count;
+}
+
+static LY_ERR __print_tree_append(uint8_t **darr, size_t maxcap,
+				  const struct lyd_node *root,
+				  LYD_FORMAT format, uint32_t options)
+{
+	struct yang_print_cb_args args = { .buf = NULL, .maxcap = maxcap };
+	LY_ERR err;
+
+	/* leave space for NUL terminator */
+	if (maxcap && format != LYD_LYB)
+		maxcap -= 1;
+	if (maxcap && maxcap < 8192)
+		darr_ensure_cap(args.buf, maxcap);
+	else
+		darr_ensure_cap(args.buf, 8192);
+
+	err = lyd_print_clb(yang_print_darr, &args, root, format, options);
+	if (err)
+		zlog_err("Failed to save yang tree: %s", ly_last_errmsg());
+	else if (format != LYD_LYB)
+		*darr_append(*darr) = 0;
+	*darr = args.buf;
+	return err;
 }
 
 LY_ERR yang_print_tree_append(uint8_t **darr, const struct lyd_node *root,
 			      LYD_FORMAT format, uint32_t options)
 {
-	LY_ERR err;
+	return __print_tree_append(darr, 0, root, format, options);
+}
 
-	err = lyd_print_clb(yang_print_darr, darr, root, format, options);
-	if (err)
-		zlog_err("Failed to save yang tree: %s", ly_last_errmsg());
-	else if (format != LYD_LYB)
-		*darr_append(*darr) = 0;
-	return err;
+uint8_t *yang_print_tree_cap(const struct lyd_node *root, LYD_FORMAT format,
+			     uint32_t options, size_t maxcap)
+{
+	uint8_t *result = NULL;
+
+	if (__print_tree_append(&result, maxcap, root, format, options))
+		return NULL;
+	return result;
 }
 
 uint8_t *yang_print_tree(const struct lyd_node *root, LYD_FORMAT format,
 			 uint32_t options)
 {
-	uint8_t *darr = NULL;
-	if (yang_print_tree_append(&darr, root, format, options))
+	uint8_t *result = NULL;
+	if (__print_tree_append(&result, 0, root, format, options))
 		return NULL;
-	return darr;
+	return result;
 }
 
 const char *yang_print_errors(struct ly_ctx *ly_ctx, char *buf, size_t buf_len)
@@ -956,4 +999,94 @@ uint32_t yang_get_list_elements_count(const struct lyd_node *node)
 		node = node->next;
 	} while (node);
 	return count;
+}
+
+int yang_get_key_preds(char *s, const struct lysc_node *snode,
+		       struct yang_list_keys *keys, ssize_t space)
+{
+	const struct lysc_node_leaf *skey;
+	ssize_t len2, len = 0;
+	ssize_t i = 0;
+
+	LY_FOR_KEYS (snode, skey) {
+		assert(i < keys->num);
+		len2 = snprintf(s + len, space - len, "[%s='%s']", skey->name,
+				keys->key[i]);
+		if (len2 > space - len)
+			len = space;
+		else
+			len += len2;
+		i++;
+	}
+
+	assert(i == keys->num);
+	return i;
+}
+
+LY_ERR yang_lyd_new_list(struct lyd_node_inner *parent,
+			 const struct lysc_node *snode,
+			 const struct yang_list_keys *list_keys,
+			 struct lyd_node_inner **node)
+{
+	struct lyd_node *pnode = &parent->node;
+	struct lyd_node **nodepp = (struct lyd_node **)node;
+	const char(*keys)[LIST_MAXKEYLEN] = list_keys->key;
+
+	/*
+	 * When
+	 * https://github.com/CESNET/libyang/commit/2c1e327c7c2dd3ba12d466a4ebcf62c1c44116c4
+	 * is released in libyang we should add a configure.ac check for the
+	 * lyd_new_list3 function and use it here.
+	 */
+	switch (list_keys->num) {
+	case 0:
+		return lyd_new_list(pnode, snode->module, snode->name, false,
+				    nodepp);
+	case 1:
+		return lyd_new_list(pnode, snode->module, snode->name, false,
+				    nodepp, keys[0]);
+	case 2:
+		return lyd_new_list(pnode, snode->module, snode->name, false,
+				    nodepp, keys[0], keys[1]);
+	case 3:
+		return lyd_new_list(pnode, snode->module, snode->name, false,
+				    nodepp, keys[0], keys[1], keys[2]);
+	case 4:
+		return lyd_new_list(pnode, snode->module, snode->name, false,
+				    nodepp, keys[0], keys[1], keys[2], keys[3]);
+	case 5:
+		return lyd_new_list(pnode, snode->module, snode->name, false,
+				    nodepp, keys[0], keys[1], keys[2], keys[3],
+				    keys[4]);
+	case 6:
+		return lyd_new_list(pnode, snode->module, snode->name, false,
+				    nodepp, keys[0], keys[1], keys[2], keys[3],
+				    keys[4], keys[5]);
+	case 7:
+		return lyd_new_list(pnode, snode->module, snode->name, false,
+				    nodepp, keys[0], keys[1], keys[2], keys[3],
+				    keys[4], keys[5], keys[6]);
+	case 8:
+		return lyd_new_list(pnode, snode->module, snode->name, false,
+				    nodepp, keys[0], keys[1], keys[2], keys[3],
+				    keys[4], keys[5], keys[6], keys[7]);
+	}
+	_Static_assert(LIST_MAXKEYS == 8, "max key mismatch in switch unroll");
+	/*NOTREACHED*/
+	return LY_EINVAL;
+}
+
+void yang_zlog_tree(const char *tag, struct lyd_node *tree, size_t maxlen)
+{
+	uint8_t *s = yang_print_tree_cap(tree, LYD_JSON,
+					 (LYD_PRINT_WD_EXPLICIT |
+					  LYD_PRINT_WITHSIBLINGS),
+					 maxlen);
+	if (!s) {
+		zlog_err("%s: error generating json for logging tree: %s",
+			 __func__, ly_last_errmsg());
+		return;
+	}
+	zlog_debug("%s: LYTREE: %s:%s%s", __func__, tag, "\n", s);
+	darr_free(s);
 }
