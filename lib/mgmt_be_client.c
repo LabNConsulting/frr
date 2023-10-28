@@ -829,7 +829,13 @@ static void be_client_get_tree_finish(struct lyd_node *tree, void *arg, int ret)
 	struct mgmt_be_client *client = args->client;
 	struct mgmt_msg_tree_data *tree_msg = NULL;
 	uint8_t *buf = NULL;
+	bool more = false;
 	LY_ERR err;
+
+	if (ret == NB_YIELD) {
+		more = true;
+		ret = NB_OK;
+	}
 
 	if (ret != NB_OK)
 		goto done;
@@ -840,6 +846,7 @@ static void be_client_get_tree_finish(struct lyd_node *tree, void *arg, int ret)
 	tree_msg->req_id = args->req_id;
 	tree_msg->code = MGMT_MSG_CODE_TREE_DATA;
 	tree_msg->result_type = args->result_type;
+	tree_msg->more = more;
 	tree_msg->partial_error = 0;
 	err = yang_print_tree_append(&buf, tree, args->result_type,
 				     (LYD_PRINT_WD_EXPLICIT |
@@ -879,7 +886,7 @@ static void be_client_handle_get_tree(struct mgmt_be_client *client,
 			    " req-id %" PRIu64,
 			    client->name, txn_id, get_tree_msg->req_id);
 
-	/* NOTE: removed the translator, if put back merge with northbound_cli
+	/* XXX: removed the translator, if put back merge with northbound_cli
 	 * code
 	 */
 

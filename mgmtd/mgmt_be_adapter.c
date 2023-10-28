@@ -526,6 +526,7 @@ static void be_adapter_handle_native_msg(struct mgmt_be_client_adapter *adapter,
 						tree_msg->result_type,
 						tree_msg->result,
 						msg_len - sizeof(*tree_msg),
+						tree_msg->more,
 						tree_msg->partial_error);
 		break;
 	default:

@@ -2681,7 +2681,8 @@ int mgmt_txn_notify_error(struct mgmt_be_client_adapter *adapter,
 int mgmt_txn_notify_tree_data_reply(struct mgmt_be_client_adapter *adapter,
 				    uint64_t txn_id, uint64_t req_id,
 				    LYD_FORMAT result_type, void *result,
-				    size_t result_len, int partial_error)
+				    size_t result_len, bool more,
+				    int partial_error)
 {
 	enum mgmt_be_client_id id = adapter->id;
 	struct mgmt_txn_ctx *txn = mgmt_txn_id2ctx(txn_id);
@@ -2736,6 +2737,9 @@ int mgmt_txn_notify_tree_data_reply(struct mgmt_be_client_adapter *adapter,
 	if (!get_tree->partial_error)
 		get_tree->partial_error = (partial_error ? partial_error
 							 : (int)err);
+
+	if (more)
+		return 0;
 
 	get_tree->recv_clients |= (1u << id);
 

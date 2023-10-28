@@ -51,6 +51,7 @@ struct nb_op_yield_state {
 	struct timeval start_time;
 	struct yang_translator *translator;
 	uint32_t flags;
+	bool should_batch;
 	nb_oper_data_cb cb;
 	void *cb_arg;
 	nb_oper_data_finish_cb finish;
@@ -156,7 +157,18 @@ static void nb_op_get_keys(struct lyd_node_inner *list_node,
 	keys->num = n;
 }
 
-static enum nb_error __move_back_to_next(struct nb_op_yield_state *ys, int i)
+static void __free_list_nodes(struct lyd_node_inner *inner)
+{
+	const struct lysc_node *list_snode;
+	struct lyd_node *next, *node;
+
+	list_snode = inner->schema;
+	LYD_LIST_FOR_INST_SAFE (&inner->node, list_snode, next, node)
+		lyd_free_tree(node);
+}
+
+static enum nb_error __move_back_to_next(struct nb_op_yield_state *ys, int i,
+					 bool batching)
 {
 	struct nb_op_node_info *ni;
 	struct lyd_node_inner *parent;
@@ -177,14 +189,19 @@ static enum nb_error __move_back_to_next(struct nb_op_yield_state *ys, int i)
 
 	/* trim the tree */
 	parent = i == 0 ? NULL : ni[-1].inner;
-	lyd_free_tree(&ni->inner->node);
+	if (!batching)
+		lyd_free_tree(&ni->inner->node);
+	else
+		/* Free all the previous list node entries as well. */
+		__free_list_nodes(ni->inner);
+
 	ni->inner = NULL;
 	ni->list_entry = NULL;
 	list_entry = (i == 0 ? NULL : ni[-1].list_entry);
 	list_entry = nb_callback_lookup_next(nn, list_entry, &ni->keys);
 	if (!list_entry)
 		/* recurse if not found */
-		return __move_back_to_next(ys, i - 1);
+		return __move_back_to_next(ys, i - 1, batching);
 
 	/* get the keys of the new entry */
 	ret = nb_callback_get_keys(nn, list_entry, &ni->keys);
@@ -203,7 +220,8 @@ static enum nb_error __move_back_to_next(struct nb_op_yield_state *ys, int i)
 	return NB_OK;
 }
 
-static enum nb_error nb_op_resume_data_tree(struct nb_op_yield_state *ys)
+static enum nb_error nb_op_resume_data_tree(struct nb_op_yield_state *ys,
+					    bool batching)
 {
 	struct nb_op_node_info *ni;
 	struct nb_node *nn;
@@ -215,6 +233,10 @@ static enum nb_error nb_op_resume_data_tree(struct nb_op_yield_state *ys)
 	 * Walk the rightmost branch from base to tip verifying lookup_next list
 	 * nodes are still present. If not then we prune the branch and resume
 	 * with the lookup_next and the keys from the old node.
+	 */
+	/* TODO: batching support, if we sent a batch during the previous yield,
+	 * then we need to prune all list entries prior to the topmost one when
+	 * restoring the walk.
 	 */
 	darr_foreach_i (ys->node_infos, i) {
 		ni = &ys->node_infos[i];
@@ -231,7 +253,7 @@ static enum nb_error nb_op_resume_data_tree(struct nb_op_yield_state *ys)
 			 * move back to last lookup_next list node
 			 * (which may be this one) and get next.
 			 */
-			ret = __move_back_to_next(ys, i);
+			ret = __move_back_to_next(ys, i, batching);
 			if (ret) {
 				flog_warn(EC_LIB_NB_OPERATIONAL_DATA,
 					  "%s: oper-state walk aborted due to state deletion",
@@ -240,6 +262,12 @@ static enum nb_error nb_op_resume_data_tree(struct nb_op_yield_state *ys)
 			}
 			return NB_OK;
 		}
+	}
+	/* Everything in the branch was still valid
+	 * If we are batching we need to prune the existing tree
+	 */
+	if (batching) {
+		// XXX:
 	}
 	return NB_OK;
 }
@@ -611,7 +639,8 @@ static const struct lysc_node *nb_op_sib_next(const struct lysc_node *sib)
  *                             Schema Leaf C: 7,10,13
  *                             Schema Leaf D: 8,11,14
  */
-static enum nb_error nb_op_walk(struct nb_op_yield_state *ys, bool is_resume)
+static enum nb_error nb_op_walk(struct nb_op_yield_state *ys, bool is_resume,
+				bool batching)
 {
 	struct lyd_node_inner *walk_base_node = ys_base_node(ys);
 	const struct lysc_node *sib;
@@ -856,8 +885,11 @@ static enum nb_error nb_op_walk(struct nb_op_yield_state *ys, bool is_resume)
 				 * node; for `list_start` this hasn't happened
 				 * yet, as it happens below.
 				 */
-				if (!list_start)
+				if (!list_start) {
+					if (is_resume && batching)
+						__free_list_nodes(ni->inner);
 					ys_pop_inner(ys);
+				}
 
 				/* condition 1 ((uint *)ys->node_infos)[-2]==2 */
 				/* show mgmt get-data-tree /frr-vrf:lib/vrf[name="default"] */
@@ -951,6 +983,10 @@ static enum nb_error nb_op_walk(struct nb_op_yield_state *ys, bool is_resume)
 				ret = NB_ERR_RESOURCE;
 				goto done;
 			}
+			if (is_resume && batching && ni->inner) {
+				__free_list_nodes(ni->inner);
+				batching = false; /* done pruning */
+			}
 			/*
 			 * Save the new list entry with the list node info
 			 */
@@ -995,11 +1031,11 @@ static void nb_op_walk_cb(struct event *thread)
 	DEBUGD(&nb_dbg_cbs_state, "northbound oper-state: resuming %s",
 	       ys->xpath);
 
-	ret = nb_op_resume_data_tree(ys);
+	ret = nb_op_resume_data_tree(ys, ys->should_batch);
 	if (ret)
 		goto done;
 
-	ret = nb_op_walk(ys, true);
+	ret = nb_op_walk(ys, true, ys->should_batch);
 	if (ret == NB_YIELD) {
 		nb_op_yield(ys);
 		return;
@@ -1087,7 +1123,7 @@ static int _nb_op_iterate(const char *xpath, struct nb_op_yield_state *ys)
 		ys->query_list_entry = true;
 	ys->walk_root_level = darr_len(ys->node_infos) - 1;
 
-	return nb_op_walk(ys, false);
+	return nb_op_walk(ys, false, ys->should_batch);
 }
 
 
@@ -1101,6 +1137,8 @@ void nb_op_iterate_yielding(const char *xpath,
 
 	ys = nb_op_create_yield_state(xpath, translator, flags, cb, cb_arg,
 				      finish, finish_arg);
+
+	/* ys->should_batch = true */
 
 	ret = _nb_op_iterate(xpath, ys);
 	if (ret == NB_YIELD) {

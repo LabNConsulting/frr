@@ -74,6 +74,7 @@ _Static_assert(sizeof(struct mgmt_msg_get_tree) ==
 struct mgmt_msg_tree_data {
 	struct mgmt_msg_header;
 	int8_t partial_error;
+	uint8_t more;
 	uint8_t result_type;
 	alignas(8) uint8_t result[];
 };

@@ -270,13 +270,14 @@ int mgmt_txn_notify_error(struct mgmt_be_client_adapter *adapter,
  *	result_type: LYD_FORMAT the format of the result data.
  *	result: the result data in result_type format.
  *	result_len: the length of the data.
+ *	more: true if there is more coming for this result.
  *	partial_error: if an error occurred during data gathering.
  */
 extern int
 mgmt_txn_notify_tree_data_reply(struct mgmt_be_client_adapter *adapter,
 				uint64_t txn_id, uint64_t req_id,
 				LYD_FORMAT result_type, void *result,
-				size_t result_len, int partial_error);
+				size_t result_len, bool more, int partial_error);
 
 /*
  * Dump transaction status to vty.
