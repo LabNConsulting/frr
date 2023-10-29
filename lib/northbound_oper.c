@@ -21,7 +21,8 @@ DEFINE_MTYPE_STATIC(LIB, NB_YIELD_STATE, "NB Yield State");
 DEFINE_MTYPE_STATIC(LIB, NB_XPATH, "NB XPath String");
 
 /* Amount of time allowed to spend constructing oper-state prior to yielding */
-#define NB_OP_WALK_INTERVAL_US 10000
+#define NB_OP_WALK_INTERVAL_MS 10
+#define NB_OP_WALK_INTERVAL_US (NB_OP_WALK_INTERVAL_MS * 1000)
 
 /* ---------- */
 /* Data Types */
@@ -32,10 +33,12 @@ DEFINE_MTYPE_STATIC(LIB, NB_XPATH, "NB XPath String");
  */
 struct nb_op_node_info {
 	struct lyd_node_inner *inner;
+	const struct lysc_node *schema; /* inner schema in case we rm inner */
 	struct yang_list_keys keys; /* if list, keys to locate element */
 	const void *list_entry;	    /* opaque entry from user or NULL */
 	uint xpath_len;		  /* length of the xpath string for this node */
-	uint nlist_ents;	  /* number of list elements created so far */
+	uint niters;		  /* # list elems created so far */
+	uint nents;		  /* # list elems created this iteration */
 	bool has_lookup_next : 1; /* if this node support lookup next */
 	bool lookup_next_ok : 1;  /* if this and all previous support */
 };
@@ -78,7 +81,8 @@ static void nb_op_yield(struct nb_op_yield_state *ys);
 static inline struct nb_op_yield_state *
 nb_op_create_yield_state(const char *xpath, struct yang_translator *translator,
 			 uint32_t flags, nb_oper_data_cb cb, void *cb_arg,
-			 nb_oper_data_finish_cb finish, void *finish_arg)
+			 bool should_batch, nb_oper_data_finish_cb finish,
+			 void *finish_arg)
 {
 	struct nb_op_yield_state *ys;
 
@@ -89,6 +93,7 @@ nb_op_create_yield_state(const char *xpath, struct yang_translator *translator,
 	ys->flags = flags;
 	ys->cb = cb;
 	ys->cb_arg = cb_arg;
+	ys->should_batch = should_batch;
 	ys->finish = finish;
 	ys->finish_arg = finish_arg;
 
@@ -105,11 +110,11 @@ static inline void nb_op_free_yield_state(struct nb_op_yield_state *ys)
 	}
 }
 
-static struct lyd_node_inner *ys_base_node(struct nb_op_yield_state *ys)
+static const struct lysc_node *ys_base_schema_node(struct nb_op_yield_state *ys)
 {
 	if (ys->walk_root_level == -1)
 		return NULL;
-	return ys->node_infos[ys->walk_root_level].inner;
+	return ys->node_infos[ys->walk_root_level].schema;
 }
 
 static struct lyd_node *ys_root_node(struct nb_op_yield_state *ys)
@@ -157,26 +162,41 @@ static void nb_op_get_keys(struct lyd_node_inner *list_node,
 	keys->num = n;
 }
 
-static void __free_list_nodes(struct lyd_node_inner *inner)
+static void __free_list_nodes(struct lyd_node_inner *inner, bool inclusive)
 {
 	const struct lysc_node *list_snode;
 	struct lyd_node *next, *node;
 
 	list_snode = inner->schema;
-	LYD_LIST_FOR_INST_SAFE (&inner->node, list_snode, next, node)
+	LYD_LIST_FOR_INST_SAFE (&inner->node, list_snode, next, node) {
+		if (node == &inner->node && !inclusive)
+			continue;
 		lyd_free_tree(node);
+	}
 }
+
+static void __free_non_branch_nodes(struct nb_op_yield_state *ys)
+{
+	struct nb_op_node_info *ni;
+	uint i;
+
+	darr_foreach_i (ys->node_infos, i) {
+		ni = &ys->node_infos[i];
+
+		if (CHECK_FLAG(ni->schema->nodetype, LYS_CONTAINER))
+			continue;
+
+		__free_list_nodes(ni->inner, false);
+	}
+}
+
 
 static enum nb_error __move_back_to_next(struct nb_op_yield_state *ys, int i,
 					 bool batching)
 {
 	struct nb_op_node_info *ni;
-	struct lyd_node_inner *parent;
-	struct nb_node *nn;
-	const void *list_entry;
-	enum nb_error ret;
-	LY_ERR err;
 
+	/* Find the topmost list schema node that supports lookup_next */
 	for (; i >= ys->walk_root_level; i--) {
 		if (ys->node_infos[i].has_lookup_next)
 			break;
@@ -185,37 +205,17 @@ static enum nb_error __move_back_to_next(struct nb_op_yield_state *ys, int i,
 		return NB_ERR_NOT_FOUND;
 
 	ni = &ys->node_infos[i];
-	nn = ni->inner->schema->priv;
-
-	/* trim the tree */
-	parent = i == 0 ? NULL : ni[-1].inner;
+	/*
+	 * The i'th node has been lost after a yield so trim it from the tree
+	 * now. If we are batching we also free the siblings as normal.
+	 */
 	if (!batching)
 		lyd_free_tree(&ni->inner->node);
 	else
-		/* Free all the previous list node entries as well. */
-		__free_list_nodes(ni->inner);
+		__free_list_nodes(ni->inner, true);
 
 	ni->inner = NULL;
 	ni->list_entry = NULL;
-	list_entry = (i == 0 ? NULL : ni[-1].list_entry);
-	list_entry = nb_callback_lookup_next(nn, list_entry, &ni->keys);
-	if (!list_entry)
-		/* recurse if not found */
-		return __move_back_to_next(ys, i - 1, batching);
-
-	/* get the keys of the new entry */
-	ret = nb_callback_get_keys(nn, list_entry, &ni->keys);
-	if (ret) {
-		flog_warn(EC_LIB_NB_CB_STATE, "%s: failed to get list keys",
-			  __func__);
-		return ret;
-	}
-	if (ni->keys.num != yang_snode_num_keys(nn->snode))
-		return NB_ERR_INCONSISTENCY;
-
-	err = yang_lyd_new_list(parent, nn->snode, &ni->keys, &ni->inner);
-	if (err)
-		return NB_ERR_RESOURCE;
 
 	return NB_OK;
 }
@@ -230,19 +230,30 @@ static enum nb_error nb_op_resume_data_tree(struct nb_op_yield_state *ys,
 	uint i;
 
 	/*
-	 * Walk the rightmost branch from base to tip verifying lookup_next list
-	 * nodes are still present. If not then we prune the branch and resume
-	 * with the lookup_next and the keys from the old node.
+	 * IMPORTANT: On yielding: we always yield after the initial list
+	 * element has been created and handled, so the top of the yield stack
+	 * will always point at a list node.
+	 *
+	 * Additionally, that list node has been processed and was in the
+	 * process of being "get_next"d when we yielded.
+	 *
+	 * Walk the rightmost branch from base to tip verifying all list nodes
+	 * are still present. If not we backup to the node which has a lookup
+	 * next, and we prune the branch to this node. If the list node that
+	 * went away is the topmost we will be using lookup_next, but if it's a
+	 * parent then our list_item was restored.
 	 */
+
 	/* TODO: batching support, if we sent a batch during the previous yield,
 	 * then we need to prune all list entries prior to the topmost one when
 	 * restoring the walk.
 	 */
+
 	darr_foreach_i (ys->node_infos, i) {
 		ni = &ys->node_infos[i];
-		nn = ni->inner->schema->priv;
+		nn = ni->schema->priv;
 
-		if (CHECK_FLAG(ni->inner->schema->nodetype, LYS_CONTAINER))
+		if (CHECK_FLAG(ni->schema->nodetype, LYS_CONTAINER))
 			continue;
 
 		/* Verify the entry is still present */
@@ -262,13 +273,11 @@ static enum nb_error nb_op_resume_data_tree(struct nb_op_yield_state *ys,
 			}
 			return NB_OK;
 		}
+		/* free up the left-siblings of the right-most list node */
+		if (batching)
+			__free_list_nodes(ni->inner, false);
 	}
-	/* Everything in the branch was still valid
-	 * If we are batching we need to prune the existing tree
-	 */
-	if (batching) {
-		// XXX:
-	}
+
 	return NB_OK;
 }
 
@@ -370,6 +379,7 @@ static enum nb_error nb_op_init_data_tree(const char *xpath,
 		ni = &ninfo[i - 1];
 		memset(ni, 0, sizeof(*ni));
 		ni->inner = inner;
+		ni->schema = inner->schema;
 		/*
 		 * NOTE: we could build this by hand with a litte more effort,
 		 * but this simple implementation works and won't be expensive
@@ -385,7 +395,7 @@ static enum nb_error nb_op_init_data_tree(const char *xpath,
 
 		ni = &ninfo[i];
 		inner = ni->inner;
-		nn = inner->schema->priv;
+		nn = ni->schema->priv;
 
 		ni->has_lookup_next = nn->cbs.lookup_next != NULL;
 		ni->list_entry = i == 0 ? NULL : ni[-1].list_entry;
@@ -642,7 +652,7 @@ static const struct lysc_node *nb_op_sib_next(const struct lysc_node *sib)
 static enum nb_error nb_op_walk(struct nb_op_yield_state *ys, bool is_resume,
 				bool batching)
 {
-	struct lyd_node_inner *walk_base_node = ys_base_node(ys);
+	const struct lysc_node *walk_base_snode = ys_base_schema_node(ys);
 	const struct lysc_node *sib;
 	const void *parent_list_entry = NULL;
 	const void *list_entry = NULL;
@@ -658,7 +668,7 @@ static enum nb_error nb_op_walk(struct nb_op_yield_state *ys, bool is_resume,
 	monotime(&ys->start_time);
 
 	/* Don't currently support walking all root nodes */
-	if (!walk_base_node)
+	if (!walk_base_snode)
 		return NB_ERR_NOT_FOUND;
 
 	/*
@@ -668,15 +678,15 @@ static enum nb_error nb_op_walk(struct nb_op_yield_state *ys, bool is_resume,
 	 * walking, starting with non-yielding children.
 	 */
 	if (is_resume)
-		sib = darr_last(ys->node_infos)->inner->schema;
+		sib = darr_last(ys->node_infos)->schema;
 	else if (ys->query_list_entry)
-		sib = walk_base_node->schema;
+		sib = walk_base_snode;
 	else {
 		/* Start with non-yielding children first. */
-		sib = lysc_node_child(walk_base_node->schema);
+		sib = lysc_node_child(walk_base_snode);
 		sib = __sib_next(false, sib);
 		if (!sib)
-			sib = lysc_node_child(walk_base_node->schema);
+			sib = lysc_node_child(walk_base_snode);
 	}
 
 	char *xpath_child = NULL;
@@ -700,7 +710,7 @@ static enum nb_error nb_op_walk(struct nb_op_yield_state *ys, bool is_resume,
 			 */
 
 			/* Grab the containing node. */
-			sib = ni->inner->schema;
+			sib = ni->schema;
 
 			if (sib->nodetype == LYS_CONTAINER) {
 				/* If we added an empty container node (no
@@ -778,7 +788,9 @@ static enum nb_error nb_op_walk(struct nb_op_yield_state *ys, bool is_resume,
 			/* push this container node on top of the stack */
 			ni = darr_append(ys->node_infos);
 			ni->inner = (struct lyd_node_inner *)node;
-			ni->nlist_ents = 0;
+			ni->schema = node->schema;
+			ni->niters = 0;
+			ni->nents = 0;
 			ni->has_lookup_next = false;
 			ni->lookup_next_ok = ni[-1].lookup_next_ok;
 			ni->list_entry = ni[-1].list_entry;
@@ -791,7 +803,7 @@ static enum nb_error nb_op_walk(struct nb_op_yield_state *ys, bool is_resume,
 
 			continue;
 		case LYS_LIST:
-			list_start = ni->inner->schema != sib;
+			list_start = ni->schema != sib;
 			if (list_start) {
 				/*
 				 * Our node info wasn't on top so this is a new
@@ -844,18 +856,26 @@ static enum nb_error nb_op_walk(struct nb_op_yield_state *ys, bool is_resume,
 					ys->query_did_entry = true;
 					goto query_entry_skip_keys;
 				}
-			} else if (ni && ni->lookup_next_ok &&
-				   (monotime_since(&ys->start_time, NULL) >
-					    NB_OP_WALK_INTERVAL_US ||
-				    ni->nlist_ents > 1)) {
+			} else if (ni && ni->has_lookup_next &&
+				   // XXX restore this after testings: ni->lookup_next_ok &&
+				   // XXX: should have something like && > 1 to
+				   // make sure we advance, if the interval is
+				   // fast and we are very slow.
+				   // (monotime_since(&ys->start_time, NULL) > NB_OP_WALK_INTERVAL_US && ni->niters)
+				   // (monotime_since(&ys->start_time, NULL) > NB_OP_WALK_INTERVAL_US ||
+				   (ni->niters + 1) % 10000 == 0) {
 				/* This is a yield supporting list node and
 				 * we've been running at least our yield
 				 * interval, so yield.
+				 *
+				 * Note: we never yeild on list_start, and we
+				 * are always about to be doing a get_next
 				 */
-				ni->nlist_ents = 0;
+				ni->niters = 0;
 				return NB_YIELD;
 			} else if (!list_start && !list_entry &&
 				   ni->has_lookup_next) {
+				// ni->lookup_next_ok) {
 				/* We don't have the previous object, but we have
 				 * the previous keys
 				 */
@@ -881,13 +901,13 @@ static enum nb_error nb_op_walk(struct nb_op_yield_state *ys, bool is_resume,
 				sib = nb_op_sib_next(sib);
 
 				/* Pop the list node up to our parent, but
-				 * only if we've already pushed the current list
-				 * node; for `list_start` this hasn't happened
-				 * yet, as it happens below.
+				 * only if we've already pushed a node for the
+				 * current list schema. For `list_start` this
+				 * hasn't happened yet, as would have happened
+				 * below. So basically we processed an empty
+				 * list.
 				 */
 				if (!list_start) {
-					if (is_resume && batching)
-						__free_list_nodes(ni->inner);
 					ys_pop_inner(ys);
 				}
 
@@ -925,7 +945,8 @@ static enum nb_error nb_op_walk(struct nb_op_yield_state *ys, bool is_resume,
 				ni->lookup_next_ok = ((!pni && ys->finish) ||
 						      pni->lookup_next_ok) &&
 						     ni->has_lookup_next;
-				ni->nlist_ents = 0;
+				ni->niters = 0;
+				ni->nents = 0;
 
 				/* this will be our predicate-less xpath */
 				darr_in_strcat(ys->xpath, "/");
@@ -967,7 +988,7 @@ static enum nb_error nb_op_walk(struct nb_op_yield_state *ys, bool is_resume,
 				darr_ensure_avail(ys->xpath, 10);
 				snprintf(ys->xpath + len,
 					 darr_cap(ys->xpath) - len + 1, "[%u]",
-					 ni->nlist_ents + 1);
+					 ni->nents + 1);
 			}
 			darr_setlen(ys->xpath,
 				    strlen(ys->xpath + len) + len + 1);
@@ -983,16 +1004,20 @@ static enum nb_error nb_op_walk(struct nb_op_yield_state *ys, bool is_resume,
 				ret = NB_ERR_RESOURCE;
 				goto done;
 			}
+#if 0
 			if (is_resume && batching && ni->inner) {
 				__free_list_nodes(ni->inner);
 				batching = false; /* done pruning */
 			}
+#endif
 			/*
 			 * Save the new list entry with the list node info
 			 */
 			ni->inner = (struct lyd_node_inner *)node;
+			ni->schema = node->schema;
 			ni->list_entry = list_entry;
-			ni->nlist_ents += 1;
+			ni->niters += 1;
+			ni->nents += 1;
 
 			/* Skip over the key children, they've been created. */
 query_entry_skip_keys:
@@ -1052,9 +1077,14 @@ static void nb_op_yield(struct nb_op_yield_state *ys)
 	DEBUGD(&nb_dbg_cbs_state, "NB oper-state: yielding %s for %dms",
 	       ys->xpath, ms);
 
-	/* we actually want to keep the values to see if they change */
-	/* darr_foreach_i (ys->node_infos, i) */
-	/* 	ys->node_infos[i].list_entry = NULL; */
+	if (DEBUG_MODE_CHECK(&nb_dbg_cbs_state, DEBUG_MODE_ALL))
+		yang_zlog_tree("yielding tree", ys_root_node(ys), 16 * 1024);
+
+	/* if we are batching call the finish handler to send a batch */
+	if (ys->should_batch) {
+		(*ys->finish)(ys_root_node(ys), ys->finish_arg, NB_YIELD);
+		__free_non_branch_nodes(ys);
+	}
 
 	event_add_timer_msec(event_loop, nb_op_walk_cb, ys, ms, &walk_ev);
 }
@@ -1129,14 +1159,14 @@ static int _nb_op_iterate(const char *xpath, struct nb_op_yield_state *ys)
 
 void nb_op_iterate_yielding(const char *xpath,
 			    struct yang_translator *translator, uint32_t flags,
-			    nb_oper_data_cb cb, void *cb_arg,
+			    nb_oper_data_cb cb, void *cb_arg, bool should_batch,
 			    nb_oper_data_finish_cb finish, void *finish_arg)
 {
 	struct nb_op_yield_state *ys;
 	enum nb_error ret;
 
 	ys = nb_op_create_yield_state(xpath, translator, flags, cb, cb_arg,
-				      finish, finish_arg);
+				      should_batch, finish, finish_arg);
 
 	/* ys->should_batch = true */
 
@@ -1163,7 +1193,7 @@ enum nb_error nb_op_iterate_legacy(const char *xpath,
 	enum nb_error ret;
 
 	ys = nb_op_create_yield_state(xpath, translator, flags, cb, cb_arg,
-				      NULL, NULL);
+				      false, NULL, NULL);
 
 	ret = _nb_op_iterate(xpath, ys);
 	assert(ret != NB_YIELD);

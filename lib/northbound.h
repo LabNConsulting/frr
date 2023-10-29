@@ -1318,7 +1318,8 @@ extern enum nb_error nb_op_iterate_legacy(const char *xpath,
 extern void nb_op_iterate_yielding(const char *xpath,
 				   struct yang_translator *translator,
 				   uint32_t flags, nb_oper_data_cb cb,
-				   void *arg, nb_oper_data_finish_cb finish,
+				   void *arg, bool should_batch,
+				   nb_oper_data_finish_cb finish,
 				   void *finish_arg);
 
 /*

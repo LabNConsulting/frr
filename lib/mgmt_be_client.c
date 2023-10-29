@@ -823,7 +823,7 @@ struct be_client_get_tree_finish_args {
 /*
  * Process the get-tree request on our local oper state
  */
-static void be_client_get_tree_finish(struct lyd_node *tree, void *arg, int ret)
+static void be_client_get_tree_batch(struct lyd_node *tree, void *arg, int ret)
 {
 	struct be_client_get_tree_finish_args *args = arg;
 	struct mgmt_be_client *client = args->client;
@@ -895,8 +895,8 @@ static void be_client_handle_get_tree(struct mgmt_be_client *client,
 	args->txn_id = get_tree_msg->txn_id;
 	args->req_id = get_tree_msg->req_id;
 	args->result_type = get_tree_msg->result_type;
-	nb_op_iterate_yielding(get_tree_msg->xpath, NULL, 0, NULL, NULL,
-			       be_client_get_tree_finish, args);
+	nb_op_iterate_yielding(get_tree_msg->xpath, NULL, 0, NULL, NULL, true,
+			       be_client_get_tree_batch, args);
 }
 
 /*
