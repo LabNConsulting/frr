@@ -968,6 +968,7 @@ static enum nb_error nb_op_walk(struct nb_op_yield_state *ys, bool is_resume,
 				 * node_info on stack.
 				 */
 				ni = darr_append(ys->node_infos);
+				pni = &ni[-1]; /* memory may have moved */
 				ni->has_lookup_next = nn->cbs.lookup_next !=
 						      NULL;
 				ni->lookup_next_ok = ((!pni && ys->finish) ||
