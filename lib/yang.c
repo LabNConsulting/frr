@@ -723,7 +723,7 @@ static LY_ERR __print_tree_append(uint8_t **darr, size_t maxcap,
 	if (err)
 		zlog_err("Failed to save yang tree: %s", ly_last_errmsg());
 	else if (format != LYD_LYB)
-		*darr_append(*darr) = 0;
+		*darr_append(args.buf) = 0;
 	*darr = args.buf;
 	return err;
 }
