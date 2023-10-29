@@ -162,26 +162,48 @@ static void nb_op_get_keys(struct lyd_node_inner *list_node,
 	keys->num = n;
 }
 
+#if 0
+static struct lyd_node *__first_sib_with_schema(struct lyd_node *siblings)
+{
+	const struct lysc_node *schema = siblings->schema;
+
+	if (siblings->parent) {
+		siblings = siblings->parent->child;
+	} else {
+		while (siblings->prev->next) {
+			siblings = siblings->prev;
+		}
+	}
+	if (siblings->schema == schema)
+		return siblings;
+	for (; siblings; siblings = siblings->next)
+		if (siblings->schema == schema)
+			return siblings;
+	return NULL;
+}
+
 static void __free_list_nodes(struct lyd_node_inner *inner, bool inclusive)
 {
-	const struct lysc_node *list_snode;
-	struct lyd_node *next, *node;
+	struct lyd_node *node = &inner->node;
+	const struct lysc_node *schema = node->schema;
+	struct lyd_node *sib = __first_sib_with_schema(node);
+	struct lyd_node *next;
 
-	list_snode = inner->schema;
-	LYD_LIST_FOR_INST_SAFE (&inner->node, list_snode, next, node) {
-		if (node == &inner->node && !inclusive)
+	for (; sib && sib->schema == schema; sib = next) {
+		next = node->next;
+		if (!inclusive && sib == node)
 			continue;
-		lyd_free_tree(node);
+		lyd_free_tree(sib);
 	}
 }
 
 static void __free_non_branch_nodes(struct nb_op_yield_state *ys)
 {
 	struct nb_op_node_info *ni;
-	uint i;
+	size_t i = darr_len(ys->node_infos);
 
-	darr_foreach_i (ys->node_infos, i) {
-		ni = &ys->node_infos[i];
+	for (; i > 0; i--) {
+		ni = &ys->node_infos[i - 1];
 
 		if (CHECK_FLAG(ni->schema->nodetype, LYS_CONTAINER))
 			continue;
@@ -189,6 +211,7 @@ static void __free_non_branch_nodes(struct nb_op_yield_state *ys)
 		__free_list_nodes(ni->inner, false);
 	}
 }
+#endif
 
 
 static enum nb_error __move_back_to_next(struct nb_op_yield_state *ys, int i,
@@ -209,10 +232,13 @@ static enum nb_error __move_back_to_next(struct nb_op_yield_state *ys, int i,
 	 * The i'th node has been lost after a yield so trim it from the tree
 	 * now. If we are batching we also free the siblings as normal.
 	 */
+	lyd_free_tree(&ni->inner->node);
+#if 0
 	if (!batching)
 		lyd_free_tree(&ni->inner->node);
 	else
 		__free_list_nodes(ni->inner, true);
+#endif
 
 	ni->inner = NULL;
 	ni->list_entry = NULL;
@@ -273,9 +299,11 @@ static enum nb_error nb_op_resume_data_tree(struct nb_op_yield_state *ys,
 			}
 			return NB_OK;
 		}
+		#if 0
 		/* free up the left-siblings of the right-most list node */
 		if (batching)
 			__free_list_nodes(ni->inner, false);
+		#endif
 	}
 
 	return NB_OK;
@@ -997,8 +1025,11 @@ static enum nb_error nb_op_walk(struct nb_op_yield_state *ys, bool is_resume,
 			/*
 			 * Create the new list entry node.
 			 */
-			err = yang_lyd_new_list(ni[-1].inner, sib, &ni->keys,
-						(struct lyd_node_inner **)&node);
+			err = lyd_new_list2(&ni[-1].inner->node, sib->module,
+					    sib->name, ys->xpath + len, false,
+					    &node);
+			// err = yang_lyd_new_list(ni[-1].inner, sib, &ni->keys,
+			// 		(struct lyd_node_inner **)&node);
 			if (err) {
 				darr_pop(ys->node_infos);
 				ret = NB_ERR_RESOURCE;
@@ -1077,13 +1108,13 @@ static void nb_op_yield(struct nb_op_yield_state *ys)
 	DEBUGD(&nb_dbg_cbs_state, "NB oper-state: yielding %s for %dms",
 	       ys->xpath, ms);
 
-	if (DEBUG_MODE_CHECK(&nb_dbg_cbs_state, DEBUG_MODE_ALL))
-		yang_zlog_tree("yielding tree", ys_root_node(ys), 16 * 1024);
+	/* if (DEBUG_MODE_CHECK(&nb_dbg_cbs_state, DEBUG_MODE_ALL)) */
+     	/* 	yang_zlog_tree("yielding tree", ys_root_node(ys), 16 * 1024); */
 
 	/* if we are batching call the finish handler to send a batch */
 	if (ys->should_batch) {
 		(*ys->finish)(ys_root_node(ys), ys->finish_arg, NB_YIELD);
-		__free_non_branch_nodes(ys);
+		// __free_non_branch_nodes(ys);
 	}
 
 	event_add_timer_msec(event_loop, nb_op_walk_cb, ys, ms, &walk_ev);
