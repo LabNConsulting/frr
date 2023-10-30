@@ -1465,6 +1465,24 @@ const void *nb_callback_lookup_entry(const struct nb_node *nb_node,
 	return nb_node->cbs.lookup_entry(&args);
 }
 
+const void *nb_callback_lookup_next(const struct nb_node *nb_node,
+				    const void *parent_list_entry,
+				    const struct yang_list_keys *keys)
+{
+	struct nb_cb_lookup_entry_args args = {};
+
+	if (CHECK_FLAG(nb_node->flags, F_NB_NODE_IGNORE_CBS))
+		return NULL;
+
+	DEBUGD(&nb_dbg_cbs_state,
+	       "northbound callback (lookup_entry): node [%s] parent_list_entry [%p]",
+	       nb_node->xpath, parent_list_entry);
+
+	args.parent_list_entry = parent_list_entry;
+	args.keys = keys;
+	return nb_node->cbs.lookup_entry(&args);
+}
+
 int nb_callback_rpc(const struct nb_node *nb_node, const char *xpath,
 		    const struct list *input, struct list *output, char *errmsg,
 		    size_t errmsg_len)
@@ -1981,9 +1999,8 @@ static int nb_oper_data_iter_list(const struct nb_node *nb_node,
 
 	/* Iterate over all list entries. */
 	do {
-		const struct lysc_node_leaf *skey;
 		struct yang_list_keys list_keys = {};
-		int len, len2, ret;
+		int len, ret;
 
 		/* Obtain list entry. */
 		list_entry = nb_callback_get_next(nb_node, parent_list_entry,
@@ -2008,19 +2025,10 @@ static int nb_oper_data_iter_list(const struct nb_node *nb_node,
 			len = strlen(xpath);
 			key_preds = &xpath[len];
 
-			unsigned int i = 0;
-			LY_FOR_KEYS (snode, skey) {
-				assert(i < list_keys.num);
-				len2 = snprintf(xpath + len, sizeof(xpath) - len,
-						"[%s='%s']", skey->name,
-						list_keys.key[i]);
-				if (len2 > (ssize_t)sizeof(xpath) - len)
-					len = sizeof(xpath);
-				else
-					len += len2;
-				i++;
-			}
-			assert(i == list_keys.num);
+			uint n = yang_get_key_preds(xpath + len, snode,
+						    &list_keys,
+						    sizeof(xpath) - len);
+			assert(n == list_keys.num);
 
 		} else {
 			/*
@@ -2052,13 +2060,12 @@ static int nb_oper_data_iter_list(const struct nb_node *nb_node,
 	return NB_OK;
 }
 
-static int nb_oper_data_iter_node(const struct lysc_node *snode,
-				  const char *xpath_parent,
-				  const void *list_entry,
-				  const struct yang_list_keys *list_keys,
-				  struct yang_translator *translator, bool first,
-				  uint32_t flags, nb_oper_data_cb cb, void *arg,
-				  struct lyd_node *pdnode)
+int nb_oper_data_iter_node(const struct lysc_node *snode,
+			   const char *xpath_parent, const void *list_entry,
+			   const struct yang_list_keys *list_keys,
+			   struct yang_translator *translator, bool first,
+			   uint32_t flags, nb_oper_data_cb cb, void *arg,
+			   struct lyd_node *pdnode)
 {
 	struct nb_node *nb_node;
 	char xpath[XPATH_MAXLEN];
@@ -2097,6 +2104,7 @@ static int nb_oper_data_iter_node(const struct lysc_node *snode,
 	nb_node = snode->priv;
 	switch (snode->nodetype) {
 	case LYS_CONTAINER:
+		/* does something, then walks children */
 		ret = nb_oper_data_iter_container(nb_node, xpath, first,
 						  list_entry, list_keys,
 						  translator, flags, cb, arg,
@@ -2104,21 +2112,25 @@ static int nb_oper_data_iter_node(const struct lysc_node *snode,
 
 		break;
 	case LYS_LEAF:
+		/* does something then returns */
 		ret = nb_oper_data_iter_leaf(nb_node, xpath, list_entry,
 					     list_keys, translator, flags, cb,
 					     arg, pdnode);
 		break;
 	case LYS_LEAFLIST:
+		/* walks leaf list doing things and returns */
 		ret = nb_oper_data_iter_leaflist(nb_node, xpath, list_entry,
 						 list_keys, translator, flags,
 						 cb, arg, pdnode);
 		break;
 	case LYS_LIST:
+		/* walks children */
 		ret = nb_oper_data_iter_list(nb_node, xpath, list_entry,
 					     list_keys, translator, flags, cb,
 					     arg, pdnode);
 		break;
 	case LYS_USES:
+		/* walks children */
 		ret = nb_oper_data_iter_children(snode, xpath, list_entry,
 						 list_keys, translator, false,
 						 flags, cb, arg, pdnode);
@@ -2185,7 +2197,6 @@ done:
 	return ret;
 }
 
-
 int nb_oper_data_iterate(const char *xpath, struct yang_translator *translator,
 			 uint32_t flags, nb_oper_data_cb cb, void *arg,
 			 struct lyd_node **tree)
@@ -2227,6 +2238,7 @@ int nb_oper_data_iterate(const char *xpath, struct yang_translator *translator,
 			  __func__, xpath);
 		return ret;
 	}
+
 
 	/*
 	 * Create a linked list to sort the data nodes starting from the root.
@@ -2310,10 +2322,14 @@ int nb_oper_data_iterate(const char *xpath, struct yang_translator *translator,
 	if (dnode) {
 		while (lyd_parent(dnode))
 			dnode = lyd_parent(dnode);
-		if (!tree)
-			lyd_free_all(dnode);
-		else
+
+		if (tree && ret == NB_OK)
 			*tree = dnode;
+		else {
+			lyd_free_all(dnode);
+			if (tree)
+				*tree = NULL;
+		}
 	}
 
 	return ret;
@@ -2717,6 +2733,8 @@ const char *nb_err_name(enum nb_error error)
 		return "failed to allocate resource";
 	case NB_ERR_INCONSISTENCY:
 		return "internal inconsistency";
+	case NB_YIELD:
+		return "should yield";
 	}
 
 	assert(!"Reached end of function we should never hit");
@@ -2838,10 +2856,15 @@ void nb_init(struct event_loop *tm,
 
 	/* Initialize the northbound CLI. */
 	nb_cli_init(tm);
+
+	/* Initialize oper-state */
+	nb_op_init(tm);
 }
 
 void nb_terminate(void)
 {
+	nb_op_terminate();
+
 	/* Terminate the northbound CLI. */
 	nb_cli_terminate();
 
