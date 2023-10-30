@@ -1411,11 +1411,9 @@ static int nb_cli_oper_data_cb(const struct lysc_node *snode,
 	}
 
 exit:
-	yang_data_free(data);
 	return NB_OK;
 
 error:
-	yang_data_free(data);
 	return NB_ERR;
 }
 
