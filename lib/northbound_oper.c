@@ -414,6 +414,11 @@ done:
 	return ret;
 }
 
+/*
+ * XXX If we don't find a specific list entry, fine move on. The first time this
+ * happens record the walk base there.
+ */
+
 static enum nb_error nb_op_init_data_tree(const char *xpath,
 					  struct nb_op_node_info **ninfop,
 					  bool last_snode_is_list, bool yield_ok)
@@ -685,6 +690,7 @@ static const struct lysc_node *__sib_next(bool yn, const struct lysc_node *sib)
 			return sib;
 	return NULL;
 }
+
 /*
  * Walk all non-yielding siblings, before the yielding one[s].
  */
@@ -702,6 +708,38 @@ static const struct lysc_node *nb_op_sib_next(const struct lysc_node *sib)
 			return NULL;
 		yn = true;
 		sib = lysc_node_child(parent);
+	}
+	/*NOTREACHED*/
+	return NULL;
+}
+
+static const struct lysc_node *nb_op_sib_first(struct nb_op_yield_state *ys,
+					       const struct lysc_node *parent,
+					       bool skip_keys)
+{
+	const struct lysc_node *sib = lysc_node_child(parent);
+	const struct lysc_node *first_sib;
+	bool yn;
+
+	/* Simple case the user has narrowed the path selection. */
+	if (darr_len(ys->schema_path) > darr_len(ys->node_infos))
+		return ys->schema_path[darr_len(ys->node_infos)];
+
+	if (skip_keys)
+		while (sib && lysc_is_key(sib))
+			sib = sib->next;
+	if (!sib)
+		return NULL;
+
+	first_sib = sib;
+	yn = __is_yielding_node(sib);
+	while (true) {
+		sib = __sib_next(yn, first_sib);
+		if (sib)
+			return sib;
+		if (yn)
+			return NULL;
+		yn = true;
 	}
 	/*NOTREACHED*/
 	return NULL;
@@ -823,8 +861,18 @@ static enum nb_error __walk(struct nb_op_yield_state *ys, bool is_resume)
 				 * parent containers children.
 				 */
 				sib = nb_op_sib_next(sib);
+
 				/* Pop container node to the parent container */
 				ys_pop_inner(ys);
+
+				/*
+				 * If are were working on a user narrowed path
+				 * then we are done with these siblings.
+				 */
+				if (darr_len(ys->schema_path) >
+				    darr_len(ys->node_infos))
+					sib = NULL;
+
 				/* Start over */
 				continue;
 			}
@@ -878,9 +926,7 @@ static enum nb_error __walk(struct nb_op_yield_state *ys, bool is_resume)
 			darr_in_strdup(ys->xpath, xpath_child);
 			ni->xpath_len = darr_strlen(ys->xpath);
 
-			sib = lysc_node_child(sib);
-			assert(sib);
-
+			sib = nb_op_sib_first(ys, sib, false);
 			continue;
 		case LYS_LIST:
 			/*
@@ -1098,11 +1144,7 @@ static enum nb_error __walk(struct nb_op_yield_state *ys, bool is_resume)
 
 			/* Skip over the key children, they've been created. */
 query_entry_skip_keys:
-			sib = lysc_node_child(sib);
-			for (uint i = 0; i < ni->keys.num; i++) {
-				assert(lysc_is_key(sib));
-				sib = nb_op_sib_next(sib);
-			}
+			sib = nb_op_sib_first(ys, sib, true);
 			continue;
 
 		default:
@@ -1115,7 +1157,7 @@ query_entry_skip_keys:
 			flog_warn(EC_LIB_NB_OPERATIONAL_DATA,
 				  "%s: unsupported schema node type: %s",
 				  __func__, lys_nodetype2str(sib->nodetype));
-			sib = nb_op_sib_next(sib);
+			sib = nb_op_sib_next(ys, sib);
 			continue;
 		}
 	}
@@ -1235,9 +1277,12 @@ static enum nb_error nb_op_walk_start(const char *xpath,
 			  "%s: unknown data path: %s", __func__, xpath);
 		return NB_ERR;
 	}
+	/* XXX create darr array of schema node branch in ys->schema_path */
 
 	if (!CHECK_FLAG(nn->snode->nodetype, LYS_CONTAINER | LYS_LIST))
 		return nb_op_singleton(xpath, nn, ys);
+
+	/* XXX this function should set ys->walk_root_level */
 
 	ret = nb_op_init_data_tree(xpath, &ys->node_infos,
 				   nn->snode->nodetype == LYS_LIST,
@@ -1246,8 +1291,16 @@ static enum nb_error nb_op_walk_start(const char *xpath,
 		return ret;
 
 	ni = darr_last(ys->node_infos);
-	if (ni->inner->schema->nodetype == LYS_LIST && ni->list_entry)
+
+	/* XXX actually we should have a flag per entry for this add later */
+	/* XXX need to check this each time we get to this point in our walk,
+	 * not just here at the start to cover generic cases
+	 */
+	if (ys->walk_root_level == darr_ilen(ys->node_infos) - 1 &&
+	    (ni->inner->schema->nodetype == LYS_LIST && ni->list_entry))
 		ys->query_list_entry = true;
+
+	/* XXX this should be removed */
 	ys->walk_root_level = darr_len(ys->node_infos) - 1;
 
 	return __walk(ys, false);
