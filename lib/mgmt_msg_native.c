@@ -22,7 +22,7 @@ int vmgmt_msg_native_send_error(struct msg_conn *conn, uint64_t sess_or_txn_id,
 	int ret;
 
 	msg = XCALLOC(MTYPE_MSG_NATIVE_ERROR, 1024);
-	msg->session_id = sess_or_txn_id;
+	msg->refer_id = sess_or_txn_id;
 	msg->req_id = req_id;
 	msg->code = MGMT_MSG_CODE_ERROR;
 	msg->error = error;

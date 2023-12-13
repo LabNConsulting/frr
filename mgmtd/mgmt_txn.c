@@ -2381,7 +2381,7 @@ int mgmt_txn_send_get_tree_oper(uint64_t txn_id, uint64_t req_id,
 	get_tree->xpath = XSTRDUP(MTYPE_MGMTD_XPATH, xpath);
 
 	msg = XCALLOC(MTYPE_MSG_NATIVE_MSG, mlen);
-	msg->txn_id = txn_id;
+	msg->refer_id = txn_id;
 	msg->req_id = req_id;
 	msg->code = MGMT_MSG_CODE_GET_TREE;
 	/* Always operate with the binary format in the backend */
@@ -2479,7 +2479,7 @@ int mgmt_txn_notify_tree_data_reply(struct mgmt_be_client_adapter *adapter,
 				    struct mgmt_msg_tree_data *data_msg,
 				    size_t msg_len)
 {
-	uint64_t txn_id = data_msg->txn_id;
+	uint64_t txn_id = data_msg->refer_id;
 	uint64_t req_id = data_msg->req_id;
 
 	enum mgmt_be_client_id id = adapter->id;

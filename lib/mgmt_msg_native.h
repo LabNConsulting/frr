@@ -27,35 +27,67 @@ DECLARE_MTYPE(MSG_NATIVE_MSG);
 DECLARE_MTYPE(MSG_NATIVE_ERROR);
 
 /*
+ * Adding New Messages Types
+ * -------------------------
+ *
+ * Native messages structs have 2 simple rules:
+ *
+ * 1) All fields should be naturally aligned.
+ * 2) Any required padding should be explicitly reserved.
+ *
+ * This is so for all intents and purposes the messages may be read and written
+ * direct from "the wire", easily, using common programming languages (e.g.,
+ * C, rust, go, python, ...)
+ *
+ * Additionally by design fixed fields precede the variable length data which
+ * comes at the end. The zero length arrays fields are aligned such that this is so:
+ *
+ *    sizeof(struct mgmt_msg_foo) == offsetof(struct mgmt_msg_foo, field)
+ *
+ * This allows things like `value = (HDR + 1)` to work.
+ */
+
+/*
  * Native message codes
  */
 #define MGMT_MSG_CODE_ERROR	0
 #define MGMT_MSG_CODE_GET_TREE	1
 #define MGMT_MSG_CODE_TREE_DATA 2
 
-/*
- * A note on alignments: The zero length arrays fields are aligned such that
- * this is so:
+/**
+ * struct mgmt_msg_header - Header common to all native messages.
  *
- *    sizeof(struct mgmt_msg_foo) == offsetof(struct mgmt_msg_foo, field)
- *
- * This allows things like `ptr = darr_append_n(A, sizeof(*ptr))`
- * to work
+ * @code: the actual type of the message.
+ * @resv: Set to zero, ignore on receive.
+ * @vsplit: If a variable section is split in 2, the length of first part.
+ * @refer_id: the session, txn, conn, etc, this message is associated with.
+ * @req_id: the request this message is for.
  */
-
-
 struct mgmt_msg_header {
-	union {
-		uint64_t session_id;
-		uint64_t txn_id;
-	};
-	uint64_t req_id;
 	uint16_t code;
+	uint16_t resv;
+	uint32_t vsplit;
+	uint64_t refer_id;
+	uint64_t req_id;
 };
+_Static_assert(sizeof(struct mgmt_msg_header) == 3 * 8, "Bad padding");
+_Static_assert(sizeof(struct mgmt_msg_header) ==
+		       offsetof(struct mgmt_msg_header, req_id) +
+			       sizeof(((struct mgmt_msg_header *)0)->req_id),
+	       "Size mismatch");
 
+/**
+ * struct mgmt_msg_error - Common error message.
+ * @error: An error value.
+ * @errst: Description of error can be 0 length.
+ *
+ * This common error message can be used for replies for many msg requests
+ * (req_id).
+ */
 struct mgmt_msg_error {
 	struct mgmt_msg_header;
 	int16_t error;
+	uint8_t resv2[6];
 
 	alignas(8) char errstr[];
 };
@@ -63,9 +95,15 @@ _Static_assert(sizeof(struct mgmt_msg_error) ==
 		       offsetof(struct mgmt_msg_error, errstr),
 	       "Size mismatch");
 
+/**
+ * struct mgmt_msg_get_tree - Message carrying xpath query request.
+ * @result_type: ``LYD_FORMAT`` for the returned result.
+ * @xpath: the query for the data to return.
+ */
 struct mgmt_msg_get_tree {
 	struct mgmt_msg_header;
 	uint8_t result_type;
+	uint8_t resv2[7];
 
 	alignas(8) char xpath[];
 };
@@ -73,11 +111,20 @@ _Static_assert(sizeof(struct mgmt_msg_get_tree) ==
 		       offsetof(struct mgmt_msg_get_tree, xpath),
 	       "Size mismatch");
 
+/**
+ * struct mgmt_msg_tree_data - Message carrying tree data.
+ * @partial_error: If the full result could not be returned do to this error.
+ * @result_type: ``LYD_FORMAT`` for format of the @result value.
+ * @more: if this is a partial return and there will be more coming.
+ * @result: The tree data in @result_type format.
+ *
+ */
 struct mgmt_msg_tree_data {
 	struct mgmt_msg_header;
 	int8_t partial_error;
 	uint8_t result_type;
 	uint8_t more;
+	uint8_t resv2[5];
 
 	alignas(8) uint8_t result[];
 };

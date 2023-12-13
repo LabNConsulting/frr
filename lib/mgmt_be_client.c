@@ -800,7 +800,7 @@ static enum nb_error be_client_send_tree_data_batch(const struct lyd_node *tree,
 
 	darr_append_nz(buf, offsetof(typeof(*tree_msg), result));
 	tree_msg = (typeof(tree_msg))buf;
-	tree_msg->txn_id = args->txn_id;
+	tree_msg->refer_id = args->txn_id;
 	tree_msg->req_id = args->req_id;
 	tree_msg->code = MGMT_MSG_CODE_TREE_DATA;
 	tree_msg->result_type = args->result_type;
@@ -849,7 +849,7 @@ static void be_client_handle_get_tree(struct mgmt_be_client *client,
 
 	args = XMALLOC(MTYPE_MGMTD_BE_GT_CB_ARGS, sizeof(*args));
 	args->client = client;
-	args->txn_id = get_tree_msg->txn_id;
+	args->txn_id = get_tree_msg->refer_id;
 	args->req_id = get_tree_msg->req_id;
 	args->result_type = get_tree_msg->result_type;
 	nb_op_walk(get_tree_msg->xpath, NULL, 0, true, NULL, NULL,
@@ -865,7 +865,7 @@ static void be_client_handle_native_msg(struct mgmt_be_client *client,
 					struct mgmt_msg_header *msg,
 					size_t msg_len)
 {
-	uint64_t txn_id = msg->txn_id;
+	uint64_t txn_id = msg->refer_id;
 
 	switch (msg->code) {
 	case MGMT_MSG_CODE_GET_TREE:
@@ -876,7 +876,7 @@ static void be_client_handle_native_msg(struct mgmt_be_client *client,
 				    " req-id %" PRIu64 " code %u to client %s",
 				    txn_id, msg->req_id, msg->code,
 				    client->name);
-		be_client_send_error(client, msg->txn_id, msg->req_id, false, -1,
+		be_client_send_error(client, msg->refer_id, msg->req_id, false, -1,
 				     "BE cilent %s recv msg unknown txn-id %" PRIu64,
 				     client->name, txn_id);
 		break;

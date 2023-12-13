@@ -326,7 +326,7 @@ int mgmt_fe_send_get_tree_req(struct mgmt_fe_client *client,
 	int ret;
 
 	msg = XCALLOC(MTYPE_MGMTD_FE_GET_DATA_MSG, mlen);
-	msg->session_id = session_id;
+	msg->refer_id = session_id;
 	msg->req_id = req_id;
 	msg->code = MGMT_MSG_CODE_GET_TREE;
 	msg->result_type = result_type;
@@ -519,13 +519,13 @@ static void fe_client_handle_native_msg(struct mgmt_fe_client *client,
 	struct mgmt_msg_error *err_msg;
 
 	MGMTD_FE_CLIENT_DBG("Got GET_TREE reply for session-id %" PRIu64,
-			    msg->session_id);
+			    msg->refer_id);
 
-	session = mgmt_fe_find_session_by_session_id(client, msg->session_id);
+	session = mgmt_fe_find_session_by_session_id(client, msg->refer_id);
 
 	if (!session || !session->client) {
 		MGMTD_FE_CLIENT_ERR("No session for received native msg session-id %" PRIu64,
-				    msg->session_id);
+				    msg->refer_id);
 		return;
 	}
 
@@ -537,7 +537,7 @@ static void fe_client_handle_native_msg(struct mgmt_fe_client *client,
 		err_msg = (typeof(err_msg))msg;
 		session->client->cbs.error_notify(client, client->user_data,
 						  session->client_id,
-						  msg->session_id,
+						  msg->refer_id,
 						  session->user_ctx,
 						  msg->req_id, err_msg->error,
 						  err_msg->errstr);
@@ -549,7 +549,7 @@ static void fe_client_handle_native_msg(struct mgmt_fe_client *client,
 		tree_msg = (typeof(tree_msg))msg;
 		session->client->cbs.get_tree_notify(client, client->user_data,
 						     session->client_id,
-						     msg->session_id,
+						     msg->refer_id,
 						     session->user_ctx,
 						     msg->req_id,
 						     MGMTD_DS_OPERATIONAL,
@@ -561,7 +561,7 @@ static void fe_client_handle_native_msg(struct mgmt_fe_client *client,
 	default:
 		MGMTD_FE_CLIENT_ERR("unknown native message session-id %" PRIu64
 				    " req-id %" PRIu64 " code %u",
-				    msg->session_id, msg->req_id, msg->code);
+				    msg->refer_id, msg->req_id, msg->code);
 		break;
 	}
 }
