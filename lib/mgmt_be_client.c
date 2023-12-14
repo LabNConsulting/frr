@@ -787,8 +787,8 @@ static enum nb_error be_client_send_tree_data_batch(const struct lyd_node *tree,
 	struct be_client_tree_data_batch_args *args = arg;
 	struct mgmt_be_client *client = args->client;
 	struct mgmt_msg_tree_data *tree_msg = NULL;
-	uint8_t *buf = NULL;
 	bool more = false;
+	uint8_t **darrp;
 	LY_ERR err;
 
 	if (ret == NB_YIELD) {
@@ -798,26 +798,27 @@ static enum nb_error be_client_send_tree_data_batch(const struct lyd_node *tree,
 	if (ret != NB_OK)
 		goto done;
 
-	darr_append_nz(buf, offsetof(typeof(*tree_msg), result));
-	tree_msg = (typeof(tree_msg))buf;
+	tree_msg = mgmt_msg_native_alloc_msg(struct mgmt_msg_tree_data, 0,
+					     MTYPE_MSG_NATIVE_TREE_DATA);
 	tree_msg->refer_id = args->txn_id;
 	tree_msg->req_id = args->req_id;
 	tree_msg->code = MGMT_MSG_CODE_TREE_DATA;
 	tree_msg->result_type = args->result_type;
 	tree_msg->more = more;
-	err = yang_print_tree_append(&buf, tree, args->result_type,
+
+	darrp = mgmt_msg_native_get_darrp(tree_msg);
+	err = yang_print_tree_append(darrp, tree, args->result_type,
 				     (LYD_PRINT_WD_EXPLICIT |
 				      LYD_PRINT_WITHSIBLINGS));
-	/* buf may have been reallocated and moved */
-	tree_msg = (typeof(tree_msg))buf;
-
 	if (err) {
 		ret = NB_ERR;
 		goto done;
 	}
-	(void)be_client_send_native_msg(client, buf, darr_len(buf), false);
+	(void)be_client_send_native_msg(client, tree_msg,
+					mgmt_msg_native_get_msg_len(tree_msg),
+					false);
 done:
-	darr_free(buf);
+	mgmt_msg_native_free_msg(tree_msg);
 	if (ret)
 		be_client_send_error(client, args->txn_id, args->req_id, false,
 				     -EINVAL,

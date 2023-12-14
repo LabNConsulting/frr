@@ -35,7 +35,6 @@ DECLARE_LIST(mgmt_sessions, struct mgmt_fe_client_session, list_linkage);
 
 DEFINE_MTYPE_STATIC(LIB, MGMTD_FE_CLIENT, "frontend client");
 DEFINE_MTYPE_STATIC(LIB, MGMTD_FE_CLIENT_NAME, "frontend client name");
-DEFINE_MTYPE_STATIC(LIB, MGMTD_FE_GET_DATA_MSG, "FE get data msg");
 DEFINE_MTYPE_STATIC(LIB, MGMTD_FE_SESSION, "frontend session");
 
 struct mgmt_fe_client {
@@ -109,13 +108,6 @@ mgmt_fe_find_session_by_session_id(struct mgmt_fe_client *client,
 	MGMTD_FE_CLIENT_DBG("Session not found using session-id %" PRIu64,
 			    session_id);
 	return NULL;
-}
-
-static int fe_client_send_native_msg(struct mgmt_fe_client *client, void *msg,
-				     size_t len, bool short_circuit_ok)
-{
-	return msg_conn_send_msg(&client->client.conn, MGMT_MSG_VERSION_NATIVE,
-				 msg, len, NULL, short_circuit_ok);
 }
 
 static int mgmt_fe_client_send_msg(struct mgmt_fe_client *client,
@@ -322,10 +314,10 @@ int mgmt_fe_send_get_tree_req(struct mgmt_fe_client *client,
 {
 	struct mgmt_msg_get_tree *msg;
 	size_t xplen = strlen(xpath);
-	size_t mlen = sizeof(*msg) + xplen + 1;
 	int ret;
 
-	msg = XCALLOC(MTYPE_MGMTD_FE_GET_DATA_MSG, mlen);
+	msg = mgmt_msg_native_alloc_msg(struct mgmt_msg_get_tree, xplen + 1,
+					MTYPE_MSG_NATIVE_GET_TREE);
 	msg->refer_id = session_id;
 	msg->req_id = req_id;
 	msg->code = MGMT_MSG_CODE_GET_TREE;
@@ -336,8 +328,8 @@ int mgmt_fe_send_get_tree_req(struct mgmt_fe_client *client,
 			    " req-id %" PRIu64 " xpath: %s",
 			    session_id, req_id, xpath);
 
-	ret = fe_client_send_native_msg(client, msg, mlen, false);
-	XFREE(MTYPE_MGMTD_FE_GET_DATA_MSG, msg);
+	ret = mgmt_msg_native_send_msg(&client->client.conn, msg, false);
+	mgmt_msg_native_free_msg(msg);
 	return ret;
 }
 

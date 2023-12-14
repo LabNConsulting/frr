@@ -297,14 +297,6 @@ mgmt_be_adapter_cleanup_old_conn(struct mgmt_be_client_adapter *adapter)
 	}
 }
 
-static int be_adapter_send_native_msg(struct mgmt_be_client_adapter *adapter,
-				      void *msg, size_t len,
-				      bool short_circuit_ok)
-{
-	return msg_conn_send_msg(adapter->conn, MGMT_MSG_VERSION_NATIVE, msg,
-				 len, NULL, short_circuit_ok);
-}
-
 static int mgmt_be_adapter_send_msg(struct mgmt_be_client_adapter *adapter,
 				    Mgmtd__BeMessage *be_msg)
 {
@@ -514,14 +506,14 @@ int mgmt_be_send_cfgapply_req(struct mgmt_be_client_adapter *adapter,
 	return mgmt_be_adapter_send_msg(adapter, &be_msg);
 }
 
-int mgmt_be_send_native(enum mgmt_be_client_id id, void *msg, size_t len)
+int mgmt_be_send_native(enum mgmt_be_client_id id, void *msg)
 {
 	struct mgmt_be_client_adapter *adapter = mgmt_be_get_adapter_by_id(id);
 
 	if (!adapter)
 		return -1;
 
-	return be_adapter_send_native_msg(adapter, msg, len, false);
+	return mgmt_msg_native_send_msg(adapter->conn, msg, false);
 }
 
 /*
