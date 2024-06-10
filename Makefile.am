@@ -185,6 +185,7 @@ include grpc/subdir.am
 include tools/subdir.am
 
 include mgmtd/subdir.am
+include restconfd/subdir.am
 
 include bgpd/subdir.am
 include bgpd/rfp-example/librfp/subdir.am
@@ -327,8 +328,8 @@ SUFFIXES += .lo.bc .o.bc
 # python/makefile.py
 LLVM_LINK = llvm-link-$(llvm_version)
 
-clean-local: clean-python clean-llvm-bitcode
-.PHONY: clean-python clean-llvm-bitcode
+clean-local: clean-python clean-llvm-bitcode clean-restconfd
+.PHONY: clean-python clean-llvm-bitcode clean-restconfd
 clean-python:
 	find . -name __pycache__ -o -name .pytest_cache | xargs rm -rf
 	find . -name "*.pyc" -o -name "*_clippy.c" | xargs rm -f

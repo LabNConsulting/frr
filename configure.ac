@@ -713,6 +713,8 @@ AC_ARG_ENABLE([mgmtd_local_validations],
   AS_HELP_STRING([--enable-mgmtd-local-validations], [dev: unimplemented local validation]))
 AC_ARG_ENABLE([mgmtd_test_be_client],
   AS_HELP_STRING([--enable-mgmtd-test-be-client], [build test backend client]))
+AC_ARG_ENABLE([restconf-server],
+  AS_HELP_STRING([--enable-restconfd], [enable RESTCONF server integration]))
 AC_ARG_ENABLE([fpm_listener],
   AS_HELP_STRING([--enable-fpm-listener], [build fpm listener test program]))
 AC_ARG_ENABLE([ripd],
@@ -2092,6 +2094,23 @@ if test "$enable_config_rollbacks" = "yes"; then
 fi
 
 dnl ---------------
+dnl restconf-server
+dnl ---------------
+if test "$enable_restconfd" = "yes"; then
+  AC_PATH_PROG([CARGO], [cargo], [notfound])
+  AS_IF([test "$CARGO" = "notfound"], [AC_MSG_ERROR([cargo is required])])
+  AC_PATH_PROG([RUSTC], [rustc], [notfound])
+  AS_IF([test "$RUSTC" = "notfound"], [AC_MSG_ERROR([rustc is required])])
+  if test "$enable_dev_build" = "yes"; then
+    CARGO_TARGET_DIR=debug
+  else
+    CARGO_TARGET_DIR=release
+  fi
+  AC_SUBST(CARGO_TARGET_DIR)
+  AC_CONFIG_FILES([restconfd/Cargo.toml])
+fi
+
+dnl ---------------
 dnl sysrepo
 dnl ---------------
 if test "$enable_sysrepo" = "yes"; then
@@ -2760,6 +2779,7 @@ AM_CONDITIONAL([ENABLE_BGP_VNC], [test "$enable_bgp_vnc" != "no"])
 AM_CONDITIONAL([BGP_BMP], [$bgpd_bmp])
 dnl northbound
 AM_CONDITIONAL([SQLITE3], [$SQLITE3])
+AM_CONDITIONAL([RESTCONFD], [test "$enable_restconfd" = "yes"])
 AM_CONDITIONAL([SYSREPO], [test "$enable_sysrepo" = "yes"])
 AM_CONDITIONAL([GRPC], [test "$enable_grpc" = "yes"])
 AM_CONDITIONAL([ZEROMQ], [test "$ZEROMQ" = "true"])

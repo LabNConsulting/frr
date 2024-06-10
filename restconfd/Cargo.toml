@@ -1,0 +1,29 @@
+[package]
+name = "restconfd"
+version = "0.1.0"
+edition = "2021"
+default-run = "restconfd"
+
+[[bin]]
+name = "restconfd"
+path = "main.rs"
+test = false
+bench = false
+
+[[bin]]
+name = "sandbox"
+path = "sandbox.rs"
+test = false
+bench = false
+
+[dependencies]
+axum = { version = "0.7.5", features = ["tracing"]}
+minicbor = { version = "0.24.0", default-features = false }
+tokio = { version = "1.38.0", features = ["full"]}
+
+# For logging
+tower-http = { version = "0.5.2", features = ["trace"]}
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter", "std"]}
+
+[build-dependencies]

@@ -1,0 +1,39 @@
+#
+# restconfd -- RESTCONF Daemon
+#
+
+if RESTCONFD
+
+EXTRA_DIST += restconfd/Cargo.toml
+sbin_PROGRAMS += restconfd/restconfd
+restconfd_restconfd_SOURCES = restconfd/main.rs
+
+if DEV_BUILD
+RESTCONF_BUILD_FLAG =
+RESTCONF_TARGET_DIR = debug
+else
+RESTCONF_BUILD_FLAG = --release
+RESTCONF_TARGET_DIR = release
+endif
+
+# (cd restconfd && cargo update $(RESTCONF_BUILD_FLAG))
+restconfd/Cargo.lock: restconfd/Cargo.toml
+	if [ -f $(srcdir)/restconfd/Cargo.lock ]; then
+		cp $(srcdir)/restconfd/Cargo.lock $@
+	else
+		(cd restconfd && cargo update $(RESTCONF_BUILD_FLAG))
+	fi
+
+restconfd/restconfd: restconfd/target/$(RESTCONF_TARGET_DIR)/restconfd$(EXEEXT)
+	@printf "  CP       restconf/restconfd\n"
+	@cp $< $@
+
+restconfd/target/$(RESTCONF_TARGET_DIR)/restconfd$(EXEEXT): $(restconfd_restconfd_SOURCES) restconfd/Cargo.toml
+	@printf "  CARGO    $@\n"
+	@(cd restconfd && cargo -q build $(RESTCONF_BUILD_FLAG))
+
+clean-restconfd:
+	(cd restconfd && cargo clean)
+else
+clean-restconfd:
+endif

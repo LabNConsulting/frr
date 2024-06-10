@@ -1,0 +1,577 @@
+#+STARTUP: indent
+#+begin_src elisp
+  (setq org-confirm-babel-evaluate nil)
+#+end_src
+
+#+RESULTS:
+
+
+* Rust Sandbox
+** Hello, World
+#+begin_src rust
+  println!("Hello, World")
+#+end_src
+
+#+RESULTS:
+: Hello, World
+
+#+begin_src rust
+  fn main() {
+      println!("Hello, World")
+  }
+#+end_src
+
+#+RESULTS:
+: Hello, World
+
+** Ownership
+#+begin_src rust
+  {
+      let mut s = String::from("hello");
+      s.push_str(", world!");
+      println!("{}", s);
+  }
+#+end_src
+
+#+RESULTS:
+: hello, world!
+
+*** Interacting with Move
+#+begin_src rust
+  {
+      let s1 = String::from("hello");
+      let s2 = s1;
+
+      println!("{}, world!", s1);
+  }
+#+end_src
+
+#+RESULTS:
+: error: Could not compile `cargoyHgvkQ`.
+
+#+begin_src rust
+  {
+      let s1 = String::from("hello");
+      let s2 = s1.clone();
+
+      println!("s1: {}, s2: {}", s1, s2);
+  }
+#+end_src
+
+#+RESULTS:
+: s1: hello, s2: hello
+
+*** Functions and ownership
+
+**** Error
+#+begin_src rust
+  fn main() {
+      let s = String::from("hello");
+      takes_ownership(s);
+
+      let s2 = s;                 // Error
+
+      let x = 5;
+      makes_copy(x);
+      let y = x;                  // ok
+  }
+
+  fn takes_ownership(s: String) {
+      println!("{}", s);
+  }
+
+  fn makes_copy(i: i32) {
+      println!("{}", i);
+  }
+#+end_src
+
+#+RESULTS:
+: error: Could not compile `cargoyHgvkQ`.
+
+#+begin_src rust
+     fn main() {
+         let s = String::from("hello");
+         let s2 = take_and_return(s);
+
+         let x = 6;
+         makes_copy(x);
+         let y = x;                  // ok
+     }
+
+     fn take_and_return(s: String) -> String {
+         println!("{}", s);
+         s
+     }
+
+     fn makes_copy(i: i32) {
+         println!("{}", i);
+     }
+#+end_src
+
+#+RESULTS:
+: hello
+: 6
+
+**** Working with Borrowing
+#+begin_src rust
+  fn main() {
+      let mut s = String::from("hello");
+      let l = calc_len(&s);
+
+      println!("{}, {}", s, l);
+
+  }
+
+  fn calc_len(s: &String) -> usize{
+      s.len()
+  }
+#+end_src
+
+#+RESULTS:
+: hello, 5
+
+#+begin_src rust
+  fn main() {
+      let mut s = String::from("hello");
+      // change(&mut s);
+
+      let r1 = &mut s;
+      change(r1);
+      let r2 = &mut s;
+
+      println!("{}", s);
+
+  }
+
+  // fn err_change(s: &String) {
+  //     s.push_str(", world!");
+  // }
+  fn change(s: &mut String) {
+      s.push_str(", world!");
+  }
+#+end_src
+
+#+RESULTS:
+: hello, world!
+
+**** Mixing mut and immutable
+
+#+begin_src rust
+  fn main() {
+      let mut s = String::from("hello");
+      let r1 = &s;
+      let r2 = &s;
+      //  let r3 = &mut s; <-- errro
+      // println!("{}, {}, {}", r1, r2, r3);
+      println!("{}, {}", r1, r2);
+
+  }
+#+end_src
+
+#+RESULTS:
+: hello, hello
+
+**** Mixing mut and immutable
+
+#+begin_src rust
+  fn main() {
+      let mut s = String::from("hello");
+      let r1 = &s;
+      let r2 = &mut s; // <-- errro
+      println!("{}, {}", r1, r2);
+
+  }
+#+end_src
+
+#+RESULTS:
+: error: Could not compile `cargoyHgvkQ`.
+
+**** Slices
+
+#+begin_src rust
+  fn first_word(s: &String) -> usize {
+      let bytes = s.as_bytes();
+      for (i, &item) in bytes.iter().enumerate() {
+          if item == b' ' {
+              return i;
+          }
+      }
+      s.len()
+  }
+
+  fn main() {
+      let mut s = String::from("hello goodbye how are you");
+      let end = first_word(&s);
+      s.clear();
+      println!("{}, (bug 5 not 0) {}", s, end);
+
+  }
+#+end_src
+
+#+RESULTS:
+: , (bug 5 not 0) 5
+
+#+begin_src rust
+  fn first_word(s: &String) -> &str {
+      let bytes = s.as_bytes();
+      for (i, &item) in bytes.iter().enumerate() {
+          if item == b' ' {
+              return &s[0..i];
+          }
+      }
+      &s[..]
+  }
+
+  fn main() {
+      let mut s = String::from("hello goodbye how are you");
+      let word = first_word(&s);
+      s.clear();                  // error mutable ref after immutable
+      println!("{}", word);
+
+  }
+#+end_src
+
+#+RESULTS:
+: error: Could not compile `cargoyHgvkQ`.
+
+
+#+begin_src rust
+  fn first_word(s: &str) -> &str {
+      let bytes = s.as_bytes();
+      for (i, &item) in bytes.iter().enumerate() {
+          if item == b' ' {
+              return &s[0..i];
+          }
+      }
+      &s[..]
+  }
+
+  fn main() {
+      let mut s = String::from("hello goodbye how are you");
+      let word = first_word(&s[0..6]);
+      let word = first_word(&s[..]);
+      let word = first_word(&s);
+      println!("{}", word);
+
+      let s = ("goodbye hello how are you");
+      let word = first_word(&s[0..6]);
+      let word = first_word(&s[..]);
+      let word = first_word(&s);
+      println!("{}", word);
+  }
+#+end_src
+
+#+RESULTS:
+: hello
+: goodbye
+** `struct`s
+*** Tuple `struct`s
+#+begin_src rust
+  #[derive(Debug)]
+  struct Point(i32, i32, i32);
+
+  #[derive(Debug)]
+  struct Color(i32, i32, i32);
+
+  fn main() {
+      let origin = Point(0,0,0);
+      let black = Color(0,0,0);
+      println!("{:?}, {:?}", origin, black);
+  }
+#+end_src
+
+#+RESULTS:
+: Point(0, 0, 0), Color(0, 0, 0)
+
+*** Unit-like `struct`s
+#+begin_src rust
+  struct AlwaysEqual;
+
+  fn main() {
+      let subject = AlwaysEqual;
+  }
+#+end_src
+
+#+RESULTS:
+
+*** Rectangle Area
+**** No struct
+#+begin_src rust
+  fn main() {
+      let w1 = 30;
+      let h1 = 50;
+      println!("The area of the rectangle is {}", area(w1, h1));
+  }
+
+  fn area(w: u32, h: u32) ->u32 {
+      w * h
+  }
+#+end_src
+
+#+RESULTS:
+: The area of the rectangle is 1500
+
+**** With Tuples
+#+begin_src rust
+  fn main() {
+      let rect1 = (30, 50);
+      println!("The area of the rectangle is {}", area(rect1));
+  }
+
+  fn area(dim: (u32, u32)) ->u32 {
+      dim.0 * dim.1
+  }
+#+end_src
+
+#+RESULTS:
+: The area of the rectangle is 1500
+
+**** With `struct`s
+#+begin_src rust
+  #[derive(Debug)]
+  struct Rect {
+      w: u32,
+      h: u32,
+  }
+
+  fn main() {
+      let scale = 2;
+      let rect1 = Rect {
+          w: dbg!(30 * scale),
+          h: 50
+      };
+      dbg!(&rect1);
+      println!("The area of {:?} is {}", rect1, area(&rect1));
+  }
+
+  fn area(rect: &Rect) ->u32 {
+      rect.w * rect.h
+  }
+#+end_src
+
+#+RESULTS:
+: [src/main.rs:11:12] 30 * scale = 60
+: [src/main.rs:14:5] &rect1 = Rect {
+:     w: 60,
+:     h: 50,
+: }
+: The area of Rect { w: 60, h: 50 } is 3000
+
+**** With methods
+#+begin_src rust
+  #[derive(Debug)]
+  struct Rect {
+      w: u32,
+      h: u32,
+  }
+
+  impl Rect {
+      fn area(self: &Rect) -> u32 {
+          self.w * self.h
+      }
+  }
+
+  fn main() {
+      let scale = 2;
+      let rect1 = Rect {
+          w: dbg!(30 * scale),
+          h: 50
+      };
+      dbg!(&rect1);
+      println!("The area of {:?} is {}", rect1, rect1.area());
+  }
+#+end_src
+
+#+RESULTS:
+: [src/main.rs:17:12] 30 * scale = 60
+: [src/main.rs:20:5] &rect1 = Rect {
+:     w: 60,
+:     h: 50,
+: }
+: The area of Rect { w: 60, h: 50 } is 3000
+
+** Traits
+
+*** Simple trait
+#+begin_src rust
+  use std::f64::consts::PI;
+
+  pub struct Circle {
+      r: f64,
+  }
+
+  pub struct Rect {
+      x: f64,
+      y: f64,
+  }
+
+  pub trait Bounded {
+      fn area(&self) -> f64;
+      fn boundary(self: &Self) -> f64;
+  }
+
+  impl Bounded for Circle {
+      fn area(&self) -> f64 {
+          PI * self.r * self.r
+      }
+      fn boundary(&self) -> f64 {
+          2.0 * PI * self.r
+      }
+  }
+
+  impl Bounded for Rect {
+      fn area(&self) -> f64 {
+          self.x * self.y
+      }
+      fn boundary(&self) -> f64 {
+          2.0 * self.x + 2.0 * self.y
+      }
+  }
+
+  fn print_shape_info(shape: &impl Bounded) {
+      println!(
+          "Boundary of shape is {} long and area is {}",
+          shape.boundary(),
+          shape.area()
+      )
+  }
+
+  fn main() {
+      let c = Circle{r: 2.0};
+      let r = Rect{x: 4.0, y: 5.0};
+
+      print_shape_info(&c);
+      print_shape_info(&r);
+  }
+
+#+end_src
+
+#+RESULTS:
+: Boundary of shape is 12.566370614359172 long and area is 12.566370614359172
+: Boundary of shape is 18 long and area is 20
+
+*** Generic with Traits
+
+#+begin_src rust
+
+  fn largest<T>(list: &[T]) -> &T
+  where
+      T: std::cmp::PartialOrd,
+  {
+      let mut largest = &list[0];
+      for item in list {
+          if item > largest {
+              largest = item;
+          }
+      }
+      largest
+  }
+
+  fn main() {
+      let nlist = vec![3, 6, 12, 4];
+      let clist = vec!['y', 'z', 'd'];
+
+      println!("largest number: {}", largest(&nlist));
+      println!("largest char: {}", largest(&clist));
+  }
+#+end_src
+
+#+RESULTS:
+: largest number: 12
+: largest char: z
+
+*** Converting type
+#+begin_src rust
+let i: i32 = 2;
+let f: f64 = 3.1;
+println!("i as float {}", i as f64);
+println!("f as float {}", f as f64);
+#+end_src
+
+#+RESULTS:
+: i as float 2
+: f as float 3.1
+
+*** Trait on Generic Type
+#+begin_src rust
+use std::f64::consts::PI;
+
+pub struct Circle<T> {
+    r: T,
+}
+
+pub struct Rect<T> {
+    x: T,
+    y: T,
+}
+
+pub trait Bounded {
+    fn area(&self) -> f64;
+    fn boundary(self: &Self) -> f64;
+}
+
+// Would be nice to just use a T here, but can't seem to get
+// that working with `as f64` casting operation.
+impl Bounded for Circle<u64> {
+    fn area(&self) -> f64 {
+        PI * (self.r * self.r) as f64
+    }
+    fn boundary(&self) -> f64 {
+        2.0 * PI * self.r as f64
+    }
+}
+impl Bounded for Circle<f64> {
+    fn area(&self) -> f64 {
+        PI * self.r * self.r
+    }
+    fn boundary(&self) -> f64 {
+        2.0 * PI * self.r
+    }
+}
+
+// Would be nice to just use a T here, but can't seem to get
+// that working with `as f64` casting operation.
+impl Bounded for Rect<u64> {
+    fn area(&self) -> f64 {
+        (self.x * self.y) as f64
+    }
+    fn boundary(&self) -> f64 {
+        2.0 * (self.x + self.y) as f64
+    }
+}
+
+impl Bounded for Rect<f64> {
+    fn area(&self) -> f64 {
+        self.x * self.y
+    }
+    fn boundary(&self) -> f64 {
+        2.0 * (self.x + self.y)
+    }
+}
+
+fn print_shape_info(shape: &impl Bounded) {
+    println!(
+        "Boundary of shape is {} long and area is {}",
+        shape.boundary(),
+        shape.area()
+    )
+}
+
+fn main() {
+    let c = Circle { r: 2.0 };
+    let ci = Circle { r: 2 };
+    let r = Rect { x: 4.0, y: 5.0 };
+    let ri = Rect { x: 4, y: 5 };
+
+    print_shape_info(&c);
+    print_shape_info(&ci);
+    print_shape_info(&r);
+    print_shape_info(&ri);
+}
+#+end_src
+
+#+RESULTS:
+: Boundary of shape is 12.566370614359172 long and area is 12.566370614359172
+: Boundary of shape is 12.566370614359172 long and area is 12.566370614359172
+: Boundary of shape is 18 long and area is 20
+: Boundary of shape is 18 long and area is 20
