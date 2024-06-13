@@ -6,7 +6,8 @@ if RESTCONFD
 
 EXTRA_DIST += restconfd/Cargo.toml
 sbin_PROGRAMS += restconfd/restconfd
-restconfd_restconfd_SOURCES = restconfd/main.rs
+restconfd_restconfd_SOURCES = restconfd/restconf_main.rs
+_actual_restconfd_SOURCES = $(addprefix @srcdir@/,$(restconfd_restconfd_SOURCES))
 
 if DEV_BUILD
 RESTCONF_BUILD_FLAG =
@@ -28,9 +29,11 @@ restconfd/restconfd: restconfd/target/$(RESTCONF_TARGET_DIR)/restconfd$(EXEEXT)
 	@printf "  CP       restconf/restconfd\n"
 	@cp $< $@
 
-restconfd/target/$(RESTCONF_TARGET_DIR)/restconfd$(EXEEXT): $(restconfd_restconfd_SOURCES) restconfd/Cargo.toml
+restconfd/target/$(RESTCONF_TARGET_DIR)/restconfd$(EXEEXT): $(_actual_restconfd_SOURCES) @srcdir@/restconfd/Cargo.toml.in
+	printf "WHOAMI: " && whoami
+	printf "PWD: " && pwd
+	(cd restconfd && cargo +stable -q build $(RESTCONF_BUILD_FLAG))
 	@printf "  CARGO    $@\n"
-	@(cd restconfd && cargo -q build $(RESTCONF_BUILD_FLAG))
 
 clean-restconfd:
 	(cd restconfd && cargo clean)

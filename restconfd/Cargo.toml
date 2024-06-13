@@ -2,11 +2,11 @@
 name = "restconfd"
 version = "0.1.0"
 edition = "2021"
-default-run = "restconfd"
+default-run = "sandbox"
 
 [[bin]]
 name = "restconfd"
-path = "main.rs"
+path = "restconf_main.rs"
 test = false
 bench = false
 
@@ -18,7 +18,10 @@ bench = false
 
 [dependencies]
 axum = { version = "0.7.5", features = ["tracing"]}
+hexdump = "0.1.2"
 minicbor = { version = "0.24.0", default-features = false }
+serde = {version = "1.0.203", features = ["derive"]}
+serde_json = "1.0.117"
 tokio = { version = "1.38.0", features = ["full"]}
 
 # For logging

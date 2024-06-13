@@ -11,11 +11,13 @@ default-run = "restconfd"
 name = "restconfd"
 test = false
 bench = false
-path = "@srcdir@/main.rs"
+path = "@srcdir@/restconf_main.rs"
 
 [dependencies]
 axum = { version = "0.7.5", features = ["tracing"]}
 minicbor = { version = "0.24.0", default-features = false }
+serde = {version = "1.0.203", features = ["derive"]}
+serde_json = "1.0.117"
 tokio = { version = "1.38.0", features = ["full"]}
 
 # For logging
