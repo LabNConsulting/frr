@@ -5,6 +5,9 @@
 // Copyright (C) 2024 LabN Consulting, L.L.C.
 //
 
+#[macro_use]
+extern crate rouille;
+
 use tracing::debug;
 
 #[path = "restconf_cbor.rs"]
@@ -24,7 +27,7 @@ pub mod restconf;
  * Perform some simple tests to demonstrate usage of various rust crates and
  * features.
  */
-async fn simple_test() {
+fn simple_test() {
     cbor::test_cbor();
     cstruct::test_cstruct();
 }
@@ -32,7 +35,7 @@ async fn simple_test() {
 /**
  * Setup the trace logging.
  */
-async fn setup_logging() {
+fn setup_logging() {
     /*
      * Enable some logging
      */
@@ -42,17 +45,16 @@ async fn setup_logging() {
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 }
 
-#[tokio::main]
-async fn main() {
-    setup_logging().await;
+fn main() {
+    setup_logging();
 
-    simple_test().await;
+    simple_test();
 
-    let client = mgmtd::MgmtdSession::new().await;
+    let client = mgmtd::MgmtdSession::new();
 
     debug!("Got new mgmtd client data {:?}", client);
 
-    restconf::run_restconf_server().await.unwrap();
+    restconf::run_restconf_server();
 
     debug!("At the end here's the client: {:?}", client);
 }

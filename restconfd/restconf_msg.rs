@@ -5,9 +5,9 @@
 // Copyright (C) 2024 LabN Consulting, L.L.C.
 //
 use std::io::ErrorKind;
+use std::io::{Read,Write};
 use std::io::{Error, Result};
-use tokio::io::AsyncReadExt;
-use tokio::net::UnixStream;
+use std::os::unix::net::UnixStream;
 
 // -------------
 // Mgmt Messages
@@ -30,12 +30,10 @@ pub enum MsgType {
 const MGMT_MSG_MARKER_PROTOBUF: [u8; 4] = [0, 35, 35, 35];
 const MGMT_MSG_MARKER_NATIVE: [u8; 4] = [1, 35, 35, 35];
 
-async fn send_data(stream: &UnixStream, data: &[u8]) -> Result<()> {
+fn send_data(stream: &mut UnixStream, data: &[u8]) -> Result<()> {
     let mut to_send = data.len();
     while to_send > 0 {
-        stream.writable().await?;
-
-        match stream.try_write(data) {
+        match stream.write(data) {
             Ok(n) => {
                 to_send -= n;
             }
@@ -48,12 +46,12 @@ async fn send_data(stream: &UnixStream, data: &[u8]) -> Result<()> {
     Ok(())
 }
 
-async fn recv_wait_a(stream: &mut UnixStream, ary: &mut [u8]) -> Result<()> {
-    stream.read_exact(ary).await?;
+fn recv_wait_a(stream: &mut UnixStream, ary: &mut [u8]) -> Result<()> {
+    stream.read_exact(ary)?;
     Ok(())
 }
 
-async fn recv_wait_v(stream: &mut UnixStream, sz: usize) -> Result<Vec<u8>> {
+fn recv_wait_v(stream: &mut UnixStream, sz: usize) -> Result<Vec<u8>> {
     let mut buf = Vec::<u8>::with_capacity(sz);
 
     // SAFETY: vector is fully initialized by the following read_exact and only
@@ -62,15 +60,15 @@ async fn recv_wait_v(stream: &mut UnixStream, sz: usize) -> Result<Vec<u8>> {
         buf.set_len(sz);
     }
 
-    stream.read_exact(&mut buf).await?;
+    stream.read_exact(&mut buf)?;
     Ok(buf)
 }
 
-async fn recv_msg(stream: &mut UnixStream) -> Result<MsgType> {
+fn recv_msg(stream: &mut UnixStream) -> Result<MsgType> {
     let mut ary = [0u8; 4];
 
     // Check what type of message we have given the marker
-    recv_wait_a(stream, &mut ary).await?;
+    recv_wait_a(stream, &mut ary)?;
     let native_type = if ary == MGMT_MSG_MARKER_NATIVE {
         true
     } else if ary == MGMT_MSG_MARKER_PROTOBUF {
@@ -82,7 +80,7 @@ async fn recv_msg(stream: &mut UnixStream) -> Result<MsgType> {
         ));
     };
 
-    recv_wait_a(stream, &mut ary).await?;
+    recv_wait_a(stream, &mut ary)?;
     let msize = u32::from_le_bytes(ary) as usize;
     if msize <= 8 {
         return Err(Error::new(
@@ -91,7 +89,7 @@ async fn recv_msg(stream: &mut UnixStream) -> Result<MsgType> {
         ));
     }
 
-    let vec = recv_wait_v(stream, msize - 8).await?;
+    let vec = recv_wait_v(stream, msize - 8)?;
     if native_type {
         Ok(MsgType::NativeMsg(vec))
     } else {
@@ -99,16 +97,16 @@ async fn recv_msg(stream: &mut UnixStream) -> Result<MsgType> {
     }
 }
 
-pub async fn send_native_msg(stream: &UnixStream, msg: &[u8]) -> Result<()> {
+pub fn send_native_msg(stream: &mut UnixStream, msg: &[u8]) -> Result<()> {
     let sz = u32::to_le_bytes((8 + msg.len()) as u32);
 
-    send_data(stream, &MGMT_MSG_MARKER_NATIVE).await?;
-    send_data(stream, &sz).await?;
-    send_data(stream, msg).await
+    send_data(stream, &MGMT_MSG_MARKER_NATIVE)?;
+    send_data(stream, &sz)?;
+    send_data(stream, msg)
 }
 
-pub async fn recv_native_msg(stream: &mut UnixStream) -> Result<Vec<u8>> {
-    match recv_msg(stream).await? {
+pub fn recv_native_msg(stream: &mut UnixStream) -> Result<Vec<u8>> {
+    match recv_msg(stream)? {
         MsgType::NativeMsg(buf) => Ok(buf),
         MsgType::ProtobufMsg(()) => {
             return Err(Error::new(ErrorKind::Unsupported, "Protobuf unsupported"))

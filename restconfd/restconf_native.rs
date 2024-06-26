@@ -9,8 +9,8 @@ use crate::msg;
 use std::io::ErrorKind;
 use std::io::{Error, Result};
 use std::mem::size_of;
+use std::os::unix::net::UnixStream;
 use std::str::FromStr;
-use tokio::net::UnixStream;
 use tracing::debug;
 
 //
@@ -104,6 +104,7 @@ pub trait FixedPartMessage {
     fn fixed_size() -> usize {
         size_of::<Self::FixedTarget>()
     }
+    fn fixed_cast(&self) -> *const Self::FixedTarget;
     fn new() -> Self::Target;
 }
 
@@ -170,6 +171,9 @@ impl FixedPartMessage for MgmtMsgError {
             ..Default::default()
         }
     }
+    fn fixed_cast(&self) -> *const Self::FixedTarget {
+        &self.fixed as *const Self::FixedTarget
+    }
 }
 
 /**
@@ -222,6 +226,9 @@ impl FixedPartMessage for MgmtMsgTreeData {
         Self::Target {
             ..Default::default()
         }
+    }
+    fn fixed_cast(&self) -> *const Self::FixedTarget {
+        &self.fixed as *const Self::FixedTarget
     }
 }
 
@@ -318,6 +325,9 @@ impl FixedPartMessage for MgmtMsgGetData {
             ..Default::default()
         }
     }
+    fn fixed_cast(&self) -> *const Self::FixedTarget {
+        &self.fixed as *const Self::FixedTarget
+    }
 }
 
 /**
@@ -376,6 +386,9 @@ impl FixedPartMessage for MgmtMsgSessionReq {
             ..Default::default()
         }
     }
+    fn fixed_cast(&self) -> *const Self::FixedTarget {
+        &self.fixed as *const Self::FixedTarget
+    }
 }
 
 /**
@@ -433,6 +446,9 @@ impl FixedPartMessage for MgmtMsgSessionReply {
             ..Default::default()
         }
     }
+    fn fixed_cast(&self) -> *const Self::FixedTarget {
+        &self.fixed as *const Self::FixedTarget
+    }
 }
 
 /**
@@ -453,13 +469,14 @@ pub enum MgmtMsg {
 
 pub fn msg_encode_to_vec<T: FixedPartMessage>(msg: &T) -> Result<Vec<u8>> {
     let sz = T::fixed_size();
+    let mptr: *const T::FixedTarget = msg.fixed_cast();
     let mut v = vec![0u8; sz];
+    // let mut v = Vec::<u8>::with_capacity(sz);
 
     // SAFETY: We reserve capacity above, and immediately initialize new bytes with the copy.
     unsafe {
-        // v::with_capacity(sz);
         // v.set_len(sz);
-        std::ptr::copy_nonoverlapping(msg as *const T as *const u8, v.as_mut_ptr(), sz);
+        std::ptr::copy_nonoverlapping(mptr as *const u8, v.as_mut_ptr(), sz);
     }
     Ok(v)
 }
@@ -538,12 +555,12 @@ pub fn mgmt_msg_decode_from_vec(buf: &[u8]) -> Result<MgmtMsg> {
     Ok(msg)
 }
 
-pub async fn send_msg(stream: &UnixStream, msg: &[u8]) -> Result<()> {
-    msg::send_native_msg(stream, msg).await
+pub fn send_msg(stream: &mut UnixStream, msg: &[u8]) -> Result<()> {
+    msg::send_native_msg(stream, msg)
 }
 
-pub async fn recv_msg(stream: &mut UnixStream) -> Result<MgmtMsg> {
-    let buf = msg::recv_native_msg(stream).await?;
+pub fn recv_msg(stream: &mut UnixStream) -> Result<MgmtMsg> {
+    let buf = msg::recv_native_msg(stream)?;
     if buf.len() < size_of::<MgmtMsgHeader>() {
         return Err(Error::new(ErrorKind::InvalidData, "Short message (hdr)"));
     }
@@ -552,30 +569,4 @@ pub async fn recv_msg(stream: &mut UnixStream) -> Result<MgmtMsg> {
     debug!("Got native message: {:x?}", native_msg);
 
     Ok(native_msg)
-}
-
-#[repr(C)]
-#[derive(Default)]
-pub struct VarLenData(::std::marker::PhantomData<u8>, [u8; 0]);
-impl VarLenData {
-    pub const fn new() -> Self {
-        VarLenData(::std::marker::PhantomData, [])
-    }
-    pub fn as_ptr(&self) -> *const u8 {
-        self as *const _ as *const u8
-    }
-    pub fn as_mut_ptr(&mut self) -> *mut u8 {
-        self as *mut _ as *mut u8
-    }
-    pub unsafe fn as_slice(&self, len: usize) -> &[u8] {
-        ::std::slice::from_raw_parts(self.as_ptr(), len)
-    }
-    pub unsafe fn as_mut_slice(&mut self, len: usize) -> &mut [u8] {
-        ::std::slice::from_raw_parts_mut(self.as_mut_ptr(), len)
-    }
-}
-impl ::std::fmt::Debug for VarLenData {
-    fn fmt(&self, fmt: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-        fmt.write_str("VarLenData")
-    }
 }
