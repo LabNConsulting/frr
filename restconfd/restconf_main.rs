@@ -5,8 +5,8 @@
 // Copyright (C) 2024 LabN Consulting, L.L.C.
 //
 
-#[macro_use]
-extern crate rouille;
+// #[macro_use]
+// extern crate rouille;
 
 use tracing::debug;
 
@@ -50,11 +50,7 @@ fn main() {
 
     simple_test();
 
-    let client = mgmtd::MgmtdSession::new();
-
-    debug!("Got new mgmtd client data {:?}", client);
-
     restconf::run_restconf_server();
 
-    debug!("At the end here's the client: {:?}", client);
+    debug!("At the end here's the client");
 }

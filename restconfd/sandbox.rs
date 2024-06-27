@@ -31,7 +31,7 @@ pub struct Rect<T> {
 
 pub trait Bounded {
     fn area(&self) -> f64;
-    fn boundary(self: &Self) -> f64;
+    fn boundary(&self) -> f64;
 }
 
 impl Bounded for Circle<u64> {
@@ -243,3 +243,19 @@ impl Deref for Baz {
         &self.b
     }
 }
+
+
+// struct Resp {
+//     value: i32,
+// }
+
+// impl<T, U> From<Result<T, U>> for Resp {
+//     fn from(res: Result<T, U>) -> Resp {
+//         Resp { value: -1 }
+//     }
+// }
+
+// fn check() -> Resp {
+//     let r = Ok(10);
+//     r.into::<Resp>()
+// }

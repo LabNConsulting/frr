@@ -5,7 +5,6 @@
 // Copyright (C) 2024 LabN Consulting, L.L.C.
 //
 use crate::native;
-use crate::native::MgmtdMsgSerde;
 use crate::native::{MgmtMsg, MgmtMsgSessionReq};
 // use crate::msg::{array_to_u16, array_to_u32, u32_to_array};
 /// Functionality for interacting with FRR MGMTD.
@@ -39,8 +38,11 @@ fn connect_retry(sock_path: &str) -> Result<UnixStream> {
 
 #[derive(Debug)]
 pub struct MgmtdSession {
-    stream: UnixStream,
-    _last_req_id: u64,
+    pub client_id: u64,
+    pub sess_id: u64,
+    pub stream: UnixStream,
+
+    last_req_id: u64,
 }
 
 impl MgmtdSession {
@@ -50,15 +52,17 @@ impl MgmtdSession {
     pub fn new() -> Result<Self> {
         let mut s = Self {
             stream: connect_retry(MGMTD_SOCK_PATH)?,
-            _last_req_id: 0,
+            client_id: 0,
+            sess_id: 0,
+            last_req_id: 0,
         };
         s.init_session()?;
         Ok(s)
     }
 
-    fn _next_req_id(&mut self) -> u64 {
-        self._last_req_id += 1;
-        self._last_req_id
+    pub fn next_req_id(&mut self) -> u64 {
+        self.last_req_id += 1;
+        self.last_req_id
     }
 
     fn init_session(&mut self) -> Result<()> {
@@ -71,11 +75,15 @@ impl MgmtdSession {
 
         // Wait for the reply
         let mmsg = native::recv_msg(&mut self.stream)?;
-        match mmsg {
+        let reply = match mmsg {
             MgmtMsg::SessionReply(reply_msg) => reply_msg,
             MgmtMsg::Error(emsg) => return Err(native::msg_to_error(&emsg)),
             _ => return Err(Error::new(ErrorKind::Unsupported, "non-session-reply msg received")),
         };
+
+        self.client_id = client_id;
+        self.sess_id = reply.fixed.header.refer_id;
+
         Ok(())
     }
 }

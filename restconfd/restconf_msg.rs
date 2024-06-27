@@ -40,7 +40,7 @@ fn send_data(stream: &mut UnixStream, data: &[u8]) -> Result<()> {
             Err(ref e) if e.kind() == ErrorKind::WouldBlock => {
                 continue;
             }
-            Err(e) => return Err(e.into()),
+            Err(e) => return Err(e),
         }
     }
     Ok(())
@@ -52,14 +52,14 @@ fn recv_wait_a(stream: &mut UnixStream, ary: &mut [u8]) -> Result<()> {
 }
 
 fn recv_wait_v(stream: &mut UnixStream, sz: usize) -> Result<Vec<u8>> {
-    let mut buf = Vec::<u8>::with_capacity(sz);
+    // let mut buf = Vec::<u8>::with_capacity(sz);
+    // // SAFETY: vector is fully initialized by the following read_exact and only
+    // // returned on success.
+    // unsafe {
+    //     buf.set_len(sz);
+    // }
 
-    // SAFETY: vector is fully initialized by the following read_exact and only
-    // returned on success.
-    unsafe {
-        buf.set_len(sz);
-    }
-
+    let mut buf = vec![0u8; sz];
     stream.read_exact(&mut buf)?;
     Ok(buf)
 }
@@ -109,7 +109,7 @@ pub fn recv_native_msg(stream: &mut UnixStream) -> Result<Vec<u8>> {
     match recv_msg(stream)? {
         MsgType::NativeMsg(buf) => Ok(buf),
         MsgType::ProtobufMsg(()) => {
-            return Err(Error::new(ErrorKind::Unsupported, "Protobuf unsupported"))
+            Err(Error::new(ErrorKind::Unsupported, "Protobuf unsupported"))
         }
     }
 }
