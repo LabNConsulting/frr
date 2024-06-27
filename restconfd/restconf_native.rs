@@ -6,6 +6,7 @@
 //
 
 use crate::msg;
+use crate::native;
 use std::io::ErrorKind;
 use std::io::{Error, Result};
 use std::mem::size_of;
@@ -97,6 +98,19 @@ impl MgmtMsgHeader {
     }
 }
 
+///
+/// MgmtdMsgSerde - Encode/Decode Mgmtd Messages
+///
+pub trait MgmtdMsgSerde {
+    type Target;
+
+    fn decode(buf: &[u8]) -> Result<Self::Target>;
+    fn encode(&self) -> Result<Vec<u8>>;
+}
+
+///
+/// MgmtdMsgSerde - Operate on fixed sized C structs
+///
 pub trait FixedPartMessage {
     type Target;
     type FixedTarget;
@@ -147,19 +161,6 @@ impl MgmtMsgError {
             errstr: String::from_str(errstr).unwrap(),
         }
     }
-
-    fn decode(buf: &[u8]) -> Result<Self> {
-        let off = size_of::<MgmtMsgHeader>();
-        let vdata = &buf[Self::fixed_size()..];
-        Ok(Self {
-            fixed: MgmtMsgErrorFixed {
-                header: MgmtMsgHeader::decode(buf)?,
-                error: i16::from_le_bytes(buf[off..off + 2].try_into().unwrap()),
-                ..Default::default()
-            },
-            errstr: decode_cstring(vdata)?,
-        })
-    }
 }
 
 impl FixedPartMessage for MgmtMsgError {
@@ -173,6 +174,29 @@ impl FixedPartMessage for MgmtMsgError {
     }
     fn fixed_cast(&self) -> *const Self::FixedTarget {
         &self.fixed as *const Self::FixedTarget
+    }
+}
+
+impl MgmtdMsgSerde for MgmtMsgError {
+    type Target = MgmtMsgError;
+
+    fn decode(buf: &[u8]) -> Result<Self::Target> {
+        let off = size_of::<MgmtMsgHeader>();
+        let vdata = &buf[Self::fixed_size()..];
+        Ok(Self {
+            fixed: MgmtMsgErrorFixed {
+                header: MgmtMsgHeader::decode(buf)?,
+                error: i16::from_le_bytes(buf[off..off + 2].try_into().unwrap()),
+                ..Default::default()
+            },
+            errstr: decode_cstring(vdata)?,
+        })
+    }
+    fn encode(&self) -> Result<Vec<u8>> {
+        let mut v = native::msg_encode_fixed_to_vec(self)?;
+        v.extend_from_slice(self.errstr.as_bytes());
+        v.push(0);
+        Ok(v)
     }
 }
 
@@ -201,8 +225,24 @@ pub struct MgmtMsgTreeData {
     pub result: String,
 }
 
-impl MgmtMsgTreeData {
-    fn decode(buf: &[u8]) -> Result<Self> {
+impl FixedPartMessage for MgmtMsgTreeData {
+    type Target = MgmtMsgTreeData;
+    type FixedTarget = MgmtMsgTreeDataFixed;
+
+    fn new() -> Self::Target {
+        Self::Target {
+            ..Default::default()
+        }
+    }
+    fn fixed_cast(&self) -> *const Self::FixedTarget {
+        &self.fixed as *const Self::FixedTarget
+    }
+}
+
+impl MgmtdMsgSerde for MgmtMsgTreeData {
+    type Target = MgmtMsgTreeData;
+
+    fn decode(buf: &[u8]) -> Result<Self::Target> {
         let off = size_of::<MgmtMsgHeader>();
         let vdata = &buf[Self::fixed_size()..];
         Ok(Self {
@@ -216,19 +256,11 @@ impl MgmtMsgTreeData {
             result: decode_cstring(vdata)?,
         })
     }
-}
-
-impl FixedPartMessage for MgmtMsgTreeData {
-    type Target = MgmtMsgTreeData;
-    type FixedTarget = MgmtMsgTreeDataFixed;
-
-    fn new() -> Self::Target {
-        Self::Target {
-            ..Default::default()
-        }
-    }
-    fn fixed_cast(&self) -> *const Self::FixedTarget {
-        &self.fixed as *const Self::FixedTarget
+    fn encode(&self) -> Result<Vec<u8>> {
+        let mut v = native::msg_encode_fixed_to_vec(self)?;
+        v.extend_from_slice(self.result.as_bytes());
+        v.push(0);
+        Ok(v)
     }
 }
 
@@ -298,22 +330,6 @@ impl MgmtMsgGetData {
             xpath: String::from_str(xpath).unwrap(),
         }
     }
-
-    fn decode(buf: &[u8]) -> Result<Self> {
-        let off = size_of::<MgmtMsgHeader>();
-        let vdata = &buf[Self::fixed_size()..];
-        Ok(Self {
-            fixed: MgmtMsgGetDataFixed {
-                header: MgmtMsgHeader::decode(buf)?,
-                result_type: buf[off] as u8,
-                flags: buf[off + 1] as u8,
-                defaults: buf[off + 2] as u8,
-                datastore: buf[off + 3] as u8,
-                ..Default::default()
-            },
-            xpath: decode_cstring(vdata)?,
-        })
-    }
 }
 
 impl FixedPartMessage for MgmtMsgGetData {
@@ -330,6 +346,31 @@ impl FixedPartMessage for MgmtMsgGetData {
     }
 }
 
+impl MgmtdMsgSerde for MgmtMsgGetData {
+    type Target = MgmtMsgGetData;
+
+    fn decode(buf: &[u8]) -> Result<Self::Target> {
+        let off = size_of::<MgmtMsgHeader>();
+        let vdata = &buf[Self::fixed_size()..];
+        Ok(Self {
+            fixed: MgmtMsgGetDataFixed {
+                header: MgmtMsgHeader::decode(buf)?,
+                result_type: buf[off] as u8,
+                flags: buf[off + 1] as u8,
+                defaults: buf[off + 2] as u8,
+                datastore: buf[off + 3] as u8,
+                ..Default::default()
+            },
+            xpath: decode_cstring(vdata)?,
+        })
+    }
+    fn encode(&self) -> Result<Vec<u8>> {
+        let mut v = native::msg_encode_fixed_to_vec(self)?;
+        v.extend_from_slice(self.xpath.as_bytes());
+        v.push(0);
+        Ok(v)
+    }
+}
 /**
  * struct MgmtMsgSessionReq - Create or delete a front-end session.
  *
@@ -364,17 +405,6 @@ impl MgmtMsgSessionReq {
             client_name: String::from_str(client_name).unwrap(),
         }
     }
-
-    fn decode(buf: &[u8]) -> Result<Self> {
-        let vdata = &buf[Self::fixed_size()..];
-        Ok(Self {
-            fixed: MgmtMsgSessionReqFixed {
-                header: MgmtMsgHeader::decode(buf)?,
-                ..Default::default()
-            },
-            client_name: decode_cstring(vdata)?,
-        })
-    }
 }
 
 impl FixedPartMessage for MgmtMsgSessionReq {
@@ -388,6 +418,27 @@ impl FixedPartMessage for MgmtMsgSessionReq {
     }
     fn fixed_cast(&self) -> *const Self::FixedTarget {
         &self.fixed as *const Self::FixedTarget
+    }
+}
+
+impl MgmtdMsgSerde for MgmtMsgSessionReq {
+    type Target = MgmtMsgSessionReq;
+
+    fn decode(buf: &[u8]) -> Result<Self::Target> {
+        let vdata = &buf[Self::fixed_size()..];
+        Ok(Self {
+            fixed: MgmtMsgSessionReqFixed {
+                header: MgmtMsgHeader::decode(buf)?,
+                ..Default::default()
+            },
+            client_name: decode_cstring(vdata)?,
+        })
+    }
+    fn encode(&self) -> Result<Vec<u8>> {
+        let mut v = native::msg_encode_fixed_to_vec(self)?;
+        v.extend_from_slice(self.client_name.as_bytes());
+        v.push(0);
+        Ok(v)
     }
 }
 
@@ -425,16 +476,6 @@ impl MgmtMsgSessionReply {
             },
         }
     }
-    fn decode(buf: &[u8]) -> Result<Self> {
-        let off = size_of::<MgmtMsgHeader>();
-        Ok(Self {
-            fixed: MgmtMsgSessionReplyFixed {
-                header: MgmtMsgHeader::decode(buf)?,
-                created: buf[off],
-                ..Default::default()
-            },
-        })
-    }
 }
 
 impl FixedPartMessage for MgmtMsgSessionReply {
@@ -451,6 +492,23 @@ impl FixedPartMessage for MgmtMsgSessionReply {
     }
 }
 
+impl MgmtdMsgSerde for MgmtMsgSessionReply {
+    type Target = MgmtMsgSessionReply;
+
+    fn decode(buf: &[u8]) -> Result<Self::Target> {
+        let off = size_of::<MgmtMsgHeader>();
+        Ok(Self {
+            fixed: MgmtMsgSessionReplyFixed {
+                header: MgmtMsgHeader::decode(buf)?,
+                created: buf[off],
+                ..Default::default()
+            },
+        })
+    }
+    fn encode(&self) -> Result<Vec<u8>> {
+        Ok(native::msg_encode_fixed_to_vec(self)?)
+    }
+}
 /**
  * enum MgmtMsg - Enum of all Native Messages
  */
@@ -467,7 +525,7 @@ pub enum MgmtMsg {
 // Native Message Manipulation Functionality
 //
 
-pub fn msg_encode_to_vec<T: FixedPartMessage>(msg: &T) -> Result<Vec<u8>> {
+pub fn msg_encode_fixed_to_vec<T: FixedPartMessage>(msg: &T) -> Result<Vec<u8>> {
     let sz = T::fixed_size();
     let mptr: *const T::FixedTarget = msg.fixed_cast();
     let mut v = vec![0u8; sz];
@@ -483,11 +541,11 @@ pub fn msg_encode_to_vec<T: FixedPartMessage>(msg: &T) -> Result<Vec<u8>> {
 
 pub fn mgmt_msg_encode_to_vec(msg: &MgmtMsg) -> Result<Vec<u8>> {
     match msg {
-        MgmtMsg::Error(cmsg) => msg_encode_to_vec(cmsg),
-        MgmtMsg::TreeData(cmsg) => msg_encode_to_vec(cmsg),
-        MgmtMsg::GetData(cmsg) => msg_encode_to_vec(cmsg),
-        MgmtMsg::SessionReq(cmsg) => msg_encode_to_vec(cmsg),
-        MgmtMsg::SessionReply(cmsg) => msg_encode_to_vec(cmsg),
+        MgmtMsg::Error(cmsg) => cmsg.encode(),
+        MgmtMsg::TreeData(cmsg) => cmsg.encode(),
+        MgmtMsg::GetData(cmsg) => cmsg.encode(),
+        MgmtMsg::SessionReq(cmsg) => cmsg.encode(),
+        MgmtMsg::SessionReply(cmsg) => cmsg.encode(),
     }
 }
 

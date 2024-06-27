@@ -5,6 +5,7 @@
 // Copyright (C) 2024 LabN Consulting, L.L.C.
 //
 use crate::native;
+use crate::native::MgmtdMsgSerde;
 use crate::native::{MgmtMsg, MgmtMsgSessionReq};
 // use crate::msg::{array_to_u16, array_to_u32, u32_to_array};
 /// Functionality for interacting with FRR MGMTD.
@@ -63,11 +64,9 @@ impl MgmtdSession {
     fn init_session(&mut self) -> Result<()> {
         let client_id = NEXT_CLIENT_ID.fetch_add(1, Ordering::SeqCst);
         let msg = MgmtMsgSessionReq::with_values(client_id, "RESTCONF");
-        let mut v = native::msg_encode_to_vec(&msg)?;
+        let v = msg.encode()?;
 
         // Send the session request message
-        v.extend_from_slice("RESTCONF".as_bytes());
-        v.push(0);
         native::send_msg(&mut self.stream, &v)?;
 
         // Wait for the reply
