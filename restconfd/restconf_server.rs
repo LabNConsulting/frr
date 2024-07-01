@@ -17,7 +17,9 @@ use crate::native::MgmtMsg;
 use http::StatusCode;
 use rouille::{Request, Response};
 use serde::{Deserialize, Serialize};
-use std::io::{Error, ErrorKind, Result};
+use std::error::Error;
+use std::io::ErrorKind;
+use std::result::Result;
 use tracing::debug;
 
 //
@@ -37,10 +39,15 @@ fn uri_restconf_root(_client: &MgmtdSession, _req: &Request) -> Response {
 }
 
 fn restconf_root_handler(client: &mut MgmtdSession, req: &Request) -> Response {
-    fn handler(client: &mut MgmtdSession, req: &Request) -> Result<Response> {
-        // let json_output = r#"{"message": "Hello, World!"}"#;
+    fn handler(client: &mut MgmtdSession, req: &Request) -> Result<Response, Box<dyn Error>> {
         let url = req.url();
+        let uri = crate::uri::Uri::parse(&url)?;
+
         let yang_path = url.strip_prefix("/restconf").unwrap();
+        // let yang_path = uri.segs[1..].join("/");
+
+        debug!("XXX URI: {:?}", uri);
+
         let msg = native::MgmtMsgGetData::with_values(
             client.sess_id,
             client.next_req_id(),
@@ -56,16 +63,18 @@ fn restconf_root_handler(client: &mut MgmtdSession, req: &Request) -> Response {
 
         native::send_msg(&mut client.stream, &v)?;
 
+        //
         // Wait for the reply
+        //
         match native::recv_msg(&mut client.stream)? {
             MgmtMsg::TreeData(data_msg) => {
                 Ok(Response::from_data("application/json", data_msg.result))
             }
-            MgmtMsg::Error(emsg) => Err(native::msg_to_error(&emsg)),
-            _ => Err(Error::new(
+            MgmtMsg::Error(emsg) => Err(Box::new(native::msg_to_error(&emsg)) as Box<dyn Error>),
+            _ => Err(Box::new(std::io::Error::new(
                 ErrorKind::Unsupported,
                 "non-session-reply msg received",
-            )),
+            )) as Box<dyn Error>),
         }
     }
     match handler(client, req) {

@@ -22,6 +22,8 @@ pub mod msg;
 pub mod native;
 #[path = "restconf_server.rs"]
 pub mod restconf;
+#[path = "restconf_uri.rs"]
+pub mod uri;
 
 /**
  * Perform some simple tests to demonstrate usage of various rust crates and
