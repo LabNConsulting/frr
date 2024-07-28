@@ -332,7 +332,7 @@ DEFPY(show_mgmt_get_config, show_mgmt_get_config_cmd,
 }
 
 DEFPY(show_mgmt_get_data, show_mgmt_get_data_cmd,
-      "show mgmt get-data WORD$path [datastore <candidate|running|operational>$ds] [with-config|only-config]$content [exact]$exact [with-defaults <trim|all-tag|all>$wd] [json|xml]$fmt",
+      "show mgmt get-data WORD$path [datastore <candidate|running|operational>$ds] [with-config|only-config]$content [exact]$exact [relative]$relative [with-defaults <trim|all-tag|all>$wd] [json|xml]$fmt",
       SHOW_STR
       MGMTD_STR
       "Get a data from the operational datastore\n"
@@ -344,6 +344,7 @@ DEFPY(show_mgmt_get_data, show_mgmt_get_data_cmd,
       "Include \"config true\" data\n"
       "Get only \"config true\" data\n"
       "Get exact node instead of the whole data tree\n"
+      "Result relative to target path\n"
       "Configure 'with-defaults' mode per RFC 6243 (\"explicit\" mode by default)\n"
       "Use \"trim\" mode\n"
       "Use \"report-all-tagged\" mode\n"
@@ -363,6 +364,9 @@ DEFPY(show_mgmt_get_data, show_mgmt_get_data_cmd,
 
 	if (exact)
 		flags |= GET_DATA_FLAG_EXACT;
+
+	if (relative)
+		flags |= GET_DATA_FLAG_RELATIVE;
 
 	if (wd) {
 		if (wd[0] == 't')

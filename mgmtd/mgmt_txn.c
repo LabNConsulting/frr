@@ -184,8 +184,9 @@ struct txn_req_get_tree {
 	int32_t partial_error; /* an error while gather results */
 	uint8_t result_type;   /* LYD_FORMAT for results */
 	uint8_t wd_options;    /* LYD_PRINT_WD_* flags for results */
-	uint8_t exact;	       /* if exact node is requested */
-	uint8_t simple_xpath;  /* if xpath is simple */
+	bool exact;	       /* exact node is requested */
+	bool relative;	       /* result root should be target of xpath */
+	bool simple_xpath;     /* xpath is simple */
 	struct lyd_node *client_results; /* result tree from clients */
 };
 
@@ -1314,7 +1315,7 @@ static int txn_get_tree_data_done(struct mgmt_txn_ctx *txn,
 
 	result = get_tree->client_results;
 
-	if (ret == NB_OK && result && get_tree->exact)
+	if (ret == NB_OK && result && (get_tree->exact || get_tree->relative))
 		result = yang_dnode_get(result, get_tree->xpath);
 
 	if (ret == NB_OK)
@@ -2440,6 +2441,7 @@ int mgmt_txn_send_get_tree_oper(uint64_t txn_id, uint64_t req_id,
 	get_tree->result_type = result_type;
 	get_tree->wd_options = wd_options;
 	get_tree->exact = CHECK_FLAG(flags, GET_DATA_FLAG_EXACT);
+	get_tree->relative = CHECK_FLAG(flags, GET_DATA_FLAG_RELATIVE);
 	get_tree->simple_xpath = simple_xpath;
 	get_tree->xpath = XSTRDUP(MTYPE_MGMTD_XPATH, xpath);
 

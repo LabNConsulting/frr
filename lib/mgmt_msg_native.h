@@ -291,6 +291,7 @@ _Static_assert(sizeof(struct mgmt_msg_tree_data) ==
 #define GET_DATA_FLAG_STATE	0x01	/* include "config false" data */
 #define GET_DATA_FLAG_CONFIG	0x02	/* include "config true" data */
 #define GET_DATA_FLAG_EXACT	0x04	/* get exact data node instead of the full tree */
+#define GET_DATA_FLAG_RELATIVE	0x08	/* root of result is target of path */
 
 /*
  * Modes of reporting default values. Non-default values are always reported.
