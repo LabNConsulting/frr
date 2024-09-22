@@ -1,0 +1,45 @@
+#
+# rustlibd -- RUSTLIBD Daemon
+#
+
+if RUSTLIBD
+sbin_PROGRAMS += rustlibd/rustlibd
+# vtysh_daeons += rustlibd
+
+#
+# rustlibd C skeleton build rules
+#
+rustlibd_rustlibd_SOURCES = rustlibd/rustlib_main.c
+rustlibd_rustlibd_LDADD = rustlibd/librustlibd.a lib/libfrr.la $(LIBCAP)
+
+#
+# rustlibd rust library build rules
+#
+EXTRA_DIST += rustlibd/Cargo.toml
+rustlibd_librustlibd_SOURCES = rustlibd/c_shim.rs \
+	rustlibd/rustlib_lib.rs
+
+if DEV_BUILD
+RUSTLIBD_BUILD_FLAG =
+RUSTLIBD_TARGET_DIR = debug
+else
+RUSTLIBD_BUILD_FLAG = --release
+RUSTLIBD_TARGET_DIR = release
+endif
+
+rustlibd/Cargo.lock: rustlibd/Cargo.toml
+	(cd rustlibd && cargo update $(RUSTLIBD_BUILD_FLAG))
+
+rustlibd/librustlibd.a: rustlibd/target/$(RUSTLIBD_TARGET_DIR)/librustlibd.a
+	@printf "  CP       rustlibd/librustlibd.a\n"
+	@cp $< $@
+
+rustlibd/target/$(RUSTLIBD_TARGET_DIR)/librustlibd.a: $(rustlibd_librustlibd_SOURCES) rustlibd/Cargo.toml
+	@printf "  CARGO    $@\n"
+	@(cd rustlibd && cargo -q build --lib $(RUSTLIBD_BUILD_FLAG))
+
+clean-rustlibd:
+	(cd rustlibd && cargo clean)
+else
+clean-rustlibd:
+endif

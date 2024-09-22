@@ -97,6 +97,7 @@ DECLARE_DLIST(log_args, struct log_arg, itm);
 #define PIM6D_VTY_PORT 2622
 #define MGMTD_VTY_PORT 2623
 #define RUSTBIND_VTY_PORT 2624
+#define RUSTLIBD_VTY_PORT 2625
 /* Registry of daemons' port defaults */
 
 enum frr_cli_mode {
