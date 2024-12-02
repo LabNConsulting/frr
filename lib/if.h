@@ -297,6 +297,8 @@ struct interface {
 
 	struct vrf *vrf;
 
+	struct lyd_node *state;
+
 	/*
 	 * Has the end users entered `interface XXXX` from the cli in some
 	 * fashion?

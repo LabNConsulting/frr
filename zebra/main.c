@@ -344,6 +344,7 @@ void zebra_main_router_started(void)
 	zserv_start(zserv_path);
 }
 
+extern bool if_notify_oper_changes;
 extern bool vrf_notify_oper_changes;
 
 /* Main startup routine. */
@@ -358,6 +359,7 @@ int main(int argc, char **argv)
 
 	zserv_path = NULL;
 
+	if_notify_oper_changes = true;
 	vrf_notify_oper_changes = true;
 
 	vrf_configure_backend(VRF_BACKEND_VRF_LITE);
