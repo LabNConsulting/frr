@@ -29,6 +29,10 @@
 #include "admin_group.h"
 #include "lib/if_clippy.c"
 
+
+/* Set by the owner (zebra). */
+bool if_notify_oper_changes;
+
 DEFINE_MTYPE_STATIC(LIB, IF, "Interface");
 DEFINE_MTYPE_STATIC(LIB, IFDESC, "Intf Desc");
 DEFINE_MTYPE_STATIC(LIB, CONNECTED, "Connected");
@@ -208,6 +212,72 @@ void if_down_via_zapi(struct interface *ifp)
 	hook_call(if_down, ifp);
 }
 
+void if_update_state_metric(struct interface *ifp, uint32_t metric)
+{
+	if (ifp->metric == metric)
+		return;
+	ifp->metric = metric;
+	if (ifp->state && if_notify_oper_changes)
+		nb_op_updatef(ifp->state, "state/metric", "%u", ifp->metric);
+}
+
+void if_update_state_mtu(struct interface *ifp, uint mtu)
+{
+	if (ifp->mtu == mtu)
+		return;
+	ifp->mtu = mtu;
+	if (ifp->state && if_notify_oper_changes)
+		nb_op_updatef(ifp->state, "state/mtu", "%u", ifp->mtu);
+}
+
+void if_update_state_mtu6(struct interface *ifp, uint mtu)
+{
+	if (ifp->mtu6 == mtu)
+		return;
+	ifp->mtu6 = mtu;
+	if (ifp->state && if_notify_oper_changes)
+		nb_op_updatef(ifp->state, "state/mtu6", "%u", ifp->mtu);
+}
+
+void if_update_state_hw_addr(struct interface *ifp, const uint8_t *hw_addr, uint len)
+{
+	if (len == (uint)ifp->hw_addr_len && (len == 0 || !memcmp(hw_addr, ifp->hw_addr, len)))
+		return;
+	memcpy(ifp->hw_addr, hw_addr, len);
+	ifp->hw_addr_len = len;
+	if (ifp->state && if_notify_oper_changes)
+		nb_op_updatef(ifp->state, "state/phy-address", "%pEA", ifp->hw_addr);
+}
+
+void if_update_state_speed(struct interface *ifp, uint32_t speed)
+{
+	if (ifp->speed == speed)
+		return;
+	ifp->speed = speed;
+	if (ifp->state && if_notify_oper_changes)
+		nb_op_updatef(ifp->state, "state/speed", "%u", ifp->speed);
+}
+
+void if_update_state(struct interface *ifp)
+{
+	struct lyd_node *state = ifp->state;
+
+	if (!state || !if_notify_oper_changes)
+		return;
+
+	/*
+	 * Remove this top level when we have patch support, for now this keeps
+	 * us from generating 5 separate REPLACE messages though.
+	 */
+	nb_op_update(state, "state", NULL);
+	nb_op_updatef(state, "state/if-index", "%d", ifp->ifindex);
+	nb_op_updatef(state, "state/mtu", "%u", ifp->mtu);
+	nb_op_updatef(state, "state/mtu6", "%u", ifp->mtu);
+	nb_op_updatef(state, "state/speed", "%u", ifp->speed);
+	nb_op_updatef(state, "state/metric", "%u", ifp->metric);
+	nb_op_updatef(state, "state/phy-address", "%pEA", ifp->hw_addr);
+}
+
 static struct interface *if_create_name(const char *name, struct vrf *vrf)
 {
 	struct interface *ifp;
@@ -216,7 +286,14 @@ static struct interface *if_create_name(const char *name, struct vrf *vrf)
 
 	if_set_name(ifp, name);
 
+	if (if_notify_oper_changes && name[0]) {
+		ifp->state = nb_op_update_pathf(NULL, "/frr-interface:lib/interface[name=\"%s\"]",
+						NULL, ifp->name);
+		if_update_state(ifp);
+	}
+
 	hook_call(if_add, ifp);
+
 	return ifp;
 }
 
@@ -279,6 +356,10 @@ void if_delete(struct interface **ifp)
 	if_link_params_free(ptr);
 
 	XFREE(MTYPE_IFDESC, ptr->desc);
+
+	if (if_notify_oper_changes)
+		nb_op_update_delete_pathf(NULL, "/frr-interface:lib/interface[name=\"%s\"]",
+					  ptr->name);
 
 	XFREE(MTYPE_IF, ptr);
 	*ifp = NULL;
@@ -630,6 +711,9 @@ int if_set_index(struct interface *ifp, ifindex_t ifindex)
 
 	ifp->ifindex = ifindex;
 
+	if (if_notify_oper_changes)
+		nb_op_updatef(ifp->state, "state/if-index", "%d", ifp->ifindex);
+
 	if (ifp->ifindex != IFINDEX_INTERNAL) {
 		/*
 		 * This should never happen, since we checked if there was
@@ -648,13 +732,25 @@ static void if_set_name(struct interface *ifp, const char *name)
 	if (if_cmp_name_func(ifp->name, name) == 0)
 		return;
 
-	if (ifp->name[0] != '\0')
+	if (ifp->name[0] != '\0') {
 		IFNAME_RB_REMOVE(ifp->vrf, ifp);
+		if (if_notify_oper_changes)
+			nb_op_update_delete_pathf(NULL, "/frr-interface:lib/interface[name=\"%s\"]",
+						  ifp->name);
+		ifp->state = NULL;
+	}
 
 	strlcpy(ifp->name, name, sizeof(ifp->name));
 
-	if (ifp->name[0] != '\0')
+	if (ifp->name[0] != '\0') {
 		IFNAME_RB_INSERT(ifp->vrf, ifp);
+		if (if_notify_oper_changes && name[0]) {
+			ifp->state = nb_op_update_pathf(NULL,
+							"/frr-interface:lib/interface[name=\"%s\"]",
+							NULL, ifp->name);
+			if_update_state(ifp);
+		}
+	}
 }
 
 /* Does interface up ? */
