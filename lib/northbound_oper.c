@@ -35,6 +35,7 @@
  * We must also process containers with lookup-next descendants last.
  */
 
+DEFINE_MTYPE_STATIC(LIB, NB_STATE, "Northbound State");
 DEFINE_MTYPE_STATIC(LIB, NB_YIELD_STATE, "NB Yield State");
 DEFINE_MTYPE_STATIC(LIB, NB_NODE_INFOS, "NB Node Infos");
 
@@ -113,6 +114,9 @@ DECLARE_LIST(nb_op_walks, struct nb_op_yield_state, link);
 /* ---------------- */
 /* Global Variables */
 /* ---------------- */
+
+/* Running operational state. */
+struct nb_config *running_state;
 
 static struct event_loop *event_loop;
 static struct nb_op_walks_head nb_op_walks;
@@ -1826,13 +1830,65 @@ enum nb_error nb_oper_iterate_legacy(const char *xpath,
 	return ret;
 }
 
+static bool __is_implemented(const char *module_name, const char *revision)
+{
+	const struct lys_module *module;
+
+	module = ly_ctx_get_module(ly_native_ctx, module_name, revision);
+	return (module && module->compiled);
+}
+
+struct nb_config *nb_state_new(void)
+{
+	int options = LYD_VALIDATE_OPERATIONAL;
+	struct nb_config *config;
+	LY_ERR err;
+
+	config = XCALLOC(MTYPE_NB_STATE, sizeof(*config));
+
+	/* we can start with yang-library op-state perhaps */
+	if (__is_implemented("ietf-yang-library", NULL)) {
+		err = ly_ctx_get_yanglib_data(ly_native_ctx, &config->dnode, "%u",
+					      ly_ctx_get_change_count(ly_native_ctx));
+		if (err != LY_SUCCESS) {
+			/* Should never happen. */
+			flog_err(EC_LIB_LIBYANG, "%s: getting yanglib failed: %s", __func__,
+				 ly_errmsg(ly_native_ctx));
+		}
+	}
+
+	err = lyd_validate_all(&config->dnode, ly_native_ctx, options, NULL);
+	if (err != LY_SUCCESS) {
+		/* Should never happen. */
+		flog_err(EC_LIB_LIBYANG, "%s: lyd_validate() failed", __func__);
+		exit(1);
+	}
+	config->version = 0;
+
+	return config;
+}
+
+void nb_state_free(struct nb_config *state)
+{
+	if (state->dnode)
+		yang_dnode_free(state->dnode);
+
+	XFREE(MTYPE_NB_STATE, state);
+}
+
 void nb_oper_init(struct event_loop *loop)
 {
 	event_loop = loop;
 	nb_op_walks_init(&nb_op_walks);
+
+	/* Create an empty oper-state tree */
+	running_state = nb_state_new();
 }
 
 void nb_oper_terminate(void)
 {
 	nb_oper_cancel_all_walks();
+
+	nb_state_free(running_state);
+	running_state = NULL;
 }
