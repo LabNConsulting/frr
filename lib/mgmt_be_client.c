@@ -1099,6 +1099,22 @@ static void be_client_handle_notify(struct mgmt_be_client *client, void *msgbuf,
 }
 
 /*
+ * Process a notify select msg
+ */
+static void be_client_handle_notify_select(struct mgmt_be_client *client, void *msgbuf,
+					   size_t msg_len)
+{
+	struct mgmt_msg_notify_select *msg = msgbuf;
+	const char **selectors = NULL;
+
+	debug_be_client("Received notify-select for client %s", client->name);
+
+	if (msg_len >= sizeof(*msg))
+		selectors = mgmt_msg_native_strings_decode(msg, msg_len, msg->selectors);
+	nb_notif_set_filters(selectors, msg->replace);
+}
+
+/*
  * Handle a native encoded message
  *
  * We don't create transactions with native messaging.
@@ -1118,6 +1134,9 @@ static void be_client_handle_native_msg(struct mgmt_be_client *client,
 		break;
 	case MGMT_MSG_CODE_NOTIFY:
 		be_client_handle_notify(client, msg, msg_len);
+		break;
+	case MGMT_MSG_CODE_NOTIFY_SELECT:
+		be_client_handle_notify_select(client, msg, msg_len);
 		break;
 	default:
 		log_err_be_client("unknown native message txn-id %" PRIu64

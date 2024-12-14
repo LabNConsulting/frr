@@ -30,7 +30,7 @@ struct debug nb_dbg_cbs_rpc = { 0, "debug northbound callbacks rpc",
 				"Northbound callbacks: RPCs" };
 struct debug nb_dbg_cbs_notify = { 0, "debug northbound callbacks notify",
 				   "Northbound callbacks: notifications" };
-struct debug nb_dbg_notif = { 0, "debug northbound notifications",
+struct debug nb_dbg_notif = { DEBUG_MODE_ALL, "debug northbound notifications",
 			      "Northbound notifications" };
 struct debug nb_dbg_events = { 0, "debug northbound events",
 			       "Northbound events" };
