@@ -107,7 +107,33 @@ def test_oper_simple(tgen):
             continue
 
         try:
+            # We are only checking that it's valid JSON not the content
             ojson = json.loads(output)
-            logging.info("'%s': generates:\n%s", qr, ojson)
+            logging.debug("'%s': generates:\n%s", qr, ojson)
         except json.decoder.JSONDecodeError as error:
             logging.error("Error decoding json: %s\noutput:\n%s", error, output)
+
+
+# Query from / is not supported yet.
+def _test_query_root(tgen):
+    """This test is useful for doing manual testing"""
+    if tgen.routers_have_failure():
+        pytest.skip(tgen.errors)
+
+    r1 = tgen.gears["r1"].net
+    check_kernel_32(r1, "11.11.11.11", 1, "")
+
+    step("Oper test query root start", reset=True)
+
+    try:
+        output = r1.cmd_nostatus(f"vtysh -c 'show mgmt get-data /'")
+    except Exception as error:
+        logging.error("Error sending query: '/': %s", error)
+        raise
+
+    try:
+        ojson = json.loads(output)
+        logging.info("'%s': generates:\n%s", ojson)
+    except json.decoder.JSONDecodeError as error:
+        logging.error("Error decoding json: %s\noutput:\n%s", error, output)
+        raise
