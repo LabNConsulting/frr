@@ -1966,9 +1966,10 @@ void mgmt_fe_adapter_lock(struct mgmt_fe_client_adapter *adapter)
 	adapter->refcount++;
 }
 
-extern void mgmt_fe_adapter_unlock(struct mgmt_fe_client_adapter **adapter)
+void mgmt_fe_adapter_unlock(struct mgmt_fe_client_adapter **adapter)
 {
 	struct mgmt_fe_client_adapter *a = *adapter;
+
 	assert(a && a->refcount);
 
 	if (!--a->refcount) {
