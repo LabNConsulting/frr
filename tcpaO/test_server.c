@@ -8,18 +8,6 @@
 #include "tcp_ao_config.h"
 #include "server_client_comm.h"
 
-#define PORT 12345
-#define TCP_AO_MAXKEYLEN 80
-
-
-void handle_client(int client_sock) {
-    char buffer[1024] = {0};
-    int bytes_read = read(client_sock, buffer, sizeof(buffer));
-    if (bytes_read > 0) {
-        printf("Received message: %s\n", buffer);
-    }
-    close(client_sock);
-}
 
 int main() {
     int sock, client_sock;
@@ -63,8 +51,15 @@ int main() {
         if (client_sock < 0) {
             perror("Accept failed");
             continue;
+        } else {
+            char buffer[1024] = {0};
+            int bytes_read = read(client_sock, buffer, sizeof(buffer));
+            if (bytes_read > 0) {
+                printf("Received message: %s\n", buffer);
+            }
+            close(client_sock);
         }
-        handle_client(client_sock);
+        
     }
 
     close(sock);

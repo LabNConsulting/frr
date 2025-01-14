@@ -4,7 +4,6 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include "tcp_ao.h"
 #include "tcp_ao_config.h"
 #include <errno.h>
 #include "server_client_comm.h"
