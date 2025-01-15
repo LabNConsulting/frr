@@ -9,11 +9,11 @@
 #include "server_client_comm.h"
 
 
-#define SERVER_IP "127.0.0.1"
-
 // Function to test setting TCP-AO
-void test_set_tcpA0_sockopt() {
+void test_set_tcpA0_sockopt_client() {
     printf("Starting test_set_tcpA0_sockopt\n");
+
+    //Creating a socket
     int sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock < 0){
 		printf("Error creating the socket, errno: %d, %s\n", errno, strerror(errno));
@@ -22,32 +22,33 @@ void test_set_tcpA0_sockopt() {
 		printf("Socket created successfully\n");
 	}
 
+    // Setting the TCP-AO socket option on sock
+    if(set_tcpA0_sockopt(sock, AF_INET, ALGORITHM, server_rcvid_client_sndid, client_rcvid_server_sndid, KEY) < 0){
+        perror("Error setting the socket option: ");
+        return;
+    }
+
+
+    //Creating a sockaddr_in struct to use when connecting to the server 
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
     addr.sin_port = htons(PORT);
 
 
-    uint8_t sndid = 100, rcvid = 100;
-
-    int result = set_tcpA0_sockopt(sock, AF_INET, ALGORITHM, sndid, KEY, rcvid);
-    printf("result: %d\n", result);
-    assert(result == 0); // Assert the setsockopt call was successful
-
-    printf("Coneccting to the server\n");
-    result = connect(sock, (struct sockaddr *)&addr, sizeof(addr));
-    if(result != 0){
-        perror("Connect failed");
-    }
-    printf("Connected to the server\n");
-
-
-
-    const char *message = "Hello, World!";
+    printf("Coneccting to the server...\n");
     
+    //Connecting to the server
+    if(connect(sock, (struct sockaddr *)&addr, sizeof(addr)) != 0){
+        perror("Connect failed");
+        return;
+    }
+
+    const char *message = "Hi";
+    
+    //Sending the message initialized above to the server
     printf("Sending message to the server\n");
     send(sock, message, strlen(message), 0);
     printf("Message sent to the server\n");
-
 
     close(sock);
 
@@ -55,6 +56,6 @@ void test_set_tcpA0_sockopt() {
 }
 
 int main() {
-    test_set_tcpA0_sockopt();
+    test_set_tcpA0_sockopt_client();
     return 0;
 }

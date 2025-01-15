@@ -9,49 +9,57 @@
 #include "server_client_comm.h"
 
 
-int main() {
-    int sock, client_sock;
+void test_set_tcpA0_sockopt_server(){
+    int server_sock, client_sock;
     struct sockaddr_in server_addr, client_addr;
     socklen_t addr_len = sizeof(client_addr);
 
-    sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock < 0) {
+
+    // Create a TCP socket for the server
+    server_sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (server_sock < 0) {
         perror("Socket creation failed");
-        return -1;
+        return;
     }
 
-    uint8_t sndid = 100, rcvid = 100;
+    uint8_t sndid = 200, rcvid = 50;
 
-    if (set_tcpA0_sockopt(sock, AF_INET, ALGORITHM, sndid, KEY, rcvid) < 0) {
-        close(sock);
-        return -1;
+    // Set the TCP-AO socket option on the server socket using the fucntion from 
+    if (set_tcpA0_sockopt(server_sock, AF_INET, ALGORITHM, client_rcvid_server_sndid, server_rcvid_client_sndid, KEY) < 0) {
+        close(server_sock);
+        return;
     }
 
+    //Setting up the server address
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = INADDR_ANY;
     server_addr.sin_port = htons(PORT);
 
-    if (bind(sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+    //Binding the socket to the address
+    if (bind(server_sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
         perror("Bind failed");
-        close(sock);
-        return -1;
+        close(server_sock);
+        return;
     }
 
-    if (listen(sock, 5) < 0) {
+    //Listening on the server socket
+    if (listen(server_sock, 5) < 0) {
         perror("Listen failed");
-        close(sock);
-        return -1;
+        close(server_sock);
+        return;
     }
 
     printf("Server listening on port %d\n", PORT);
 
+    //Accepting incoming connections
     while (1) {
-        client_sock = accept(sock, (struct sockaddr *)&client_addr, &addr_len);
+        client_sock = accept(server_sock, (struct sockaddr *)&client_addr, &addr_len);
         if (client_sock < 0) {
             perror("Accept failed");
             continue;
         } else {
+            // Read the message from the connection accepted
             char buffer[1024] = {0};
             int bytes_read = read(client_sock, buffer, sizeof(buffer));
             if (bytes_read > 0) {
@@ -62,6 +70,11 @@ int main() {
         
     }
 
-    close(sock);
+    close(server_sock);
+}
+
+int main() {
+    test_set_tcpA0_sockopt_server();
     return 0;
+
 }
