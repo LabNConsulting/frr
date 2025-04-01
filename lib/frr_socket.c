@@ -460,9 +460,11 @@ void _frr_socket_destroy_event(struct event *thread)
 	struct frr_socket_entry *entry = EVENT_ARG(thread);
 
 	/* We should hold the only remaining reference */
-	if (entry->ref_count > 1)
+	if (entry->ref_count > 1) {
 		event_add_timer_msec(frr_socket_shared_event_loop, _frr_socket_destroy_event, entry,
 				     1000, &entry->destroy_event);
+		return;
+	}
 
 	_frr_socket_destroy(entry);
 }

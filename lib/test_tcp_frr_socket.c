@@ -143,6 +143,7 @@ int test_tcp_destroy_entry(struct frr_socket_entry *entry)
 	 */
 
 	close(entry->fd);
+	entry->fd = -1;
 	frr_socket_cleanup(entry);
 	XFREE(MTYPE_FRR_SOCKET, entry);
 

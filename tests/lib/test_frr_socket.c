@@ -63,11 +63,19 @@ void frr_socket_test_insert_delete(void)
 	}
 
 	printf("Testing deletion of a basic frr_socket_entry\n");
-	rv = frr_close(fd);
-	assert(rv == 0);
 	{
-		struct frr_socket_entry *scoped_entry;
+		struct frr_socket_entry *scoped_entry, *held_entry;
+		frr_socket_table_find(&frr_socket_table, &search_entry, held_entry);
+		assert(held_entry);
+		rv = frr_close(fd);
+		assert(rv == 0);
 		frr_socket_table_find(&frr_socket_table, &search_entry, scoped_entry);
-		assert(!scoped_entry);
+		assert(scoped_entry == NULL);
+
+		/* Ensure that the entry is not preemptively freed when a reference is still held */
+		for (int i = 0; i < 4; i++) {
+			assert(held_entry->fd == fd);
+			sleep(0.5);
+		}
 	}
 }
