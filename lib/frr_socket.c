@@ -14,7 +14,8 @@
 
 int frr_socket_entry_compare(const struct frr_socket_entry *a, const struct frr_socket_entry *b);
 uint32_t frr_socket_entry_hash(const struct frr_socket_entry *a);
-void _frr_socket_destroy(struct event *thread);
+void _frr_socket_destroy_event(struct event *thread);
+static void _frr_socket_destroy(struct frr_socket_entry *entry);
 
 /* The following global structures should only be referenced by transport protocol implementations */
 struct event_loop *frr_socket_shared_event_loop = NULL;
@@ -47,27 +48,56 @@ int frr_socket_lib_init(struct event_loop *shared_loop)
 }
 
 
-int frr_socket(int domain, int type, int protocol)
+int frr_socket_lib_finish(void)
 {
 	struct frr_socket_entry *entry;
+
+	frr_socket_shared_event_loop = NULL;
+	pthread_rwlock_wrlock(&frr_socket_table.rwlock);
+
+	while ((entry = frr_socket_entry_pop(&frr_socket_table.table)))
+		_frr_socket_destroy(entry);
+
+	pthread_rwlock_destroy(&frr_socket_table.rwlock);
+
+	return 0;
+}
+
+
+int frr_socket_init(struct frr_socket_entry *entry)
+{
+	return pthread_mutex_init(&entry->lock, NULL);
+}
+
+// XXX explanation
+int frr_socket_cleanup(struct frr_socket_entry *entry)
+{
+	return pthread_mutex_destroy(&entry->lock);
+}
+
+
+int frr_socket(int domain, int type, int protocol)
+{
+	struct frr_socket_entry search_entry = {};
 	int fd = -1;
 
 	switch (protocol) {
 	case IPPROTO_TEST_TCP:
-		entry = test_tcp_socket(domain, type);
+		fd = test_tcp_socket(domain, type);
 		break;
 	default:
 		/* It is assumed that unrecognized protocols are in-kernel */
 		return socket(domain, type, protocol);
 	}
 
-	/* errno should be set by transport protocol */
-	if (entry == NULL)
-		return -1;
-
-	//XXX add explanation for oper state?
-	pthread_mutex_init(&entry->lock, NULL);
-	frr_socket_table_add(&frr_socket_table, entry);
+	/* Sanity check: transport protocol inserted an frr_socket_entry */
+	if (fd > 0) {
+		struct frr_socket_entry *rv_entry;
+		search_entry.fd = fd;
+		frr_socket_table_find(&frr_socket_table, &search_entry, rv_entry);
+		assert(rv_entry);
+		assert(rv_entry->protocol == protocol);
+	}
 
 	return fd;
 }
@@ -140,7 +170,7 @@ int frr_listen(int sockfd, int backlog)
 int frr_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 {
 	struct frr_socket_entry *entry, search_entry = {};
-	int rv = -1;
+	int fd = -1;
 
 	search_entry.fd = sockfd;
 	frr_socket_table_find(&frr_socket_table, &search_entry, entry);
@@ -149,13 +179,23 @@ int frr_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 
 	switch (entry->protocol) {
 	case IPPROTO_TEST_TCP:
-		rv = test_tcp_accept(entry, addr, addrlen);
+		fd = test_tcp_accept(entry, addr, addrlen);
 		break;
 	default:
 		/* Illegal frr_socket_entry instance. */
 		assert(0);
 	}
-	return rv;
+
+	/* Sanity check: transport protocol inserted an frr_socket_entry */
+	if (fd > 0) {
+		struct frr_socket_entry *rv_entry;
+		search_entry.fd = fd;
+		frr_socket_table_find(&frr_socket_table, &search_entry, rv_entry);
+		assert(rv_entry);
+		assert(rv_entry->protocol == entry->protocol);
+	}
+
+	return fd;
 }
 
 
@@ -358,6 +398,7 @@ int frr_poll_hook(struct pollfd *t_pollfd, int *nums)
 	return rv;
 }
 
+
 struct frr_socket_entry *_frr_socket_table_find(struct frr_socket_entry_head *hash_table,
 						struct frr_socket_entry *search_entry)
 {
@@ -407,23 +448,28 @@ int frr_socket_table_delete_async(struct frr_socket_entry_table *entry_table,
 	 * within another thread. Deallocation only completes when a single reference is held.
 	 */
 	if (!entry->destroy_event)
-		event_add_timer_msec(frr_socket_shared_event_loop, _frr_socket_destroy, entry, 0,
-				     &entry->destroy_event);
+		event_add_timer_msec(frr_socket_shared_event_loop, _frr_socket_destroy_event, entry,
+				     0, &entry->destroy_event);
 
 	return 0;
 }
 
-void _frr_socket_destroy(struct event *thread)
+
+void _frr_socket_destroy_event(struct event *thread)
 {
 	struct frr_socket_entry *entry = EVENT_ARG(thread);
 
 	/* We should hold the only remaining reference */
 	if (entry->ref_count > 1)
-		event_add_timer_msec(frr_socket_shared_event_loop, _frr_socket_destroy, entry, 1000,
-				     &entry->destroy_event);
+		event_add_timer_msec(frr_socket_shared_event_loop, _frr_socket_destroy_event, entry,
+				     1000, &entry->destroy_event);
 
-	pthread_mutex_destroy(&entry->lock);
+	_frr_socket_destroy(entry);
+}
 
+
+static void _frr_socket_destroy(struct frr_socket_entry *entry)
+{
 	switch (entry->protocol) {
 	case IPPROTO_TEST_TCP:
 		test_tcp_destroy_entry(entry);

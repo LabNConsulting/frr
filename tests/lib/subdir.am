@@ -289,6 +289,14 @@ tests_lib_test_ringbuf_SOURCES = tests/lib/test_ringbuf.c
 EXTRA_DIST += tests/lib/test_ringbuf.py
 
 
+check_PROGRAMS += tests/lib/test_frr_socket
+tests_lib_test_frr_socket_CFLAGS = $(TESTS_CFLAGS)
+tests_lib_test_frr_socket_CPPFLAGS = $(TESTS_CPPFLAGS)
+tests_lib_test_frr_socket_LDADD = $(ALL_TESTS_LDADD)
+tests_lib_test_frr_socket_SOURCES = tests/lib/test_frr_socket.c
+EXTRA_DIST += tests/lib/test_frr_socket.py
+
+
 check_PROGRAMS += tests/lib/test_segv
 tests_lib_test_segv_CFLAGS = $(TESTS_CFLAGS)
 tests_lib_test_segv_CPPFLAGS = $(TESTS_CPPFLAGS)

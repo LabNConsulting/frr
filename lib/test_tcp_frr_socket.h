@@ -23,7 +23,7 @@ extern struct event_loop *frr_socket_shared_event_loop;
 extern struct frr_socket_entry_table frr_socket_hash_table;
 
 /* Simple wrappers to test the FRR socket abstraction */
-struct frr_socket_entry *test_tcp_socket(int domain, int type);
+int test_tcp_socket(int domain, int type);
 int test_tcp_bind(struct frr_socket_entry *entry, const struct sockaddr *addr, socklen_t addrlen);
 int test_tcp_connect(struct frr_socket_entry *entry, const struct sockaddr *addr, socklen_t addrlen);
 int test_tcp_listen(struct frr_socket_entry *entry, int backlog);

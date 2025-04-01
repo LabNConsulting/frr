@@ -12,27 +12,29 @@
 #include "test_tcp_frr_socket.h"
 
 /* Simple wrappers to test the FRR socket abstraction */
-struct frr_socket_entry *test_tcp_socket(int domain, int type)
+int test_tcp_socket(int domain, int type)
 {
 	int fd;
 	struct frr_socket_entry *test_tcp_entry;
 
 	fd = socket(domain, type, IPPROTO_TCP);
 	if (fd < 0)
-		return NULL;
+		return -1;
 
 	test_tcp_entry = XMALLOC(MTYPE_FRR_SOCKET, sizeof(*test_tcp_entry));
 	if (!test_tcp_entry) {
 		close(fd);
 		errno = ENOMEM;
-		return NULL;
+		return -1;
 	}
 
 	memset(test_tcp_entry, 0x00, sizeof(*test_tcp_entry));
+	frr_socket_init(test_tcp_entry);
 	test_tcp_entry->protocol = IPPROTO_TEST_TCP;
 	test_tcp_entry->fd = fd;
+	frr_socket_table_add(&frr_socket_table, test_tcp_entry);
 
-	return test_tcp_entry;
+	return fd;
 }
 
 
@@ -57,7 +59,27 @@ int test_tcp_listen(struct frr_socket_entry *entry, int backlog)
 
 int test_tcp_accept(struct frr_socket_entry *entry, struct sockaddr *addr, socklen_t *addrlen)
 {
-	return accept(entry->fd, addr, addrlen);
+	int fd;
+	struct frr_socket_entry *test_tcp_entry;
+
+	fd = accept(entry->fd, addr, addrlen);
+	if (fd < 0)
+		return -1;
+
+	test_tcp_entry = XMALLOC(MTYPE_FRR_SOCKET, sizeof(*test_tcp_entry));
+	if (!test_tcp_entry) {
+		close(fd);
+		errno = ENOMEM;
+		return -1;
+	}
+
+	memset(test_tcp_entry, 0x00, sizeof(*test_tcp_entry));
+	frr_socket_init(test_tcp_entry);
+	test_tcp_entry->protocol = IPPROTO_TEST_TCP;
+	test_tcp_entry->fd = fd;
+	frr_socket_table_add(&frr_socket_table, test_tcp_entry);
+
+	return fd;
 }
 
 
@@ -121,6 +143,7 @@ int test_tcp_destroy_entry(struct frr_socket_entry *entry)
 	 */
 
 	close(entry->fd);
+	frr_socket_cleanup(entry);
 	XFREE(MTYPE_FRR_SOCKET, entry);
 
 	return 0;

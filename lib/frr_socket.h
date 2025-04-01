@@ -73,6 +73,9 @@ int frr_socket_table_delete_async(struct frr_socket_entry_table *hash_table,
 
 /* For FRR socket users */
 int frr_socket_lib_init(struct event_loop *shared_loop);
+int frr_socket_lib_finish(void);
+int frr_socket_init(struct frr_socket_entry *entry);
+int frr_socket_cleanup(struct frr_socket_entry *entry);
 int frr_socket(int domain, int type, int protocol);
 int frr_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 int frr_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
