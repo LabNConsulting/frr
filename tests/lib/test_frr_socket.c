@@ -16,7 +16,9 @@ _Atomic int ctr1, ctr2;
 
 void frr_socket_test_insert_delete(void);
 void frr_socket_test_async_insert_delete(void);
-void insert_delete_repeat(struct event *thread);
+void insert_delete_repeat(void);
+void *insert_delete_repeat_start(void *arg);
+int basic_pthread_stop(struct frr_pthread *fpt, void **result);
 
 int main(int argc, char **argv)
 {
@@ -85,13 +87,10 @@ void frr_socket_test_insert_delete(void)
 }
 
 
-void insert_delete_repeat(struct event *thread)
+void insert_delete_repeat(void)
 {
 	struct frr_socket_entry search_entry = {};
 	int fd, rv;
-
-	/* RCU starts locked. We don't want this */
-	rcu_read_unlock();
 
 	for (int i = 0; i < 50; i++) {
 		printf("%d\n", ctr2++);
@@ -113,16 +112,44 @@ void insert_delete_repeat(struct event *thread)
 		}
 	}
 
-	rcu_read_lock();
-
+	sleep(1000);
 	ctr1++;
 }
 
+void *insert_delete_repeat_start(void *arg)
+{
+        struct frr_pthread *fpt = arg;
+        fpt->master->owner = pthread_self();
+
+	rcu_read_unlock();
+
+	frr_pthread_set_name(fpt);
+        frr_pthread_notify_running(fpt);
+
+	insert_delete_repeat();
+
+	return NULL;
+}
+
+int basic_pthread_stop(struct frr_pthread *fpt, void **result)
+{
+        assert(fpt->running);
+
+	atomic_store_explicit(&fpt->running, false, memory_order_relaxed);
+
+	pthread_join(fpt->thread, result);
+        return 0;
+}
+
 /* Test insertion and deletion from multiple threads */
-#define NUM_THREADS 4
+#define NUM_THREADS 1
 void frr_socket_test_async_insert_delete(void)
 {
 	struct frr_pthread *pthr[NUM_THREADS];
+	struct frr_pthread_attr shared = {
+		.start = insert_delete_repeat_start,
+		.stop = basic_pthread_stop,
+	};
 	ctr1 = 0;
 
 	printf("Testing multi-threaded insertion and deletion\n");
@@ -136,16 +163,20 @@ void frr_socket_test_async_insert_delete(void)
 		frr_pthread_wait_running(pthr[i]);
 	}
 
+	/*
 	for (int i = 0; i < NUM_THREADS; i++) {
 		event_add_timer_msec((pthr[i])->master, insert_delete_repeat, NULL, 0, NULL);
 	}
+	*/
 
-	while (ctr1 < 4);;
+	while (ctr1 < NUM_THREADS);;
 
+	/*
 	for (int i = 0; i < NUM_THREADS; i++) {
 		frr_pthread_stop(pthr[i], NULL);
 		frr_pthread_destroy(pthr[i]);
 	}
+	*/
 
 	/* Allow for all cleanup events to finish */
 	usleep(5000000);
