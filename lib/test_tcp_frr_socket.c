@@ -144,8 +144,6 @@ int test_tcp_destroy_entry(struct frr_socket_entry *entry)
 	 * not be the case for other transport protocols!
 	 */
 
-        printf("TCP Destroy counter: %d\n", tcp_counter++);
-
 	close(entry->fd);
 	entry->fd = -1;
 	frr_socket_cleanup(entry);

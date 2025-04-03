@@ -457,8 +457,6 @@ int frr_socket_table_delete_async(struct frr_socket_entry_table *entry_table,
 
 static void _frr_socket_destroy(struct frr_socket_entry *entry)
 {
-        printf("Destroy counter: %d\n", counter++);
-
 	switch (entry->protocol) {
 	case IPPROTO_TEST_TCP:
 		test_tcp_destroy_entry(entry);

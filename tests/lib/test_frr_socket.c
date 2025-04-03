@@ -16,9 +16,7 @@ _Atomic int ctr1, ctr2;
 
 void frr_socket_test_insert_delete(void);
 void frr_socket_test_async_insert_delete(void);
-void insert_delete_repeat(void);
-void *insert_delete_repeat_start(void *arg);
-int basic_pthread_stop(struct frr_pthread *fpt, void **result);
+void *insert_delete_repeat(void *arg);
 
 int main(int argc, char **argv)
 {
@@ -27,9 +25,10 @@ int main(int argc, char **argv)
 	frr_pthread_init();
 	shared.start = frr_pthread_attr_default.start;
 	shared.stop = frr_pthread_attr_default.stop;
-        pth_shared = frr_pthread_new(&shared, "FRR socket test pthread", "test_frr_socket");
+        pth_shared = frr_pthread_new(&shared, "FRR socket test pthread", "frrsock shared");
 	frr_pthread_run(pth_shared, NULL);
 	frr_pthread_wait_running(pth_shared);
+	rcu_read_unlock();
 
 	printf("Setting up FRR socket library\n");
 	assert(frr_socket_lib_init(pth_shared->master) == 0);
@@ -45,6 +44,8 @@ int main(int argc, char **argv)
 	printf("Finishing\n");
 	frr_pthread_stop(pth_shared, NULL);
 	frr_pthread_finish();
+	rcu_read_lock();
+	rcu_shutdown();
 
 	printf("Done\n");
 	return 0;
@@ -87,13 +88,19 @@ void frr_socket_test_insert_delete(void)
 }
 
 
-void insert_delete_repeat(void)
+#define NUM_REPEAT 50
+void *insert_delete_repeat(void *arg)
 {
 	struct frr_socket_entry search_entry = {};
+	struct rcu_thread *rcu_thr = arg;
 	int fd, rv;
 
-	for (int i = 0; i < 50; i++) {
-		printf("%d\n", ctr2++);
+	while (ctr1 < 1);;
+
+	rcu_thread_start(rcu_thr);
+	rcu_read_unlock();
+
+	for (int i = 0; i < NUM_REPEAT; i++) {
 		fd = frr_socket(AF_INET, SOCK_STREAM, IPPROTO_TEST_TCP);
 		search_entry.fd = fd;
 		{
@@ -112,72 +119,35 @@ void insert_delete_repeat(void)
 		}
 	}
 
-	sleep(1000);
-	ctr1++;
-}
-
-void *insert_delete_repeat_start(void *arg)
-{
-        struct frr_pthread *fpt = arg;
-        fpt->master->owner = pthread_self();
-
-	rcu_read_unlock();
-
-	frr_pthread_set_name(fpt);
-        frr_pthread_notify_running(fpt);
-
-	insert_delete_repeat();
-
 	return NULL;
 }
 
-int basic_pthread_stop(struct frr_pthread *fpt, void **result)
-{
-        assert(fpt->running);
 
-	atomic_store_explicit(&fpt->running, false, memory_order_relaxed);
-
-	pthread_join(fpt->thread, result);
-        return 0;
-}
-
-/* Test insertion and deletion from multiple threads */
-#define NUM_THREADS 1
+/*
+ * Test insertion and deletion from multiple threads
+ *
+ * This is not a demonstration of realistic usage of the FRR socket abstraction, but a demonstration
+ * of thread safety.
+*/
+#define NUM_THREADS 4
 void frr_socket_test_async_insert_delete(void)
 {
-	struct frr_pthread *pthr[NUM_THREADS];
-	struct frr_pthread_attr shared = {
-		.start = insert_delete_repeat_start,
-		.stop = basic_pthread_stop,
-	};
+	pthread_t pthr[NUM_THREADS];
+	struct rcu_thread *rcu_thr[NUM_THREADS];
+
 	ctr1 = 0;
-
 	printf("Testing multi-threaded insertion and deletion\n");
+	rcu_read_lock();
 	for (int i = 0; i < NUM_THREADS; i++) {
-		pthr[i] = frr_pthread_new(&shared, "FRR socket insert/delete pthread",
-					  "test_frr_socket");
-		frr_pthread_run(pthr[i], NULL);
+		rcu_thr[i] = rcu_thread_prepare();
+		pthread_create(&pthr[i], NULL, insert_delete_repeat, rcu_thr[i]);
 	}
+	rcu_read_unlock();
+
+	/* Give the go ahead for threads to start */
+	ctr1 = 1;
 
 	for (int i = 0; i < NUM_THREADS; i++) {
-		frr_pthread_wait_running(pthr[i]);
+		pthread_join(pthr[i], NULL);
 	}
-
-	/*
-	for (int i = 0; i < NUM_THREADS; i++) {
-		event_add_timer_msec((pthr[i])->master, insert_delete_repeat, NULL, 0, NULL);
-	}
-	*/
-
-	while (ctr1 < NUM_THREADS);;
-
-	/*
-	for (int i = 0; i < NUM_THREADS; i++) {
-		frr_pthread_stop(pthr[i], NULL);
-		frr_pthread_destroy(pthr[i]);
-	}
-	*/
-
-	/* Allow for all cleanup events to finish */
-	usleep(5000000);
 }
