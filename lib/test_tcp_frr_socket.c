@@ -11,6 +11,8 @@
 #include "frr_socket.h"
 #include "test_tcp_frr_socket.h"
 
+_Atomic int tcp_counter = 0; // XXX REMOVE
+
 /* Simple wrappers to test the FRR socket abstraction */
 int test_tcp_socket(int domain, int type)
 {
@@ -141,6 +143,8 @@ int test_tcp_destroy_entry(struct frr_socket_entry *entry)
 	/* Not much needs to be done for a TCP Test FRR socket. This may
 	 * not be the case for other transport protocols!
 	 */
+
+        printf("TCP Destroy counter: %d\n", tcp_counter++);
 
 	close(entry->fd);
 	entry->fd = -1;

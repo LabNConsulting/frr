@@ -14,8 +14,9 @@
 
 int frr_socket_entry_compare(const struct frr_socket_entry *a, const struct frr_socket_entry *b);
 uint32_t frr_socket_entry_hash(const struct frr_socket_entry *a);
-void _frr_socket_destroy_event(struct event *thread);
 static void _frr_socket_destroy(struct frr_socket_entry *entry);
+
+_Atomic int counter = 0; // XXX REMOVE
 
 /* The following global structures should only be referenced by transport protocol implementations */
 struct event_loop *frr_socket_shared_event_loop = NULL;
@@ -38,7 +39,6 @@ uint32_t frr_socket_entry_hash(const struct frr_socket_entry *a)
 DECLARE_HASH(frr_socket_entry, struct frr_socket_entry, hash_item, frr_socket_entry_compare,
 	     frr_socket_entry_hash);
 
-
 int frr_socket_lib_init(struct event_loop *shared_loop)
 {
 	frr_socket_shared_event_loop = shared_loop;
@@ -55,8 +55,11 @@ int frr_socket_lib_finish(void)
 	frr_socket_shared_event_loop = NULL;
 	pthread_rwlock_wrlock(&frr_socket_table.rwlock);
 
-	while ((entry = frr_socket_entry_pop(&frr_socket_table.table)))
-		_frr_socket_destroy(entry);
+	rcu_read_lock();
+	while ((entry = frr_socket_entry_pop(&frr_socket_table.table))) {
+		rcu_call(_frr_socket_destroy, entry, rcu_head);
+	}
+	rcu_read_unlock();
 
 	pthread_rwlock_destroy(&frr_socket_table.rwlock);
 
@@ -431,6 +434,7 @@ int frr_socket_table_delete_async(struct frr_socket_entry_table *entry_table,
 
 	/* To be safe, first verify that the expected entry is in the table before removal */
 	pthread_rwlock_wrlock(&entry_table->rwlock);
+	rcu_lock_autounlock();
 	rv_entry = frr_socket_entry_find(&entry_table->table, &search_entry);
 	if (entry == rv_entry) {
 		rv_entry = frr_socket_entry_del(&entry_table->table, entry);
@@ -444,34 +448,17 @@ int frr_socket_table_delete_async(struct frr_socket_entry_table *entry_table,
 		return -1;
 	}
 
-	/* At this point, the entry is no longer in the table. However, it may still be in-scope
-	 * within another thread. Deallocation only completes when a single reference is held.
-	 */
-	if (!entry->destroy_event)
-		event_add_timer_msec(frr_socket_shared_event_loop, _frr_socket_destroy_event, entry,
-				     0, &entry->destroy_event);
+	/* Blocks the rcu thread, however, only the transport protocol can clean up its own state */
+	rcu_call(_frr_socket_destroy, entry, rcu_head);
 
 	return 0;
 }
 
 
-void _frr_socket_destroy_event(struct event *thread)
-{
-	struct frr_socket_entry *entry = EVENT_ARG(thread);
-
-	/* We should hold the only remaining reference */
-	if (entry->ref_count > 1) {
-		event_add_timer_msec(frr_socket_shared_event_loop, _frr_socket_destroy_event, entry,
-				     1000, &entry->destroy_event);
-		return;
-	}
-
-	_frr_socket_destroy(entry);
-}
-
-
 static void _frr_socket_destroy(struct frr_socket_entry *entry)
 {
+        printf("Destroy counter: %d\n", counter++);
+
 	switch (entry->protocol) {
 	case IPPROTO_TEST_TCP:
 		test_tcp_destroy_entry(entry);

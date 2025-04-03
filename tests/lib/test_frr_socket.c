@@ -11,18 +11,20 @@
 #include "test_tcp_frr_socket.h"
 
 struct frr_pthread *pth_shared;
+struct frr_pthread_attr shared = {};
+_Atomic int ctr1, ctr2;
 
 void frr_socket_test_insert_delete(void);
+void frr_socket_test_async_insert_delete(void);
+void insert_delete_repeat(struct event *thread);
 
 int main(int argc, char **argv)
 {
 
 	printf("Starting\n");
 	frr_pthread_init();
-        struct frr_pthread_attr shared = {
-                .start = frr_pthread_attr_default.start,
-                .stop = frr_pthread_attr_default.stop,
-        };
+	shared.start = frr_pthread_attr_default.start;
+	shared.stop = frr_pthread_attr_default.stop;
         pth_shared = frr_pthread_new(&shared, "FRR socket test pthread", "test_frr_socket");
 	frr_pthread_run(pth_shared, NULL);
 	frr_pthread_wait_running(pth_shared);
@@ -30,8 +32,10 @@ int main(int argc, char **argv)
 	printf("Setting up FRR socket library\n");
 	assert(frr_socket_lib_init(pth_shared->master) == 0);
 
+	/* XXX Test explanations */
 	frr_socket_test_insert_delete();
 
+	frr_socket_test_async_insert_delete();
 
 	printf("Cleaning up FRR socket library\n");
 	frr_socket_lib_finish();
@@ -75,7 +79,74 @@ void frr_socket_test_insert_delete(void)
 		/* Ensure that the entry is not preemptively freed when a reference is still held */
 		for (int i = 0; i < 4; i++) {
 			assert(held_entry->fd == fd);
-			sleep(0.5);
+			usleep(5000);
 		}
 	}
+}
+
+
+void insert_delete_repeat(struct event *thread)
+{
+	struct frr_socket_entry search_entry = {};
+	int fd, rv;
+
+	/* RCU starts locked. We don't want this */
+	rcu_read_unlock();
+
+	for (int i = 0; i < 50; i++) {
+		printf("%d\n", ctr2++);
+		fd = frr_socket(AF_INET, SOCK_STREAM, IPPROTO_TEST_TCP);
+		search_entry.fd = fd;
+		{
+			struct frr_socket_entry *scoped_entry;
+			frr_socket_table_find(&frr_socket_table, &search_entry, scoped_entry);
+			assert(scoped_entry);
+			assert(scoped_entry->protocol == IPPROTO_TEST_TCP);
+			assert(scoped_entry->fd == fd);
+		}
+		{
+			struct frr_socket_entry *scoped_entry;
+			rv = frr_close(fd);
+			assert(rv == 0);
+			frr_socket_table_find(&frr_socket_table, &search_entry, scoped_entry);
+			assert(scoped_entry == NULL);
+		}
+	}
+
+	rcu_read_lock();
+
+	ctr1++;
+}
+
+/* Test insertion and deletion from multiple threads */
+#define NUM_THREADS 4
+void frr_socket_test_async_insert_delete(void)
+{
+	struct frr_pthread *pthr[NUM_THREADS];
+	ctr1 = 0;
+
+	printf("Testing multi-threaded insertion and deletion\n");
+	for (int i = 0; i < NUM_THREADS; i++) {
+		pthr[i] = frr_pthread_new(&shared, "FRR socket insert/delete pthread",
+					  "test_frr_socket");
+		frr_pthread_run(pthr[i], NULL);
+	}
+
+	for (int i = 0; i < NUM_THREADS; i++) {
+		frr_pthread_wait_running(pthr[i]);
+	}
+
+	for (int i = 0; i < NUM_THREADS; i++) {
+		event_add_timer_msec((pthr[i])->master, insert_delete_repeat, NULL, 0, NULL);
+	}
+
+	while (ctr1 < 4);;
+
+	for (int i = 0; i < NUM_THREADS; i++) {
+		frr_pthread_stop(pthr[i], NULL);
+		frr_pthread_destroy(pthr[i]);
+	}
+
+	/* Allow for all cleanup events to finish */
+	usleep(5000000);
 }

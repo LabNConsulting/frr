@@ -18,6 +18,7 @@
 #include "memory.h"
 #include "frrevent.h"
 #include "typesafe.h"
+#include "frrcu.h"
 
 #define IPPROTO_TEST_TCP (IPPROTO_MAX + 1)
 
@@ -29,9 +30,9 @@ struct frr_socket_entry {
 	int fd;
 	pthread_mutex_t lock;
 	_Atomic int ref_count;
-	struct event *destroy_event;
 
 	struct frr_socket_entry_item hash_item;
+	struct rcu_head rcu_head;
 };
 
 struct frr_socket_entry_table {
@@ -43,28 +44,29 @@ extern struct event_loop *frr_socket_shared_event_loop;
 extern struct frr_socket_entry_table frr_socket_table;
 
 /* For transport protocol stacks */
-static inline _Atomic int *_frr_ref_increment(_Atomic int *ref_count)
+static inline void *_frr_rcu_lock(void)
 {
-	(*ref_count)++;
-	return ref_count;
+	rcu_read_lock();
+	return NULL;
 }
 
-static inline void _frr_ref_decrement(_Atomic int **ref_count)
+static inline void _frr_rcu_unlock(void **arg)
 {
-	if (!*ref_count)
-		return;
-	(**ref_count)--;
-	*ref_count = NULL;
+	rcu_read_unlock();
 }
+
+#define rcu_lock_autounlock()                                                                      \
+	void *NAMECTR(_ref_) __attribute__((unused, cleanup(_frr_rcu_unlock))) = _frr_rcu_lock();  \
+	/* end */
 
 struct frr_socket_entry *_frr_socket_table_find(struct frr_socket_entry_head *hash_table,
 						struct frr_socket_entry *search_entry);
 #define frr_socket_table_find(hash_table, search_entry, rv_entry)                                  \
 	pthread_rwlock_rdlock(&(hash_table)->rwlock);                                              \
+	rcu_lock_autounlock();                                                                     \
 	rv_entry = _frr_socket_table_find(&(hash_table)->table, search_entry);                     \
-	_Atomic int *NAMECTR(_ref_) __attribute__((unused, cleanup(_frr_ref_decrement))) =         \
-		rv_entry ? _frr_ref_increment(&rv_entry->ref_count) : NULL;                        \
-	pthread_rwlock_unlock(&(hash_table)->rwlock);
+	pthread_rwlock_unlock(&(hash_table)->rwlock);                                              \
+	/* end */
 
 int frr_socket_table_add(struct frr_socket_entry_table *hash_table, struct frr_socket_entry *entry);
 int frr_socket_table_delete_async(struct frr_socket_entry_table *hash_table,
