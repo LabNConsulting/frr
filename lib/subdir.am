@@ -142,7 +142,7 @@ lib_libfrr_la_SOURCES = \
 	lib/routing_nb_config.c \
 	lib/tc.c \
 	lib/frr_socket.c \
-	lib/test_tcp_frr_socket.c \
+	lib/tcp_frr_socket.c \
 	# end
 
 nodist_lib_libfrr_la_SOURCES = \
@@ -343,7 +343,7 @@ pkginclude_HEADERS += \
 	lib/tc.h \
 	lib/routing_nb.h \
 	lib/frr_socket.h \
-	lib/test_tcp_frr_socket.h \
+	lib/tcp_frr_socket.h \
 	\
 	lib/assert/assert.h \
 	# end

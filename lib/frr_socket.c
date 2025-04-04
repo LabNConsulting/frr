@@ -9,8 +9,7 @@
 #include <sys/socket.h>
 
 #include "frr_socket.h"
-#include "jhash.h"
-#include "test_tcp_frr_socket.h"
+#include "tcp_frr_socket.h"
 
 int frr_socket_entry_compare(const struct frr_socket_entry *a, const struct frr_socket_entry *b);
 uint32_t frr_socket_entry_hash(const struct frr_socket_entry *a);
@@ -24,20 +23,6 @@ struct frr_socket_entry_table frr_socket_table = {};
 
 DEFINE_MTYPE(LIB, FRR_SOCKET, "FRR socket entry state");
 
-int frr_socket_entry_compare(const struct frr_socket_entry *a, const struct frr_socket_entry *b)
-{
-	return numcmp(a->fd, b->fd);
-}
-
-
-uint32_t frr_socket_entry_hash(const struct frr_socket_entry *a)
-{
-	return jhash_1word(a->fd, 0x8ae55ea8);
-}
-
-
-DECLARE_HASH(frr_socket_entry, struct frr_socket_entry, hash_item, frr_socket_entry_compare,
-	     frr_socket_entry_hash);
 
 int frr_socket_lib_init(struct event_loop *shared_loop)
 {
@@ -85,8 +70,8 @@ int frr_socket(int domain, int type, int protocol)
 	int fd = -1;
 
 	switch (protocol) {
-	case IPPROTO_TEST_TCP:
-		fd = test_tcp_socket(domain, type);
+	case IPPROTO_FRR_TCP:
+		fd = tcp_socket(domain, type);
 		break;
 	default:
 		/* It is assumed that unrecognized protocols are in-kernel */
@@ -95,11 +80,10 @@ int frr_socket(int domain, int type, int protocol)
 
 	/* Sanity check: transport protocol inserted an frr_socket_entry */
 	if (fd > 0) {
-		struct frr_socket_entry *rv_entry;
 		search_entry.fd = fd;
-		frr_socket_table_find(&frr_socket_table, &search_entry, rv_entry);
-		assert(rv_entry);
-		assert(rv_entry->protocol == protocol);
+		frr_socket_table_find(&search_entry, check_entry);
+		assert(check_entry);
+		assert(check_entry->protocol == protocol);
 	}
 
 	return fd;
@@ -108,17 +92,17 @@ int frr_socket(int domain, int type, int protocol)
 
 int frr_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
-	struct frr_socket_entry *entry, search_entry = {};
+	struct frr_socket_entry search_entry = {};
 	int rv = -1;
 
 	search_entry.fd = sockfd;
-	frr_socket_table_find(&frr_socket_table, &search_entry, entry);
-	if (!entry)
+	frr_socket_table_find(&search_entry, found_entry);
+	if (!found_entry)
 		return bind(sockfd, addr, addrlen);
 
-	switch (entry->protocol) {
-	case IPPROTO_TEST_TCP:
-		rv = test_tcp_bind(entry, addr, addrlen);
+	switch (found_entry->protocol) {
+	case IPPROTO_FRR_TCP:
+		rv = tcp_bind(found_entry, addr, addrlen);
 		break;
 	default:
 		/* Illegal frr_socket_entry instance. */
@@ -129,17 +113,17 @@ int frr_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 
 int frr_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
-	struct frr_socket_entry *entry, search_entry = {};
+	struct frr_socket_entry search_entry = {};
 	int rv = -1;
 
 	search_entry.fd = sockfd;
-	frr_socket_table_find(&frr_socket_table, &search_entry, entry);
-	if (!entry)
+	frr_socket_table_find(&search_entry, found_entry);
+	if (!found_entry)
 		return connect(sockfd, addr, addrlen);
 
-	switch (entry->protocol) {
-	case IPPROTO_TEST_TCP:
-		rv = test_tcp_connect(entry, addr, addrlen);
+	switch (found_entry->protocol) {
+	case IPPROTO_FRR_TCP:
+		rv = tcp_connect(found_entry, addr, addrlen);
 		break;
 	default:
 		/* Illegal frr_socket_entry instance. */
@@ -150,17 +134,17 @@ int frr_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 
 int frr_listen(int sockfd, int backlog)
 {
-	struct frr_socket_entry *entry, search_entry = {};
+	struct frr_socket_entry search_entry = {};
 	int rv = -1;
 
 	search_entry.fd = sockfd;
-	frr_socket_table_find(&frr_socket_table, &search_entry, entry);
-	if (!entry)
+	frr_socket_table_find(&search_entry, found_entry);
+	if (!found_entry)
 		return listen(sockfd, backlog);
 
-	switch (entry->protocol) {
-	case IPPROTO_TEST_TCP:
-		rv = test_tcp_listen(entry, backlog);
+	switch (found_entry->protocol) {
+	case IPPROTO_FRR_TCP:
+		rv = tcp_listen(found_entry, backlog);
 		break;
 	default:
 		/* Illegal frr_socket_entry instance. */
@@ -172,17 +156,17 @@ int frr_listen(int sockfd, int backlog)
 
 int frr_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 {
-	struct frr_socket_entry *entry, search_entry = {};
+	struct frr_socket_entry search_entry = {};
 	int fd = -1;
 
 	search_entry.fd = sockfd;
-	frr_socket_table_find(&frr_socket_table, &search_entry, entry);
-	if (!entry)
+	frr_socket_table_find(&search_entry, found_entry);
+	if (!found_entry)
 		return accept(sockfd, addr, addrlen);
 
-	switch (entry->protocol) {
-	case IPPROTO_TEST_TCP:
-		fd = test_tcp_accept(entry, addr, addrlen);
+	switch (found_entry->protocol) {
+	case IPPROTO_FRR_TCP:
+		fd = tcp_accept(found_entry, addr, addrlen);
 		break;
 	default:
 		/* Illegal frr_socket_entry instance. */
@@ -191,11 +175,10 @@ int frr_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 
 	/* Sanity check: transport protocol inserted an frr_socket_entry */
 	if (fd > 0) {
-		struct frr_socket_entry *rv_entry;
 		search_entry.fd = fd;
-		frr_socket_table_find(&frr_socket_table, &search_entry, rv_entry);
-		assert(rv_entry);
-		assert(rv_entry->protocol == entry->protocol);
+		frr_socket_table_find(&search_entry, check_entry);
+		assert(check_entry);
+		assert(check_entry->protocol == found_entry->protocol);
 	}
 
 	return fd;
@@ -204,17 +187,17 @@ int frr_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 
 int frr_close(int sockfd)
 {
-	struct frr_socket_entry *entry, search_entry = {};
+	struct frr_socket_entry search_entry = {};
 	int rv = -1;
 
 	search_entry.fd = sockfd;
-	frr_socket_table_find(&frr_socket_table, &search_entry, entry);
-	if (!entry)
+	frr_socket_table_find(&search_entry, found_entry);
+	if (!found_entry)
 		return close(sockfd);
 
-	switch (entry->protocol) {
-	case IPPROTO_TEST_TCP:
-		rv = test_tcp_close(entry);
+	switch (found_entry->protocol) {
+	case IPPROTO_FRR_TCP:
+		rv = tcp_close(found_entry);
 		break;
 	default:
 		/* Illegal frr_socket_entry instance. */
@@ -226,17 +209,17 @@ int frr_close(int sockfd)
 
 ssize_t frr_writev(int fd, const struct iovec *iov, int iovcnt)
 {
-	struct frr_socket_entry *entry, search_entry = {};
+	struct frr_socket_entry search_entry = {};
 	int rv = -1;
 
 	search_entry.fd = fd;
-	frr_socket_table_find(&frr_socket_table, &search_entry, entry);
-	if (!entry)
+	frr_socket_table_find(&search_entry, found_entry);
+	if (!found_entry)
 		return writev(fd, iov, iovcnt);
 
-	switch (entry->protocol) {
-	case IPPROTO_TEST_TCP:
-		rv = test_tcp_writev(entry, iov, iovcnt);
+	switch (found_entry->protocol) {
+	case IPPROTO_FRR_TCP:
+		rv = tcp_writev(found_entry, iov, iovcnt);
 		break;
 	default:
 		/* Illegal frr_socket_entry instance. */
@@ -248,17 +231,17 @@ ssize_t frr_writev(int fd, const struct iovec *iov, int iovcnt)
 
 ssize_t frr_read(int fd, void *buf, size_t count)
 {
-	struct frr_socket_entry *entry, search_entry = {};
+	struct frr_socket_entry search_entry = {};
 	int rv = -1;
 
 	search_entry.fd = fd;
-	frr_socket_table_find(&frr_socket_table, &search_entry, entry);
-	if (!entry)
+	frr_socket_table_find(&search_entry, found_entry);
+	if (!found_entry)
 		return read(fd, buf, count);
 
-	switch (entry->protocol) {
-	case IPPROTO_TEST_TCP:
-		rv = test_tcp_read(entry, buf, count);
+	switch (found_entry->protocol) {
+	case IPPROTO_FRR_TCP:
+		rv = tcp_read(found_entry, buf, count);
 		break;
 	default:
 		/* Illegal frr_socket_entry instance. */
@@ -270,17 +253,17 @@ ssize_t frr_read(int fd, void *buf, size_t count)
 
 ssize_t frr_write(int fd, const void *buf, size_t count)
 {
-	struct frr_socket_entry *entry, search_entry = {};
+	struct frr_socket_entry search_entry = {};
 	int rv = -1;
 
 	search_entry.fd = fd;
-	frr_socket_table_find(&frr_socket_table, &search_entry, entry);
-	if (!entry)
+	frr_socket_table_find(&search_entry, found_entry);
+	if (!found_entry)
 		return write(fd, buf, count);
 
-	switch (entry->protocol) {
-	case IPPROTO_TEST_TCP:
-		rv = test_tcp_write(entry, buf, count);
+	switch (found_entry->protocol) {
+	case IPPROTO_FRR_TCP:
+		rv = tcp_write(found_entry, buf, count);
 		break;
 	default:
 		/* Illegal frr_socket_entry instance. */
@@ -293,17 +276,17 @@ ssize_t frr_write(int fd, const void *buf, size_t count)
 int frr_setsockopt(int sockfd, int level, int option_name, const void *option_value,
 		   socklen_t option_len)
 {
-	struct frr_socket_entry *entry, search_entry = {};
+	struct frr_socket_entry search_entry = {};
 	int rv = -1;
 
 	search_entry.fd = sockfd;
-	frr_socket_table_find(&frr_socket_table, &search_entry, entry);
-	if (!entry)
+	frr_socket_table_find(&search_entry, found_entry);
+	if (!found_entry)
 		return setsockopt(sockfd, level, option_name, option_value, option_len);
 
-	switch (entry->protocol) {
-	case IPPROTO_TEST_TCP:
-		rv = test_tcp_setsockopt(entry, level, option_name, option_value, option_len);
+	switch (found_entry->protocol) {
+	case IPPROTO_FRR_TCP:
+		rv = tcp_setsockopt(found_entry, level, option_name, option_value, option_len);
 		break;
 	default:
 		/* Illegal frr_socket_entry instance. */
@@ -315,17 +298,17 @@ int frr_setsockopt(int sockfd, int level, int option_name, const void *option_va
 
 int frr_getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optlen)
 {
-	struct frr_socket_entry *entry, search_entry = {};
+	struct frr_socket_entry search_entry = {};
 	int rv = -1;
 
 	search_entry.fd = sockfd;
-	frr_socket_table_find(&frr_socket_table, &search_entry, entry);
-	if (!entry)
+	frr_socket_table_find(&search_entry, found_entry);
+	if (!found_entry)
 		return getsockopt(sockfd, level, optname, optval, optlen);
 
-	switch (entry->protocol) {
-	case IPPROTO_TEST_TCP:
-		rv = test_tcp_getsockopt(entry, level, optname, optval, optlen);
+	switch (found_entry->protocol) {
+	case IPPROTO_FRR_TCP:
+		rv = tcp_getsockopt(found_entry, level, optname, optval, optlen);
 		break;
 	default:
 		/* Illegal frr_socket_entry instance. */
@@ -337,17 +320,17 @@ int frr_getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *
 
 int frr_getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 {
-	struct frr_socket_entry *entry, search_entry = {};
+	struct frr_socket_entry search_entry = {};
 	int rv = -1;
 
 	search_entry.fd = sockfd;
-	frr_socket_table_find(&frr_socket_table, &search_entry, entry);
-	if (!entry)
+	frr_socket_table_find(&search_entry, found_entry);
+	if (!found_entry)
 		return getpeername(sockfd, addr, addrlen);
 
-	switch (entry->protocol) {
-	case IPPROTO_TEST_TCP:
-		rv = test_tcp_getpeername(entry, addr, addrlen);
+	switch (found_entry->protocol) {
+	case IPPROTO_FRR_TCP:
+		rv = tcp_getpeername(found_entry, addr, addrlen);
 		break;
 	default:
 		/* Illegal frr_socket_entry instance. */
@@ -359,17 +342,17 @@ int frr_getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 
 int frr_getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 {
-	struct frr_socket_entry *entry, search_entry = {};
+	struct frr_socket_entry search_entry = {};
 	int rv = -1;
 
 	search_entry.fd = sockfd;
-	frr_socket_table_find(&frr_socket_table, &search_entry, entry);
-	if (!entry)
+	frr_socket_table_find(&search_entry, found_entry);
+	if (!found_entry)
 		return getsockname(sockfd, addr, addrlen);
 
-	switch (entry->protocol) {
-	case IPPROTO_TEST_TCP:
-		rv = test_tcp_getsockname(entry, addr, addrlen);
+	switch (found_entry->protocol) {
+	case IPPROTO_FRR_TCP:
+		rv = tcp_getsockname(found_entry, addr, addrlen);
 		break;
 	default:
 		/* Illegal frr_socket_entry instance. */
@@ -381,16 +364,16 @@ int frr_getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 
 int frr_poll_hook(struct pollfd *t_pollfd, int *nums)
 {
-	struct frr_socket_entry *entry, search_entry = {};
+	struct frr_socket_entry search_entry = {};
 	int rv = -1;
 
 	search_entry.fd = t_pollfd->fd;
-	frr_socket_table_find(&frr_socket_table, &search_entry, entry);
-	if (!entry)
+	frr_socket_table_find(&search_entry, found_entry);
+	if (!found_entry)
 		return 0;
 
-	switch (entry->protocol) {
-	case IPPROTO_TEST_TCP:
+	switch (found_entry->protocol) {
+	case IPPROTO_FRR_TCP:
 		/* This protocol never overwrites results */
 		rv = 0;
 		break;
@@ -402,29 +385,21 @@ int frr_poll_hook(struct pollfd *t_pollfd, int *nums)
 }
 
 
-struct frr_socket_entry *_frr_socket_table_find(struct frr_socket_entry_head *hash_table,
-						struct frr_socket_entry *search_entry)
+int frr_socket_table_add(struct frr_socket_entry *entry)
 {
-	return frr_socket_entry_find(hash_table, search_entry);
-}
-
-
-int frr_socket_table_add(struct frr_socket_entry_table *entry_table, struct frr_socket_entry *entry)
-{
-	pthread_rwlock_wrlock(&entry_table->rwlock);
+	pthread_rwlock_wrlock(&frr_socket_table.rwlock);
 	/* If we ended up removing an entry, then something is going very wrong */
-	assert(frr_socket_entry_add(&(entry_table)->table, entry) == NULL);
+	assert(frr_socket_entry_add(&frr_socket_table.table, entry) == NULL);
 	entry->ref_count++;
-	pthread_rwlock_unlock(&(entry_table)->rwlock);
+	pthread_rwlock_unlock(&frr_socket_table.rwlock);
 
 	return 0;
 }
 
 
-int frr_socket_table_delete_async(struct frr_socket_entry_table *entry_table,
-				  struct frr_socket_entry *entry)
+int frr_socket_table_delete(struct frr_socket_entry *entry)
 {
-	struct frr_socket_entry *rv_entry, search_entry = {};
+	struct frr_socket_entry *found_entry, search_entry = {};
 	search_entry.fd = entry->fd;
 
 	if (!entry) {
@@ -432,24 +407,27 @@ int frr_socket_table_delete_async(struct frr_socket_entry_table *entry_table,
 		return -1;
 	}
 
+
 	/* To be safe, first verify that the expected entry is in the table before removal */
-	pthread_rwlock_wrlock(&entry_table->rwlock);
-	rcu_lock_autounlock();
-	rv_entry = frr_socket_entry_find(&entry_table->table, &search_entry);
-	if (entry == rv_entry) {
-		rv_entry = frr_socket_entry_del(&entry_table->table, entry);
-		assert(entry == rv_entry);
+	pthread_rwlock_wrlock(&frr_socket_table.rwlock);
+	rcu_read_lock();
+	found_entry = frr_socket_entry_find(&frr_socket_table.table, &search_entry);
+	if (entry == found_entry) {
+		found_entry = frr_socket_entry_del(&frr_socket_table.table, entry);
+		assert(entry == found_entry);
 	}
-	pthread_rwlock_unlock(&entry_table->rwlock);
+	pthread_rwlock_unlock(&frr_socket_table.rwlock);
 
 	if (!entry) {
 		//XXX Some other error?
+		rcu_read_unlock();
 		errno = EBADF;
 		return -1;
 	}
 
 	/* Blocks the rcu thread, however, only the transport protocol can clean up its own state */
 	rcu_call(_frr_socket_destroy, entry, rcu_head);
+	rcu_read_unlock();
 
 	return 0;
 }
@@ -458,8 +436,8 @@ int frr_socket_table_delete_async(struct frr_socket_entry_table *entry_table,
 static void _frr_socket_destroy(struct frr_socket_entry *entry)
 {
 	switch (entry->protocol) {
-	case IPPROTO_TEST_TCP:
-		test_tcp_destroy_entry(entry);
+	case IPPROTO_FRR_TCP:
+		tcp_destroy_entry(entry);
 		break;
 	default:
 		/* Unknown transport protocol. Illegal entry */

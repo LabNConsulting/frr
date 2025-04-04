@@ -8,7 +8,7 @@
 
 #include "memory.h"
 #include "frr_pthread.h"
-#include "test_tcp_frr_socket.h"
+#include "frr_socket.h"
 
 struct frr_pthread *pth_shared;
 _Atomic bool ready;
@@ -22,24 +22,23 @@ static void test_socket_insert_delete(void)
 	int fd, rv;
 
 	printf("Testing insertion of a basic frr_socket_entry\n");
-	fd = frr_socket(AF_INET, SOCK_STREAM, IPPROTO_TEST_TCP);
+	fd = frr_socket(AF_INET, SOCK_STREAM, IPPROTO_FRR_TCP);
+	assert(fd > 0);
 	search_entry.fd = fd;
 	{
-		struct frr_socket_entry *scoped_entry;
-		frr_socket_table_find(&frr_socket_table, &search_entry, scoped_entry);
+		frr_socket_table_find(&search_entry, scoped_entry);
 		assert(scoped_entry);
-		assert(scoped_entry->protocol == IPPROTO_TEST_TCP);
+		assert(scoped_entry->protocol == IPPROTO_FRR_TCP);
 		assert(scoped_entry->fd == fd);
 	}
 
 	printf("Testing deletion of a basic frr_socket_entry\n");
 	{
-		struct frr_socket_entry *scoped_entry, *held_entry;
-		frr_socket_table_find(&frr_socket_table, &search_entry, held_entry);
+		frr_socket_table_find(&search_entry, held_entry);
 		assert(held_entry);
 		rv = frr_close(fd);
 		assert(rv == 0);
-		frr_socket_table_find(&frr_socket_table, &search_entry, scoped_entry);
+		frr_socket_table_find(&search_entry, scoped_entry);
 		assert(scoped_entry == NULL);
 
 		/* Ensure that the entry is not preemptively freed when a reference is still held */
@@ -52,7 +51,7 @@ static void test_socket_insert_delete(void)
 
 
 #define NUM_REPEAT 50
-void *insert_delete_repeat(void *arg)
+static void *insert_delete_repeat(void *arg)
 {
 	struct frr_socket_entry search_entry = {};
 	struct rcu_thread *rcu_thr = arg;
@@ -64,19 +63,17 @@ void *insert_delete_repeat(void *arg)
 	rcu_read_unlock();
 
 	for (int i = 0; i < NUM_REPEAT; i++) {
-		fd = frr_socket(AF_INET, SOCK_STREAM, IPPROTO_TEST_TCP);
+		fd = frr_socket(AF_INET, SOCK_STREAM, IPPROTO_FRR_TCP);
 		search_entry.fd = fd;
 		{
-			struct frr_socket_entry *scoped_entry;
-			frr_socket_table_find(&frr_socket_table, &search_entry, scoped_entry);
+			frr_socket_table_find(&search_entry, scoped_entry);
 			assert(scoped_entry);
-			assert(scoped_entry->protocol == IPPROTO_TEST_TCP);
+			assert(scoped_entry->protocol == IPPROTO_FRR_TCP);
 			assert(scoped_entry->fd == fd);
 		}
 		{
-			struct frr_socket_entry *scoped_entry;
 			assert(frr_close(fd) == 0);
-			frr_socket_table_find(&frr_socket_table, &search_entry, scoped_entry);
+			frr_socket_table_find(&search_entry, scoped_entry);
 			assert(scoped_entry == NULL);
 		}
 	}
@@ -93,7 +90,7 @@ void *insert_delete_repeat(void *arg)
  * instead a demonstration of thread-safety in edge case scenarios.
  */
 #define NUM_THREADS 4
-void test_socket_insert_delete_async(void)
+static void test_socket_insert_delete_async(void)
 {
 	pthread_t pthr[NUM_THREADS];
 	struct rcu_thread *rcu_thr[NUM_THREADS];
@@ -124,32 +121,33 @@ void (*tests[])(void) = {
 
 int main(int argc, char **argv)
 {
-	struct frr_pthread_attr shared = {.start = frr_pthread_attr_default.start;
-	.stop = frr_pthread_attr_default.stop;
-}
+	struct frr_pthread_attr shared = {
+		.start = frr_pthread_attr_default.start,
+		.stop = frr_pthread_attr_default.stop,
+	};
 
-printf("Starting\n");
-frr_pthread_init();
-pth_shared = frr_pthread_new(&shared, "FRR socket shared pthread", "frrsock shared");
-frr_pthread_run(pth_shared, NULL);
-frr_pthread_wait_running(pth_shared);
-rcu_read_unlock();
+	printf("Starting\n");
+	frr_pthread_init();
+	pth_shared = frr_pthread_new(&shared, "FRR socket shared pthread", "frrsock shared");
+	frr_pthread_run(pth_shared, NULL);
+	frr_pthread_wait_running(pth_shared);
+	rcu_read_unlock();
 
-printf("Setting up FRR socket library\n");
-assert(frr_socket_lib_init(pth_shared->master) == 0);
+	printf("Setting up FRR socket library\n");
+	assert(frr_socket_lib_init(pth_shared->master) == 0);
 
-for (unsigned int i = 0; i < array_size(tests); i++)
-	tests[i]();
+	for (unsigned int i = 0; i < array_size(tests); i++)
+		tests[i]();
 
-printf("Cleaning up FRR socket library\n");
-frr_socket_lib_finish();
+	printf("Cleaning up FRR socket library\n");
+	frr_socket_lib_finish();
 
-printf("Finishing\n");
-frr_pthread_stop(pth_shared, NULL);
-frr_pthread_finish();
-rcu_read_lock();
-rcu_shutdown();
+	printf("Finishing\n");
+	frr_pthread_stop(pth_shared, NULL);
+	frr_pthread_finish();
+	rcu_read_lock();
+	rcu_shutdown();
 
-printf("Done\n");
-return 0;
+	printf("Done\n");
+	return 0;
 }

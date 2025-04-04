@@ -19,8 +19,9 @@
 #include "frrevent.h"
 #include "typesafe.h"
 #include "frrcu.h"
+#include "jhash.h"
 
-#define IPPROTO_TEST_TCP (IPPROTO_MAX + 1)
+#define IPPROTO_FRR_TCP (IPPROTO_MAX + 1)
 
 DECLARE_MTYPE(FRR_SOCKET);
 PREDECL_HASH(frr_socket_entry);
@@ -44,40 +45,64 @@ extern struct event_loop *frr_socket_shared_event_loop;
 extern struct frr_socket_entry_table frr_socket_table;
 
 /* For transport protocol stacks */
-static inline void *_frr_rcu_lock(void)
+static int frr_socket_entry_compare(const struct frr_socket_entry *a,
+				    const struct frr_socket_entry *b)
 {
-	rcu_read_lock();
-	return NULL;
+	return numcmp(a->fd, b->fd);
 }
 
-static inline void _frr_rcu_unlock(void **arg)
+
+static uint32_t frr_socket_entry_hash(const struct frr_socket_entry *a)
+{
+	return jhash_1word(a->fd, 0x8ae55ea8);
+}
+
+
+DECLARE_HASH(frr_socket_entry, struct frr_socket_entry, hash_item, frr_socket_entry_compare,
+	     frr_socket_entry_hash);
+
+
+struct frr_socket_entry *_frr_socket_table_find(struct frr_socket_entry_head *hash_table,
+						struct frr_socket_entry *search_entry);
+
+static inline struct frr_socket_entry *entry_find_and_lock(struct frr_socket_entry *search_entry)
+{
+	struct frr_socket_entry *rv_entry;
+
+	pthread_rwlock_rdlock(&frr_socket_table.rwlock);
+	rcu_read_lock();
+	rv_entry = frr_socket_entry_find(&frr_socket_table.table, search_entry);
+	pthread_rwlock_unlock(&frr_socket_table.rwlock);
+
+	return rv_entry;
+}
+
+static inline void entry_unlock(struct frr_socket_entry **arg)
 {
 	rcu_read_unlock();
 }
 
-#define rcu_lock_autounlock()                                                                      \
-	void *NAMECTR(_ref_) __attribute__((unused, cleanup(_frr_rcu_unlock))) = _frr_rcu_lock();  \
+
+#define frr_socket_table_find(search_entry, declared_entry)                                        \
+	struct frr_socket_entry *declared_entry __attribute__((unused, cleanup(entry_unlock))) =   \
+		entry_find_and_lock(search_entry);                                                 \
 	/* end */
 
-struct frr_socket_entry *_frr_socket_table_find(struct frr_socket_entry_head *hash_table,
-						struct frr_socket_entry *search_entry);
-#define frr_socket_table_find(hash_table, search_entry, rv_entry)                                  \
-	pthread_rwlock_rdlock(&(hash_table)->rwlock);                                              \
-	rcu_lock_autounlock();                                                                     \
-	rv_entry = _frr_socket_table_find(&(hash_table)->table, search_entry);                     \
-	pthread_rwlock_unlock(&(hash_table)->rwlock);                                              \
-	/* end */
-
-int frr_socket_table_add(struct frr_socket_entry_table *hash_table, struct frr_socket_entry *entry);
-int frr_socket_table_delete_async(struct frr_socket_entry_table *hash_table,
-				  struct frr_socket_entry *entry);
+int frr_socket_table_add(struct frr_socket_entry *entry);
+int frr_socket_table_delete(struct frr_socket_entry *entry);
 
 
-/* For FRR socket users */
+/* XXX
+ * Library and frr_socket_entry setup/cleanup functions
+ */
 int frr_socket_lib_init(struct event_loop *shared_loop);
 int frr_socket_lib_finish(void);
 int frr_socket_init(struct frr_socket_entry *entry);
 int frr_socket_cleanup(struct frr_socket_entry *entry);
+
+/* XXX
+ * Standard socket and I/O functions to be called by a user
+ */
 int frr_socket(int domain, int type, int protocol);
 int frr_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 int frr_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
