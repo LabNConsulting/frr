@@ -15,8 +15,6 @@ int frr_socket_entry_compare(const struct frr_socket_entry *a, const struct frr_
 uint32_t frr_socket_entry_hash(const struct frr_socket_entry *a);
 static void _frr_socket_destroy(struct frr_socket_entry *entry);
 
-_Atomic int counter = 0; // XXX REMOVE
-
 /* The following global structures should only be referenced by transport protocol implementations */
 struct event_loop *frr_socket_shared_event_loop = NULL;
 struct frr_socket_entry_table frr_socket_table = {};
@@ -359,6 +357,35 @@ int frr_getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 		assert(0);
 	}
 	return rv;
+}
+
+
+int frr_getaddrinfo(const char *node, const char *service, const struct addrinfo *hints,
+		    struct addrinfo **res)
+{
+	int rv;
+
+	if (!hints) {
+		return EAI_FAIL;
+	}
+
+	switch (hints->ai_protocol) {
+	case IPPROTO_FRR_TCP:
+		rv =  tcp_getaddrinfo(node, service, hints, res);
+		break;
+	default:
+		/* It is assumed that unrecognized protocols are in-kernel */
+		return getaddrinfo(node, service, hints, res);
+	}
+
+	return rv;
+}
+
+
+/* XXX Provides no functionality, but is added for consistency (i.e. changes in frr_getaddrinfo) */
+void frr_freeaddrinfo(struct addrinfo *res)
+{
+	return freeaddrinfo(res);
 }
 
 

@@ -38,6 +38,8 @@ int tcp_getsockopt(struct frr_socket_entry *entry, int level, int optname, void 
 			socklen_t *optlen);
 int tcp_getpeername(struct frr_socket_entry *entry, struct sockaddr *addr, socklen_t *addrlen);
 int tcp_getsockname(struct frr_socket_entry *entry, struct sockaddr *addr, socklen_t *addrlen);
+int tcp_getaddrinfo(const char *node, const char *service, const struct addrinfo *hints,
+		    struct addrinfo **res);
 int tcp_destroy_entry(struct frr_socket_entry *entry);
 
 #endif /* _TCP_FRR_SOCKET_H */

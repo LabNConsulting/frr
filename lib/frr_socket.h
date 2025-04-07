@@ -118,6 +118,9 @@ int frr_setsockopt(int sockfd, int level, int option_name, const void *option_va
 int frr_getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optlen);
 int frr_getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
 int frr_getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+int frr_getaddrinfo(const char *node, const char *service, const struct addrinfo *hints,
+		    struct addrinfo **res);
+void frr_freeaddrinfo(struct addrinfo *res);
 //int frr_ioctl(int fd, int op, ...);
 int frr_poll_hook(struct pollfd *t_pollfd, int *nums);
 

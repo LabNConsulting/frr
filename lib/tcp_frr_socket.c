@@ -136,6 +136,29 @@ int tcp_getsockname(struct frr_socket_entry *entry, struct sockaddr *addr, sockl
 }
 
 
+int tcp_getaddrinfo(const char *node, const char *service, const struct addrinfo *hints,
+		    struct addrinfo **res)
+{
+	int rv;
+	struct addrinfo *res_next, frr_hints = {};
+
+	memcpy(&frr_hints, hints, sizeof(*hints));
+
+	/* FRR TCP sockets should requires what a regular TCP socket would require */
+	frr_hints.ai_protocol = IPPROTO_TCP;
+	rv = getaddrinfo(node, service, &frr_hints, res);
+	if (rv != 0)
+		return rv;
+
+	/* Change IPPROTO_TCP back to IPPROTO_FRR_TCP */
+	for (res_next = *res; res_next != NULL; res_next = res_next->ai_next) {
+		if (res_next->ai_protocol == IPPROTO_TCP)
+			res_next->ai_protocol = IPPROTO_FRR_TCP;
+	}
+	return 0;
+}
+
+
 int tcp_destroy_entry(struct frr_socket_entry *entry)
 {
 	/* Not much needs to be done for a TCP FRR socket since we are simply wrapping the kernel.
