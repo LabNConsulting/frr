@@ -6,13 +6,14 @@
 
 #include <zebra.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "memory.h"
 #include "frr_pthread.h"
 #include "frr_socket.h"
+#include "tcp_frr_socket.h"
 
 struct frr_pthread *pth_shared;
-_Atomic bool ready;
 
 /*
  * Test the basic frr_socket_entry insertion and deletion routines within the hash table.
@@ -50,16 +51,20 @@ static void test_socket_insert_delete(void)
 }
 
 
+_Atomic int num_go = 0;
 #define NUM_REPEAT 50
 static void *pthread_socket_insert_delete_async(void *arg)
 {
 	struct frr_socket_entry search_entry = {};
 	struct rcu_thread *rcu_thr = arg;
-	int fd;
+	int fd, id = 0;
+	char run_msg[8];
+	size_t msg_size = 0;
 
-	while (!ready)
+	while (num_go < 1)
 		;
 	;
+	id = num_go--;
 
 	rcu_thread_start(rcu_thr);
 	rcu_read_unlock();
@@ -68,16 +73,39 @@ static void *pthread_socket_insert_delete_async(void *arg)
 		fd = frr_socket(AF_INET, SOCK_STREAM, IPPROTO_FRR_TCP);
 		assert(fd > 0);
 		search_entry.fd = fd;
+
+		/* RCU protected scope */
 		{
 			frr_socket_table_find(&search_entry, scoped_entry);
 			assert(scoped_entry);
 			assert(scoped_entry->protocol == IPPROTO_FRR_TCP);
 			assert(scoped_entry->fd == fd);
+
+			struct tcp_socket_entry *tcp_entry = (struct tcp_socket_entry *)scoped_entry;
+			frr_with_mutex (&scoped_entry->lock) {
+				snprintf(run_msg, sizeof(run_msg), "T%d;R%d", id, i);
+				msg_size = MIN(sizeof(run_msg), sizeof(tcp_entry->dummy));
+				strncpy(tcp_entry->dummy, run_msg, msg_size);
+			}
 		}
+
+		assert(frr_close(fd) == 0);
+
+		/* RCU protected scope */
 		{
-			assert(frr_close(fd) == 0);
 			frr_socket_table_find(&search_entry, scoped_entry);
-			assert(scoped_entry == NULL);
+			if (scoped_entry != NULL) {
+				/*
+				 * May accidentally grab an entry from another thread if the
+				 * kernel immediately reused the file descriptor. This is caught
+				 * by double checking the run id for (non)equality.
+				 */
+				struct tcp_socket_entry *tcp_entry =
+					(struct tcp_socket_entry *)scoped_entry;
+				frr_with_mutex(&scoped_entry->lock) {
+					assert(strncmp(tcp_entry->dummy, run_msg, msg_size) != 0);
+				}
+			}
 		}
 	}
 
@@ -98,7 +126,7 @@ static void test_socket_insert_delete_async(void)
 	pthread_t pthr[NUM_THREADS];
 	struct rcu_thread *rcu_thr[NUM_THREADS];
 
-	ready = false;
+	num_go = 0;
 	printf("Testing multi-threaded insertion and deletion\n");
 	rcu_read_lock();
 	for (int i = 0; i < NUM_THREADS; i++) {
@@ -108,7 +136,7 @@ static void test_socket_insert_delete_async(void)
 	rcu_read_unlock();
 
 	/* Give the go ahead for threads to start */
-	ready = true;
+	num_go = NUM_THREADS;
 
 	for (int i = 0; i < NUM_THREADS; i++) {
 		pthread_join(pthr[i], NULL);

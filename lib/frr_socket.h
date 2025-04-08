@@ -67,7 +67,7 @@ DECLARE_HASH(frr_socket_entry, struct frr_socket_entry, hash_item, frr_socket_en
 
 static inline struct frr_socket_entry *entry_find_and_lock(struct frr_socket_entry *search_entry)
 {
-	struct frr_socket_entry *rv_entry;
+	struct frr_socket_entry *rv_entry = NULL;
 
 	assert(IS_SOCKET_LIB_READY);
 	pthread_rwlock_rdlock(&frr_socket_table.rwlock);
