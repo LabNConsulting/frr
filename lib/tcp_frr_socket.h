@@ -22,6 +22,14 @@
 extern struct event_loop *frr_socket_shared_event_loop;
 extern struct frr_socket_entry_table frr_socket_hash_table;
 
+struct tcp_socket_entry {
+	/* Each protocol entry must begin with the generic socket entry */
+	struct frr_socket_entry entry;
+
+	/* Any protocol-specific operational state can then be declared in addition */
+	char dummy[8];
+};
+
 /* Simple wrappers to test the FRR socket abstraction */
 int tcp_socket(int domain, int type);
 int tcp_bind(struct frr_socket_entry *entry, const struct sockaddr *addr, socklen_t addrlen);

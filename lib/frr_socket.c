@@ -16,15 +16,15 @@ uint32_t frr_socket_entry_hash(const struct frr_socket_entry *a);
 static void _frr_socket_destroy(struct frr_socket_entry *entry);
 
 /* The following global structures should only be referenced by transport protocol implementations */
-struct event_loop *frr_socket_shared_event_loop = NULL;
+struct event_loop *frr_socket_threadmaster = NULL;
 struct frr_socket_entry_table frr_socket_table = {};
 
 DEFINE_MTYPE(LIB, FRR_SOCKET, "FRR socket entry state");
 
 
-int frr_socket_lib_init(struct event_loop *shared_loop)
+int frr_socket_lib_init(struct event_loop *shared_threadmaster)
 {
-	frr_socket_shared_event_loop = shared_loop;
+	frr_socket_threadmaster = shared_threadmaster;
 	assert(pthread_rwlock_init(&frr_socket_table.rwlock, NULL) == 0);
 
 	return 0;
@@ -35,7 +35,7 @@ int frr_socket_lib_finish(void)
 {
 	struct frr_socket_entry *entry;
 
-	frr_socket_shared_event_loop = NULL;
+	frr_socket_threadmaster = NULL;
 	pthread_rwlock_wrlock(&frr_socket_table.rwlock);
 
 	rcu_read_lock();

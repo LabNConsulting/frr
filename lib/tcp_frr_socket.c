@@ -7,15 +7,18 @@
 #include <errno.h>
 #include <pthread.h>
 #include <sys/socket.h>
+#include <sys/param.h>
 
 #include "frr_socket.h"
 #include "tcp_frr_socket.h"
+
+static const char *dummy_text = "TCPsock";
 
 /* Simple wrappers to test the FRR socket abstraction */
 int tcp_socket(int domain, int type)
 {
 	int fd;
-	struct frr_socket_entry *tcp_entry;
+	struct tcp_socket_entry *tcp_entry;
 
 	fd = socket(domain, type, IPPROTO_TCP);
 	if (fd < 0)
@@ -29,10 +32,12 @@ int tcp_socket(int domain, int type)
 	}
 
 	memset(tcp_entry, 0x00, sizeof(*tcp_entry));
-	frr_socket_init(tcp_entry);
-	tcp_entry->protocol = IPPROTO_FRR_TCP;
-	tcp_entry->fd = fd;
-	frr_socket_table_add(tcp_entry);
+	frr_socket_init(&tcp_entry->entry);
+	tcp_entry->entry.protocol = IPPROTO_FRR_TCP;
+	tcp_entry->entry.fd = fd;
+
+	strncpy(tcp_entry->dummy, dummy_text, MIN(sizeof(tcp_entry->dummy), sizeof(dummy_text)));
+	frr_socket_table_add((struct frr_socket_entry *)tcp_entry);
 
 	return fd;
 }
@@ -60,7 +65,7 @@ int tcp_listen(struct frr_socket_entry *entry, int backlog)
 int tcp_accept(struct frr_socket_entry *entry, struct sockaddr *addr, socklen_t *addrlen)
 {
 	int fd;
-	struct frr_socket_entry *tcp_entry;
+	struct tcp_socket_entry *tcp_entry;
 
 	fd = accept(entry->fd, addr, addrlen);
 	if (fd < 0)
@@ -74,10 +79,12 @@ int tcp_accept(struct frr_socket_entry *entry, struct sockaddr *addr, socklen_t 
 	}
 
 	memset(tcp_entry, 0x00, sizeof(*tcp_entry));
-	frr_socket_init(tcp_entry);
-	tcp_entry->protocol = IPPROTO_FRR_TCP;
-	tcp_entry->fd = fd;
-	frr_socket_table_add(tcp_entry);
+	frr_socket_init(&tcp_entry->entry);
+	tcp_entry->entry.protocol = IPPROTO_FRR_TCP;
+	tcp_entry->entry.fd = fd;
+
+	strncpy(tcp_entry->dummy, dummy_text, MIN(sizeof(tcp_entry->dummy), sizeof(dummy_text)));
+	frr_socket_table_add((struct frr_socket_entry *)tcp_entry);
 
 	return fd;
 }
@@ -161,6 +168,7 @@ int tcp_getaddrinfo(const char *node, const char *service, const struct addrinfo
 
 int tcp_destroy_entry(struct frr_socket_entry *entry)
 {
+	struct tcp_socket_entry *tcp_entry = (struct tcp_socket_entry *)entry;
 	/* Not much needs to be done for a TCP FRR socket since we are simply wrapping the kernel.
 	 * This will likely not be the case for other transport protocols, which have operational
 	 * state!
@@ -168,6 +176,8 @@ int tcp_destroy_entry(struct frr_socket_entry *entry)
 
 	close(entry->fd);
 	entry->fd = -1;
+	assert(strncmp(tcp_entry->dummy, dummy_text,
+		       MIN(sizeof(tcp_entry->dummy), sizeof(dummy_text))) == 0);
 	frr_socket_cleanup(entry);
 	XFREE(MTYPE_FRR_SOCKET, entry);
 

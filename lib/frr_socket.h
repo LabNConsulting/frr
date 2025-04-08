@@ -41,7 +41,7 @@ struct frr_socket_entry_table {
 	struct frr_socket_entry_head table;
 };
 
-extern struct event_loop *frr_socket_shared_event_loop;
+extern struct event_loop *frr_socket_threadmaster;
 extern struct frr_socket_entry_table frr_socket_table;
 
 /* For transport protocol stacks */
@@ -62,9 +62,6 @@ DECLARE_HASH(frr_socket_entry, struct frr_socket_entry, hash_item, frr_socket_en
 	     frr_socket_entry_hash);
 
 
-struct frr_socket_entry *_frr_socket_table_find(struct frr_socket_entry_head *hash_table,
-						struct frr_socket_entry *search_entry);
-
 static inline struct frr_socket_entry *entry_find_and_lock(struct frr_socket_entry *search_entry)
 {
 	struct frr_socket_entry *rv_entry;
@@ -76,6 +73,7 @@ static inline struct frr_socket_entry *entry_find_and_lock(struct frr_socket_ent
 
 	return rv_entry;
 }
+
 
 static inline void entry_unlock(struct frr_socket_entry **arg)
 {
@@ -95,7 +93,7 @@ int frr_socket_table_delete(struct frr_socket_entry *entry);
 /* XXX
  * Library and frr_socket_entry setup/cleanup functions
  */
-int frr_socket_lib_init(struct event_loop *shared_loop);
+int frr_socket_lib_init(struct event_loop *shared_threadmaster);
 int frr_socket_lib_finish(void);
 int frr_socket_init(struct frr_socket_entry *entry);
 int frr_socket_cleanup(struct frr_socket_entry *entry);
