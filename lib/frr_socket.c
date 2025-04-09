@@ -21,7 +21,6 @@ struct frr_socket_entry_table frr_socket_table = {};
 
 DEFINE_MTYPE(LIB, FRR_SOCKET, "FRR socket entry state");
 
-
 int frr_socket_lib_init(struct event_loop *shared_threadmaster)
 {
 	frr_socket_threadmaster = shared_threadmaster;
@@ -34,6 +33,9 @@ int frr_socket_lib_init(struct event_loop *shared_threadmaster)
 int frr_socket_lib_finish(void)
 {
 	struct frr_socket_entry *entry;
+
+	/* The library should have been initialized */
+	assert(frr_socket_threadmaster);
 
 	frr_socket_threadmaster = NULL;
 	pthread_rwlock_wrlock(&frr_socket_table.rwlock);
@@ -67,6 +69,9 @@ int frr_socket(int domain, int type, int protocol)
 	struct frr_socket_entry search_entry = {};
 	int fd = -1;
 
+	if (!IS_SOCKET_LIB_READY)
+		return socket(domain, type, protocol);
+
 	switch (protocol) {
 	case IPPROTO_FRR_TCP:
 		fd = tcp_socket(domain, type);
@@ -93,6 +98,9 @@ int frr_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 	struct frr_socket_entry search_entry = {};
 	int rv = -1;
 
+	if (!IS_SOCKET_LIB_READY)
+		return bind(sockfd, addr, addrlen);
+
 	search_entry.fd = sockfd;
 	frr_socket_table_find(&search_entry, found_entry);
 	if (!found_entry)
@@ -113,6 +121,9 @@ int frr_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
 	struct frr_socket_entry search_entry = {};
 	int rv = -1;
+
+	if (!IS_SOCKET_LIB_READY)
+		return connect(sockfd, addr, addrlen);
 
 	search_entry.fd = sockfd;
 	frr_socket_table_find(&search_entry, found_entry);
@@ -135,6 +146,9 @@ int frr_listen(int sockfd, int backlog)
 	struct frr_socket_entry search_entry = {};
 	int rv = -1;
 
+	if (!IS_SOCKET_LIB_READY)
+		return listen(sockfd, backlog);
+
 	search_entry.fd = sockfd;
 	frr_socket_table_find(&search_entry, found_entry);
 	if (!found_entry)
@@ -156,6 +170,9 @@ int frr_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 {
 	struct frr_socket_entry search_entry = {};
 	int fd = -1;
+
+	if (!IS_SOCKET_LIB_READY)
+		return accept(sockfd, addr, addrlen);
 
 	search_entry.fd = sockfd;
 	frr_socket_table_find(&search_entry, found_entry);
@@ -188,6 +205,9 @@ int frr_close(int sockfd)
 	struct frr_socket_entry search_entry = {};
 	int rv = -1;
 
+	if (!IS_SOCKET_LIB_READY)
+		return close(sockfd);
+
 	search_entry.fd = sockfd;
 	frr_socket_table_find(&search_entry, found_entry);
 	if (!found_entry)
@@ -209,6 +229,9 @@ ssize_t frr_writev(int fd, const struct iovec *iov, int iovcnt)
 {
 	struct frr_socket_entry search_entry = {};
 	int rv = -1;
+
+	if (!IS_SOCKET_LIB_READY)
+		return writev(fd, iov, iovcnt);
 
 	search_entry.fd = fd;
 	frr_socket_table_find(&search_entry, found_entry);
@@ -232,6 +255,9 @@ ssize_t frr_read(int fd, void *buf, size_t count)
 	struct frr_socket_entry search_entry = {};
 	int rv = -1;
 
+	if (!IS_SOCKET_LIB_READY)
+		return read(fd, buf, count);
+
 	search_entry.fd = fd;
 	frr_socket_table_find(&search_entry, found_entry);
 	if (!found_entry)
@@ -253,6 +279,9 @@ ssize_t frr_write(int fd, const void *buf, size_t count)
 {
 	struct frr_socket_entry search_entry = {};
 	int rv = -1;
+
+	if (!IS_SOCKET_LIB_READY)
+		return write(fd, buf, count);
 
 	search_entry.fd = fd;
 	frr_socket_table_find(&search_entry, found_entry);
@@ -277,6 +306,9 @@ int frr_setsockopt(int sockfd, int level, int option_name, const void *option_va
 	struct frr_socket_entry search_entry = {};
 	int rv = -1;
 
+	if (!IS_SOCKET_LIB_READY)
+		return setsockopt(sockfd, level, option_name, option_value, option_len);
+
 	search_entry.fd = sockfd;
 	frr_socket_table_find(&search_entry, found_entry);
 	if (!found_entry)
@@ -298,6 +330,9 @@ int frr_getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *
 {
 	struct frr_socket_entry search_entry = {};
 	int rv = -1;
+
+	if (!IS_SOCKET_LIB_READY)
+		return getsockopt(sockfd, level, optname, optval, optlen);
 
 	search_entry.fd = sockfd;
 	frr_socket_table_find(&search_entry, found_entry);
@@ -321,6 +356,9 @@ int frr_getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 	struct frr_socket_entry search_entry = {};
 	int rv = -1;
 
+	if (!IS_SOCKET_LIB_READY)
+		return getpeername(sockfd, addr, addrlen);
+
 	search_entry.fd = sockfd;
 	frr_socket_table_find(&search_entry, found_entry);
 	if (!found_entry)
@@ -342,6 +380,9 @@ int frr_getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 {
 	struct frr_socket_entry search_entry = {};
 	int rv = -1;
+
+	if (!IS_SOCKET_LIB_READY)
+		return getsockname(sockfd, addr, addrlen);
 
 	search_entry.fd = sockfd;
 	frr_socket_table_find(&search_entry, found_entry);
@@ -365,9 +406,8 @@ int frr_getaddrinfo(const char *node, const char *service, const struct addrinfo
 {
 	int rv;
 
-	if (!hints) {
-		return EAI_FAIL;
-	}
+	if (!IS_SOCKET_LIB_READY)
+		return getaddrinfo(node, service, hints, res);
 
 	switch (hints->ai_protocol) {
 	case IPPROTO_FRR_TCP:
@@ -395,7 +435,7 @@ int frr_poll_hook(struct pollfd *fds, nfds_t nfds, int poll_rv)
 	struct pollfd *tmp_fd;
 	int rv = poll_rv;
 
-	if (poll_rv < 0)
+	if (poll_rv < 0 || !IS_SOCKET_LIB_READY)
 		return poll_rv;
 
 	for (nfds_t i = 0; i < nfds; i++) {
@@ -421,10 +461,13 @@ int frr_poll_hook(struct pollfd *fds, nfds_t nfds, int poll_rv)
 
 int frr_socket_table_add(struct frr_socket_entry *entry)
 {
+	assert(IS_SOCKET_LIB_READY);
+
 	pthread_rwlock_wrlock(&frr_socket_table.rwlock);
 	/* If we ended up removing an entry, then something is going very wrong */
 	assert(frr_socket_entry_add(&frr_socket_table.table, entry) == NULL);
 	entry->ref_count++;
+	zlog_debug("New entry added to socket table: fd=%d protocol=%d", entry->fd, entry->protocol);
 	pthread_rwlock_unlock(&frr_socket_table.rwlock);
 
 	return 0;
@@ -436,6 +479,7 @@ int frr_socket_table_delete(struct frr_socket_entry *entry)
 	struct frr_socket_entry *found_entry, search_entry = {};
 	search_entry.fd = entry->fd;
 
+	assert(IS_SOCKET_LIB_READY);
 	if (!entry) {
 		errno = EBADF;
 		return -1;
@@ -450,6 +494,7 @@ int frr_socket_table_delete(struct frr_socket_entry *entry)
 		found_entry = frr_socket_entry_del(&frr_socket_table.table, entry);
 		assert(entry == found_entry);
 	}
+	zlog_debug("Entry deleted from socket table: fd=%d protocol=%d", entry->fd, entry->protocol);
 	pthread_rwlock_unlock(&frr_socket_table.rwlock);
 
 	if (!entry) {
@@ -469,6 +514,7 @@ int frr_socket_table_delete(struct frr_socket_entry *entry)
 
 static void _frr_socket_destroy(struct frr_socket_entry *entry)
 {
+	zlog_debug("Socket entry is being destroyed: fd=%d protocol=%d", entry->fd, entry->protocol);
 	switch (entry->protocol) {
 	case IPPROTO_FRR_TCP:
 		tcp_destroy_entry(entry);

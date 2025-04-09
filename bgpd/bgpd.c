@@ -31,6 +31,7 @@
 #include "lib/sockopt.h"
 #include "frr_pthread.h"
 #include "bitfield.h"
+#include "frr_socket.h"
 
 #include "bgpd/bgpd.h"
 #include "bgpd/bgp_table.h"
@@ -8900,6 +8901,9 @@ void bgp_init(unsigned short instance)
 	access_list_init();
 	access_list_add_hook(peer_distribute_update);
 	access_list_delete_hook(peer_distribute_update);
+
+	/* FRR socket lib init */
+	frr_socket_lib_init(bgp_pth_io->master);
 
 	/* Filter list initialize. */
 	bgp_filter_init();

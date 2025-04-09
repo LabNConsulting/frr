@@ -20,6 +20,7 @@
 #include "typesafe.h"
 #include "frrcu.h"
 #include "jhash.h"
+#include "log.h"
 
 #define IPPROTO_FRR_TCP (IPPROTO_MAX + 1)
 
@@ -44,6 +45,8 @@ struct frr_socket_entry_table {
 extern struct event_loop *frr_socket_threadmaster;
 extern struct frr_socket_entry_table frr_socket_table;
 
+#define IS_SOCKET_LIB_READY (frr_socket_threadmaster != NULL)
+
 /* For transport protocol stacks */
 static int frr_socket_entry_compare(const struct frr_socket_entry *a,
 				    const struct frr_socket_entry *b)
@@ -66,6 +69,7 @@ static inline struct frr_socket_entry *entry_find_and_lock(struct frr_socket_ent
 {
 	struct frr_socket_entry *rv_entry;
 
+	assert(IS_SOCKET_LIB_READY);
 	pthread_rwlock_rdlock(&frr_socket_table.rwlock);
 	rcu_read_lock();
 	rv_entry = frr_socket_entry_find(&frr_socket_table.table, search_entry);
