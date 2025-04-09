@@ -37,6 +37,7 @@
 #include "bgpd/bgp_rpki.h"
 #include "bgpd/bgp_debug.h"
 #include "northbound_cli.h"
+#include "frr_socket.h"
 
 #include "lib/network.h"
 #include "rtrlib/rtrlib.h"
@@ -639,7 +640,7 @@ static void bgpd_sync_callback(struct event *thread)
 	if (atomic_load_explicit(&rpki_vrf->rtr_update_overflow, memory_order_seq_cst)) {
 		ssize_t size = 0;
 
-		retval = read(rpki_vrf->rpki_sync_socket_bgpd, &rec, sizeof(struct pfx_record));
+		retval = frr_read(rpki_vrf->rpki_sync_socket_bgpd, &rec, sizeof(struct pfx_record));
 		while (retval != -1) {
 			if (retval != sizeof(struct pfx_record))
 				break;
@@ -649,8 +650,8 @@ static void bgpd_sync_callback(struct event *thread)
 			afi = (rec.prefix.ver == LRTR_IPV4) ? AFI_IP : AFI_IP6;
 			revalidate_single_prefix(vrf, prefix, afi);
 
-			retval = read(rpki_vrf->rpki_sync_socket_bgpd, &rec,
-				      sizeof(struct pfx_record));
+			retval = frr_read(rpki_vrf->rpki_sync_socket_bgpd, &rec,
+					  sizeof(struct pfx_record));
 		}
 
 		RPKI_DEBUG("Socket overflow detected (%zu), revalidating affected prefixes", size);
@@ -659,7 +660,7 @@ static void bgpd_sync_callback(struct event *thread)
 		return;
 	}
 
-	retval = read(rpki_vrf->rpki_sync_socket_bgpd, &rec, sizeof(struct pfx_record));
+	retval = frr_read(rpki_vrf->rpki_sync_socket_bgpd, &rec, sizeof(struct pfx_record));
 	if (retval != sizeof(struct pfx_record)) {
 		RPKI_DEBUG("Could not read from rpki_sync_socket_bgpd");
 		return;
@@ -722,7 +723,7 @@ static void rpki_update_cb_sync_rtr(struct pfx_table *p __attribute__((unused)),
 				 memory_order_seq_cst))
 		return;
 
-	int retval = write(rpki_vrf->rpki_sync_socket_rtr, &rec,
+	int retval = frr_write(rpki_vrf->rpki_sync_socket_rtr, &rec,
 			   sizeof(struct pfx_record));
 	if (retval == -1 && (errno == EAGAIN || errno == EWOULDBLOCK))
 		atomic_store_explicit(&rpki_vrf->rtr_update_overflow, 1,
@@ -812,8 +813,8 @@ static int bgp_rpki_fini(void)
 		stop(rpki_vrf);
 		list_delete(&rpki_vrf->cache_list);
 
-		close(rpki_vrf->rpki_sync_socket_rtr);
-		close(rpki_vrf->rpki_sync_socket_bgpd);
+		frr_close(rpki_vrf->rpki_sync_socket_rtr);
+		frr_close(rpki_vrf->rpki_sync_socket_bgpd);
 
 		listnode_delete(rpki_vrf_list, rpki_vrf);
 		QOBJ_UNREG(rpki_vrf);
@@ -1315,7 +1316,7 @@ static int rpki_create_socket(void *_cache)
 				    res->ai_protocol, vrf->vrf_id, NULL);
 	}
 	if (socket < 0) {
-		freeaddrinfo(res);
+		frr_freeaddrinfo(res);
 		return -1;
 	}
 
@@ -1324,45 +1325,45 @@ static int rpki_create_socket(void *_cache)
 	timeout.tv_usec = 0;
 
 	optlen = sizeof(prev_rcv_tmout);
-	ret = getsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &prev_rcv_tmout,
+	ret = frr_getsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &prev_rcv_tmout,
 			 &optlen);
 	if (ret < 0)
 		zlog_warn("%s: failed to getsockopt SO_RCVTIMEO for socket %d",
 			  __func__, socket);
-	ret = getsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, &prev_snd_tmout,
+	ret = frr_getsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, &prev_snd_tmout,
 			 &optlen);
 	if (ret < 0)
 		zlog_warn("%s: failed to getsockopt SO_SNDTIMEO for socket %d",
 			  __func__, socket);
-	ret = setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &timeout,
+	ret = frr_setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &timeout,
 			 sizeof(timeout));
 	if (ret < 0)
 		zlog_warn("%s: failed to setsockopt SO_RCVTIMEO for socket %d",
 			  __func__, socket);
 
-	ret = setsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, &timeout,
+	ret = frr_setsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, &timeout,
 			 sizeof(timeout));
 	if (ret < 0)
 		zlog_warn("%s: failed to setsockopt SO_SNDTIMEO for socket %d",
 			  __func__, socket);
 
-	if (connect(socket, res->ai_addr, res->ai_addrlen) == -1) {
-		freeaddrinfo(res);
-		close(socket);
+	if (frr_connect(socket, res->ai_addr, res->ai_addrlen) == -1) {
+		frr_freeaddrinfo(res);
+		frr_close(socket);
 		pthread_setcancelstate(cancel_state, NULL);
 		return -1;
 	}
 
-	freeaddrinfo(res);
+	frr_freeaddrinfo(res);
 	pthread_setcancelstate(cancel_state, NULL);
 
-	ret = setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &prev_rcv_tmout,
+	ret = frr_setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &prev_rcv_tmout,
 			 sizeof(prev_rcv_tmout));
 	if (ret < 0)
 		zlog_warn("%s: failed to setsockopt SO_RCVTIMEO for socket %d",
 			  __func__, socket);
 
-	ret = setsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, &prev_snd_tmout,
+	ret = frr_setsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, &prev_snd_tmout,
 			 sizeof(prev_snd_tmout));
 	if (ret < 0)
 		zlog_warn("%s: failed to setsockopt SO_SNDTIMEO for socket %d",

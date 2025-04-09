@@ -22,6 +22,7 @@
 #include "ns.h"
 #include "lib_errors.h"
 #include "nexthop.h"
+#include "frr_socket.h"
 
 #include "bgpd/bgpd.h"
 #include "bgpd/bgp_open.h"
@@ -291,7 +292,7 @@ static int bgp_get_instance_for_inc_conn(int sock, struct bgp **bgp_inst)
 
 	*bgp_inst = NULL;
 	name[0] = '\0';
-	rc = getsockopt(sock, SOL_SOCKET, SO_BINDTODEVICE, name, &name_len);
+	rc = frr_getsockopt(sock, SOL_SOCKET, SO_BINDTODEVICE, name, &name_len);
 	if (rc != 0) {
 #if defined(HAVE_CUMULUS)
 		flog_err(EC_LIB_SOCKET,
@@ -483,7 +484,7 @@ static void bgp_accept(struct event *thread)
 			zlog_debug(
 				"[Event] Could not get instance for incoming conn from %s",
 				inet_sutop(&su, buf));
-		close(bgp_sock);
+		frr_close(bgp_sock);
 		return;
 	}
 
@@ -544,7 +545,7 @@ static void bgp_accept(struct event *thread)
 				inet_sutop(&su, buf), bgp->name_pretty, bgp->as,
 				VRF_LOGNAME(vrf_lookup_by_id(bgp->vrf_id)));
 		}
-		close(bgp_sock);
+		frr_close(bgp_sock);
 		return;
 	}
 
@@ -558,7 +559,7 @@ static void bgp_accept(struct event *thread)
 				"[Event] connection from %s rejected(%s:%u:%s) due to admin shutdown",
 				inet_sutop(&su, buf), bgp->name_pretty, bgp->as,
 				VRF_LOGNAME(vrf_lookup_by_id(bgp->vrf_id)));
-		close(bgp_sock);
+		frr_close(bgp_sock);
 		return;
 	}
 
@@ -572,7 +573,7 @@ static void bgp_accept(struct event *thread)
 		if (bgp_debug_neighbor_events(peer))
 			zlog_debug("[Event] Closing incoming conn for %s (%p) state %d", peer->host,
 				   peer, connection->status);
-		close(bgp_sock);
+		frr_close(bgp_sock);
 		return;
 	}
 
@@ -582,7 +583,7 @@ static void bgp_accept(struct event *thread)
 		if (bgp_debug_neighbor_events(peer))
 			zlog_debug("%s - incoming conn rejected - %s", peer->host,
 				   bgp_peer_active2str(active));
-		close(bgp_sock);
+		frr_close(bgp_sock);
 		return;
 	}
 
@@ -599,7 +600,7 @@ static void bgp_accept(struct event *thread)
 				zlog_debug("[Event] Incoming BGP connection rejected from %s due to maximum-prefix or shutdown",
 					   peer->host);
 		}
-		close(bgp_sock);
+		frr_close(bgp_sock);
 		return;
 	}
 
@@ -607,7 +608,7 @@ static void bgp_accept(struct event *thread)
 		zlog_warn("[Event] Incoming BGP connection rejected from %s due missing BGP identifier, set it with `bgp router-id`",
 			  peer->host);
 		peer->last_reset = PEER_DOWN_ROUTER_ID_ZERO;
-		close(bgp_sock);
+		frr_close(bgp_sock);
 		return;
 	}
 
@@ -950,7 +951,7 @@ static int bgp_listener(int sock, struct sockaddr *sa, socklen_t salen,
 
 		sockopt_v6only(sa->sa_family, sock);
 
-		ret = bind(sock, sa, salen);
+		ret = frr_bind(sock, sa, salen);
 		en = errno;
 	}
 
@@ -959,7 +960,7 @@ static int bgp_listener(int sock, struct sockaddr *sa, socklen_t salen,
 		return ret;
 	}
 
-	ret = listen(sock, SOMAXCONN);
+	ret = frr_listen(sock, SOMAXCONN);
 	if (ret < 0) {
 		flog_err_sys(EC_LIB_SOCKET, "listen: %s", safe_strerror(errno));
 		return ret;
@@ -990,6 +991,7 @@ int bgp_socket(struct bgp *bgp, unsigned short port, const char *address)
 		.ai_family = AF_UNSPEC,
 		.ai_flags = AI_PASSIVE,
 		.ai_socktype = SOCK_STREAM,
+		.ai_protocol = IPPROTO_FRR_TCP,  // XXX Remove this (undo test change)
 	};
 	int ret, count;
 	char port_str[BUFSIZ];
@@ -1008,7 +1010,7 @@ int bgp_socket(struct bgp *bgp, unsigned short port, const char *address)
 	}
 	if (bgp_option_check(BGP_OPT_NO_ZEBRA) &&
 	    bgp->vrf_id != VRF_DEFAULT) {
-		freeaddrinfo(ainfo_save);
+		frr_freeaddrinfo(ainfo_save);
 		return -1;
 	}
 	count = 0;
@@ -1042,9 +1044,9 @@ int bgp_socket(struct bgp *bgp, unsigned short port, const char *address)
 		if (ret == 0)
 			++count;
 		else
-			close(sock);
+			frr_close(sock);
 	}
-	freeaddrinfo(ainfo_save);
+	frr_freeaddrinfo(ainfo_save);
 	if (count == 0 && bgp->inst_type != BGP_INSTANCE_TYPE_VRF) {
 		flog_err(
 			EC_LIB_SOCKET,
@@ -1075,7 +1077,7 @@ void bgp_close_vrf_socket(struct bgp *bgp)
 	for (ALL_LIST_ELEMENTS(bm->listen_sockets, node, next, listener)) {
 		if (listener->bgp == bgp) {
 			EVENT_OFF(listener->thread);
-			close(listener->fd);
+			frr_close(listener->fd);
 			listnode_delete(bm->listen_sockets, listener);
 			XFREE(MTYPE_BGP_LISTENER, listener->name);
 			XFREE(MTYPE_BGP_LISTENER, listener);
@@ -1097,7 +1099,7 @@ void bgp_close(void)
 		if (listener->bgp)
 			continue;
 		EVENT_OFF(listener->thread);
-		close(listener->fd);
+		frr_close(listener->fd);
 		listnode_delete(bm->listen_sockets, listener);
 		XFREE(MTYPE_BGP_LISTENER, listener->name);
 		XFREE(MTYPE_BGP_LISTENER, listener);

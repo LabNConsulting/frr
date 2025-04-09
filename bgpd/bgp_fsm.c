@@ -21,6 +21,7 @@
 #include "command.h"
 #include "lib_errors.h"
 #include "zclient.h"
+#include "frr_socket.h"
 #include "lib/json.h"
 #include "bgpd/bgpd.h"
 #include "bgpd/bgp_attr.h"
@@ -1521,7 +1522,7 @@ enum bgp_fsm_state_progress bgp_stop(struct peer_connection *connection)
 
 	/* Close of file descriptor. */
 	if (connection->fd >= 0) {
-		close(connection->fd);
+		frr_close(connection->fd);
 		connection->fd = -1;
 		connection->dir = UNKNOWN;
 	}
@@ -1665,8 +1666,8 @@ static void bgp_connect_check(struct event *thread)
 
 	/* Check file descriptor. */
 	slen = sizeof(status);
-	ret = getsockopt(connection->fd, SOL_SOCKET, SO_ERROR, (void *)&status,
-			 &slen);
+	ret = frr_getsockopt(connection->fd, SOL_SOCKET, SO_ERROR, (void *)&status,
+			     &slen);
 
 	/* If getsockopt is fail, this is fatal error. */
 	if (ret < 0) {

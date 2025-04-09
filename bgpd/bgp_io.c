@@ -18,6 +18,7 @@
 #include "stream.h"		// for stream_get_endp, stream_getw_from, str...
 #include "ringbuf.h"		// for ringbuf_remain, ringbuf_peek, ringbuf_...
 #include "frrevent.h"		// for EVENT_OFF, EVENT_ARG, thread...
+#include "frr_socket.h"		// for frr_read, frr_writev, ...
 
 #include "bgpd/bgp_io.h"
 #include "bgpd/bgp_debug.h"	// for bgp_debug_neighbor_events, bgp_type_str
@@ -354,7 +355,7 @@ static uint16_t bgp_write(struct peer_connection *connection)
 	total_written = 0;
 
 	do {
-		num = writev(connection->fd, iov, iovsz);
+		num = frr_writev(connection->fd, iov, iovsz);
 
 		if (num < 0) {
 			if (!ERRNO_IO_RETRY(errno)) {
@@ -515,7 +516,7 @@ static uint16_t bgp_read(struct peer_connection *connection, int *code_p)
 	(void)readsize;
 	nbytes = 0;
 #else
-	nbytes = read(connection->fd, ibuf_scratch, readsize);
+	nbytes = frr_read(connection->fd, ibuf_scratch, readsize);
 #endif
 
 	/* EAGAIN or EWOULDBLOCK; come back later */

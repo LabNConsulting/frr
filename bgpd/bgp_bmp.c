@@ -24,6 +24,7 @@
 #include "lib/version.h"
 #include "jhash.h"
 #include "termtable.h"
+#include "frr_socket.h"
 
 #include "bgpd/bgp_table.h"
 #include "bgpd/bgpd.h"
@@ -2015,7 +2016,7 @@ static void bmp_read(struct event *t)
 
 	bmp->t_read = NULL;
 
-	n = read(bmp->socket, buf, sizeof(buf));
+	n = frr_read(bmp->socket, buf, sizeof(buf));
 	if (n >= 1) {
 		zlog_info("bmp[%s]: unexpectedly received %zu bytes", bmp->remote, n);
 	} else if (n == 0) {
@@ -2043,7 +2044,7 @@ static struct bmp *bmp_open(struct bmp_targets *bt, int bmp_sock)
 
 	sumem = sockunion_getpeername(bmp_sock);
 	if (!sumem) {
-		close(bmp_sock);
+		frr_close(bmp_sock);
 		return NULL;
 	}
 	memcpy(&su, sumem, sizeof(su));
@@ -2053,7 +2054,7 @@ static struct bmp *bmp_open(struct bmp_targets *bt, int bmp_sock)
 	set_cloexec(bmp_sock);
 
 	if (!sockunion2hostprefix(&su, &p)) {
-		close(bmp_sock);
+		frr_close(bmp_sock);
 		return NULL;
 	}
 
@@ -2083,15 +2084,15 @@ static struct bmp *bmp_open(struct bmp_targets *bt, int bmp_sock)
 	if (ret == FILTER_DENY) {
 		bt->cnt_aclrefused++;
 		zlog_info("bmp[%s] connection refused by access-list", buf);
-		close(bmp_sock);
+		frr_close(bmp_sock);
 		return NULL;
 	}
 	bt->cnt_accept++;
 
-	if (setsockopt(bmp_sock, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on)) < 0)
+	if (frr_setsockopt(bmp_sock, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on)) < 0)
 		flog_err(EC_LIB_SOCKET, "bmp: %d can't setsockopt SO_KEEPALIVE: %s(%d)",
 			 bmp_sock, safe_strerror(errno), errno);
-	if (setsockopt(bmp_sock, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
+	if (frr_setsockopt(bmp_sock, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
 		flog_err(EC_LIB_SOCKET, "bmp: %d can't setsockopt TCP_NODELAY: %s(%d)",
 			 bmp_sock, safe_strerror(errno), errno);
 
@@ -2153,7 +2154,7 @@ static void bmp_close(struct bmp *bmp)
 
 	EVENT_OFF(bmp->t_read);
 	pullwr_del(bmp->pullwr);
-	close(bmp->socket);
+	frr_close(bmp->socket);
 }
 
 static struct bmp_bgp *bmp_bgp_find(struct bgp *bgp)
@@ -2501,7 +2502,7 @@ static void bmp_listener_start(struct bmp_listener *bl)
 {
 	int sock, ret;
 
-	sock = socket(bl->addr.sa.sa_family, SOCK_STREAM, 0);
+	sock = frr_socket(bl->addr.sa.sa_family, SOCK_STREAM, 0);
 	if (sock < 0)
 		return;
 
@@ -2514,7 +2515,7 @@ static void bmp_listener_start(struct bmp_listener *bl)
 	if (ret < 0)
 		goto out_sock;
 
-	ret = listen(sock, 3);
+	ret = frr_listen(sock, 3);
 	if (ret < 0)
 		goto out_sock;
 
@@ -2522,7 +2523,7 @@ static void bmp_listener_start(struct bmp_listener *bl)
 	event_add_read(bm->master, bmp_accept, bl, sock, &bl->t_accept);
 	return;
 out_sock:
-	close(sock);
+	frr_close(sock);
 }
 
 static void bmp_listener_stop(struct bmp_listener *bl)
@@ -2530,7 +2531,7 @@ static void bmp_listener_stop(struct bmp_listener *bl)
 	EVENT_OFF(bl->t_accept);
 
 	if (bl->sock != -1)
-		close(bl->sock);
+		frr_close(bl->sock);
 	bl->sock = -1;
 }
 
@@ -2578,7 +2579,7 @@ static void bmp_active_put(struct bmp_active *ba)
 		bmp_free(ba->bmp);
 	}
 	if (ba->socket != -1)
-		close(ba->socket);
+		frr_close(ba->socket);
 
 	XFREE(MTYPE_TMP, ba->ifsrc);
 	XFREE(MTYPE_TMP, ba->hostname);
@@ -2634,7 +2635,7 @@ static void bmp_active_connect(struct bmp_active *ba)
 				zlog_warn(
 					"bmp[%s]: no bind currently to source address %pSU:%d",
 					ba->hostname, &ba->addrsrc, ba->port);
-				close(ba->socket);
+				frr_close(ba->socket);
 				ba->socket = -1;
 				sockunion_init(&ba->addrsrc);
 				continue;
@@ -2649,7 +2650,7 @@ static void bmp_active_connect(struct bmp_active *ba)
 			zlog_warn("bmp[%s]: failed to connect to %pSU:%d",
 				  ba->hostname, &ba->addrs[ba->addrpos],
 				  ba->port);
-			close(ba->socket);
+			frr_close(ba->socket);
 			ba->socket = -1;
 			sockunion_init(&ba->addrsrc);
 			continue;
@@ -2727,8 +2728,8 @@ static void bmp_active_thread(struct event *t)
 	}
 
 	slen = sizeof(status);
-	ret = getsockopt(ba->socket, SOL_SOCKET, SO_ERROR, (void *)&status,
-			 &slen);
+	ret = frr_getsockopt(ba->socket, SOL_SOCKET, SO_ERROR, (void *)&status,
+			     &slen);
 
 	if (ret < 0 || status != 0) {
 		ba->last_err = strerror(status);
@@ -2751,7 +2752,7 @@ static void bmp_active_thread(struct event *t)
 	return;
 
 out_next:
-	close(ba->socket);
+	frr_close(ba->socket);
 	ba->socket = -1;
 	ba->addrpos++;
 	bmp_active_connect(ba);

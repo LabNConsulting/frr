@@ -22,6 +22,7 @@
 #include "queue.h"
 #include "filter.h"
 #include "lib_errors.h"
+#include "frr_socket.h"
 
 #include "bgpd/bgpd.h"
 #include "bgpd/bgp_addpath.h"
@@ -744,7 +745,7 @@ static void bgp_write_notify(struct peer_connection *connection,
 	 * socket is in nonblocking mode, if we can't deliver the NOTIFY, well,
 	 * we only care about getting a clean shutdown at this point.
 	 */
-	ret = write(connection->fd, STREAM_DATA(s), stream_get_endp(s));
+	ret = frr_write(connection->fd, STREAM_DATA(s), stream_get_endp(s));
 
 	/*
 	 * only connection reset/close gets counted as TCP_fatal_error, failure
@@ -758,8 +759,8 @@ static void bgp_write_notify(struct peer_connection *connection,
 
 	/* Disable Nagle, make NOTIFY packet go out right away */
 	val = 1;
-	(void)setsockopt(connection->fd, IPPROTO_TCP, TCP_NODELAY, (char *)&val,
-			 sizeof(val));
+	(void)frr_setsockopt(connection->fd, IPPROTO_TCP, TCP_NODELAY, (char *)&val,
+			     sizeof(val));
 
 	/* Retrieve BGP packet type. */
 	stream_set_getp(s, BGP_MARKER_SIZE + 2);

@@ -14,6 +14,7 @@
 #include "memory.h"
 #include "privs.h"
 #include "filter.h"
+#include "frr_socket.h"
 
 #include "bgpd/bgpd.h"
 #include "bgpd/bgp_dump.h"
@@ -272,6 +273,6 @@ int main(int argc, char **argv)
 			printf("\n");
 		}
 	}
-	close(fd);
+	frr_close(fd);
 	return 0;
 }

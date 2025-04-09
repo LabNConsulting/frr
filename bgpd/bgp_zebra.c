@@ -25,6 +25,7 @@
 #include "vxlan.h"
 #include "pbr.h"
 #include "frrdistance.h"
+#include "frr_socket.h"
 
 #include "bgpd/bgpd.h"
 #include "bgpd/bgp_route.h"
@@ -3991,7 +3992,7 @@ static bool bgp_zebra_label_manager_connect(void)
 	if (zclient_send_hello(zclient_sync) == ZCLIENT_SEND_FAILURE) {
 		zlog_warn("%s: failed sending hello for synchronous zclient!",
 			  __func__);
-		close(zclient_sync->sock);
+		frr_close(zclient_sync->sock);
 		zclient_sync->sock = -1;
 		return false;
 	}
@@ -4000,7 +4001,7 @@ static bool bgp_zebra_label_manager_connect(void)
 	if (lm_label_manager_connect(zclient_sync, 0) != 0) {
 		zlog_warn("%s: failed connecting to label manager!", __func__);
 		if (zclient_sync->sock > 0) {
-			close(zclient_sync->sock);
+			frr_close(zclient_sync->sock);
 			zclient_sync->sock = -1;
 		}
 		return false;
