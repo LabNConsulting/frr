@@ -389,25 +389,32 @@ void frr_freeaddrinfo(struct addrinfo *res)
 }
 
 
-int frr_poll_hook(struct pollfd *t_pollfd, int *nums)
+int frr_poll_hook(struct pollfd *fds, nfds_t nfds, int poll_rv)
 {
 	struct frr_socket_entry search_entry = {};
-	int rv = -1;
+	struct pollfd *tmp_fd;
+	int rv = poll_rv;
 
-	search_entry.fd = t_pollfd->fd;
-	frr_socket_table_find(&search_entry, found_entry);
-	if (!found_entry)
-		return 0;
+	if (poll_rv < 0)
+		return poll_rv;
 
-	switch (found_entry->protocol) {
-	case IPPROTO_FRR_TCP:
-		/* This protocol never overwrites results */
-		rv = 0;
-		break;
-	default:
-		/* Illegal frr_socket_entry instance. */
-		assert(0);
+	for (nfds_t i = 0; i < nfds; i++) {
+		tmp_fd = &fds[i];
+		search_entry.fd = tmp_fd->fd;
+		frr_socket_table_find(&search_entry, found_entry);
+		if (!found_entry)
+			continue;
+
+		switch (found_entry->protocol) {
+		case IPPROTO_FRR_TCP:
+			/* This protocol never overwrites results */
+			continue;
+		default:
+			/* Illegal frr_socket_entry instance. */
+			assert(0);
+		}
 	}
+
 	return rv;
 }
 

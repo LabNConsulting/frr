@@ -13,6 +13,7 @@
 #include "jhash.h"
 #include "lib_errors.h"
 #include "printfrr.h"
+#include "frr_socket.h"
 
 DEFINE_MTYPE_STATIC(LIB, SOCKUNION, "Socket union");
 
@@ -122,7 +123,7 @@ int sockunion_socket(const union sockunion *su)
 {
 	int sock;
 
-	sock = socket(su->sa.sa_family, SOCK_STREAM, 0);
+	sock = frr_socket(su->sa.sa_family, SOCK_STREAM, 0);
 	if (sock < 0) {
 		char buf[SU_ADDRSTRLEN];
 		flog_err(EC_LIB_SOCKET, "Can't make socket for %s : %s",
@@ -141,7 +142,7 @@ int sockunion_accept(int sock, union sockunion *su)
 	int client_sock;
 
 	len = sizeof(union sockunion);
-	client_sock = accept(sock, (struct sockaddr *)su, &len);
+	client_sock = frr_accept(sock, (struct sockaddr *)su, &len);
 
 	sockunion_normalise_mapped(su);
 	return client_sock;
@@ -189,7 +190,7 @@ enum connect_result sockunion_connect(int fd, const union sockunion *peersu,
 	}
 
 	/* Call connect function. */
-	ret = connect(fd, (struct sockaddr *)&su, sockunion_sizeof(&su));
+	ret = frr_connect(fd, (struct sockaddr *)&su, sockunion_sizeof(&su));
 
 	/* Immediate success */
 	if (ret == 0)
@@ -217,7 +218,7 @@ int sockunion_stream_socket(union sockunion *su)
 	if (su->sa.sa_family == 0)
 		su->sa.sa_family = AF_INET_UNION;
 
-	sock = socket(su->sa.sa_family, SOCK_STREAM, 0);
+	sock = frr_socket(su->sa.sa_family, SOCK_STREAM, 0);
 
 	if (sock < 0)
 		flog_err(EC_LIB_SOCKET,
@@ -256,7 +257,7 @@ int sockunion_bind(int sock, union sockunion *su, unsigned short port,
 		}
 	}
 
-	ret = bind(sock, (struct sockaddr *)su, size);
+	ret = frr_bind(sock, (struct sockaddr *)su, size);
 	if (ret < 0) {
 		char buf[SU_ADDRSTRLEN];
 		flog_err(EC_LIB_SOCKET, "can't bind socket for %s : %s",
@@ -272,8 +273,8 @@ int sockopt_reuseaddr(int sock)
 	int ret;
 	int on = 1;
 
-	ret = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void *)&on,
-			 sizeof(on));
+	ret = frr_setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void *)&on,
+			     sizeof(on));
 	if (ret < 0) {
 		flog_err(
 			EC_LIB_SOCKET,
@@ -290,8 +291,8 @@ int sockopt_reuseport(int sock)
 	int ret;
 	int on = 1;
 
-	ret = setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, (void *)&on,
-			 sizeof(on));
+	ret = frr_setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, (void *)&on,
+			     sizeof(on));
 	if (ret < 0) {
 		flog_err(EC_LIB_SOCKET,
 			 "can't set sockopt SO_REUSEPORT to socket %d", sock);
@@ -312,8 +313,8 @@ int sockopt_ttl(int family, int sock, int ttl)
 
 #ifdef IP_TTL
 	if (family == AF_INET) {
-		ret = setsockopt(sock, IPPROTO_IP, IP_TTL, (void *)&ttl,
-				 sizeof(int));
+		ret = frr_setsockopt(sock, IPPROTO_IP, IP_TTL, (void *)&ttl,
+				     sizeof(int));
 		if (ret < 0) {
 			flog_err(EC_LIB_SOCKET,
 				 "can't set sockopt IP_TTL %d to socket %d",
@@ -324,8 +325,8 @@ int sockopt_ttl(int family, int sock, int ttl)
 	}
 #endif /* IP_TTL */
 	if (family == AF_INET6) {
-		ret = setsockopt(sock, IPPROTO_IPV6, IPV6_UNICAST_HOPS,
-				 (void *)&ttl, sizeof(int));
+		ret = frr_setsockopt(sock, IPPROTO_IPV6, IPV6_UNICAST_HOPS,
+				     (void *)&ttl, sizeof(int));
 		if (ret < 0) {
 			flog_err(
 				EC_LIB_SOCKET,
@@ -342,8 +343,8 @@ int sockopt_minttl(int family, int sock, int minttl)
 {
 #ifdef IP_MINTTL
 	if (family == AF_INET) {
-		int ret = setsockopt(sock, IPPROTO_IP, IP_MINTTL, &minttl,
-				     sizeof(minttl));
+		int ret = frr_setsockopt(sock, IPPROTO_IP, IP_MINTTL, &minttl,
+					 sizeof(minttl));
 		if (ret < 0)
 			flog_err(
 				EC_LIB_SOCKET,
@@ -354,8 +355,8 @@ int sockopt_minttl(int family, int sock, int minttl)
 #endif /* IP_MINTTL */
 #ifdef IPV6_MINHOPCOUNT
 	if (family == AF_INET6) {
-		int ret = setsockopt(sock, IPPROTO_IPV6, IPV6_MINHOPCOUNT,
-				     &minttl, sizeof(minttl));
+		int ret = frr_setsockopt(sock, IPPROTO_IPV6, IPV6_MINHOPCOUNT,
+					 &minttl, sizeof(minttl));
 		if (ret < 0)
 			flog_err(
 				EC_LIB_SOCKET,
@@ -375,8 +376,8 @@ int sockopt_v6only(int family, int sock)
 
 #ifdef IPV6_V6ONLY
 	if (family == AF_INET6) {
-		ret = setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, (void *)&on,
-				 sizeof(int));
+		ret = frr_setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, (void *)&on,
+				     sizeof(int));
 		if (ret < 0) {
 			flog_err(EC_LIB_SOCKET,
 				 "can't set sockopt IPV6_V6ONLY to socket %d",
@@ -492,7 +493,7 @@ union sockunion *sockunion_getsockname(int fd)
 	memset(&name, 0, sizeof(name));
 	len = sizeof(name);
 
-	ret = getsockname(fd, (struct sockaddr *)&name, &len);
+	ret = frr_getsockname(fd, (struct sockaddr *)&name, &len);
 	if (ret < 0) {
 		flog_err(EC_LIB_SOCKET,
 			 "Can't get local address and port by getsockname: %s",
@@ -534,7 +535,7 @@ union sockunion *sockunion_getpeername(int fd)
 
 	memset(&name, 0, sizeof(name));
 	len = sizeof(name);
-	ret = getpeername(fd, (struct sockaddr *)&name, &len);
+	ret = frr_getpeername(fd, (struct sockaddr *)&name, &len);
 	if (ret < 0) {
 		flog_err(EC_LIB_SOCKET, "Can't get remote address and port: %s",
 			 safe_strerror(errno));

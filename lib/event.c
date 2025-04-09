@@ -24,6 +24,7 @@
 #include "lib_errors.h"
 #include "libfrr_trace.h"
 #include "libfrr.h"
+#include "frr_socket.h"
 
 DEFINE_MTYPE_STATIC(LIB, THREAD, "Thread");
 DEFINE_MTYPE_STATIC(LIB, EVENT_MASTER, "Thread master");
@@ -906,6 +907,8 @@ done:
 			;
 
 	rcu_read_lock();
+
+	num = frr_poll_hook(m->handler.copy, count, num);
 
 	return num;
 }

@@ -236,7 +236,8 @@ static void test_frr_tcp_connection(void)
 		.fd = fd_l,
 		.events = POLLIN,
 	};
-	if (poll(&fd_poll, 1, 5000) != 1) {
+	int poll_rv;
+	if ((poll_rv = poll(&fd_poll, 1, 5000)) != 1) {
 		printf("Unexpected result of poll\n");
 		assert(0);
 	}
@@ -244,7 +245,7 @@ static void test_frr_tcp_connection(void)
 	 * Technically there is no need for this poll to be hooked since TCP FRR sockets do not
 	 * override the revents. However, this is where frr_poll_hook would normally be called.
 	 */
-	assert(frr_poll_hook(&fd_poll, NULL) == 0);
+	assert(frr_poll_hook(&fd_poll, 1, poll_rv) == poll_rv);
 	assert(fd_poll.revents & POLLIN);
 
 	if ((fd_a = frr_accept(fd_l, NULL, NULL)) < 0) {

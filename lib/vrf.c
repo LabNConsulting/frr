@@ -21,6 +21,7 @@
 #include "lib_errors.h"
 #include "northbound.h"
 #include "northbound_cli.h"
+#include "frr_socket.h"
 
 /* Set by the owner (zebra). */
 bool vrf_notify_oper_changes;
@@ -619,7 +620,7 @@ int vrf_socket(int domain, int type, int protocol, vrf_id_t vrf_id,
 		flog_err_sys(EC_LIB_SOCKET, "%s: Can't switch to VRF %u (%s)",
 			     __func__, vrf_id, safe_strerror(errno));
 
-	ret = socket(domain, type, protocol);
+	ret = frr_socket(domain, type, protocol);
 	save_errno = errno;
 	ret2 = vrf_switchback_to_initial();
 	if (ret2 < 0)
@@ -631,7 +632,7 @@ int vrf_socket(int domain, int type, int protocol, vrf_id_t vrf_id,
 		return ret;
 	ret2 = vrf_bind(vrf_id, ret, interfacename);
 	if (ret2 < 0) {
-		close(ret);
+		frr_close(ret);
 		ret = ret2;
 	}
 	return ret;
@@ -850,7 +851,7 @@ int vrf_bind(vrf_id_t vrf_id, int fd, const char *ifname)
 	}
 
 #ifdef SO_BINDTODEVICE
-	ret = setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, ifname,
+	ret = frr_setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, ifname,
 			 strlen(ifname) + 1);
 	if (ret < 0)
 		zlog_err("bind to interface %s failed, errno=%d", ifname,
@@ -868,7 +869,7 @@ int vrf_getaddrinfo(const char *node, const char *service,
 	if (ret < 0)
 		flog_err_sys(EC_LIB_SOCKET, "%s: Can't switch to VRF %u (%s)",
 			     __func__, vrf_id, safe_strerror(errno));
-	ret = getaddrinfo(node, service, hints, res);
+	ret = frr_getaddrinfo(node, service, hints, res);
 	save_errno = errno;
 	ret2 = vrf_switchback_to_initial();
 	if (ret2 < 0)
@@ -922,7 +923,7 @@ int vrf_sockunion_socket(const union sockunion *su, vrf_id_t vrf_id,
 		return ret;
 	ret2 = vrf_bind(vrf_id, ret, interfacename);
 	if (ret2 < 0) {
-		close(ret);
+		frr_close(ret);
 		ret = ret2;
 	}
 	return ret;
