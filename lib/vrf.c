@@ -901,8 +901,9 @@ int vrf_ioctl(vrf_id_t vrf_id, int d, unsigned long request, char *params)
 	return rc;
 }
 
-int vrf_sockunion_stream_socket(const union sockunion *su, vrf_id_t vrf_id,
-				const char *interfacename)
+
+int vrf_sockunion_socket(const union sockunion *su, int type, int protocol,
+			 vrf_id_t vrf_id, const char *interfacename)
 {
 	int ret, save_errno, ret2;
 
@@ -910,7 +911,7 @@ int vrf_sockunion_stream_socket(const union sockunion *su, vrf_id_t vrf_id,
 	if (ret < 0)
 		flog_err_sys(EC_LIB_SOCKET, "%s: Can't switch to VRF %u (%s)",
 			     __func__, vrf_id, safe_strerror(errno));
-	ret = sockunion_stream_socket(su);
+	ret = sockunion_socket(su, type, protocol);
 	save_errno = errno;
 	ret2 = vrf_switchback_to_initial();
 	if (ret2 < 0)
@@ -927,6 +928,13 @@ int vrf_sockunion_stream_socket(const union sockunion *su, vrf_id_t vrf_id,
 		ret = ret2;
 	}
 	return ret;
+}
+
+
+int vrf_sockunion_stream_socket(const union sockunion *su, vrf_id_t vrf_id,
+				const char *interfacename)
+{
+	return vrf_sockunion_socket(su, SOCK_STREAM, 0, vrf_id, interfacename);
 }
 
 /* ------- Northbound callbacks ------- */

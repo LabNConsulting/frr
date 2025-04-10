@@ -807,10 +807,11 @@ enum connect_result bgp_connect(struct peer_connection *connection)
 		return connect_error;
 	}
 	frr_with_privs(&bgpd_privs) {
-		/* Make socket for the peer. */
+		/* Make socket for the peer. XXX Change FRR_TCP -> 0 (revert test changes) */
 		connection->fd =
-			vrf_sockunion_stream_socket(&connection->su, peer->bgp->vrf_id,
-						    bgp_get_bound_name(connection));
+			vrf_sockunion_socket(&connection->su, SOCK_STREAM,
+					     IPPROTO_FRR_TCP, peer->bgp->vrf_id,
+					     bgp_get_bound_name(connection));
 		connection->dir = CONNECTION_OUTGOING;
 	}
 	if (connection->fd < 0) {

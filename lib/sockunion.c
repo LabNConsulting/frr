@@ -119,12 +119,11 @@ static const char *sockunion_log(const union sockunion *su, char *buf,
 }
 
 /* Return socket of sockunion. */
-int sockunion_socket(const union sockunion *su)
+int sockunion_socket(const union sockunion *su, int type, int protocol)
 {
 	int sock;
 
-	// XXX Change IPPROTO_FRR_TCP -> 0 (e.g. revert change)
-	sock = frr_socket(su->sa.sa_family, SOCK_STREAM, IPPROTO_FRR_TCP);
+	sock = frr_socket(su->sa.sa_family, type, protocol);
 	if (sock < 0) {
 		char buf[SU_ADDRSTRLEN];
 		flog_err(EC_LIB_SOCKET, "Can't make socket for %s : %s",
