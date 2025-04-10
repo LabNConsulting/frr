@@ -106,7 +106,7 @@ extern void sockunion_set(union sockunion *, int family, const uint8_t *addr,
 extern union sockunion *sockunion_str2su(const char *str);
 extern int sockunion_accept(int sock, union sockunion *);
 extern int sockunion_sizeof(const union sockunion *su);
-extern int sockunion_stream_socket(union sockunion *);
+extern int sockunion_stream_socket(const union sockunion *);
 extern int sockopt_reuseaddr(int);
 extern int sockopt_reuseport(int);
 extern int sockopt_v6only(int family, int sock);

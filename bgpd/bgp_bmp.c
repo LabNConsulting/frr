@@ -2619,7 +2619,7 @@ static void bmp_active_connect(struct bmp_active *ba)
 				  ba->ifsrc, &ba->addrsrc);
 		}
 
-		ba->socket = sockunion_socket(&ba->addrs[ba->addrpos]);
+		ba->socket = sockunion_stream_socket(&ba->addrs[ba->addrpos]);
 		if (ba->socket < 0) {
 			zlog_warn("bmp[%s]: failed to create socket",
 				  ba->hostname);

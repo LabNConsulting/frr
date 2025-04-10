@@ -236,8 +236,8 @@ extern void vrf_terminate(void);
 extern int vrf_socket(int domain, int type, int protocol, vrf_id_t vrf_id,
 		      const char *name);
 
-extern int vrf_sockunion_socket(const union sockunion *su, vrf_id_t vrf_id,
-				const char *name);
+extern int vrf_sockunion_stream_socket(const union sockunion *su, vrf_id_t vrf_id,
+				       const char *name);
 
 /*
  * Binds a socket to an interface (ifname) in a VRF (vrf_id).

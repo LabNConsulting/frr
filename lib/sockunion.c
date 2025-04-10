@@ -212,12 +212,14 @@ enum connect_result sockunion_connect(int fd, const union sockunion *peersu,
 }
 
 /* Make socket from sockunion union. */
-int sockunion_stream_socket(union sockunion *su)
+int sockunion_stream_socket(const union sockunion *su)
 {
 	int sock;
 
+	/* XXX Check if really necessary or if causes regression
 	if (su->sa.sa_family == 0)
 		su->sa.sa_family = AF_INET_UNION;
+	*/
 
 	sock = frr_socket(su->sa.sa_family, SOCK_STREAM, 0);
 

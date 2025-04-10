@@ -382,7 +382,7 @@ int pim_msdp_sock_connect(struct pim_msdp_peer *mp)
 	pim_msdp_addr2su(&su_local, mp->local);
 
 	/* Make socket for the peer. */
-	mp->fd = sockunion_socket(&su_peer);
+	mp->fd = sockunion_stream_socket(&su_peer);
 	if (mp->fd < 0) {
 		flog_err_sys(EC_LIB_SOCKET,
 			     "pim_msdp_socket socket failure: %s",

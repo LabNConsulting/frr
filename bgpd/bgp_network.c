@@ -809,8 +809,8 @@ enum connect_result bgp_connect(struct peer_connection *connection)
 	frr_with_privs(&bgpd_privs) {
 		/* Make socket for the peer. */
 		connection->fd =
-			vrf_sockunion_socket(&connection->su, peer->bgp->vrf_id,
-					     bgp_get_bound_name(connection));
+			vrf_sockunion_stream_socket(&connection->su, peer->bgp->vrf_id,
+						    bgp_get_bound_name(connection));
 		connection->dir = CONNECTION_OUTGOING;
 	}
 	if (connection->fd < 0) {
