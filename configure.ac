@@ -381,7 +381,7 @@ if test "$enable_scripting" = "yes"; then
    AX_LUA_HEADERS([], [
      AC_MSG_ERROR([Lua >= 5.3 headers are required to build with Lua support. No other version is supported.])
    ])
-  
+
    for version in 5.3 5.4; do
      PKG_CHECK_MODULES([LUA], [lua >= $version], [
        AC_DEFINE([HAVE_SCRIPTING], [1], [Have support for scripting])
@@ -863,6 +863,8 @@ AC_ARG_ENABLE([undefined-sanitizer],
   AS_HELP_STRING([--enable-undefined-sanitizer], [enable UndefinedBehaviorSanitizer support for detecting undefined behavior]))
 AC_ARG_WITH([crypto],
   AS_HELP_STRING([--with-crypto=<internal|openssl>], [choose between different implementations of cryptographic functions(default value is --with-crypto=internal)]))
+AC_ARG_WITH([quic],
+  AS_HELP_STRING([--with-quic], [enable QUIC FRR socket support]))
 AC_ARG_WITH([frr-format],
   AS_HELP_STRING([--with-frr-format[=<.../frr-format.so>]], [use frr-format GCC plugin]))
 
@@ -874,15 +876,32 @@ AC_ARG_ENABLE([python_runtime],
 
 #if openssl, else use the internal
 AS_IF([test "$with_crypto" = "openssl"], [
-AC_CHECK_LIB([crypto], [EVP_DigestInit], [LIBS="$LIBS -lcrypto"], [], [])
+PKG_CHECK_MODULES([OPENSSL], [openssl >= 1.1.1], [
+AC_CHECK_LIB([crypto], [EVP_DigestInit], [CFLAGS="$CFLAGS $OPENSSL_CFLAGS"; LIBS="$LIBS $OPENSSL_LIBS"], [], [])
 if test "$ac_cv_lib_crypto_EVP_DigestInit" = "no"; then
-  AC_MSG_ERROR([build with openssl has been specified but openssl library was not found on your system])
+  AC_MSG_ERROR([the installed version of openssl is incompatible with FRR])
 else
   AC_DEFINE([CRYPTO_OPENSSL], [1], [Compile with openssl support])
 fi
-], [test "$with_crypto" = "internal" || test "$with_crypto" = "" ], [AC_DEFINE([CRYPTO_INTERNAL], [1], [Compile with internal cryptographic implementation])
+], [
+  AC_MSG_ERROR([build with openssl has been specified but openssl library was not found on your system])
+])], [test "$with_crypto" = "internal" || test "$with_crypto" = "" ], [
+  AC_DEFINE([CRYPTO_INTERNAL], [1], [Compile with internal cryptographic implementation])
 ], [AC_MSG_ERROR([Unknown value for --with-crypto])]
 )
+
+# Check for QUIC support
+AS_IF([test "$with_quic" = "yes"], [
+PKG_CHECK_MODULES([NGTCP2], [libngtcp2 >= 1.12.0 libngtcp2_crypto_ossl >= 1.12.0], [], [
+  AC_MSG_ERROR([build with quic has been specified but ngtcp2 was not found on your system])
+])
+AC_CHECK_LIB([ssl], [SSL_set_quic_tls_cbs], [CFLAGS="$CFLAGS $NGTCP2_CFLAGS"; LIBS="$LIBS $NGTCP2_LIBS"], [], [])
+if test "$ac_cv_lib_ssl_SSL_set_quic_tls_cbs" = "no"; then
+  AC_MSG_ERROR([the found version of openssl does not provide proper QUIC support (must be >= 3.5.0)])
+else
+  AC_DEFINE([NGTCP2], [1], [Compile with ngtcp2 QUIC support])
+fi
+])
 
 AS_IF([test "$enable_clippy_only" != "yes"], [
 AC_CHECK_HEADERS([json-c/json.h])
