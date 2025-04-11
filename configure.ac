@@ -883,9 +883,8 @@ if test "$ac_cv_lib_crypto_EVP_DigestInit" = "no"; then
 else
   AC_DEFINE([CRYPTO_OPENSSL], [1], [Compile with openssl support])
 fi
-], [
-  AC_MSG_ERROR([build with openssl has been specified but openssl library was not found on your system])
-])], [test "$with_crypto" = "internal" || test "$with_crypto" = "" ], [
+], [AC_MSG_ERROR([build with openssl has been specified but openssl library was not found on your system])]
+)], [test "$with_crypto" = "internal" || test "$with_crypto" = "" ], [
   AC_DEFINE([CRYPTO_INTERNAL], [1], [Compile with internal cryptographic implementation])
 ], [AC_MSG_ERROR([Unknown value for --with-crypto])]
 )
