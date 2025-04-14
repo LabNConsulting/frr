@@ -443,6 +443,14 @@ lib_grpc_la_LIBADD = lib/libfrr.la grpc/libfrrgrpc_pb.la $(GRPC_LIBS)
 lib_grpc_la_SOURCES = lib/northbound_grpc.cpp
 
 #
+# QUIC FRR socket support
+#
+if QUIC
+pkginclude_HEADERS += lib/ngtcp2_frr_socket.h
+lib_libfrr_la_SOURCES += lib/ngtcp2_frr_socket.c
+endif
+
+#
 # CLI utilities
 #
 noinst_PROGRAMS += \

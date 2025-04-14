@@ -890,6 +890,7 @@ fi
 )
 
 # Check for QUIC support
+QUIC=false
 AS_IF([test "$with_quic" = "yes"], [
 PKG_CHECK_MODULES([NGTCP2], [libngtcp2 >= 1.12.0 libngtcp2_crypto_ossl >= 1.12.0], [], [
   AC_MSG_ERROR([build with quic has been specified but ngtcp2 was not found on your system])
@@ -898,7 +899,8 @@ AC_CHECK_LIB([ssl], [SSL_set_quic_tls_cbs], [CFLAGS="$CFLAGS $NGTCP2_CFLAGS"; LI
 if test "$ac_cv_lib_ssl_SSL_set_quic_tls_cbs" = "no"; then
   AC_MSG_ERROR([the found version of openssl does not provide proper QUIC support (must be >= 3.5.0)])
 else
-  AC_DEFINE([NGTCP2], [1], [Compile with ngtcp2 QUIC support])
+  QUIC=true
+  AC_DEFINE([HAVE_QUIC], [1], [Compile with ngtcp2 QUIC support])
 fi
 ])
 
@@ -2803,6 +2805,7 @@ dnl various features
 AM_CONDITIONAL([SUPPORT_REALMS], [test "$enable_realms" = "yes"])
 AM_CONDITIONAL([ENABLE_BGP_VNC], [test "$enable_bgp_vnc" != "no"])
 AM_CONDITIONAL([BGP_BMP], [$bgpd_bmp])
+AM_CONDITIONAL([QUIC], [$QUIC])
 dnl northbound
 AM_CONDITIONAL([SQLITE3], [$SQLITE3])
 AM_CONDITIONAL([SYSREPO], [test "$enable_sysrepo" = "yes"])

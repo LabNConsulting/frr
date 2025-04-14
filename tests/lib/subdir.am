@@ -297,6 +297,16 @@ tests_lib_test_frr_socket_SOURCES = tests/lib/test_frr_socket.c
 EXTRA_DIST += tests/lib/test_frr_socket.py
 
 
+if QUIC
+check_PROGRAMS += tests/lib/test_quic_socket
+endif
+tests_lib_test_quic_socket_CFLAGS = $(TESTS_CFLAGS)
+tests_lib_test_quic_socket_CPPFLAGS = $(TESTS_CPPFLAGS)
+tests_lib_test_quic_socket_LDADD = $(ALL_TESTS_LDADD)
+tests_lib_test_quic_socket_SOURCES = tests/lib/test_quic_socket.c
+EXTRA_DIST += tests/lib/test_quic_socket.py
+
+
 check_PROGRAMS += tests/lib/test_segv
 tests_lib_test_segv_CFLAGS = $(TESTS_CFLAGS)
 tests_lib_test_segv_CPPFLAGS = $(TESTS_CPPFLAGS)

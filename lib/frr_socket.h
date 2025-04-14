@@ -23,6 +23,7 @@
 #include "log.h"
 
 #define IPPROTO_FRR_TCP (IPPROTO_MAX + 1)
+#define IPPROTO_QUIC (IPPROTO_MAX + 2)
 
 DECLARE_MTYPE(FRR_SOCKET);
 PREDECL_HASH(frr_socket_entry);
