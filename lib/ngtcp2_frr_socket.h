@@ -22,18 +22,46 @@
 #include "frratomic.h"
 #include "memory.h"
 #include "frrevent.h"
+#include "sockunion.h"
 
-extern struct event_loop *frr_socket_shared_event_loop;
+extern struct event_loop *frr_socket_threadmaster;
 extern struct frr_socket_entry_table frr_socket_hash_table;
+
+PREDECL_LIST(fd_fifo);
+
+struct fd_fifo {
+	int fd;
+	struct fd_fifo_item next_fd;
+};
 
 struct ngtcp2_socket_entry {
 	/* Each protocol entry must begin with the generic socket entry */
 	struct frr_socket_entry entry;
 
-	/* Any protocol-specific operational state can then be declared in addition */
+	/* Shared operational state */
+	union sockunion local_addr;
+	ssize_t local_addrlen;
+
+	/* Listener-only operational state */
+	bool is_listener;
+	struct fd_fifo_head unclaimed_fds; /* All not-yet-established connections */
+
+	/* Non-listener operational state */
+	int64_t quic_stream_id;
+	ngtcp2_conn *conn;
+	ngtcp2_transport_params initial_params;
+	SSL_CTX *ssl_ctx;
+	SSL *ssl;
 	ngtcp2_crypto_ossl_ctx *ossl_ctx;
-	char dummy[8];
+	ngtcp2_crypto_conn_ref *conn_ref;
+
+	struct stream_fifi *rx_buffer_stream;
+	struct stream_fifi *tx_retransmit_stream;
+	int64_t tx_offset_acked;
+	int listener_fd;  /* To track which socket should accept this entry */
 };
+
+DECLARE_LIST(fd_fifo, struct fd_fifo, next_fd);
 
 /* Simple wrappers to test the FRR socket abstraction */
 int quic_socket(int domain, int type);

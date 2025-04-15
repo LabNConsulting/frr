@@ -19,7 +19,7 @@
 #include "memory.h"
 #include "frrevent.h"
 
-extern struct event_loop *frr_socket_shared_event_loop;
+extern struct event_loop *frr_socket_threadmaster;
 extern struct frr_socket_entry_table frr_socket_hash_table;
 
 struct tcp_socket_entry {
