@@ -36,7 +36,6 @@ enum quic_role {
 	QUIC_SERVER,
 };
 
-// XXX Do I need something like this?
 enum quic_state {
 	QUIC_NONE,
 	QUIC_LISTENING,

@@ -17,6 +17,16 @@
 #include "frr_socket.h"
 #include "ngtcp2_frr_socket.h"
 
+static const char *const quic_state_str[] = {
+	"QUIC None",
+	"QUIC Listening",
+	"QUIC Connecting",
+	"QUIC Stream Ready",
+	"QUIC Stream Closing",
+	"QUIC Connection Closing",
+	"QUIC Closed",
+};
+
 /*
  * The following are internal utility functions required for ngtcp2
  * (This excludes events)
@@ -27,7 +37,7 @@ static uint64_t timestamp(void) {
 
   //XXX Timestamp is pulled directly from ngtcp2 examples. Do we want to keep this?
   if (clock_gettime(CLOCK_MONOTONIC, &tp) != 0) {
-    fprintf(stderr, "clock_gettime: %s", strerror(errno));
+    fprintf(stderr, "clock_gettime: %s", safe_strerror(errno));
     exit(EXIT_FAILURE);
   }
 
@@ -44,6 +54,14 @@ static void rand_cb(uint8_t *dest, size_t destlen,
   for (i = 0; i < destlen; ++i) {
     *dest = (uint8_t)random();
   }
+}
+
+
+static void quic_change_state(struct ngtcp2_socket_entry *ngtcp2_entry, enum quic_state state) {
+	enum quic_state prev_state = ngtcp2_entry->state;
+	ngtcp2_entry->state = state;
+	zlog_debug("QUIC: entry with fd %d changes state (%s -> %s)", ngtcp2_entry->entry.fd,
+		   quic_state_str[prev_state], quic_state_str[state]);
 }
 
 
@@ -174,6 +192,13 @@ failed:
 	return -1;
 }
 
+
+static int quic_server_conn_init(struct ngtcp2_socket_entry *ngtcp2_entry,
+				 const struct sockaddr *remote_addr, socklen_t remote_addrlen)
+{
+
+	return 0;
+}
 
 static int quic_client_conn_init(struct ngtcp2_socket_entry *ngtcp2_entry,
 				 const struct sockaddr *remote_addr, socklen_t remote_addrlen)
@@ -306,7 +331,7 @@ static int quic_send_packet(struct ngtcp2_socket_entry *ngtcp2_entry, const uint
 	} while (nwrite == -1 && errno == EINTR);
 
 	if (nwrite == -1) {
-		zlog_warn("QUIC: sendmsg: %s", strerror(errno));
+		zlog_warn("QUIC: sendmsg: %s", safe_strerror(errno));
 		return -1;
 	}
 
@@ -321,11 +346,11 @@ static void quic_close_conn(struct ngtcp2_socket_entry *ngtcp2_entry)
 	ngtcp2_path_storage ps;
 	uint8_t buf[1280];
 
-	ngtcp2_entry->state = QUIC_CLOSED;
+	quic_change_state(ngtcp2_entry, QUIC_CLOSED);
 
 	if (ngtcp2_conn_in_closing_period(ngtcp2_entry->conn) ||
 	    ngtcp2_conn_in_draining_period(ngtcp2_entry->conn)) {
-		goto fin;
+		return;
 	}
 
 	ngtcp2_path_storage_zero(&ps);
@@ -336,10 +361,10 @@ static void quic_close_conn(struct ngtcp2_socket_entry *ngtcp2_entry)
 	if (nwrite < 0) {
 		zlog_warn("QUIC: ngtcp2_conn_write_connection_close: %s",
 			  ngtcp2_strerror((int)nwrite));
-		goto fin;
+		return;
 	}
 
-	quic_send_packet(c, buf, (size_t)nwrite);
+	quic_send_packet(ngtcp2_entry, buf, (size_t)nwrite);
 }
 
 
@@ -430,6 +455,129 @@ static int quic_write_to_endpoint(struct ngtcp2_socket_entry *ngtcp2_entry)
 }
 
 
+static int quic_process_read_packet(struct ngtcp2_socket_entry *ngtcp2_entry, uint8_t *pkt,
+				    size_t pktsize, struct msghdr *msg)
+{
+	ngtcp2_path path;
+	ngtcp2_pkt_info pi = { 0 };
+	ngtcp2_version_cid vc;
+	int rv;
+
+	rv = ngtcp2_pkt_decode_version_cid(&vc, pkt, pktsize, QUIC_SCIDLEN);
+	if (rv != 0) {
+		/* We currently don't take advantage of version negotiation */
+		zlog_warn("QUIC: ngtcp2_pkt_decode_version_cid failed on packet");
+		return 0;
+	}
+
+	path.local.addrlen = ngtcp2_entry->local_addrlen;
+	path.local.addr = (struct sockaddr *)&ngtcp2_entry->local_addr;
+	path.remote.addrlen = msg->msg_namelen;
+	path.remote.addr = msg->msg_name;
+	rv = ngtcp2_conn_read_pkt(ngtcp2_entry->conn, &path, &pi, pkt, pktsize, timestamp());
+
+
+	// XXX Need to clean up this section
+	if (rv != 0) {
+		zlog_warn("QUIC: ngtcp2_conn_read_pkt: %s\n", ngtcp2_strerror(rv));
+		if (!ngtcp2_entry->last_error.error_code) {
+			if (rv == NGTCP2_ERR_CRYPTO) {
+				ngtcp2_ccerr_set_tls_alert(&ngtcp2_entry->last_error,
+							   ngtcp2_conn_get_tls_alert(
+								   ngtcp2_entry->conn),
+							   NULL, 0);
+			} else {
+				ngtcp2_ccerr_set_liberr(&ngtcp2_entry->last_error, rv, NULL, 0);
+			}
+		}
+		return -1;
+	}
+
+	return 0;
+}
+
+
+static int quic_process_listener_packet(struct ngtcp2_socket_entry *ngtcp2_entry, uint8_t *pkt,
+					size_t pktsize, struct msghdr *msg)
+{
+	ngtcp2_path path;
+	ngtcp2_pkt_info pi = { 0 };
+	ngtcp2_version_cid vc;
+	ngtcp2_pkt_hd hd;
+	int rv, new_fd = 0;
+
+	/* Check if the packet is a valid start of a new connection */
+	rv = ngtcp2_accept(&hd, pkt, (size_t)pktsize);
+	if (rv != 0) {
+		zlog_warn("QUIC: ngtcp2_accept received invalid packet (discarded)");
+		return 0;
+	}
+
+	path.local.addrlen = ngtcp2_entry->local_addrlen;
+	path.local.addr = (struct sockaddr *)&ngtcp2_entry->local_addr;
+	path.remote.addrlen = msg->msg_namelen;
+	path.remote.addr = msg->msg_name;
+
+	/* Valid packet! Create a new connected socket ontop the unconnected listening socket */
+	struct sockaddr *local_addr = (struct sockaddr *)&ngtcp2_entry->local_addr;
+	socklen_t local_addrlen = ngtcp2_entry->local_addrlen;
+	int domain;
+	socklen_t domain_len = sizeof(domain);
+	if (getsockopt(ngtcp2_entry->entry.fd, SOL_SOCKET, SO_DOMAIN, &domain, &domain_len) != 0) {
+		zlog_warn("QUIC: listener getsockopt SO_DOMAIN: %s", safe_strerror(errno));
+		goto failure;
+	}
+	if ((new_fd = quic_socket(domain, SOCK_DGRAM)) < 0) {
+		zlog_warn("QUIC: listener socket: %s", safe_strerror(errno));
+		goto failure;
+	}
+
+	struct frr_socket_entry search_entry = {
+		.fd = new_fd,
+	};
+	frr_socket_table_find(&search_entry, new_entry);
+	assert(new_entry && new_entry->protocol == IPPROTO_QUIC);
+	struct ngtcp2_socket_entry *new_ngtcp2_entry = (struct ngtcp2_socket_entry *)new_entry;
+
+	if (quic_setsockopt(new_entry, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int)) < 0) {
+		zlog_warn("QUIC: listener setsockopt SO_REUSEADDR: %s", safe_strerror(errno));
+		goto failure;
+	}
+	if (quic_bind(new_entry, local_addr, local_addrlen) != 0) {
+		zlog_warn("QUIC: listener bind error: %s", safe_strerror(errno));
+		goto failure;
+	}
+	frr_with_mutex(&new_entry->lock) {
+		if (connect(new_fd, path.remote.addr, path.remote.addrlen) < 0) {
+			zlog_warn("QUIC: listener connect: %s", safe_strerror(errno));
+			goto failure;
+		}
+
+		// XXX server conn init
+		quic_server_conn_init(new_ngtcp2_entry, path.remote.addr, path.remote.addrlen);
+
+		quic_change_state(new_ngtcp2_entry, QUIC_CONNECTING);
+	}
+
+	/* Finally, read the packet that started this new connection. */
+	if (quic_process_read_packet(new_ngtcp2_entry, pkt, pktsize, msg) == -1) {
+		zlog_warn("QUIC: newly created connection context is being immediately destroyed");
+		goto failure;
+	}
+
+
+	return 0;
+
+failure:
+	/* quic_close() will free appropriate state */
+	if (new_fd) {
+		frr_close(new_fd);
+	}
+
+	return -1;
+}
+
+
 static int quic_read_from_endpoint(struct ngtcp2_socket_entry *ngtcp2_entry)
 {
 	uint8_t buf[65536];
@@ -437,9 +585,6 @@ static int quic_read_from_endpoint(struct ngtcp2_socket_entry *ngtcp2_entry)
 	struct iovec iov = { buf, sizeof(buf) };
 	struct msghdr msg = { 0 };
 	ssize_t nread;
-	ngtcp2_path path;
-	ngtcp2_pkt_info pi = { 0 };
-	ngtcp2_version_cid vc;
 	int rv;
 
 	msg.msg_name = &addr;
@@ -455,55 +600,25 @@ static int quic_read_from_endpoint(struct ngtcp2_socket_entry *ngtcp2_entry)
 
 		if (nread == -1) {
 			if (errno != EAGAIN && errno != EWOULDBLOCK) {
-				zlog_warn("QUIC: recvmsg: %s", strerror(errno));
+				zlog_warn("QUIC: recvmsg: %s", safe_strerror(errno));
 				return -1;
 			}
 			break;
 		}
 
-
-		rv = ngtcp2_pkt_decode_version_cid(&vc, buf, (size_t)nread, QUIC_SCIDLEN);
-		if (rv != 0) {
-			/* We currently don't take advantage of version negotiation */
-			zlog_warn("QUIC: ngtcp2_pkt_decode_version_cid failed on packet");
-			continue;
+		if (ngtcp2_entry->state == QUIC_LISTENING) {
+			rv = quic_process_listener_packet(ngtcp2_entry, buf, (size_t)nread, &msg);
+		} else {
+			rv = quic_process_read_packet(ngtcp2_entry, buf, (size_t)nread, &msg);
 		}
 
-		path.local.addrlen = ngtcp2_entry->local_addrlen;
-		path.local.addr = (struct sockaddr *)&ngtcp2_entry->local_addr;
-		path.remote.addrlen = msg.msg_namelen;
-		path.remote.addr = msg.msg_name;
-		rv = ngtcp2_conn_read_pkt(ngtcp2_entry->conn, &path, &pi, buf, (size_t)nread,
-					  timestamp());
-
-
-		// XXX Need to clean up this section
-		if (rv != 0) {
-			zlog_warn("QUIC: ngtcp2_conn_read_pkt: %s\n", ngtcp2_strerror(rv));
-			if (!ngtcp2_entry->last_error.error_code) {
-				if (rv == NGTCP2_ERR_CRYPTO) {
-					ngtcp2_ccerr_set_tls_alert(&ngtcp2_entry->last_error,
-								   ngtcp2_conn_get_tls_alert(
-									   ngtcp2_entry->conn),
-								   NULL, 0);
-				} else {
-					ngtcp2_ccerr_set_liberr(&ngtcp2_entry->last_error, rv, NULL,
-								0);
-				}
-			}
+		if (rv == -1) {
 			return -1;
 		}
 	}
 
 	return 0;
 }
-
-/* Altogether is simialar to reading, but  may also accept connections */
-static int quic_listener_process(struct ngtcp2_socket_entry *ngtcp2_entry)
-{
-
-}
-
 
 /*
  * The following are events that may be scheduled
@@ -663,7 +778,7 @@ int quic_connect(struct frr_socket_entry *entry, const struct sockaddr *addr, so
 		return -1;
 	}
 
-	ngtcp2_entry->state = QUIC_CONNECTING;
+	quic_change_state(ngtcp2_entry, QUIC_CONNECTING);
 
 	event_add_read(frr_socket_threadmaster, quic_background_process, &entry->fd, entry->fd,
 		       &ngtcp2_entry->t_background_process);
