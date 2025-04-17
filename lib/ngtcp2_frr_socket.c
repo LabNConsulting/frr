@@ -246,7 +246,7 @@ static int quic_client_conn_init(struct ngtcp2_socket_entry *ngtcp2_entry,
 
 	/* Source and destination Connection ID's start out randomized */
 	dcid.datalen = NGTCP2_MIN_INITIAL_DCIDLEN;
-	scid.datalen = 8;
+	scid.datalen = QUIC_SCIDLEN;
 	if (RAND_bytes(dcid.data, (int)dcid.datalen) != 1
 	    || RAND_bytes(scid.data, (int)scid.datalen) != 1) {
 		zlog_warn("QUIC: Failed to call RAND_bytes");
@@ -260,9 +260,9 @@ static int quic_client_conn_init(struct ngtcp2_socket_entry *ngtcp2_entry,
 
 	rv = ngtcp2_conn_client_new(&ngtcp2_entry->conn, &dcid, &scid, &path, NGTCP2_PROTO_VER_V1,
 				    &callbacks, &settings, &ngtcp2_entry->initial_params, NULL,
-				    NULL);
+				    &ngtcp2_entry->entry.fd);
 	if (rv != 0) {
-		zlog_warn("QUIC: Failed to create ngtcp2 client connection context");
+		zlog_warn("QUIC: ntcp2_conn_client_new failed");
 		goto failed;
 	}
 
@@ -314,6 +314,35 @@ static int quic_send_packet(struct ngtcp2_socket_entry *ngtcp2_entry, const uint
 }
 
 
+static void quic_close_conn(struct ngtcp2_socket_entry *ngtcp2_entry)
+{
+	ngtcp2_ssize nwrite;
+	ngtcp2_pkt_info pi;
+	ngtcp2_path_storage ps;
+	uint8_t buf[1280];
+
+	ngtcp2_entry->state = QUIC_CLOSED;
+
+	if (ngtcp2_conn_in_closing_period(ngtcp2_entry->conn) ||
+	    ngtcp2_conn_in_draining_period(ngtcp2_entry->conn)) {
+		goto fin;
+	}
+
+	ngtcp2_path_storage_zero(&ps);
+
+	nwrite = ngtcp2_conn_write_connection_close(ngtcp2_entry->conn, &ps.path, &pi, buf,
+						    sizeof(buf), &ngtcp2_entry->last_error,
+						    timestamp());
+	if (nwrite < 0) {
+		zlog_warn("QUIC: ngtcp2_conn_write_connection_close: %s",
+			  ngtcp2_strerror((int)nwrite));
+		goto fin;
+	}
+
+	quic_send_packet(c, buf, (size_t)nwrite);
+}
+
+
 static int quic_write_to_endpoint(struct ngtcp2_socket_entry *ngtcp2_entry)
 {
 	ngtcp2_tstamp ts = timestamp();
@@ -327,7 +356,6 @@ static int quic_write_to_endpoint(struct ngtcp2_socket_entry *ngtcp2_entry)
 	ngtcp2_ssize written_datalen;
 	uint32_t flags = NGTCP2_WRITE_STREAM_FLAG_MORE;
 	int fin;
-	bool blocked = false;
 
 	ngtcp2_path_storage_zero(&ps);
 
@@ -360,18 +388,20 @@ static int quic_write_to_endpoint(struct ngtcp2_socket_entry *ngtcp2_entry)
 				continue;
 			case NGTCP2_ERR_STREAM_SHUT_WR:
 				/* Stream is half-closed or being reset */
-				zlog_debug("QUIC: Stream XXX has been shut"); /* fall through */
+				zlog_warn(
+					"QUIC: ngtcp2_conn_writev_stream failed due to being shut");
+				assert(0); // XXX Unsure as to how to handle this yet
+				break;
 			case NGTCP2_ERR_STREAM_DATA_BLOCKED:
 				/* Stream is blocked due to congestion control */
 				assert(written_datalen == -1);
-				/*
-				nwrite = ngtcp2_conn_writev_stream(c->conn, &ps.path, &pi, buf,
-								   sizeof(buf), &wdatalen, flags,
-								   -1, &datav, datavcnt, ts);
-				assert(nwrite >= 0);
-				blocked = true;
-				*/
-				break;
+				stream_id = -1; /* Return to only writing control data*/
+				continue;
+			case NGTCP2_ERR_STREAM_NOT_FOUND:
+				/* How did we get this stream? Not fatal, but still concerning. */
+				zlog_warn("QUIC: ngtcp2_conn_writev_stream found invalid stream: %lld",
+					  stream_id);
+				return 0;
 			default:
 				zlog_err("QUIC: ngtcp2_conn_writev_stream: %s",
 					 ngtcp2_strerror((int)nwrite));
@@ -409,6 +439,7 @@ static int quic_read_from_endpoint(struct ngtcp2_socket_entry *ngtcp2_entry)
 	ssize_t nread;
 	ngtcp2_path path;
 	ngtcp2_pkt_info pi = { 0 };
+	ngtcp2_version_cid vc;
 	int rv;
 
 	msg.msg_name = &addr;
@@ -425,8 +456,17 @@ static int quic_read_from_endpoint(struct ngtcp2_socket_entry *ngtcp2_entry)
 		if (nread == -1) {
 			if (errno != EAGAIN && errno != EWOULDBLOCK) {
 				zlog_warn("QUIC: recvmsg: %s", strerror(errno));
+				return -1;
 			}
 			break;
+		}
+
+
+		rv = ngtcp2_pkt_decode_version_cid(&vc, buf, (size_t)nread, QUIC_SCIDLEN);
+		if (rv != 0) {
+			/* We currently don't take advantage of version negotiation */
+			zlog_warn("QUIC: ngtcp2_pkt_decode_version_cid failed on packet");
+			continue;
 		}
 
 		path.local.addrlen = ngtcp2_entry->local_addrlen;
@@ -456,6 +496,12 @@ static int quic_read_from_endpoint(struct ngtcp2_socket_entry *ngtcp2_entry)
 	}
 
 	return 0;
+}
+
+/* Altogether is simialar to reading, but  may also accept connections */
+static int quic_listener_process(struct ngtcp2_socket_entry *ngtcp2_entry)
+{
+
 }
 
 
@@ -492,10 +538,37 @@ static void quic_background_process(struct event *thread)
 		/* pollin/pollout events should not be scheduled if the socket is read/writable
 		 * from a user standpoint! We do not want to overwrite their events.
 		 */
-		if (ngtcp2_entry->state != QUIC_STREAM_READY) {
-			event_add_read(frr_socket_threadmaster, quic_background_read_write, fd_ref,
-				       fd, &ngtcp2_entry->t_background_process);
+		// XXX Is this where a socket deletion event should be scheduled?
+		if (ngtcp2_entry->state == QUIC_CLOSED) {
+			// XXX Schedule the socket deletion event
+		} else if (ngtcp2_entry->state != QUIC_STREAM_READY) {
+			event_add_read(frr_socket_threadmaster, quic_background_process, fd_ref, fd,
+				       &ngtcp2_entry->t_background_process);
 		}
+	}
+}
+
+
+static void quic_background_listen(struct event *thread)
+{
+	int *fd_ref = EVENT_ARG(thread);
+	int fd = *fd_ref;
+	struct frr_socket_entry search_entry = {
+		.fd = fd,
+	};
+	struct ngtcp2_socket_entry *ngtcp2_entry = NULL;
+
+	frr_socket_table_find(&search_entry, found_entry);
+	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
+	ngtcp2_entry = (struct ngtcp2_socket_entry *)found_entry;
+
+	frr_with_mutex(&found_entry->lock) {
+		ngtcp2_entry->t_background_listen = NULL;
+
+		// XXX Check and maybe accept incoming packet for new connection
+
+		event_add_read(frr_socket_threadmaster, quic_background_listen, fd_ref, fd,
+			       &ngtcp2_entry->t_background_listen);
 	}
 }
 
@@ -585,14 +658,16 @@ int quic_connect(struct frr_socket_entry *entry, const struct sockaddr *addr, so
 
 	rv = quic_client_conn_init(ngtcp2_entry, addr, addrlen);
 	if (!rv) {
-		/* XXX Disconnect the socket? */
+		/* XXX Disconnect the socket? And is this the right error? */
 		errno = EINVAL;
 		return -1;
 	}
 
 	ngtcp2_entry->state = QUIC_CONNECTING;
 
-	/* XXX Schedule read/write events */
+	event_add_read(frr_socket_threadmaster, quic_background_process, &entry->fd, entry->fd,
+		       &ngtcp2_entry->t_background_process);
+	// XXX Add a probe event similar to the background process
 
 	/* We always will "fail" with EINPROGRESS in order to allow for background events to be
 	 * completed. This includes perfoming the handshake and automatically creating a stream.

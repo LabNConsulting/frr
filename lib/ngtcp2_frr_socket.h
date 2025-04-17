@@ -24,6 +24,8 @@
 #include "frrevent.h"
 #include "sockunion.h"
 
+#define QUIC_SCIDLEN NGTCP2_MIN_INITIAL_DCIDLEN
+
 extern struct event_loop *frr_socket_threadmaster;
 extern struct frr_socket_entry_table frr_socket_hash_table;
 
@@ -56,8 +58,8 @@ struct ngtcp2_socket_entry {
 
 	/* Per-connection state.
 	 *
-	 * This state may need to be separated and ref-counted in the future if multiple streams over
-	 * a single connection is to be supported.
+	 * This state may need to be separated, ref-counted, and individually locked in the future
+	 * if QUIC multiplexing is to be supported.
 	 */
 	union sockunion local_addr;
 	ssize_t local_addrlen;
@@ -74,14 +76,13 @@ struct ngtcp2_socket_entry {
 
 	/* Per-stream state */
 	enum quic_state state;
-	int64_t quic_stream_id;
+	int64_t stream_id;
 	struct stream_fifi *rx_buffer_stream;
 	struct stream_fifi *tx_retransmit_stream;
 	int64_t tx_offset_acked;
-	int listener_fd;  /* To track which socket should accept this entry */
-
-	struct fd_fifo_head unclaimed_fds; /* All not-yet-established connections. Listener only */
-
+	int listener_fd;  /* Non-Listener only. To track which socket should accept this entry */
+	struct fd_fifo_head unclaimed_fds; /* Listener only. All not-yet-established connections. */
+	struct event *t_background_listen;
 };
 
 DECLARE_LIST(fd_fifo, struct fd_fifo, next_fd);
