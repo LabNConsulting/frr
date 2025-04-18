@@ -70,22 +70,41 @@ static inline struct frr_socket_entry *entry_find_and_lock(struct frr_socket_ent
 {
 	struct frr_socket_entry *rv_entry = NULL;
 
-	assert(IS_SOCKET_LIB_READY);
+	if (!IS_SOCKET_LIB_READY)
+		return NULL;
+
+	/* The goal here is find the entry in a non-blocking manner, and then lock the individual
+	 * entry for as long as it is referenced in-scope.
+	 */
 	pthread_rwlock_rdlock(&frr_socket_table.rwlock);
 	rcu_read_lock();
 	rv_entry = frr_socket_entry_find(&frr_socket_table.table, search_entry);
 	pthread_rwlock_unlock(&frr_socket_table.rwlock);
 
+	/* Either we failed (no reason to keep rcu locked) or we found an entry (and lock it) */
+	if (rv_entry) {
+		pthread_mutex_lock(&rv_entry->lock);
+	} else {
+		rcu_read_unlock();
+	}
+
 	return rv_entry;
 }
 
 
-static inline void entry_unlock(struct frr_socket_entry **arg)
+static inline void entry_unlock(struct frr_socket_entry **entry)
 {
-	rcu_read_unlock();
+        if (!*entry)
+                return;
+	pthread_mutex_unlock(&(*entry)->lock);
+        rcu_read_unlock();
+        *entry = NULL;
 }
 
-
+/* XXX declared_entry is received both locked and protected under RCU. You should *never* save a
+ * reference to it, otherwise such protections can not be guarenteed! Instead, save the fd and search
+ * for the entry only when needed!
+ */
 #define frr_socket_table_find(search_entry, declared_entry)                                        \
 	struct frr_socket_entry *declared_entry __attribute__((unused, cleanup(entry_unlock))) =   \
 		entry_find_and_lock(search_entry);                                                 \

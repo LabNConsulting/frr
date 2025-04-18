@@ -44,6 +44,7 @@ enum quic_state {
 	QUIC_STREAM_CLOSING,
 	QUIC_CONN_CLOSING,
 	QUIC_CLOSED,
+	QUIC_STATE_MAX,
 };
 
 struct fd_fifo {
@@ -79,8 +80,8 @@ struct ngtcp2_socket_entry {
 	struct stream_fifi *rx_buffer_stream;
 	struct stream_fifi *tx_retransmit_stream;
 	int64_t tx_offset_acked;
-	int listener_fd;  /* Non-Listener only. To track which socket should accept this entry */
 	struct fd_fifo_head unclaimed_fds; /* Listener only. All not-yet-established connections. */
+	int listener_backlog;
 	struct event *t_background_listen;
 };
 
