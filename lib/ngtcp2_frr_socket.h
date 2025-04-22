@@ -76,6 +76,7 @@ struct ngtcp2_socket_entry {
 
 	/* Per-stream state */
 	enum quic_state state;
+	bool close_when_ready;
 	int64_t stream_id;
 	struct stream_fifi *rx_buffer_stream;
 	struct stream_fifi *tx_retransmit_stream;

@@ -29,7 +29,7 @@ static const char *const quic_state_str[] = {
 
 /*
  * The following are internal utility functions required for ngtcp2
- * (This excludes events)
+ * (This excludes events). This includes the definition of many callbacks.
  */
 
 static uint64_t timestamp(void) {
@@ -67,9 +67,170 @@ static const char *quic_strstate(int state) {
 static void quic_change_state(struct ngtcp2_socket_entry *ngtcp2_entry, enum quic_state state) {
 	enum quic_state prev_state = ngtcp2_entry->state;
 	ngtcp2_entry->state = state;
-	zlog_debug("QUIC: entry with fd %d changes state (%s -> %s)", ngtcp2_entry->entry.fd,
-		   quic_strstate(prev_state), quic_strstate(state));
+	zlog_info("QUIC: entry with fd %d changes state (%s -> %s)", ngtcp2_entry->entry.fd,
+		  quic_strstate(prev_state), quic_strstate(state));
 }
+
+
+static int get_new_connection_id_cb(ngtcp2_conn *conn, ngtcp2_cid *cid, uint8_t *token,
+				    size_t cidlen, void *user_data)
+{
+	(void)conn;
+	(void)user_data;
+
+	if (RAND_bytes(cid->data, (int)cidlen) != 1) {
+		return NGTCP2_ERR_CALLBACK_FAILURE;
+	}
+
+	cid->datalen = cidlen;
+
+	if (RAND_bytes(token, NGTCP2_STATELESS_RESET_TOKENLEN) != 1) {
+		return NGTCP2_ERR_CALLBACK_FAILURE;
+	}
+
+	return 0;
+}
+
+
+static int handshake_confirmed_client_cb(ngtcp2_conn *conn, void *user_data)
+{
+	int *fd_ref = user_data;
+	int rv, fd = *fd_ref;
+	int64_t stream_id;
+	struct frr_socket_entry search_entry = {
+		.fd = fd,
+	};
+	struct ngtcp2_socket_entry *ngtcp2_entry = NULL;
+
+	frr_socket_table_find(&search_entry, found_entry);
+	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
+	ngtcp2_entry = (struct ngtcp2_socket_entry *)found_entry;
+
+	/* Confirm that we are client-side and not server-side */
+	assert(ngtcp2_entry->state == QUIC_CONNECTING);
+	assert(ngtcp2_entry->stream_id == -1);
+
+	rv = ngtcp2_conn_open_bidi_stream(conn, &stream_id, &found_entry->fd);
+	if (rv != 0) {
+		return 0;
+	}
+	ngtcp2_entry->stream_id = stream_id;
+
+	zlog_info("QUIC: Handshake confirmed by client on fd %d. Opening stream %lld", fd,
+		  stream_id);
+	quic_change_state(ngtcp2_entry, QUIC_STREAM_READY);
+
+	return 0;
+}
+
+
+static int stream_open_server_cb(ngtcp2_conn *conn, int64_t stream_id, void *user_data) {
+
+	int *fd_ref_listener = user_data;
+	int fd_listener = *fd_ref_listener;
+	struct fd_fifo *fd_entry;
+	struct frr_socket_entry search_entry = {
+		.fd = fd_listener,
+	};
+	struct ngtcp2_socket_entry *ngtcp2_entry = NULL;
+
+	frr_socket_table_find(&search_entry, found_entry);
+	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
+	ngtcp2_entry = (struct ngtcp2_socket_entry *)found_entry;
+
+	assert(ngtcp2_entry->state == QUIC_LISTENING);
+
+	frr_each_safe (fd_fifo, &ngtcp2_entry->unclaimed_fds, fd_entry) {
+		struct ngtcp2_socket_entry *t_ngtcp2_entry = NULL;
+		search_entry.fd = fd_entry->fd;
+
+		/* This locks the returned entry for the local scope. However, since the returned
+		 * entry should never be try to aquire the listening entry, deadlock should not be
+		 * possible.
+		 */
+		frr_socket_table_find(&search_entry, t_entry);
+
+		/* We dont' concern ourselves with cleaning up bad entries. That is quic_accept()'s
+		 * job
+		 */
+		if (t_entry == NULL)
+			continue;
+
+		assert(t_entry->protocol == IPPROTO_QUIC);
+		t_ngtcp2_entry = (struct ngtcp2_socket_entry *)t_entry;
+
+		if (t_ngtcp2_entry->state != QUIC_CONNECTING || t_ngtcp2_entry->conn != conn)
+			continue;
+
+		/* At this point, there is a satisfactory entry to assign the stream_id to */
+		assert(t_ngtcp2_entry->stream_id == -1);
+		t_ngtcp2_entry->stream_id = stream_id;
+		ngtcp2_conn_set_stream_user_data(conn, stream_id, &t_entry->fd);
+		quic_change_state(ngtcp2_entry, QUIC_STREAM_READY);
+
+		//XXX Cancel all POLLIN-POLLOUT events if they are still going instead of assert
+		assert(ngtcp2_entry->t_background_process == NULL);
+
+		zlog_info("QUIC: Server found new stream with id %lld. Assigned to fd %d",
+			  stream_id, t_entry->fd);
+		return 0;
+	}
+
+	zlog_err("QUIC: Server found new stream with id %lld, but there was no entry to give it to!",
+		 stream_id);
+	assert(0);
+	return 0;
+}
+
+
+static int recv_stream_data_cb(ngtcp2_conn *conn, uint32_t flags, int64_t stream_id,
+			       uint64_t offset, const uint8_t *data, size_t datalen,
+			       void *user_data, void *stream_user_data)
+{
+	int fd, *fd_ref = stream_user_data;
+	struct frr_socket_entry search_entry = {};
+	struct ngtcp2_socket_entry *ngtcp2_entry = NULL;
+
+	(void)offset;
+
+	/* Our design should result in fd_ref *always* being populated before data is received */
+	if (fd_ref != NULL) {
+		zlog_err("QUIC: No entry for received data. This is unexpected.");
+		assert(0);
+	}
+
+	fd = *fd_ref;
+	search_entry.fd = fd;
+
+	frr_socket_table_find(&search_entry, found_entry);
+	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
+	ngtcp2_entry = (struct ngtcp2_socket_entry *)found_entry;
+
+	if (datalen > 0 ) {
+		/* XXX Copy the data into the fifo stream buffer! */
+	}
+
+	if (flags & NGTCP2_STREAM_DATA_FLAG_FIN) {
+		/* Opposite endpoint closed their end of the stream. We will follow them, but cannot
+		 * inside any callback. XXX Implement me!
+		 */
+		ngtcp2_entry->close_when_ready = true;
+	}
+
+	/* ngtcp2's on-the-wire window limits do not adjust automatically based on user data */
+	// XXX Move this to when data is actually read from the internal buffer! Not just received!
+	ngtcp2_conn_extend_max_stream_offset(conn, stream_id, datalen);
+	ngtcp2_conn_extend_max_offset(conn, datalen);
+
+	zlog_debug("QUIC: Received %d bytes of data for stream %lld", (int)datalen, stream_id);
+
+	return 0;
+}
+
+
+/*
+ * The following are internal helper functions used to create/manage QUIC contexts and streams
+ */
 
 
 static void cleanup_on_init_failure(struct ngtcp2_socket_entry* ngtcp2_entry)
@@ -234,16 +395,16 @@ static int quic_server_conn_init(struct ngtcp2_socket_entry *ngtcp2_entry,
 		ngtcp2_crypto_encrypt_cb,
 		ngtcp2_crypto_decrypt_cb,
 		ngtcp2_crypto_hp_mask_cb,
-		NULL, //recv_stream_data_cb,
+		recv_stream_data_cb,
 		NULL, /* acked_stream_data_offset */
-		NULL, /* stream_open */
+		stream_open_server_cb,
 		NULL, //ngtcp2_stream_close_cb,
 		NULL, /* recv_stateless_reset */
 		NULL, /* recv_retry */
 		NULL, //extend_max_local_streams_bidi, //XXX Needed? Currently NULL
 		NULL, /* extend_max_local_streams_uni */
 		rand_cb,
-		NULL, //get_new_connection_id_cb,
+		get_new_connection_id_cb,
 		NULL, /* remove_connection_id */
 		ngtcp2_crypto_update_key_cb,
 		NULL, /* path_validation */
@@ -332,7 +493,7 @@ static int quic_client_conn_init(struct ngtcp2_socket_entry *ngtcp2_entry,
 		ngtcp2_crypto_encrypt_cb,
 		ngtcp2_crypto_decrypt_cb,
 		ngtcp2_crypto_hp_mask_cb,
-		NULL, //recv_stream_data_cb,
+		recv_stream_data_cb,
 		NULL, /* acked_stream_data_offset */
 		NULL, /* stream_open */
 		NULL, //ngtcp2_stream_close_cb,
@@ -341,7 +502,7 @@ static int quic_client_conn_init(struct ngtcp2_socket_entry *ngtcp2_entry,
 		NULL, /* extend_max_local_streams_bidi */
 		NULL, /* extend_max_local_streams_uni */
 		rand_cb,
-		NULL, //get_new_connection_id_cb,
+		get_new_connection_id_cb,
 		NULL, /* remove_connection_id */
 		ngtcp2_crypto_update_key_cb,
 		NULL, /* path_validation */
@@ -351,7 +512,7 @@ static int quic_client_conn_init(struct ngtcp2_socket_entry *ngtcp2_entry,
 		NULL, /* extend_max_remote_streams_uni */
 		NULL, /* extend_max_stream_data */
 		NULL, /* dcid_status */
-		NULL, //handshake_confirmed,
+		handshake_confirmed_client_cb,
 		NULL, /* recv_new_token */
 		ngtcp2_crypto_delete_crypto_aead_ctx_cb,
 		ngtcp2_crypto_delete_crypto_cipher_ctx_cb,
@@ -558,6 +719,9 @@ static int quic_process_read_packet(struct ngtcp2_socket_entry *ngtcp2_entry, ui
 	ngtcp2_pkt_info pi = { 0 };
 	ngtcp2_version_cid vc;
 	int rv;
+
+	// XXX Drop the packet if the source/dest don't match expected path.
+	// (Due to unconnected over connected sockets)
 
 	rv = ngtcp2_pkt_decode_version_cid(&vc, pkt, pktsize, QUIC_SCIDLEN);
 	if (rv != 0) {
@@ -844,6 +1008,7 @@ int quic_socket(int domain, int type)
 	ngtcp2_entry->entry.fd = fd;
 
 	ngtcp2_entry->state = QUIC_NONE;
+	ngtcp2_entry->stream_id = -1;  /* Stream id may be 0, but is guarenteed not -1 */
 	/* The defaults for a ngtcp2 connection (not necessarily a single stream!) */
 	// XXX Revisit these initial parameters to confirm if they are good
 	ngtcp2_entry->initial_params.initial_max_streams_uni = 0;
@@ -941,7 +1106,7 @@ int quic_accept(struct frr_socket_entry *entry, struct sockaddr *addr, socklen_t
 		return -1;
 	}
 
-	frr_each_safe (fd_fifo, &ngtcp2_entry->unclaimed_fds, fd_entry) {
+	frr_each_safe(fd_fifo, &ngtcp2_entry->unclaimed_fds, fd_entry) {
 		struct ngtcp2_socket_entry *t_ngtcp2_entry = NULL;
 		search_entry.fd = fd_entry->fd;
 
