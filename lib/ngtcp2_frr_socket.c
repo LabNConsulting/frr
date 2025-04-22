@@ -68,7 +68,7 @@ static void quic_change_state(struct ngtcp2_socket_entry *ngtcp2_entry, enum qui
 	enum quic_state prev_state = ngtcp2_entry->state;
 	ngtcp2_entry->state = state;
 	zlog_debug("QUIC: entry with fd %d changes state (%s -> %s)", ngtcp2_entry->entry.fd,
-		   quic_strstate(prev_state), quic_strstate(state);
+		   quic_strstate(prev_state), quic_strstate(state));
 }
 
 
@@ -575,7 +575,7 @@ static int quic_process_read_packet(struct ngtcp2_socket_entry *ngtcp2_entry, ui
 
 	// XXX Need to clean up this section
 	if (rv != 0) {
-		zlog_warn("QUIC: ngtcp2_conn_read_pkt: %s\n", ngtcp2_strerror(rv));
+		zlog_warn("QUIC: ngtcp2_conn_read_pkt: %s", ngtcp2_strerror(rv));
 		if (!ngtcp2_entry->last_error.error_code) {
 			if (rv == NGTCP2_ERR_CRYPTO) {
 				ngtcp2_ccerr_set_tls_alert(&ngtcp2_entry->last_error,
@@ -596,6 +596,7 @@ static int quic_process_read_packet(struct ngtcp2_socket_entry *ngtcp2_entry, ui
 static int quic_process_listener_packet(struct ngtcp2_socket_entry *ngtcp2_entry, uint8_t *pkt,
 					size_t pktsize, struct msghdr *msg)
 {
+	struct ngtcp2_socket_entry *new_ngtcp2_entry = NULL;
 	ngtcp2_path path;
 	ngtcp2_pkt_info pi = { 0 };
 	ngtcp2_version_cid vc;
@@ -643,7 +644,7 @@ static int quic_process_listener_packet(struct ngtcp2_socket_entry *ngtcp2_entry
 	 */
 	frr_socket_table_find(&search_entry, new_entry);
 	assert(new_entry && new_entry->protocol == IPPROTO_QUIC);
-	struct ngtcp2_socket_entry *new_ngtcp2_entry = (struct ngtcp2_socket_entry *)new_entry;
+	new_ngtcp2_entry = (struct ngtcp2_socket_entry *)new_entry;
 
 	if (quic_setsockopt(new_entry, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int)) < 0) {
 		zlog_warn("QUIC: listener setsockopt SO_REUSEADDR: %s", safe_strerror(errno));
@@ -690,8 +691,8 @@ static int quic_process_listener_packet(struct ngtcp2_socket_entry *ngtcp2_entry
 
 failure:
 	/* quic_close() will free appropriate state */
-	if (new_fd) {
-		frr_close(new_fd);
+	if (new_ngtcp2_entry != NULL) {
+		quic_close((struct frr_socket_entry *)new_ngtcp2_entry);
 	}
 
 	return -1;
@@ -972,7 +973,8 @@ int quic_accept(struct frr_socket_entry *entry, struct sockaddr *addr, socklen_t
 		}
 
 		/* State must be QUIC_STREAM_READY. We are good to hand off the socket */
-		//XXX Cancel all POLLIN-POLLOUT events if they are still going.
+		//XXX Cancel all POLLIN-POLLOUT events if they are still going instead of assert
+		assert(ngtcp2_entry->t_background_process == NULL);
 
 		fd_fifo_del(&ngtcp2_entry->unclaimed_fds, fd_entry);
 		XFREE(MTYPE_FRR_SOCKET, fd_entry);

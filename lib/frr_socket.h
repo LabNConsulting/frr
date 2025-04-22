@@ -94,6 +94,7 @@ static inline struct frr_socket_entry *entry_find_and_lock(struct frr_socket_ent
 
 static inline void entry_unlock(struct frr_socket_entry **entry)
 {
+	//XXX -Wmaybe-unitiaialized error here with optimization only. Have not been able to find fix
         if (!*entry)
                 return;
 	pthread_mutex_unlock(&(*entry)->lock);
@@ -103,11 +104,13 @@ static inline void entry_unlock(struct frr_socket_entry **entry)
 
 /* XXX declared_entry is received both locked and protected under RCU. You should *never* save a
  * reference to it, otherwise such protections can not be guarenteed! Instead, save the fd and search
- * for the entry only when needed!
+ * for the entry only when needed! The declared_entry can be safely overwritten by a user since a
+ * second hidden reference is mainted for cleanup.
  */
 #define frr_socket_table_find(search_entry, declared_entry)                                        \
-	struct frr_socket_entry *declared_entry __attribute__((unused, cleanup(entry_unlock))) =   \
-		entry_find_and_lock(search_entry);                                                 \
+	struct frr_socket_entry *declared_entry = entry_find_and_lock(search_entry);               \
+	struct frr_socket_entry *NAMECTR(_sock_entry_)                                             \
+		__attribute__((unused, cleanup(entry_unlock))) = declared_entry;                   \
 	/* end */
 
 int frr_socket_table_add(struct frr_socket_entry *entry);

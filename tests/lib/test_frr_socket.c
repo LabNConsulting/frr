@@ -38,9 +38,14 @@ static void test_socket_insert_delete(void)
 	{
 		frr_socket_table_find(&search_entry, held_entry);
 		assert(held_entry);
+
+		/* We hold the locked reference to held_entry. frr_close will need it instead, so we
+		 * release control for a short time. No user should ever need to do this, since a
+		 * user should never hold the reference directly.
+		 */
+		pthread_mutex_unlock(&held_entry->lock);
 		assert(frr_close(fd) == 0);
-		frr_socket_table_find(&search_entry, scoped_entry);
-		assert(scoped_entry == NULL);
+		pthread_mutex_lock(&held_entry->lock);
 
 		/* Ensure that the entry is not preemptively freed when a reference is still held */
 		for (int i = 0; i < 4; i++) {
@@ -48,6 +53,9 @@ static void test_socket_insert_delete(void)
 			usleep(5000);
 		}
 	}
+
+	frr_socket_table_find(&search_entry, none_entry);
+	assert(none_entry == NULL);
 }
 
 
@@ -82,11 +90,9 @@ static void *pthread_socket_insert_delete_async(void *arg)
 			assert(scoped_entry->fd == fd);
 
 			struct tcp_socket_entry *tcp_entry = (struct tcp_socket_entry *)scoped_entry;
-			frr_with_mutex (&scoped_entry->lock) {
-				snprintf(run_msg, sizeof(run_msg), "T%d;R%d", id, i);
-				msg_size = MIN(sizeof(run_msg), sizeof(tcp_entry->dummy));
-				strncpy(tcp_entry->dummy, run_msg, msg_size);
-			}
+			snprintf(run_msg, sizeof(run_msg), "T%d;R%d", id, i);
+			msg_size = MIN(sizeof(run_msg), sizeof(tcp_entry->dummy));
+			strncpy(tcp_entry->dummy, run_msg, msg_size);
 		}
 
 		assert(frr_close(fd) == 0);
@@ -102,9 +108,7 @@ static void *pthread_socket_insert_delete_async(void *arg)
 				 */
 				struct tcp_socket_entry *tcp_entry =
 					(struct tcp_socket_entry *)scoped_entry;
-				frr_with_mutex(&scoped_entry->lock) {
-					assert(strncmp(tcp_entry->dummy, run_msg, msg_size) != 0);
-				}
+				assert(strncmp(tcp_entry->dummy, run_msg, msg_size) != 0);
 			}
 		}
 	}
