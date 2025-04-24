@@ -32,28 +32,40 @@ static const char *const quic_state_str[] = {
  * (This excludes events). This includes the definition of many callbacks.
  */
 
-static uint64_t timestamp(void) {
-  struct timespec tp;
+static uint64_t timestamp(void)
+{
+	struct timespec tp;
 
-  //XXX Timestamp is pulled directly from ngtcp2 examples. Do we want to keep this?
-  if (clock_gettime(CLOCK_MONOTONIC, &tp) != 0) {
-    fprintf(stderr, "clock_gettime: %s", safe_strerror(errno));
-    exit(EXIT_FAILURE);
-  }
+	//XXX Timestamp is pulled directly from ngtcp2 examples. Do we want to keep this?
+	if (clock_gettime(CLOCK_MONOTONIC, &tp) != 0) {
+		fprintf(stderr, "clock_gettime: %s", safe_strerror(errno));
+		exit(EXIT_FAILURE);
+	}
 
-  return (uint64_t)tp.tv_sec * NGTCP2_SECONDS + (uint64_t)tp.tv_nsec;
+	return (uint64_t)tp.tv_sec * NGTCP2_SECONDS + (uint64_t)tp.tv_nsec;
 }
 
 
-static void rand_cb(uint8_t *dest, size_t destlen,
-                    const ngtcp2_rand_ctx *rand_ctx) {
-  size_t i;
-  (void)rand_ctx;
+static void rand_cb(uint8_t *dest, size_t destlen, const ngtcp2_rand_ctx *rand_ctx)
+{
+	size_t i;
+	(void)rand_ctx;
 
-  //XXX Replace with a cryptographically secure random function
-  for (i = 0; i < destlen; ++i) {
-    *dest = (uint8_t)random();
-  }
+	//XXX Replace with a cryptographically secure random function
+	for (i = 0; i < destlen; ++i) {
+		*dest = (uint8_t)random();
+	}
+}
+
+
+static void zlog_ngtcp2(void *user_data, const char *fmt, ...)
+{
+	va_list ap;
+	(void)user_data;
+
+	va_start(ap, fmt);
+	vzlog(LOG_DEBUG, fmt, ap);
+	va_end(ap);
 }
 
 
@@ -66,6 +78,9 @@ static const char *quic_strstate(int state) {
 
 static void quic_change_state(struct ngtcp2_socket_entry *ngtcp2_entry, enum quic_state state) {
 	enum quic_state prev_state = ngtcp2_entry->state;
+
+	if (ngtcp2_entry->state == state)
+		return;
 	ngtcp2_entry->state = state;
 	zlog_info("QUIC: entry with fd %d changes state (%s -> %s)", ngtcp2_entry->entry.fd,
 		  quic_strstate(prev_state), quic_strstate(state));
@@ -449,7 +464,7 @@ static int quic_server_conn_init(struct ngtcp2_socket_entry *ngtcp2_entry,
 	ngtcp2_settings_default(&settings);
 	settings.cc_algo = NGTCP2_CC_ALGO_BBR;
 	settings.initial_ts = timestamp();
-	//XXX Find a logging functino: settings.log_printf = log_printf;
+	settings.log_printf = zlog_ngtcp2;
 
 	ngtcp2_entry->initial_params.original_dcid = *scid;
 	ngtcp2_entry->initial_params.original_dcid_present = 1;
@@ -552,7 +567,7 @@ static int quic_client_conn_init(struct ngtcp2_socket_entry *ngtcp2_entry,
 	ngtcp2_settings_default(&settings);
 	settings.cc_algo = NGTCP2_CC_ALGO_BBR;
 	settings.initial_ts = timestamp();
-	//XXX Find a logging functino: settings.log_printf = log_printf;
+	settings.log_printf = zlog_ngtcp2;
 
 	rv = ngtcp2_conn_client_new(&ngtcp2_entry->conn, &dcid, &scid, &path, NGTCP2_PROTO_VER_V1,
 				    &callbacks, &settings, &ngtcp2_entry->initial_params, NULL,
@@ -603,13 +618,13 @@ static void quic_close_conn(struct ngtcp2_socket_entry *ngtcp2_entry)
 	ngtcp2_path_storage ps;
 	uint8_t buf[1280];
 
-	quic_change_state(ngtcp2_entry, QUIC_CLOSED);
-
-	if (ngtcp2_conn_in_closing_period(ngtcp2_entry->conn) ||
+	if (ngtcp2_entry->state == QUIC_CLOSED ||
+	    ngtcp2_conn_in_closing_period(ngtcp2_entry->conn) ||
 	    ngtcp2_conn_in_draining_period(ngtcp2_entry->conn)) {
 		return;
 	}
 
+	quic_change_state(ngtcp2_entry, QUIC_CLOSED);
 	ngtcp2_path_storage_zero(&ps);
 
 	nwrite = ngtcp2_conn_write_connection_close(ngtcp2_entry->conn, &ps.path, &pi, buf,
@@ -622,6 +637,15 @@ static void quic_close_conn(struct ngtcp2_socket_entry *ngtcp2_entry)
 	}
 
 	quic_send_packet(ngtcp2_entry, buf, (size_t)nwrite);
+
+	// XXX Need to hold on to socket for 3xRTT
+
+	rv = frr_socket_table_delete(&ngtcp2_entry->entry);
+	if (rv != 0) {
+		zlog_warn("QUIC: Socket with fd=%d is closing, but never was in the socket table.",
+			 ngtcp2_entry->entry.fd);
+		assert(0);
+	}
 }
 
 
