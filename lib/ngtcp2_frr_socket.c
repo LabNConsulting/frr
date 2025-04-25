@@ -17,6 +17,9 @@
 #include "frr_socket.h"
 #include "ngtcp2_frr_socket.h"
 
+static void quic_background_process(struct event *thread);
+static void quic_background_listen(struct event *thread);
+
 static const char *const quic_state_str[] = {
 	"QUIC None",
 	"QUIC Listening",
@@ -211,9 +214,17 @@ static int stream_close_cb(ngtcp2_conn *conn, uint32_t flags, int64_t stream_id,
 		assert(0);
 	}
 
+	fd = *fd_ref;
+	search_entry.fd = fd;
+	frr_socket_table_find(&search_entry, found_entry);
+	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
+	ngtcp2_entry = (struct ngtcp2_socket_entry *)found_entry;
+
 	assert(ngtcp2_entry->state == QUIC_STREAM_CLOSING);
 	quic_change_state(ngtcp2_entry, QUIC_STREAM_CLOSED);
 	ngtcp2_entry->stream_id = -1;
+
+	return 0;
 }
 
 
@@ -235,7 +246,6 @@ static int recv_stream_data_cb(ngtcp2_conn *conn, uint32_t flags, int64_t stream
 
 	fd = *fd_ref;
 	search_entry.fd = fd;
-
 	frr_socket_table_find(&search_entry, found_entry);
 	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
 	ngtcp2_entry = (struct ngtcp2_socket_entry *)found_entry;
@@ -630,31 +640,118 @@ static int quic_send_packet(struct ngtcp2_socket_entry *ngtcp2_entry, const uint
 }
 
 
-static void quic_close_stream(struct ngtcp2_socket_entry *ngtcp2_entry)
+static void quic_entry_delete(struct event *thread)
 {
-	/* To close a stream, we must send a stream frame with NGTCP2_WRITE_STREAM_FLAG_FIN set,
-	 * and then wait until all transmitted data is acknowledged */
+	int *fd_ref = EVENT_ARG(thread);
+	int rv, fd = *fd_ref;
+	struct frr_socket_entry search_entry = {
+		.fd = fd,
+	};
+	struct ngtcp2_socket_entry *ngtcp2_entry = NULL;
 
-	quic_change_state(ngtcp2_entry, QUIC_STREAM_CLOSING);
+	frr_socket_table_find(&search_entry, found_entry);
+	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
+	ngtcp2_entry = (struct ngtcp2_socket_entry *)found_entry;
 
-	/* At this point, a user should not schedule events since they have called close().
-	 * We can thus re-schedule our generic background read/write event to complete the
-	 * process.
+	ngtcp2_entry->t_background_delete = NULL;
+
+	if (ngtcp2_entry->state != QUIC_CLOSED) {
+		zlog_err("QUIC: Found unexpected state when deleting entry with fd=%d",
+			 ngtcp2_entry->entry.fd);
+		assert(0);
+	} else if (!ngtcp2_entry->is_closed) {
+		zlog_err("QUIC: Trying to delete entry with fd=%d which has not been closed by user",
+			 ngtcp2_entry->entry.fd);
+		assert(0);
+	}
+
+	/* Removes the entry from the FRR socket table and destroys it via a callback after RCU finds
+	 * no more references to it
 	 */
-	event_add_read(frr_socket_threadmaster, quic_background_process, &ngtcp2_entry->entry.fd,
-		       ngtcp2_entry->entry.fd, &ngtcp2_entry->t_background_process);
+	rv = frr_socket_table_delete(found_entry);
+	if (rv != 0) {
+		zlog_warn("QUIC: Trying to destroy socket entry with fd=%d but not found in the table.",
+			  ngtcp2_entry->entry.fd);
+		assert(0);
+	}
+}
+
+
+static void quic_entry_delayed_delete(struct ngtcp2_socket_entry *ngtcp2_entry)
+{
+	ngtcp2_duration pto = 1000000000; /* 1 second in nanosecond resultion */
+
+	if (!ngtcp2_entry->is_closed) {
+		zlog_err("QUIC: Trying to schedule deletion of entry with fd=%d which has not been closed by user",
+			 ngtcp2_entry->entry.fd);
+		assert(0);
+	}
+
+	/* Stop all I/O-related background events */
+	if (ngtcp2_entry->t_background_process) {
+		event_cancel_async(frr_socket_threadmaster, &ngtcp2_entry->t_background_process,
+				   NULL);
+	}
+
+	if (ngtcp2_entry->conn)
+		pto = 3 * ngtcp2_conn_get_pto(ngtcp2_entry->conn); /* As per RFC 9000 */
+	/* nanoseconds --> microseconds */
+	event_add_timer_msec(frr_socket_threadmaster, quic_entry_delete, &ngtcp2_entry->entry.fd,
+			     (pto / 1000), &ngtcp2_entry->t_background_delete);
 }
 
 
 static void quic_closed(struct ngtcp2_socket_entry *ngtcp2_entry)
 {
-	if (ngtcp2_entry->state == QUIC_CLOSED)
-		return;
-
-	// XXX Stop any and all background events
-
 	quic_change_state(ngtcp2_entry, QUIC_CLOSED);
-	// XXX Schedule 3xPTO for socket deletion
+
+	/* We must wait to delete the socket entry until the user has explicitely closed such */
+	if (ngtcp2_entry->is_closed) {
+		quic_entry_delayed_delete(ngtcp2_entry);
+	}
+}
+
+
+static void quic_close_stream(struct ngtcp2_socket_entry *ngtcp2_entry)
+{
+	/* To close a stream, we must send a stream frame with NGTCP2_WRITE_STREAM_FLAG_FIN set,
+	 * and then wait until all transmitted data is acknowledged. Just change state and piggyback
+	 * on a separate ngtcp2_write call.
+	 */
+	quic_change_state(ngtcp2_entry, QUIC_STREAM_CLOSING);
+
+	//XXX Anything else to do here?
+}
+
+
+static void quic_close_listener(struct ngtcp2_socket_entry *ngtcp2_entry)
+{
+	struct fd_fifo *fd_entry;
+	struct frr_socket_entry search_entry = {};
+
+	if (ngtcp2_entry->state != QUIC_LISTENING) {
+		zlog_err("QUIC: Trying to close a non-listener with fd=%d as a listener",
+			 ngtcp2_entry->entry.fd);
+		assert(0);
+	}
+
+	/* Any in-progress connections must be terminated */
+	frr_each_safe(fd_fifo, &ngtcp2_entry->unclaimed_fds, fd_entry) {
+		search_entry.fd = fd_entry->fd;
+
+		/* Safe from deadlock since t_entry should never try to find us */
+		frr_socket_table_find(&search_entry, t_entry);
+
+		if (t_entry) {
+			quic_close(t_entry);
+		}
+
+		fd_fifo_del(&ngtcp2_entry->unclaimed_fds, fd_entry);
+		XFREE(MTYPE_FRR_SOCKET, fd_entry);
+	}
+
+	event_cancel_async(frr_socket_threadmaster, &ngtcp2_entry->t_background_listen, NULL);
+	quic_closed(ngtcp2_entry);
 }
 
 
@@ -672,7 +769,6 @@ static void quic_close_conn(struct ngtcp2_socket_entry *ngtcp2_entry)
 	}
 
 	ngtcp2_path_storage_zero(&ps);
-
 	nwrite = ngtcp2_conn_write_connection_close(ngtcp2_entry->conn, &ps.path, &pi, buf,
 						    sizeof(buf), &ngtcp2_entry->last_error,
 						    timestamp());
@@ -825,7 +921,7 @@ static int quic_process_read_packet(struct ngtcp2_socket_entry *ngtcp2_entry, ui
 
 		if (ngtcp2_entry->last_error.error_code) {
 			/* Do not overwrite the last error the library encountered */
-			return -1
+			return -1;
 		}
 
 		switch (rv) {
@@ -947,7 +1043,7 @@ static int quic_process_listener_packet(struct ngtcp2_socket_entry *ngtcp2_entry
 	return 0;
 
 failure:
-	/* quic_close() will free appropriate state */
+	/* quic_close() can cleanup after all these failure states already */
 	if (new_ngtcp2_entry != NULL) {
 		quic_close((struct frr_socket_entry *)new_ngtcp2_entry);
 	}
@@ -992,13 +1088,13 @@ static int quic_read_from_endpoint(struct ngtcp2_socket_entry *ngtcp2_entry)
 			rv = quic_process_read_packet(ngtcp2_entry, buf, (size_t)nread, &msg);
 		}
 
-		if (rv == -1) {
-			return -1;
-		}
+		if (rv < 0)
+			return rv;
 	}
 
 	return 0;
 }
+
 
 /*
  * The following are events that may be scheduled
@@ -1103,6 +1199,8 @@ int quic_socket(int domain, int type)
 
 	ngtcp2_entry->state = QUIC_NONE;
 	ngtcp2_entry->stream_id = -1;  /* Stream id may be 0, but is guarenteed not -1 */
+	ngtcp2_entry->is_closed = false;
+	ngtcp2_entry->close_when_ready = false;
 	/* The defaults for a ngtcp2 connection (not necessarily a single stream!) */
 	// XXX Revisit these initial parameters to confirm if they are good
 	ngtcp2_entry->initial_params.initial_max_streams_uni = 0;
@@ -1156,7 +1254,9 @@ int quic_connect(struct frr_socket_entry *entry, const struct sockaddr *addr, so
 	quic_change_state(ngtcp2_entry, QUIC_CONNECTING);
 	event_add_read(frr_socket_threadmaster, quic_background_process, &entry->fd, entry->fd,
 		       &ngtcp2_entry->t_background_process);
-	// XXX Add a probe event similar to the background process
+	// XXX Add a probe event similar to the background process. This event needs to always run
+	// and therefore is on a timer. It will complete connection close even if the socket is not
+	// yet closed.
 
 	/* We always will "fail" with EINPROGRESS in order to allow for background events to be
 	 * completed. This includes perfoming the handshake and automatically creating a stream.
@@ -1188,7 +1288,6 @@ int quic_listen(struct frr_socket_entry *entry, int backlog)
 
 int quic_accept(struct frr_socket_entry *entry, struct sockaddr *addr, socklen_t *addrlen)
 {
-	int fd;
 	struct fd_fifo *fd_entry;
 	struct frr_socket_entry search_entry = {};
 	struct ngtcp2_socket_entry *ngtcp2_entry = NULL;
@@ -1248,45 +1347,52 @@ int quic_accept(struct frr_socket_entry *entry, struct sockaddr *addr, socklen_t
 
 int quic_close(struct frr_socket_entry *entry)
 {
-	int rv = 0;
 	struct ngtcp2_socket_entry *ngtcp2_entry = NULL;
 	assert(entry->protocol == IPPROTO_QUIC);
 	ngtcp2_entry = (struct ngtcp2_socket_entry *)entry;
 
-	// XXX REDO THIS TAKING INTO ACCOUNT USER-EXPECTED STATE
+	ngtcp2_entry->is_closed = true;
+
 	switch(ngtcp2_entry->state) {
+	case QUIC_NONE:
+	case QUIC_CLOSED:
+		quic_closed(ngtcp2_entry);
+		/* quic_closed will start the entry destroy process. Exit early in response */
+		return 0;
+	case QUIC_LISTENING:
+		quic_close_listener(ngtcp2_entry);
+		break;
+	case QUIC_CONNECTING:
+		assert(ngtcp2_entry->stream_id == -1);
+		quic_close_conn(ngtcp2_entry);
+		break;
 	case QUIC_STREAM_READY:
+		/* First need to close the stream. Then close the conn after */
 		assert(ngtcp2_entry->stream_id != -1);
-		/* First need to close the stream. Then close the conn */
+		quic_close_stream(ngtcp2_entry);
+		break;
+	/* The following states naturally lead into QUIC_CLOSED. Nothing much to do */
+	case QUIC_STREAM_CLOSING:
+		assert(ngtcp2_entry->stream_id != -1);
 		break;
 	case QUIC_STREAM_CLOSED:
 		assert(ngtcp2_entry->stream_id == -1);
-		/* Stream closed, now close the connection */
-		quic_close_conn(ngtcp2_entry);
 		break;
-	case QUIC_NONE:
-	case QUIC_CLOSED:
-		assert(ngtcp2_entry->stream_id == -1);
-		/* Hold on to entry for 3xRTT or instantly delete */
-		break;
-	case QUIC_LISTEN:
-		/* Stop the listener */
-		break;
-	default:
-		/* This includes QUIC_CONNECTING, QUIC_STREAM_CLOSING, QUIC_CONN_CLOSING */
-		/* Reset the connection */
-		break;
-	}
-
-	/* XXX Need to delete the socket still via frr_socket_table_delete(entry) */
-	rv = frr_socket_table_delete(&ngtcp2_entry->entry);
-	if (rv != 0) {
-		zlog_warn("QUIC: Socket with fd=%d is closing, but never was in the socket table.",
-			  ngtcp2_entry->entry.fd);
+	case QUIC_STATE_MAX:
 		assert(0);
 	}
 
-	return rv;
+	/* It is only after the user closes the socket that we regain exclusive access to POLLIN and
+	 * POLLOUT events. Therefore, we can accelerate the closing process by scheduling events on
+	 * POLLIN instead of a just the existing probe timer.
+	 */
+	if (ngtcp2_entry->t_background_process != NULL) {
+		event_add_read(frr_socket_threadmaster, quic_background_process,
+			       &ngtcp2_entry->entry.fd, ngtcp2_entry->entry.fd,
+			       &ngtcp2_entry->t_background_process);
+	}
+
+	return 0;
 }
 
 
@@ -1362,12 +1468,38 @@ int quic_getaddrinfo(const char *node, const char *service, const struct addrinf
 }
 
 
+/* XXX This should not be called directly except by RCU_call in frr_socket_table_delete */
 int quic_destroy_entry(struct frr_socket_entry *entry)
 {
-	/* Not much needs to be done for a QUIC socket since we are simply wrapping the kernel.
-	 * This will likely not be the case for other transport protocols, which have operational
-	 * state!
-	 */
+	struct ngtcp2_socket_entry *ngtcp2_entry = NULL;
+	assert(entry->protocol == IPPROTO_QUIC);
+	ngtcp2_entry = (struct ngtcp2_socket_entry *)entry;
+
+	if (ngtcp2_entry->conn) {
+		ngtcp2_conn_del(ngtcp2_entry->conn);
+		ngtcp2_entry->conn = NULL;
+	}
+	if (ngtcp2_entry->ossl_ctx) {
+		ngtcp2_crypto_ossl_ctx_del(ngtcp2_entry->ossl_ctx);
+		ngtcp2_entry->ossl_ctx = NULL;
+	}
+	if (ngtcp2_entry->ssl) {
+		SSL_free(ngtcp2_entry->ssl);
+		ngtcp2_entry->ssl = NULL;
+	}
+	if (ngtcp2_entry->ssl_ctx) {
+		SSL_CTX_free(ngtcp2_entry->ssl_ctx);
+		ngtcp2_entry->ssl_ctx = NULL;
+	}
+
+	// XXX Cleanup streams
+
+	/* No events should remain scheduled at this point */
+	assert(ngtcp2_entry->t_background_process == NULL);
+	assert(ngtcp2_entry->t_background_probe == NULL);
+	assert(ngtcp2_entry->t_background_listen == NULL);
+	assert(ngtcp2_entry->t_background_delete == NULL);
+
 
 	close(entry->fd);
 	entry->fd = -1;

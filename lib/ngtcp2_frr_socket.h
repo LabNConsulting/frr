@@ -72,7 +72,7 @@ struct ngtcp2_socket_entry {
 	ngtcp2_crypto_conn_ref conn_ref;
 	ngtcp2_ccerr last_error;
 	struct event *t_background_process;
-	struct event *t_backgound_probe;
+	struct event *t_background_probe;
 
 	/* Per-stream state */
 	enum quic_state state;
@@ -83,7 +83,9 @@ struct ngtcp2_socket_entry {
 	int64_t tx_offset_acked;
 	struct fd_fifo_head unclaimed_fds; /* Listener only. All not-yet-established connections. */
 	int listener_backlog;
+	bool is_closed;
 	struct event *t_background_listen;
+	struct event *t_background_delete;
 };
 
 DECLARE_LIST(fd_fifo, struct fd_fifo, next_fd);

@@ -10,6 +10,7 @@
 
 #include "frr_socket.h"
 #include "tcp_frr_socket.h"
+#include "ngtcp2_frr_socket.h"  /* XXX Make conditional */
 
 int frr_socket_entry_compare(const struct frr_socket_entry *a, const struct frr_socket_entry *b);
 uint32_t frr_socket_entry_hash(const struct frr_socket_entry *a);
@@ -76,6 +77,9 @@ int frr_socket(int domain, int type, int protocol)
 	case IPPROTO_FRR_TCP:
 		fd = tcp_socket(domain, type);
 		break;
+	case IPPROTO_QUIC:
+		fd = quic_socket(domain, type);
+		break;
 	default:
 		/* It is assumed that unrecognized protocols are in-kernel */
 		return socket(domain, type, protocol);
@@ -110,6 +114,9 @@ int frr_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 	case IPPROTO_FRR_TCP:
 		rv = tcp_bind(found_entry, addr, addrlen);
 		break;
+	case IPPROTO_QUIC:
+		rv = quic_bind(found_entry, addr, addrlen);
+		break;
 	default:
 		/* Illegal frr_socket_entry instance. */
 		assert(0);
@@ -133,6 +140,9 @@ int frr_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 	switch (found_entry->protocol) {
 	case IPPROTO_FRR_TCP:
 		rv = tcp_connect(found_entry, addr, addrlen);
+		break;
+	case IPPROTO_QUIC:
+		rv = quic_connect(found_entry, addr, addrlen);
 		break;
 	default:
 		/* Illegal frr_socket_entry instance. */
@@ -158,6 +168,9 @@ int frr_listen(int sockfd, int backlog)
 	case IPPROTO_FRR_TCP:
 		rv = tcp_listen(found_entry, backlog);
 		break;
+	case IPPROTO_QUIC:
+		rv = quic_listen(found_entry, backlog);
+		break;
 	default:
 		/* Illegal frr_socket_entry instance. */
 		assert(0);
@@ -182,6 +195,9 @@ int frr_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 	switch (found_entry->protocol) {
 	case IPPROTO_FRR_TCP:
 		fd = tcp_accept(found_entry, addr, addrlen);
+		break;
+	case IPPROTO_QUIC:
+		fd = quic_accept(found_entry, addr, addrlen);
 		break;
 	default:
 		/* Illegal frr_socket_entry instance. */
@@ -217,6 +233,9 @@ int frr_close(int sockfd)
 	case IPPROTO_FRR_TCP:
 		rv = tcp_close(found_entry);
 		break;
+	case IPPROTO_QUIC:
+		rv = quic_close(found_entry);
+		break;
 	default:
 		/* Illegal frr_socket_entry instance. */
 		assert(0);
@@ -241,6 +260,9 @@ ssize_t frr_writev(int fd, const struct iovec *iov, int iovcnt)
 	switch (found_entry->protocol) {
 	case IPPROTO_FRR_TCP:
 		rv = tcp_writev(found_entry, iov, iovcnt);
+		break;
+	case IPPROTO_QUIC:
+		rv = quic_writev(found_entry, iov, iovcnt);
 		break;
 	default:
 		/* Illegal frr_socket_entry instance. */
@@ -267,6 +289,9 @@ ssize_t frr_read(int fd, void *buf, size_t count)
 	case IPPROTO_FRR_TCP:
 		rv = tcp_read(found_entry, buf, count);
 		break;
+	case IPPROTO_QUIC:
+		rv = quic_read(found_entry, buf, count);
+		break;
 	default:
 		/* Illegal frr_socket_entry instance. */
 		assert(0);
@@ -291,6 +316,9 @@ ssize_t frr_write(int fd, const void *buf, size_t count)
 	switch (found_entry->protocol) {
 	case IPPROTO_FRR_TCP:
 		rv = tcp_write(found_entry, buf, count);
+		break;
+	case IPPROTO_QUIC:
+		rv = quic_write(found_entry, buf, count);
 		break;
 	default:
 		/* Illegal frr_socket_entry instance. */
@@ -318,6 +346,9 @@ int frr_setsockopt(int sockfd, int level, int option_name, const void *option_va
 	case IPPROTO_FRR_TCP:
 		rv = tcp_setsockopt(found_entry, level, option_name, option_value, option_len);
 		break;
+	case IPPROTO_QUIC:
+		rv = quic_setsockopt(found_entry, level, option_name, option_value, option_len);
+		break;
 	default:
 		/* Illegal frr_socket_entry instance. */
 		assert(0);
@@ -342,6 +373,9 @@ int frr_getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *
 	switch (found_entry->protocol) {
 	case IPPROTO_FRR_TCP:
 		rv = tcp_getsockopt(found_entry, level, optname, optval, optlen);
+		break;
+	case IPPROTO_QUIC:
+		rv = quic_getsockopt(found_entry, level, optname, optval, optlen);
 		break;
 	default:
 		/* Illegal frr_socket_entry instance. */
@@ -368,6 +402,9 @@ int frr_getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 	case IPPROTO_FRR_TCP:
 		rv = tcp_getpeername(found_entry, addr, addrlen);
 		break;
+	case IPPROTO_QUIC:
+		rv = quic_getpeername(found_entry, addr, addrlen);
+		break;
 	default:
 		/* Illegal frr_socket_entry instance. */
 		assert(0);
@@ -393,6 +430,9 @@ int frr_getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 	case IPPROTO_FRR_TCP:
 		rv = tcp_getsockname(found_entry, addr, addrlen);
 		break;
+	case IPPROTO_QUIC:
+		rv = quic_getsockname(found_entry, addr, addrlen);
+		break;
 	default:
 		/* Illegal frr_socket_entry instance. */
 		assert(0);
@@ -412,6 +452,9 @@ int frr_getaddrinfo(const char *node, const char *service, const struct addrinfo
 	switch (hints->ai_protocol) {
 	case IPPROTO_FRR_TCP:
 		rv =  tcp_getaddrinfo(node, service, hints, res);
+		break;
+	case IPPROTO_QUIC:
+		rv =  quic_getaddrinfo(node, service, hints, res);
 		break;
 	default:
 		/* It is assumed that unrecognized protocols are in-kernel */
@@ -448,6 +491,9 @@ int frr_poll_hook(struct pollfd *fds, nfds_t nfds, int poll_rv)
 		switch (found_entry->protocol) {
 		case IPPROTO_FRR_TCP:
 			/* This protocol never overwrites results */
+			continue;
+		case IPPROTO_QUIC:
+			/* XXX Implement me */
 			continue;
 		default:
 			/* Illegal frr_socket_entry instance. */
@@ -518,6 +564,9 @@ static void _frr_socket_destroy(struct frr_socket_entry *entry)
 	switch (entry->protocol) {
 	case IPPROTO_FRR_TCP:
 		tcp_destroy_entry(entry);
+		break;
+	case IPPROTO_QUIC:
+		quic_destroy_entry(entry);
 		break;
 	default:
 		/* Unknown transport protocol. Illegal entry */
