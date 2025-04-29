@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include <sys/socket.h>
 
+#include "frr_pthread.h"
 #include "frr_socket.h"
 #include "tcp_frr_socket.h"
 #include "ngtcp2_frr_socket.h"  /* XXX Make conditional */
@@ -36,18 +37,32 @@ int frr_socket_lib_finish(void)
 	struct frr_socket_entry *entry;
 
 	/* The library should have been initialized */
-	assert(frr_socket_threadmaster);
-
-	frr_socket_threadmaster = NULL;
-	pthread_rwlock_wrlock(&frr_socket_table.rwlock);
+	assert(IS_SOCKET_LIB_READY);
 
 	rcu_read_lock();
+	pthread_rwlock_wrlock(&frr_socket_table.rwlock);
 	while ((entry = frr_socket_entry_pop(&frr_socket_table.table))) {
+		pthread_rwlock_unlock(&frr_socket_table.rwlock);
+
+		/* The writer lock is only held when entries are being removed from the table. It
+		 * should not be held when frr_socket_lib_finish_hook() is called in the case that
+		 * a transport protocol needs to call event_cancel_async(). Holding the write lock
+		 * will block fd_poll() until modifications to the table are finished.
+		 */
+		frr_with_mutex(&entry->lock) {
+			frr_socket_lib_finish_hook(entry);
+		}
 		rcu_call(_frr_socket_destroy, entry, rcu_head);
+
+		pthread_rwlock_wrlock(&frr_socket_table.rwlock);
 	}
+	pthread_rwlock_unlock(&frr_socket_table.rwlock);
 	rcu_read_unlock();
 
-	pthread_rwlock_destroy(&frr_socket_table.rwlock);
+	/* Perhaps causes a memleak, but risks referencing stale memory in fd_poll() if destroyed */
+	/* pthread_rwlock_destroy(&frr_socket_table.rwlock); */
+
+	frr_socket_threadmaster = NULL;
 
 	return 0;
 }
@@ -64,6 +79,24 @@ int frr_socket_cleanup(struct frr_socket_entry *entry)
 	return pthread_mutex_destroy(&entry->lock);
 }
 
+// XXX Add explanation
+void frr_socket_lib_finish_hook(struct frr_socket_entry *entry)
+{
+	if (entry == NULL)
+		return;
+
+	switch (entry->protocol) {
+	case IPPROTO_FRR_TCP:
+		/* Nothing to do for this entry type */
+		break;
+	case IPPROTO_QUIC:
+		quic_socket_lib_finish_hook(entry);
+		break;
+	default:
+		/* Illegal frr_socket_entry instance. */
+		assert(0);
+	}
+}
 
 int frr_socket(int domain, int type, int protocol)
 {

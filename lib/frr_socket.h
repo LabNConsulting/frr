@@ -124,6 +124,8 @@ int frr_socket_lib_init(struct event_loop *shared_threadmaster);
 int frr_socket_lib_finish(void);
 int frr_socket_init(struct frr_socket_entry *entry);
 int frr_socket_cleanup(struct frr_socket_entry *entry);
+void frr_socket_lib_finish_hook(struct frr_socket_entry *entry);
+
 
 /* XXX
  * Standard socket and I/O functions to be called by a user

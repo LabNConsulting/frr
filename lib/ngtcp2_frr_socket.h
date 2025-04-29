@@ -90,6 +90,8 @@ struct ngtcp2_socket_entry {
 
 DECLARE_LIST(fd_fifo, struct fd_fifo, next_fd);
 
+void quic_socket_lib_finish_hook(struct frr_socket_entry *entry);
+
 /* Simple wrappers to test the FRR socket abstraction */
 int quic_socket(int domain, int type);
 int quic_bind(struct frr_socket_entry *entry, const struct sockaddr *addr, socklen_t addrlen);

@@ -650,7 +650,9 @@ static void quic_entry_delete(struct event *thread)
 	struct ngtcp2_socket_entry *ngtcp2_entry = NULL;
 
 	frr_socket_table_find(&search_entry, found_entry);
-	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
+	if (!found_entry)
+		return;
+	assert(found_entry->protocol == IPPROTO_QUIC);
 	ngtcp2_entry = (struct ngtcp2_socket_entry *)found_entry;
 
 	ngtcp2_entry->t_background_delete = NULL;
@@ -1111,7 +1113,9 @@ static void quic_background_process(struct event *thread)
 	struct ngtcp2_socket_entry *ngtcp2_entry = NULL;
 
 	frr_socket_table_find(&search_entry, found_entry);
-	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
+	if (!found_entry)
+		return;
+	assert(found_entry->protocol == IPPROTO_QUIC);
 	ngtcp2_entry = (struct ngtcp2_socket_entry *)found_entry;
 
 	ngtcp2_entry->t_background_process = NULL;
@@ -1145,7 +1149,9 @@ static void quic_background_listen(struct event *thread)
 	struct ngtcp2_socket_entry *ngtcp2_entry = NULL;
 
 	frr_socket_table_find(&search_entry, found_entry);
-	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
+	if (!found_entry)
+		return;
+	assert(found_entry->protocol == IPPROTO_QUIC);
 	ngtcp2_entry = (struct ngtcp2_socket_entry *)found_entry;
 
 	ngtcp2_entry->t_background_listen = NULL;
@@ -1436,6 +1442,7 @@ int quic_getpeername(struct frr_socket_entry *entry, struct sockaddr *addr, sock
 
 int quic_getsockname(struct frr_socket_entry *entry, struct sockaddr *addr, socklen_t *addrlen)
 {
+	//XXX Assert that addr and addrlen are consistent with saved
 	return getsockname(entry->fd, addr, addrlen);
 }
 
@@ -1461,10 +1468,47 @@ int quic_getaddrinfo(const char *node, const char *service, const struct addrinf
 
 	/* Change IPPROTO_UDP back to IPPROTO_QUIC */
 	for (res_next = *res; res_next != NULL; res_next = res_next->ai_next) {
-		if (res_next->ai_protocol == IPPROTO_UDP)
+		if (res_next->ai_protocol == IPPROTO_UDP) {
 			res_next->ai_protocol = IPPROTO_QUIC;
+			res_next->ai_socktype = SOCK_STREAM;
+		}
 	}
 	return 0;
+}
+
+
+void quic_socket_lib_finish_hook(struct frr_socket_entry *entry)
+{
+	struct ngtcp2_socket_entry *ngtcp2_entry = NULL;
+	if (entry == NULL)
+		return;
+	assert(entry->protocol == IPPROTO_QUIC);
+	ngtcp2_entry = (struct ngtcp2_socket_entry *)entry;
+
+	/* This will be the last point at run-time where we are sure that frr_socket_threadmaster is
+	 * a valid reference. However, the FRR socket library is shutting down. We must cancel all
+	 * events that we have scheduled *before* RCU calls quic_detroy_entry()! (Because RCU shuts
+	 * down after all pthreads).
+	 */
+	if (ngtcp2_entry->t_background_probe != NULL) {
+		event_cancel_async(frr_socket_threadmaster, &ngtcp2_entry->t_background_probe, NULL);
+		ngtcp2_entry->t_background_probe = NULL;
+	}
+	if (ngtcp2_entry->t_background_process != NULL) {
+		event_cancel_async(frr_socket_threadmaster, &ngtcp2_entry->t_background_process,
+				   NULL);
+		ngtcp2_entry->t_background_process = NULL;
+	}
+	if (ngtcp2_entry->t_background_listen != NULL) {
+		event_cancel_async(frr_socket_threadmaster, &ngtcp2_entry->t_background_listen,
+				   NULL);
+		ngtcp2_entry->t_background_listen = NULL;
+	}
+	if (ngtcp2_entry->t_background_delete != NULL) {
+		event_cancel_async(frr_socket_threadmaster, &ngtcp2_entry->t_background_delete,
+				   NULL);
+		ngtcp2_entry->t_background_delete = NULL;
+	}
 }
 
 
@@ -1494,13 +1538,28 @@ int quic_destroy_entry(struct frr_socket_entry *entry)
 
 	// XXX Cleanup streams
 
-	/* No events should remain scheduled at this point */
-	assert(ngtcp2_entry->t_background_process == NULL);
-	assert(ngtcp2_entry->t_background_probe == NULL);
-	assert(ngtcp2_entry->t_background_listen == NULL);
-	assert(ngtcp2_entry->t_background_delete == NULL);
+	/* Since RCU shuts down after pthreads, we cannot be sure that the threadmaster reference is
+	 * still any good. Thus, we avoid taking action and instead log a warnings if we find events
+	 * that we don't expect to exist.
+	 */
+	if (ngtcp2_entry->t_background_probe != NULL) {
+		zlog_warn("QUIC: entry with fd=%d had event t_background_probe scheduled at deletion",
+			  ngtcp2_entry->entry.fd);
+	}
+	if (ngtcp2_entry->t_background_process != NULL) {
+		zlog_warn("QUIC: entry with fd=%d had event t_background_process scheduled at deletion",
+			  ngtcp2_entry->entry.fd);
+	}
+	if (ngtcp2_entry->t_background_listen != NULL) {
+		zlog_warn("QUIC: entry with fd=%d had event t_background_listen scheduled at deletion",
+			  ngtcp2_entry->entry.fd);
+	}
+	if (ngtcp2_entry->t_background_delete != NULL) {
+		zlog_warn("QUIC: entry with fd=%d had event t_background_delete scheduled at deletion",
+			  ngtcp2_entry->entry.fd);
+	}
 
-
+	zlog_info("QUIC: Closing UDP socket fd=%d", entry->fd);
 	close(entry->fd);
 	entry->fd = -1;
 	frr_socket_cleanup(entry);
