@@ -43,7 +43,7 @@ static void test_socket_then_close(void)
 
 
 /*
- * Socket calls up until frr_connect(), then close()
+ * Socket calls up until frr_listen(), then close()
  */
 static void test_listen_then_close(void)
 {
@@ -94,9 +94,71 @@ static void test_listen_then_close(void)
 }
 
 
+/*
+ * Socket calls up until frr_connect(), then close()
+ */
+static void test_connect_then_close(void)
+{
+	int fd;
+	struct addrinfo *ainfo, *ainfo_save;
+	struct addrinfo hints = {
+		.ai_family = AF_INET,
+		.ai_socktype = SOCK_STREAM,
+		.ai_protocol = IPPROTO_QUIC,
+	};
+
+	printf("Testing up until frr_connect(), then frr_close()\n");
+
+	/* Acquire a socket via frr_getaddrinfo and listen on it */
+	if (frr_getaddrinfo("127.0.0.1", NULL, &hints, &ainfo_save)) {
+		perror("test_connect_then_close: Failed to call getaddrinfo");
+		assert(0);
+	}
+
+	for (ainfo = ainfo_save; ainfo != NULL; ainfo = ainfo->ai_next) {
+		if (ainfo->ai_protocol != IPPROTO_QUIC)
+			continue;
+		if ((fd = frr_socket(ainfo->ai_family, ainfo->ai_socktype, ainfo->ai_protocol)) < 0)
+			continue;
+		if (frr_bind(fd, ainfo->ai_addr, ainfo->ai_addrlen) == 0)
+			break;
+		frr_close(fd);
+	}
+
+	if (fd <= 0) {
+		printf("test_connect_then_close: Failed to find a good socket address with getaddrinfo\n");
+		assert(0);
+	}
+
+	/* Use an address that is not listening so the connection guarenteed fails */
+	frr_freeaddrinfo(ainfo_save);
+	if (frr_getaddrinfo("127.0.0.1", NULL, &hints, &ainfo_save)) {
+		perror("test_connect_then_close: Failed to call getaddrinfo a second time\n");
+		assert(0);
+	}
+	ainfo = ainfo_save;
+	if (ainfo == NULL) {
+		printf("test_connect_then_close: Failed to find a second good address with getaddrinfo\n");
+		assert(0);
+	}
+
+	errno = 0;
+	/* Should always fail with EINPROGRESS while the background processes start */
+	if (frr_connect(fd, ainfo->ai_addr, ainfo->ai_addrlen) != -1 ||
+	    errno != EINPROGRESS) {
+		perror("test_connect_then_close: frr_connect failed\n");
+		assert(0);
+	}
+
+	assert(frr_close(fd) == 0);
+	frr_freeaddrinfo(ainfo_save);
+}
+
+
 void (*tests[])(void) = {
 	test_socket_then_close,
 	test_listen_then_close,
+	test_connect_then_close,
 };
 
 

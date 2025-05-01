@@ -146,7 +146,7 @@ static int stream_open_server_cb(ngtcp2_conn *conn, int64_t stream_id, void *use
 
 	int *fd_ref_listener = user_data;
 	int fd_listener = *fd_ref_listener;
-	struct fd_fifo *fd_entry;
+	struct fd_fifo_entry *fd_entry;
 	struct frr_socket_entry search_entry = {
 		.fd = fd_listener,
 	};
@@ -376,7 +376,7 @@ static int quic_tls_init(struct ngtcp2_socket_entry *ngtcp2_entry) {
 	*/
 
 	ngtcp2_entry->ssl = SSL_new(ngtcp2_entry->ssl_ctx);
-	if (ngtcp2_entry->ssl) {
+	if (!ngtcp2_entry->ssl) {
 		zlog_warn("QUIC: SSL_new: %s", ERR_error_string(ERR_get_error(), NULL));
 		goto failed;
 	}
@@ -728,7 +728,7 @@ static void quic_close_stream(struct ngtcp2_socket_entry *ngtcp2_entry)
 
 static void quic_close_listener(struct ngtcp2_socket_entry *ngtcp2_entry)
 {
-	struct fd_fifo *fd_entry;
+	struct fd_fifo_entry *fd_entry;
 	struct frr_socket_entry search_entry = {};
 
 	if (ngtcp2_entry->state != QUIC_LISTENING) {
@@ -774,14 +774,16 @@ static void quic_close_conn(struct ngtcp2_socket_entry *ngtcp2_entry)
 	nwrite = ngtcp2_conn_write_connection_close(ngtcp2_entry->conn, &ps.path, &pi, buf,
 						    sizeof(buf), &ngtcp2_entry->last_error,
 						    timestamp());
-	if (nwrite < 0) {
+
+	/* Invalid state means that the handshake never completed */
+	if (nwrite < 0 && nwrite != NGTCP2_ERR_INVALID_STATE) {
 		zlog_warn("QUIC: ngtcp2_conn_write_connection_close: %s",
 			  ngtcp2_strerror((int)nwrite));
-		return;
-	}
+	} else if (nwrite > 0) {
+		/* As soon as we send out this packet, we can consider the connection dead */
+		quic_send_packet(ngtcp2_entry, buf, (size_t)nwrite);
+	} /* nwrite == 0 is a noop */
 
-	/* As soon as we send out this packet, we can consider the connection dead */
-	quic_send_packet(ngtcp2_entry, buf, (size_t)nwrite);
 	quic_closed(ngtcp2_entry);
 }
 
@@ -1032,15 +1034,15 @@ static int quic_process_listener_packet(struct ngtcp2_socket_entry *ngtcp2_entry
 	}
 
 	/* We have to manually track this fd until it is handed out to the user */
-	struct fd_fifo *fd_fifo_entry = XMALLOC(MTYPE_FRR_SOCKET, sizeof(*fd_fifo_entry));
-	if (fd_fifo_entry) {
+	struct fd_fifo_entry *fd_entry = XMALLOC(MTYPE_FRR_SOCKET, sizeof(*fd_entry));
+	if (fd_entry) {
 		errno = ENOMEM;
 		zlog_warn("QUIC: Internal memory allocation failed");
 		goto failure;
 	}
-	memset(fd_fifo_entry, 0x00, sizeof(*fd_fifo_entry));
-	fd_fifo_entry->fd = new_entry->fd;
-	fd_fifo_add_tail(&ngtcp2_entry->unclaimed_fds, fd_fifo_entry);
+	memset(fd_entry, 0x00, sizeof(*fd_entry));
+	fd_entry->fd = new_entry->fd;
+	fd_fifo_add_tail(&ngtcp2_entry->unclaimed_fds, fd_entry);
 
 	return 0;
 
@@ -1209,11 +1211,15 @@ int quic_socket(int domain, int type)
 	ngtcp2_entry->close_when_ready = false;
 	/* The defaults for a ngtcp2 connection (not necessarily a single stream!) */
 	// XXX Revisit these initial parameters to confirm if they are good
+	ngtcp2_transport_params_default(&ngtcp2_entry->initial_params);
 	ngtcp2_entry->initial_params.initial_max_streams_uni = 0;
 	ngtcp2_entry->initial_params.initial_max_streams_bidi = 1;
 	ngtcp2_entry->initial_params.initial_max_stream_data_bidi_local = 128 * 1024;
 	ngtcp2_entry->initial_params.initial_max_stream_data_bidi_remote = 128 * 1024;
 	ngtcp2_entry->initial_params.initial_max_data = 256 * 1024;
+
+	/* For listeners only, but easier to just always have initialized */
+	fd_fifo_init(&ngtcp2_entry->unclaimed_fds);
 
 	frr_socket_table_add((struct frr_socket_entry *)ngtcp2_entry);
 
@@ -1251,7 +1257,7 @@ int quic_connect(struct frr_socket_entry *entry, const struct sockaddr *addr, so
 	}
 
 	rv = quic_client_conn_init(ngtcp2_entry, addr, addrlen);
-	if (!rv) {
+	if (rv != 0) {
 		/* XXX Disconnect the socket? And is this the right error? */
 		errno = EINVAL;
 		return -1;
@@ -1294,7 +1300,7 @@ int quic_listen(struct frr_socket_entry *entry, int backlog)
 
 int quic_accept(struct frr_socket_entry *entry, struct sockaddr *addr, socklen_t *addrlen)
 {
-	struct fd_fifo *fd_entry;
+	struct fd_fifo_entry *fd_entry = NULL;
 	struct frr_socket_entry search_entry = {};
 	struct ngtcp2_socket_entry *ngtcp2_entry = NULL;
 	assert(entry->protocol == IPPROTO_QUIC);
@@ -1558,6 +1564,14 @@ int quic_destroy_entry(struct frr_socket_entry *entry)
 		zlog_warn("QUIC: entry with fd=%d had event t_background_delete scheduled at deletion",
 			  ngtcp2_entry->entry.fd);
 	}
+
+	/* Clean up listener state if it exists */
+	struct fd_fifo_entry *fd_entry;
+	frr_each_safe (fd_fifo, &ngtcp2_entry->unclaimed_fds, fd_entry) {
+		fd_fifo_del(&ngtcp2_entry->unclaimed_fds, fd_entry);
+		XFREE(MTYPE_FRR_SOCKET, fd_entry);
+	}
+	fd_fifo_fini(&ngtcp2_entry->unclaimed_fds);
 
 	zlog_info("QUIC: Closing UDP socket fd=%d", entry->fd);
 	close(entry->fd);

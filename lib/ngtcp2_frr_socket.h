@@ -47,9 +47,9 @@ enum quic_state {
 	QUIC_STATE_MAX,
 };
 
-struct fd_fifo {
+struct fd_fifo_entry {
 	int fd;
-	struct fd_fifo_item next_fd;
+	struct fd_fifo_item next_fd_entry;
 };
 
 struct ngtcp2_socket_entry {
@@ -88,7 +88,7 @@ struct ngtcp2_socket_entry {
 	struct event *t_background_delete;
 };
 
-DECLARE_LIST(fd_fifo, struct fd_fifo, next_fd);
+DECLARE_LIST(fd_fifo, struct fd_fifo_entry, next_fd_entry);
 
 void quic_socket_lib_finish_hook(struct frr_socket_entry *entry);
 

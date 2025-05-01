@@ -26,6 +26,7 @@ DEFINE_MTYPE(LIB, FRR_SOCKET, "FRR socket entry state");
 int frr_socket_lib_init(struct event_loop *shared_threadmaster)
 {
 	frr_socket_threadmaster = shared_threadmaster;
+	frr_socket_entry_init(&frr_socket_table.table);
 	assert(pthread_rwlock_init(&frr_socket_table.rwlock, NULL) == 0);
 
 	return 0;
@@ -61,6 +62,7 @@ int frr_socket_lib_finish(void)
 
 	/* Perhaps causes a memleak, but risks referencing stale memory in fd_poll() if destroyed */
 	/* pthread_rwlock_destroy(&frr_socket_table.rwlock); */
+	/* XXX Same for finishing the socket table */
 
 	frr_socket_threadmaster = NULL;
 
@@ -507,33 +509,56 @@ void frr_freeaddrinfo(struct addrinfo *res)
 
 int frr_poll_hook(struct pollfd *fds, nfds_t nfds, int poll_rv)
 {
-	struct frr_socket_entry search_entry = {};
+	struct frr_socket_entry *found_entry, search_entry = {};
 	struct pollfd *tmp_fd;
 	int rv = poll_rv;
 
 	if (poll_rv < 0 || !IS_SOCKET_LIB_READY)
 		return poll_rv;
 
+	/* We have to be careful here. We are trying to aquire the lock of an entry. However,
+	 * Another process holding the entry's lock may be trying to a cancel an event. We
+	 * cannot block fd_poll(), or else this cancelation will never occur due to deadlock.
+	 * Hence, we try to aquire the lock, and move on if unsuccessful.
+	 */
+	rcu_read_lock();
 	for (nfds_t i = 0; i < nfds; i++) {
 		tmp_fd = &fds[i];
 		search_entry.fd = tmp_fd->fd;
-		frr_socket_table_find(&search_entry, found_entry);
-		if (!found_entry)
+
+		pthread_rwlock_rdlock(&frr_socket_table.rwlock);
+		found_entry = frr_socket_entry_find(&frr_socket_table.table, &search_entry);
+		pthread_rwlock_unlock(&frr_socket_table.rwlock);
+
+		if (!found_entry) {
 			continue;
+		} else if (pthread_mutex_trylock(&found_entry->lock) != 0) {
+			/* Failed to aquire lock. Give up to avoid deadlock and wipe revents to
+			 * to ensure that the socket is not touched until a latter successful call.
+			 */
+			if (tmp_fd->revents) {
+				tmp_fd->revents &= 0;
+				rv -= 1;
+			}
+			continue;
+		}
 
 		switch (found_entry->protocol) {
 		case IPPROTO_FRR_TCP:
 			/* This protocol never overwrites results */
-			continue;
+			break;
 		case IPPROTO_QUIC:
 			/* XXX Implement me */
-			continue;
+			break;
 		default:
 			/* Illegal frr_socket_entry instance. */
 			assert(0);
 		}
+
+		pthread_mutex_unlock(&found_entry->lock);
 	}
 
+	rcu_read_unlock();
 	return rv;
 }
 
