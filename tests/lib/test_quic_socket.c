@@ -11,12 +11,152 @@
 #include "frr_pthread.h"
 #include "frr_socket.h"
 
-struct frr_pthread *pth_shared;
+enum finish_point {
+	SOCKET,
+	LISTEN,
+	ACCEPT,
+	CONNECT,
+	GETSOCKOPT,
+	FINISH_MAX,
+};
+
+struct socket_test_arg {
+	struct rcu_thread *rcu_thr;
+	const char *desc;  /* Up to user to ensure is nul-terminated */
+	enum finish_point stop_at;
+};
+
+static struct frr_pthread *pth_shared;
 static struct sockaddr_in addr_server = {};
 static socklen_t addrlen_server = 0;
+static int server_ready = 0;
 static const char *msg_client = "test frr socket client";
 static const char *msg_server = "test frr socket server";
 static ssize_t msg_size = sizeof(msg_client); /* Should also be equal to msg_server */
+
+static void *pthread_quic_server(void *arg)
+{
+	int fd;
+	struct socket_test_arg *params = arg;
+	struct addrinfo *ainfo, *ainfo_save;
+	struct addrinfo hints = {
+		.ai_family = AF_INET,
+		.ai_socktype = SOCK_STREAM,
+		.ai_protocol = IPPROTO_QUIC,
+	};
+
+	/* pthread setup */
+	rcu_thread_start(params->rcu_thr);
+	rcu_read_unlock();
+
+	printf("Running server thread for: %s\n", params->desc);
+
+	/* Acquire a socket via frr_getaddrinfo and listen on it */
+	if (frr_getaddrinfo("127.0.0.1", NULL, &hints, &ainfo_save)) {
+		printf("%s: frr_getaddrinfo failed: %s\n", params->desc, strerror(errno));
+		assert(0);
+	}
+
+	for (ainfo = ainfo_save; ainfo != NULL; ainfo = ainfo->ai_next) {
+		if (ainfo->ai_protocol != IPPROTO_QUIC)
+			continue;
+		if ((fd = frr_socket(ainfo->ai_family, ainfo->ai_socktype, ainfo->ai_protocol)) < 0)
+			continue;
+		if (frr_bind(fd, ainfo->ai_addr, ainfo->ai_addrlen) == 0)
+			break;
+		frr_close(fd);
+	}
+
+	if (fd <= 0) {
+		printf("%s: Failed to find a good socket address with frr_getaddrinfo\n",
+		       params->desc);
+		assert(0);
+	}
+
+	if (params->stop_at == SOCKET)
+		goto finish;
+
+	addrlen_server = sizeof(addr_server);
+	assert(frr_getsockname(fd, (struct sockaddr *)&addr_server, &addrlen_server) == 0);
+
+	/* Give the client the co-ahead to connect */
+	server_ready = 1;
+
+	if (frr_listen(fd, 1) != 0) {
+		printf("%s: frr_listen failed: %s\n", params->desc, strerror(errno));
+		assert(0);
+	}
+
+	if (params->stop_at == LISTEN)
+		goto finish;
+
+finish:
+	assert(frr_close(fd) == 0);
+	frr_freeaddrinfo(ainfo_save);
+	return NULL;
+}
+
+
+static void *pthread_quic_client(void *arg)
+{
+	int fd;
+	struct socket_test_arg *params = arg;
+	struct addrinfo *ainfo, *ainfo_save;
+	struct addrinfo hints = {
+		.ai_family = AF_INET,
+		.ai_socktype = SOCK_STREAM,
+		.ai_protocol = IPPROTO_QUIC,
+	};
+
+	/* pthread setup */
+	rcu_thread_start(params->rcu_thr);
+	rcu_read_unlock();
+
+	printf("Running client thread for: %s\n", params->desc);
+
+	/* Acquire a socket via frr_getaddrinfo and listen on it */
+	if (frr_getaddrinfo("127.0.0.1", NULL, &hints, &ainfo_save)) {
+		printf("%s: frr_getaddrinfo failed: %s\n", params->desc, strerror(errno));
+		assert(0);
+	}
+
+	for (ainfo = ainfo_save; ainfo != NULL; ainfo = ainfo->ai_next) {
+		if (ainfo->ai_protocol != IPPROTO_QUIC)
+			continue;
+		if ((fd = frr_socket(ainfo->ai_family, ainfo->ai_socktype, ainfo->ai_protocol)) < 0)
+			continue;
+		if (frr_bind(fd, ainfo->ai_addr, ainfo->ai_addrlen) == 0)
+			break;
+		frr_close(fd);
+	}
+
+	if (fd <= 0) {
+		printf("%s: Failed to find a good socket address with frr_getaddrinfo\n", params->desc);
+		assert(0);
+	}
+
+	if (params->stop_at == SOCKET)
+		goto finish;
+
+	while (!server_ready);;
+
+	errno = 0;
+	/* Should always fail with EINPROGRESS while the background processes start */
+	if (frr_connect(fd, ainfo->ai_addr, ainfo->ai_addrlen) != -1 ||
+	    errno != EINPROGRESS) {
+		printf("%s: frr_connect failed, %s\n", params->desc, strerror(errno));
+		assert(0);
+	}
+
+	if (params->stop_at == CONNECT)
+		goto finish;
+
+finish:
+	assert(frr_close(fd) == 0);
+	frr_freeaddrinfo(ainfo_save);
+	return NULL;
+}
+
 
 /*
  * Starting point test. Just make a socket and then close it without any further action.
@@ -26,7 +166,7 @@ static void test_socket_then_close(void)
 	struct frr_socket_entry search_entry = {};
 	int fd, rv;
 
-	printf("Testing up until frr_socket(), then frr_close()\n");
+	printf("Running test_socket_then_close\n");
 	fd = frr_socket(AF_INET, SOCK_STREAM, IPPROTO_QUIC);
 	assert(fd > 0);
 	search_entry.fd = fd;
@@ -42,55 +182,31 @@ static void test_socket_then_close(void)
 }
 
 
+static void reset_global_resources(void) {
+	memset(&addr_server, 0, sizeof(addr_server));
+	addrlen_server = 0;
+	server_ready = 0;
+}
+
+
 /*
  * Socket calls up until frr_listen(), then close()
  */
 static void test_listen_then_close(void)
 {
-	int fd;
-	struct addrinfo *ainfo, *ainfo_save;
-	struct addrinfo hints = {
-		.ai_family = AF_INET,
-		.ai_socktype = SOCK_STREAM,
-		.ai_protocol = IPPROTO_QUIC,
-	};
+	struct socket_test_arg params = {};
+	pthread_t pthr_s;
 
-	printf("Testing up until frr_listen(), then frr_close()\n");
+	params.desc = "test_listen_then_close";
+	params.stop_at = LISTEN;
 
-	/* Acquire a socket via frr_getaddrinfo and listen on it */
-	if (frr_getaddrinfo("127.0.0.1", NULL, &hints, &ainfo_save)) {
-		perror("test_listen_then_close: Failed to call getaddrinfo");
-		assert(0);
-	}
+	rcu_read_lock();
+	params.rcu_thr = rcu_thread_prepare();
+	pthread_create(&pthr_s, NULL, pthread_quic_server, &params);
+	rcu_read_unlock();
 
-	for (ainfo = ainfo_save; ainfo != NULL; ainfo = ainfo->ai_next) {
-		if (ainfo->ai_protocol != IPPROTO_QUIC)
-			continue;
-		if ((fd = frr_socket(ainfo->ai_family, ainfo->ai_socktype, ainfo->ai_protocol)) < 0)
-			continue;
-		if (frr_bind(fd, ainfo->ai_addr, ainfo->ai_addrlen) == 0)
-			break;
-		frr_close(fd);
-	}
-
-	if (fd <= 0) {
-		printf("test_listen_then_close: Failed to find a good socket address with getaddrinfo\n");
-		assert(0);
-	}
-	addrlen_server = sizeof(addr_server);
-	assert(frr_getsockname(fd, (struct sockaddr *)&addr_server, &addrlen_server) == 0);
-
-	if (frr_listen(fd, 1) != 0) {
-		perror("test_listen_then_close: frr_listen failed\n");
-		assert(0);
-	}
-
-	assert(frr_close(fd) == 0);
-	frr_freeaddrinfo(ainfo_save);
-
-	/* Reset global resources for latter tests */
-	memset(&addr_server, 0, sizeof(addr_server));
-	addrlen_server = 0;
+	pthread_join(pthr_s, NULL);
+	reset_global_resources();
 }
 
 
@@ -99,59 +215,42 @@ static void test_listen_then_close(void)
  */
 static void test_connect_then_close(void)
 {
-	int fd;
-	struct addrinfo *ainfo, *ainfo_save;
+	struct socket_test_arg params = {};
+	pthread_t pthr_c;
+	const char *desc = "test_connect_then_close";
+	struct addrinfo *ainfo;
 	struct addrinfo hints = {
 		.ai_family = AF_INET,
 		.ai_socktype = SOCK_STREAM,
 		.ai_protocol = IPPROTO_QUIC,
 	};
 
-	printf("Testing up until frr_connect(), then frr_close()\n");
-
-	/* Acquire a socket via frr_getaddrinfo and listen on it */
-	if (frr_getaddrinfo("127.0.0.1", NULL, &hints, &ainfo_save)) {
-		perror("test_connect_then_close: Failed to call getaddrinfo");
-		assert(0);
-	}
-
-	for (ainfo = ainfo_save; ainfo != NULL; ainfo = ainfo->ai_next) {
-		if (ainfo->ai_protocol != IPPROTO_QUIC)
-			continue;
-		if ((fd = frr_socket(ainfo->ai_family, ainfo->ai_socktype, ainfo->ai_protocol)) < 0)
-			continue;
-		if (frr_bind(fd, ainfo->ai_addr, ainfo->ai_addrlen) == 0)
-			break;
-		frr_close(fd);
-	}
-
-	if (fd <= 0) {
-		printf("test_connect_then_close: Failed to find a good socket address with getaddrinfo\n");
-		assert(0);
-	}
-
 	/* Use an address that is not listening so the connection guarenteed fails */
-	frr_freeaddrinfo(ainfo_save);
-	if (frr_getaddrinfo("127.0.0.1", NULL, &hints, &ainfo_save)) {
-		perror("test_connect_then_close: Failed to call getaddrinfo a second time\n");
+	if (frr_getaddrinfo("127.0.0.2", NULL, &hints, &ainfo)) {
+		printf("%s: frr_getaddrinfo failed ahead of run: %s\n", desc, strerror(errno));
 		assert(0);
 	}
-	ainfo = ainfo_save;
 	if (ainfo == NULL) {
-		printf("test_connect_then_close: Failed to find a second good address with getaddrinfo\n");
+		printf("%s: Failed to find a second good address with getaddrinfo ahead of run\n",
+		       desc);
 		assert(0);
 	}
 
-	errno = 0;
-	/* Should always fail with EINPROGRESS while the background processes start */
-	if (frr_connect(fd, ainfo->ai_addr, ainfo->ai_addrlen) != -1 ||
-	    errno != EINPROGRESS) {
-		perror("test_connect_then_close: frr_connect failed\n");
-		assert(0);
-	}
+	memcpy(&addr_server, ainfo->ai_addr, ainfo->ai_addrlen);
+	addrlen_server = ainfo->ai_addrlen;
+	server_ready = 1;
+	frr_freeaddrinfo(ainfo);
 
-	assert(frr_close(fd) == 0);
-	frr_freeaddrinfo(ainfo_save);
+	params.desc = desc;
+	params.stop_at = CONNECT;
+
+	rcu_read_lock();
+	params.rcu_thr = rcu_thread_prepare();
+	pthread_create(&pthr_c, NULL, pthread_quic_client, &params);
+	rcu_read_unlock();
+
+	pthread_join(pthr_c, NULL);
+	reset_global_resources();
 }
 
 
