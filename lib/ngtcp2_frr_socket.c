@@ -1436,7 +1436,32 @@ int quic_setsockopt(struct frr_socket_entry *entry, int level, int option_name,
 int quic_getsockopt(struct frr_socket_entry *entry, int level, int optname, void *optval,
 		    socklen_t *optlen)
 {
-	return getsockopt(entry->fd, level, optname, optval, optlen);
+	int rv = 1;
+	struct ngtcp2_socket_entry *ngtcp2_entry = NULL;
+	assert(entry->protocol == IPPROTO_QUIC);
+	ngtcp2_entry = (struct ngtcp2_socket_entry *)entry;
+
+
+	if (level == SOL_SOCKET) {
+		switch (optname) {
+		case SO_ERROR:
+			// XXX Handle ECONNREFUSED? ENETUNREACH?
+			rv = getsockopt(entry->fd, level, optname, optval, optlen);
+			if (rv == 0 && ngtcp2_entry->state == QUIC_CONNECTING) {
+				/* Overwrite optval with EINPRORESS if still connecting */
+				rv = -1;
+				*(int *)optval = EINPROGRESS;
+			}
+			break;
+		}
+	}
+
+
+	/* If we didn't handle it ourselves, push it up to libc */
+	if (rv == 1)
+		rv = getsockopt(entry->fd, level, optname, optval, optlen);
+
+	return rv;
 }
 
 
@@ -1479,6 +1504,91 @@ int quic_getaddrinfo(const char *node, const char *service, const struct addrinf
 			res_next->ai_socktype = SOCK_STREAM;
 		}
 	}
+
+	return 0;
+}
+
+
+int quic_poll_hook(struct frr_socket_entry *entry, struct pollfd *p_fd, int *poll_rv)
+{
+	struct ngtcp2_socket_entry *ngtcp2_entry = NULL;
+	assert(entry->protocol == IPPROTO_QUIC);
+	ngtcp2_entry = (struct ngtcp2_socket_entry *)entry;
+
+	/* There are three separate cases that we need to handle:
+	 *
+	 *   1: Calling event loop is the shared event loop AND state != QUIC_STREAM_READY
+	 *    We are in control, and are conducting background events. Treat the socket as
+	 *    a UDP socket since that is what we internally expect.
+	 *
+	 *   2: Calling event loop is the shared event loop AND state == QUIC_STREAM_READY
+	 *    A user is in control, and probably completing I/O on the shared event loop.
+	 *    They expect a TCP-like socket, so we must overwrite the events to make the
+	 *    socket appear as such.
+	 *
+	 *   3: Calling event loop is NOT the shared event loop
+	 *    Similar to #2, the user may be conduction I/O on their event loop. In addition, a
+	 *    user may be polling for newly accepted/connected sockets. We must overwrite the
+	 *    results to notify the user of such state changes.
+	 */
+
+	if (pthread_self() != frr_socket_threadmaster->owner ||
+	    ngtcp2_entry->state == QUIC_STREAM_READY) {
+		/* Handle cases #2 & #3 from the prior list */
+
+		if (ngtcp2_entry->state == QUIC_LISTENING) {
+			/* Search for an established connection with a stream ready for accept */
+			struct fd_fifo_entry *fd_entry = NULL;
+			struct frr_socket_entry search_entry = {};
+
+			frr_each_safe (fd_fifo, &ngtcp2_entry->unclaimed_fds, fd_entry) {
+				struct ngtcp2_socket_entry *t_ngtcp2_entry = NULL;
+				search_entry.fd = fd_entry->fd;
+
+				frr_socket_table_find(&search_entry, t_entry);
+				if (t_entry == NULL)
+					continue;
+
+				assert(t_entry->protocol == IPPROTO_QUIC);
+				t_ngtcp2_entry = (struct ngtcp2_socket_entry *)t_entry;
+
+				if (t_ngtcp2_entry->state != QUIC_STREAM_READY)
+					continue;
+
+				/* At this point, we have found at least 1 ready socket for accept */
+				if (p_fd->events & POLLIN && !(p_fd->revents & POLLIN)) {
+					*poll_rv += p_fd->revents ? 0 : 1;
+					p_fd->revents |= POLLIN;
+				}
+				return 0;
+			}
+
+			/* If we didn't find a ready socket, then clear the result */
+			if (p_fd->events & POLLIN && p_fd->revents & POLLIN) {
+				p_fd->revents &= ~POLLIN;
+				*poll_rv -= p_fd->revents ? 0 : 1;
+			}
+		} else if (ngtcp2_entry->state == QUIC_CONNECTING) {
+			/* Clear all POLLIN and POLLOUT events. Not I/O stream capable yet. */
+			if (p_fd->events & POLLIN && p_fd->revents & POLLIN) {
+				p_fd->revents &= ~POLLIN;
+				*poll_rv -= p_fd->revents ? 0 : 1;
+			}
+			if (p_fd->events & POLLOUT && p_fd->revents & POLLOUT) {
+				p_fd->revents &= ~POLLIN;
+				*poll_rv -= p_fd->revents ? 0 : 1;
+			}
+		} else if (ngtcp2_entry->state == QUIC_STREAM_READY) {
+			// XXX Implement me. Overwrite based on if have read/writable data stored.
+		} else {
+			zlog_warn("QUIC: Poll results have been unexpectedly hooked for a socket in state: %s",
+				  quic_strstate(ngtcp2_entry->state));
+		}
+
+		return 0;
+	}
+	/* Case #1 is unhandled since the input results are for the underlying UDP socket */
+
 	return 0;
 }
 

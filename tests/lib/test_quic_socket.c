@@ -36,7 +36,7 @@ static ssize_t msg_size = sizeof(msg_client); /* Should also be equal to msg_ser
 
 static void *pthread_quic_server(void *arg)
 {
-	int fd;
+	int fd_l = -1, fd = -1;
 	struct socket_test_arg *params = arg;
 	struct addrinfo *ainfo, *ainfo_save;
 	struct addrinfo hints = {
@@ -60,14 +60,14 @@ static void *pthread_quic_server(void *arg)
 	for (ainfo = ainfo_save; ainfo != NULL; ainfo = ainfo->ai_next) {
 		if (ainfo->ai_protocol != IPPROTO_QUIC)
 			continue;
-		if ((fd = frr_socket(ainfo->ai_family, ainfo->ai_socktype, ainfo->ai_protocol)) < 0)
+		if ((fd_l = frr_socket(ainfo->ai_family, ainfo->ai_socktype, ainfo->ai_protocol)) < 0)
 			continue;
-		if (frr_bind(fd, ainfo->ai_addr, ainfo->ai_addrlen) == 0)
+		if (frr_bind(fd_l, ainfo->ai_addr, ainfo->ai_addrlen) == 0)
 			break;
-		frr_close(fd);
+		frr_close(fd_l);
 	}
 
-	if (fd <= 0) {
+	if (fd_l <= 0) {
 		printf("%s: Failed to find a good socket address with frr_getaddrinfo\n",
 		       params->desc);
 		assert(0);
@@ -77,12 +77,12 @@ static void *pthread_quic_server(void *arg)
 		goto finish;
 
 	addrlen_server = sizeof(addr_server);
-	assert(frr_getsockname(fd, (struct sockaddr *)&addr_server, &addrlen_server) == 0);
+	assert(frr_getsockname(fd_l, (struct sockaddr *)&addr_server, &addrlen_server) == 0);
 
 	/* Give the client the co-ahead to connect */
 	server_ready = 1;
 
-	if (frr_listen(fd, 1) != 0) {
+	if (frr_listen(fd_l, 1) != 0) {
 		printf("%s: frr_listen failed: %s\n", params->desc, strerror(errno));
 		assert(0);
 	}
@@ -90,8 +90,44 @@ static void *pthread_quic_server(void *arg)
 	if (params->stop_at == LISTEN)
 		goto finish;
 
+	/* poll for accept */
+	struct pollfd fd_poll = {
+		.fd = fd_l,
+		.events = POLLIN,
+	};
+	int poll_rv, attempts = 30;
+	while (attempts-- > 0 || !fd_poll.revents) {
+		if ((poll_rv = poll(&fd_poll, 1, 1000)) != 1) {
+			printf("%s: Unexpected result of server poll: %s\n", params->desc,
+			       strerror(errno));
+			assert(0);
+		}
+
+		assert((poll_rv = frr_poll_hook(&fd_poll, 1)) == 1);
+
+		if (poll_rv > 0)
+			break;
+	}
+
+	if (!(fd_poll.revents & POLLIN)) {
+		printf("%s: Server poll failed to find a new incoming connection\n", params->desc);
+		assert(0);
+	}
+
+	/* accept the socket. XXX verify that the address is set correctly! */
+	fd = frr_accept(fd_l, NULL, NULL);
+	assert(fd != -1);
+
+	if (params->stop_at == ACCEPT)
+		goto finish;
+
+	/* socket should be ready for I/O */
+
+
 finish:
-	assert(frr_close(fd) == 0);
+	assert(frr_close(fd_l) == 0);
+	if (fd != -1)
+		assert(frr_close(fd) == 0);
 	frr_freeaddrinfo(ainfo_save);
 	return NULL;
 }
@@ -150,6 +186,46 @@ static void *pthread_quic_client(void *arg)
 
 	if (params->stop_at == CONNECT)
 		goto finish;
+
+	/* poll until writable */
+	struct pollfd fd_poll = {
+		.fd = fd,
+		.events = POLLOUT,
+	};
+	int poll_rv, attempts = 30;
+	while (attempts-- > 0 || !fd_poll.revents) {
+		if ((poll_rv = poll(&fd_poll, 1, 1000)) != 1) {
+			printf("%s: Unexpected result of client poll: %s\n", params->desc,
+			       strerror(errno));
+			assert(0);
+		}
+
+		assert((poll_rv = frr_poll_hook(&fd_poll, 1)) == 1);
+
+		if (poll_rv > 0)
+			break;
+	}
+
+	if (!(fd_poll.revents & POLLOUT)) {
+		printf("%s: Client poll failed to find a possibly complete connection\n",
+		       params->desc);
+		assert(0);
+	}
+
+	/* Check getsockopt for good state */
+	int status;
+	socklen_t slen = sizeof(status);
+	if (frr_getsockopt(fd, SOL_SOCKET, SO_ERROR, (void *)&status, &slen) == -1) {
+		printf("%s: frr_getsockopt found an error with SO_ERROR: %s\n", params->desc,
+		       strerror(status));
+		assert(0);
+	}
+
+	if (params->stop_at == GETSOCKOPT)
+		goto finish;
+
+	/* Socket is ready for write */
+
 
 finish:
 	assert(frr_close(fd) == 0);

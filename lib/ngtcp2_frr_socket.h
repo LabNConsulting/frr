@@ -111,5 +111,6 @@ int quic_getsockname(struct frr_socket_entry *entry, struct sockaddr *addr, sock
 int quic_getaddrinfo(const char *node, const char *service, const struct addrinfo *hints,
 		     struct addrinfo **res);
 int quic_destroy_entry(struct frr_socket_entry *entry);
+int quic_poll_hook(struct frr_socket_entry *entry, struct pollfd *p_fd, int *poll_rv);
 
 #endif /* _NGTCP2_FRR_SOCKET_H */

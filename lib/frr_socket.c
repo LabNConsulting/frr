@@ -548,7 +548,7 @@ int frr_poll_hook(struct pollfd *fds, nfds_t nfds, int poll_rv)
 			/* This protocol never overwrites results */
 			break;
 		case IPPROTO_QUIC:
-			/* XXX Implement me */
+			quic_poll_hook(found_entry, tmp_fd, &rv);
 			break;
 		default:
 			/* Illegal frr_socket_entry instance. */
