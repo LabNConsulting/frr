@@ -908,7 +908,7 @@ done:
 
 	rcu_read_lock();
 
-	num = frr_poll_hook(m->handler.copy, count, num);
+	num = frr_poll_hook(m->handler.copy, count);
 
 	return num;
 }

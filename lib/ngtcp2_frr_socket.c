@@ -79,6 +79,44 @@ static const char *quic_strstate(int state) {
 }
 
 
+static ngtcp2_conn *get_conn(ngtcp2_crypto_conn_ref *conn_ref)
+{
+	int *fd_ref = conn_ref->user_data;
+	assert(fd_ref != NULL);
+	int rv, fd = *fd_ref;
+	int64_t stream_id;
+	struct ngtcp2_conn *conn;
+	struct frr_socket_entry *found_entry;
+	struct frr_socket_entry search_entry = {
+		.fd = fd,
+	};
+	struct ngtcp2_socket_entry *ngtcp2_entry = NULL;
+
+	/* XXX Unsafe! Fix me! We never lock the entry we receive!!
+	 * (because we can't without blocking. Need a refactor) */
+	pthread_rwlock_rdlock(&frr_socket_table.rwlock);
+	rcu_read_lock();
+	found_entry = frr_socket_entry_find(&frr_socket_table.table, &search_entry);
+	pthread_rwlock_unlock(&frr_socket_table.rwlock);
+
+	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
+	ngtcp2_entry = (struct ngtcp2_socket_entry *)found_entry;
+
+	/* Confirm that this socket does in fact maintain active connections */
+	if (ngtcp2_entry->state == QUIC_LISTENING || ngtcp2_entry->state == QUIC_NONE ||
+	    ngtcp2_entry->state == QUIC_CLOSED) {
+		zlog_err("QUIC: Trying to get connection of entry in state %s with fd %d",
+			 quic_strstate(ngtcp2_entry->state), ngtcp2_entry->entry.fd);
+		assert(0);
+	}
+
+	// XXX Again, unsafe! Fix me!
+	conn = ngtcp2_entry->conn;
+	rcu_read_unlock();
+	return conn;
+}
+
+
 static void quic_change_state(struct ngtcp2_socket_entry *ngtcp2_entry, enum quic_state state) {
 	enum quic_state prev_state = ngtcp2_entry->state;
 
@@ -305,13 +343,15 @@ static int quic_tls_init(struct ngtcp2_socket_entry *ngtcp2_entry) {
 		"TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256";
 	const char *curves = "X25519:P-256:P-384:P-521";
 
-	ngtcp2_entry->ssl_ctx = SSL_CTX_new(TLS_client_method());
-	if (!ngtcp2_entry->ssl_ctx) {
-		zlog_warn("QUIC: SSL_CTX_new: %s", ERR_error_string(ERR_get_error(), NULL));
-		goto failed;
-	}
-
 	if (ngtcp2_entry->role == QUIC_SERVER) {
+		ngtcp2_entry->ssl_ctx = SSL_CTX_new(TLS_server_method());
+
+		if (!ngtcp2_entry->ssl_ctx) {
+			zlog_warn("QUIC: SSL_CTX_new server: %s",
+				  ERR_error_string(ERR_get_error(), NULL));
+			goto failed;
+		}
+
 		// XXX Not starting with early data. Can change later to UINT32_MAX
 		SSL_CTX_set_max_early_data(ngtcp2_entry->ssl_ctx, 0);
 
@@ -319,7 +359,19 @@ static int quic_tls_init(struct ngtcp2_socket_entry *ngtcp2_entry) {
 		ssl_opts = (SSL_OP_ALL & ~SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS) |
 			   SSL_OP_CIPHER_SERVER_PREFERENCE;
 		SSL_CTX_set_options(ngtcp2_entry->ssl_ctx, ssl_opts);
+	} else if (ngtcp2_entry->role == QUIC_CLIENT) {
+		ngtcp2_entry->ssl_ctx = SSL_CTX_new(TLS_client_method());
+
+		if (!ngtcp2_entry->ssl_ctx) {
+			zlog_warn("QUIC: SSL_CTX_new client: %s",
+				  ERR_error_string(ERR_get_error(), NULL));
+			goto failed;
+		}
+	} else {
+		zlog_err("QUIC: Illegal role (neither client or server role selected)");
+		assert(0);
 	}
+
 
 	if (SSL_CTX_set_ciphersuites(ngtcp2_entry->ssl_ctx, ciphers) != 1) {
 		zlog_warn("QUIC: SSL_CTX_set_ciphersuites: %s",
@@ -508,6 +560,9 @@ static int quic_server_conn_init(struct ngtcp2_socket_entry *ngtcp2_entry,
 
 	ngtcp2_conn_set_tls_native_handle(ngtcp2_entry->conn, ngtcp2_entry->ossl_ctx);
 
+	ngtcp2_entry->conn_ref.get_conn = get_conn;
+	ngtcp2_entry->conn_ref.user_data = &ngtcp2_entry->entry.fd;
+
 	return 0;
 
 failure:
@@ -608,6 +663,9 @@ static int quic_client_conn_init(struct ngtcp2_socket_entry *ngtcp2_entry,
 
 	/* Finish integrating ngtcp2 with OpenSSL TLS context */
 	ngtcp2_conn_set_tls_native_handle(ngtcp2_entry->conn, ngtcp2_entry->ossl_ctx);
+
+	ngtcp2_entry->conn_ref.get_conn = get_conn;
+	ngtcp2_entry->conn_ref.user_data = &ngtcp2_entry->entry.fd;
 
 	return 0;
 
@@ -912,7 +970,13 @@ static int quic_process_read_packet(struct ngtcp2_socket_entry *ngtcp2_entry, ui
 	path.local.addr = (struct sockaddr *)&ngtcp2_entry->local_addr;
 	path.remote.addrlen = msg->msg_namelen;
 	path.remote.addr = msg->msg_name;
+
+	/* ngtcp2_entry is handed to us locked. However, it will need to be re-aquired within
+	 * callbacks. Therefore, we need to temporarily release control over ngtcp2_entry
+	 */
+	pthread_mutex_unlock(&ngtcp2_entry->entry.lock);
 	rv = ngtcp2_conn_read_pkt(ngtcp2_entry->conn, &path, &pi, pkt, pktsize, timestamp());
+	pthread_mutex_lock(&ngtcp2_entry->entry.lock);
 
 	if (rv != 0) {
 		if (rv == NGTCP2_ERR_CLOSING || rv == NGTCP2_ERR_DRAINING) {
@@ -987,7 +1051,7 @@ static int quic_process_listener_packet(struct ngtcp2_socket_entry *ngtcp2_entry
 		zlog_warn("QUIC: listener getsockopt SO_DOMAIN: %s", safe_strerror(errno));
 		goto failure;
 	}
-	if ((new_fd = quic_socket(domain, SOCK_DGRAM)) < 0) {
+	if ((new_fd = quic_socket(domain, SOCK_STREAM)) < 0) {
 		zlog_warn("QUIC: listener socket: %s", safe_strerror(errno));
 		goto failure;
 	}
@@ -1043,6 +1107,8 @@ static int quic_process_listener_packet(struct ngtcp2_socket_entry *ngtcp2_entry
 	memset(fd_entry, 0x00, sizeof(*fd_entry));
 	fd_entry->fd = new_entry->fd;
 	fd_fifo_add_tail(&ngtcp2_entry->unclaimed_fds, fd_entry);
+
+	// XXX Need to schedule background events on the new socket!
 
 	return 0;
 
@@ -1264,8 +1330,8 @@ int quic_connect(struct frr_socket_entry *entry, const struct sockaddr *addr, so
 	}
 
 	quic_change_state(ngtcp2_entry, QUIC_CONNECTING);
-	event_add_read(frr_socket_threadmaster, quic_background_process, &entry->fd, entry->fd,
-		       &ngtcp2_entry->t_background_process);
+	event_add_write(frr_socket_threadmaster, quic_background_process, &entry->fd, entry->fd,
+			&ngtcp2_entry->t_background_process); /* Rescheduled as a read event */
 	// XXX Add a probe event similar to the background process. This event needs to always run
 	// and therefore is on a timer. It will complete connection close even if the socket is not
 	// yet closed.
@@ -1348,6 +1414,8 @@ int quic_accept(struct frr_socket_entry *entry, struct sockaddr *addr, socklen_t
 
 		fd_fifo_del(&ngtcp2_entry->unclaimed_fds, fd_entry);
 		XFREE(MTYPE_FRR_SOCKET, fd_entry);
+
+		/* XXX Copy address information into return buffers */
 
 		return t_entry->fd;
 	}
@@ -1575,7 +1643,7 @@ int quic_poll_hook(struct frr_socket_entry *entry, struct pollfd *p_fd, int *pol
 				*poll_rv -= p_fd->revents ? 0 : 1;
 			}
 			if (p_fd->events & POLLOUT && p_fd->revents & POLLOUT) {
-				p_fd->revents &= ~POLLIN;
+				p_fd->revents &= ~POLLOUT;
 				*poll_rv -= p_fd->revents ? 0 : 1;
 			}
 		} else if (ngtcp2_entry->state == QUIC_STREAM_READY) {
@@ -1586,8 +1654,11 @@ int quic_poll_hook(struct frr_socket_entry *entry, struct pollfd *p_fd, int *pol
 		}
 
 		return 0;
+	} else if (pthread_self() == frr_socket_threadmaster->owner) {
+		/* Case #1 is unhandled since the input results are for the underlying UDP socket */
+		p_fd = p_fd;
 	}
-	/* Case #1 is unhandled since the input results are for the underlying UDP socket */
+
 
 	return 0;
 }

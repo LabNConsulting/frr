@@ -149,6 +149,6 @@ int frr_getaddrinfo(const char *node, const char *service, const struct addrinfo
 		    struct addrinfo **res);
 void frr_freeaddrinfo(struct addrinfo *res);
 //int frr_ioctl(int fd, int op, ...);
-int frr_poll_hook(struct pollfd *fds, nfds_t nfds, int poll_rv);
+int frr_poll_hook(struct pollfd *fds, nfds_t nfds);
 
 #endif /* _FRR_SOCKET_H */

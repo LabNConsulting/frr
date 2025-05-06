@@ -24,6 +24,7 @@ struct socket_test_arg {
 	struct rcu_thread *rcu_thr;
 	const char *desc;  /* Up to user to ensure is nul-terminated */
 	enum finish_point stop_at;
+	const char *addr;  /* e.g. "127.0.0.1" */
 };
 
 static struct frr_pthread *pth_shared;
@@ -52,7 +53,7 @@ static void *pthread_quic_server(void *arg)
 	printf("Running server thread for: %s\n", params->desc);
 
 	/* Acquire a socket via frr_getaddrinfo and listen on it */
-	if (frr_getaddrinfo("127.0.0.1", NULL, &hints, &ainfo_save)) {
+	if (frr_getaddrinfo(params->addr, NULL, &hints, &ainfo_save)) {
 		printf("%s: frr_getaddrinfo failed: %s\n", params->desc, strerror(errno));
 		assert(0);
 	}
@@ -79,13 +80,13 @@ static void *pthread_quic_server(void *arg)
 	addrlen_server = sizeof(addr_server);
 	assert(frr_getsockname(fd_l, (struct sockaddr *)&addr_server, &addrlen_server) == 0);
 
-	/* Give the client the co-ahead to connect */
-	server_ready = 1;
-
 	if (frr_listen(fd_l, 1) != 0) {
 		printf("%s: frr_listen failed: %s\n", params->desc, strerror(errno));
 		assert(0);
 	}
+
+	/* Give the client the co-ahead to connect */
+	server_ready = 1;
 
 	if (params->stop_at == LISTEN)
 		goto finish;
@@ -96,21 +97,23 @@ static void *pthread_quic_server(void *arg)
 		.events = POLLIN,
 	};
 	int poll_rv, attempts = 30;
-	while (attempts-- > 0 || !fd_poll.revents) {
-		if ((poll_rv = poll(&fd_poll, 1, 1000)) != 1) {
-			printf("%s: Unexpected result of server poll: %s\n", params->desc,
+	while (attempts-- > 0) {
+		if ((poll_rv = poll(&fd_poll, 1, 0)) < 0) {
+			printf("%s: Unexpected result of poll: %s\n", params->desc,
 			       strerror(errno));
 			assert(0);
 		}
 
-		assert((poll_rv = frr_poll_hook(&fd_poll, 1)) == 1);
+		poll_rv = frr_poll_hook(&fd_poll, 1);
 
 		if (poll_rv > 0)
 			break;
+
+		sleep(1);
 	}
 
 	if (!(fd_poll.revents & POLLIN)) {
-		printf("%s: Server poll failed to find a new incoming connection\n", params->desc);
+		printf("%s: Poll failed to find a new incoming connection\n", params->desc);
 		assert(0);
 	}
 
@@ -151,7 +154,7 @@ static void *pthread_quic_client(void *arg)
 	printf("Running client thread for: %s\n", params->desc);
 
 	/* Acquire a socket via frr_getaddrinfo and listen on it */
-	if (frr_getaddrinfo("127.0.0.1", NULL, &hints, &ainfo_save)) {
+	if (frr_getaddrinfo(params->addr, NULL, &hints, &ainfo_save)) {
 		printf("%s: frr_getaddrinfo failed: %s\n", params->desc, strerror(errno));
 		assert(0);
 	}
@@ -178,7 +181,7 @@ static void *pthread_quic_client(void *arg)
 
 	errno = 0;
 	/* Should always fail with EINPROGRESS while the background processes start */
-	if (frr_connect(fd, ainfo->ai_addr, ainfo->ai_addrlen) != -1 ||
+	if (frr_connect(fd, (struct sockaddr *)&addr_server, addrlen_server) != -1 ||
 	    errno != EINPROGRESS) {
 		printf("%s: frr_connect failed, %s\n", params->desc, strerror(errno));
 		assert(0);
@@ -193,21 +196,23 @@ static void *pthread_quic_client(void *arg)
 		.events = POLLOUT,
 	};
 	int poll_rv, attempts = 30;
-	while (attempts-- > 0 || !fd_poll.revents) {
-		if ((poll_rv = poll(&fd_poll, 1, 1000)) != 1) {
-			printf("%s: Unexpected result of client poll: %s\n", params->desc,
+	while (attempts-- > 0) {
+		if ((poll_rv = poll(&fd_poll, 1, 0)) < 0) {
+			printf("%s: Unexpected result of poll: %s\n", params->desc,
 			       strerror(errno));
 			assert(0);
 		}
 
-		assert((poll_rv = frr_poll_hook(&fd_poll, 1)) == 1);
+		poll_rv = frr_poll_hook(&fd_poll, 1);
 
 		if (poll_rv > 0)
 			break;
+
+		sleep(1);
 	}
 
 	if (!(fd_poll.revents & POLLOUT)) {
-		printf("%s: Client poll failed to find a possibly complete connection\n",
+		printf("%s: poll failed to find a possibly complete connection\n",
 		       params->desc);
 		assert(0);
 	}
@@ -274,6 +279,7 @@ static void test_listen_then_close(void)
 	pthread_t pthr_s;
 
 	params.desc = "test_listen_then_close";
+	params.addr = "127.0.0.1";
 	params.stop_at = LISTEN;
 
 	rcu_read_lock();
@@ -319,6 +325,7 @@ static void test_connect_then_close(void)
 
 	params.desc = desc;
 	params.stop_at = CONNECT;
+	params.addr = "127.0.0.2";
 
 	rcu_read_lock();
 	params.rcu_thr = rcu_thread_prepare();
@@ -330,10 +337,39 @@ static void test_connect_then_close(void)
 }
 
 
+/*
+ * Socket calls up until frr_accept() and frr_getsockopt(), then close()
+ */
+static void test_accept_then_close(void)
+{
+	struct socket_test_arg params_s = {}, params_c = {};
+	pthread_t pthr_s, pthr_c;
+
+	params_s.desc = "test_accept_then_close: server";
+	params_s.stop_at = ACCEPT;
+	params_s.addr = "127.0.0.3";
+	params_c.desc = "test_accept_then_close: client";
+	params_c.stop_at = GETSOCKOPT;
+	params_c.addr = "127.0.0.3";
+
+	rcu_read_lock();
+	params_s.rcu_thr = rcu_thread_prepare();
+	params_c.rcu_thr = rcu_thread_prepare();
+	pthread_create(&pthr_s, NULL, pthread_quic_server, &params_s);
+	pthread_create(&pthr_c, NULL, pthread_quic_client, &params_c);
+	rcu_read_unlock();
+
+	pthread_join(pthr_s, NULL);
+	pthread_join(pthr_c, NULL);
+	reset_global_resources();
+}
+
+
 void (*tests[])(void) = {
 	test_socket_then_close,
 	test_listen_then_close,
 	test_connect_then_close,
+	test_accept_then_close,
 };
 
 

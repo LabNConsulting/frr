@@ -507,14 +507,11 @@ void frr_freeaddrinfo(struct addrinfo *res)
 }
 
 
-int frr_poll_hook(struct pollfd *fds, nfds_t nfds, int poll_rv)
+int frr_poll_hook(struct pollfd *fds, nfds_t nfds)
 {
 	struct frr_socket_entry *found_entry, search_entry = {};
 	struct pollfd *tmp_fd;
-	int rv = poll_rv;
-
-	if (poll_rv < 0 || !IS_SOCKET_LIB_READY)
-		return poll_rv;
+	int rv = 0;
 
 	/* We have to be careful here. We are trying to aquire the lock of an entry. However,
 	 * Another process holding the entry's lock may be trying to a cancel an event. We
@@ -525,6 +522,10 @@ int frr_poll_hook(struct pollfd *fds, nfds_t nfds, int poll_rv)
 	for (nfds_t i = 0; i < nfds; i++) {
 		tmp_fd = &fds[i];
 		search_entry.fd = tmp_fd->fd;
+		rv += tmp_fd->revents ? 1 : 0;
+
+		if (!IS_SOCKET_LIB_READY)
+			continue;
 
 		pthread_rwlock_rdlock(&frr_socket_table.rwlock);
 		found_entry = frr_socket_entry_find(&frr_socket_table.table, &search_entry);
@@ -537,8 +538,8 @@ int frr_poll_hook(struct pollfd *fds, nfds_t nfds, int poll_rv)
 			 * to ensure that the socket is not touched until a latter successful call.
 			 */
 			if (tmp_fd->revents) {
-				tmp_fd->revents &= 0;
-				rv -= 1;
+				tmp_fd->revents &= ~(POLLIN | POLLOUT);
+				rv -= tmp_fd->revents ? 0 : 1;
 			}
 			continue;
 		}
