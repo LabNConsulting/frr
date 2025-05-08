@@ -18,6 +18,7 @@
 #include "ngtcp2_frr_socket.h"
 
 static void quic_background_process(struct event *thread);
+static void quic_background_timeout_process(struct event *thread);
 static void quic_background_listen(struct event *thread);
 
 static const char *const quic_state_str[] = {
@@ -49,7 +50,7 @@ static uint64_t timestamp(void)
 }
 
 
-void keylog_cb(const SSL *ssl, const char *line)
+static void keylog_cb(const SSL *ssl, const char *line)
 {
 	// XXX Read from KEYLOGFILE env variable instead of hardcoded
 	FILE *file = fopen("./key.log", "a");
@@ -910,8 +911,6 @@ static void quic_reschedule_timeout_process(struct ngtcp2_socket_entry *ngtcp2_e
 
 	event_add_timer_msec(frr_socket_threadmaster, quic_background_timeout_process,
 			     &ngtcp2_entry->entry.fd, timeout, &ngtcp2_entry->t_background_timeout);
-
-	return 0;
 }
 
 
@@ -928,14 +927,14 @@ static int quic_write_to_endpoint(struct ngtcp2_socket_entry *ngtcp2_entry)
 	ngtcp2_ssize written_datalen;
 	uint32_t flags = NGTCP2_WRITE_STREAM_FLAG_MORE;
 	bool stream_fin;
-	const char* msg = NULL; // XXX Remove me!
+	const uint8_t* msg = NULL; // XXX Remove me!
 	size_t msg_size = 0;
 
 	ngtcp2_path_storage_zero(&ps);
 
 	if (ngtcp2_entry->state == QUIC_STREAM_READY) {
 		stream_id = ngtcp2_entry->stream_id;
-		msg = "Hello world"; // XXX Remove me!
+		msg = (const uint8_t *)"Hello world"; // XXX Remove me!
 		msg_size = 11;
 	} else if (ngtcp2_entry->state == QUIC_STREAM_CLOSING) {
 		stream_id = ngtcp2_entry->stream_id;
@@ -1276,6 +1275,14 @@ static void quic_background_process(struct event *thread)
 	ngtcp2_entry = (struct ngtcp2_socket_entry *)found_entry;
 
 	ngtcp2_entry->t_background_process = NULL;
+	if (ngtcp2_entry->state == QUIC_NONE || ngtcp2_entry->state == QUIC_CLOSED) {
+		return;
+	} else if (ngtcp2_entry->state == QUIC_STREAM_READY) {
+		/* We should not own POLLIN/POLLOUT control over the threadmaster if the state
+		 * is QUIC_STREAM_READY. How did this function get called?
+		 */
+		zlog_warn("QUIC: quic_background_process was called in an unsafe manner.");
+	}
 
 	if (quic_read_from_endpoint(ngtcp2_entry) < 0) {
 		// XXX Reset the connection?
@@ -1313,15 +1320,18 @@ static void quic_background_timeout_process(struct event *thread)
 	assert(found_entry->protocol == IPPROTO_QUIC);
 	ngtcp2_entry = (struct ngtcp2_socket_entry *)found_entry;
 
-	ngtcp2_entry->t_background_timer_process = NULL;
+	ngtcp2_entry->t_background_timeout = NULL;
+	if (ngtcp2_entry->state == QUIC_NONE || ngtcp2_entry->state == QUIC_CLOSED) {
+		return;
+	}
 
 	if (quic_read_from_endpoint(ngtcp2_entry) < 0) {
 		// XXX Reset the connection?
 	}
 
-	rv = ngtcp2_conn_handle_expiry(c->conn, timestamp());
+	rv = ngtcp2_conn_handle_expiry(ngtcp2_entry->conn, timestamp());
 	if (rv != 0) {
-		qlog_err("QUIC: ngtcp2_conn_handle_expiry: %s", ngtcp2_strerror(rv));
+		zlog_err("QUIC: ngtcp2_conn_handle_expiry: %s", ngtcp2_strerror(rv));
 		assert(0); // XXX Properly handle the error?
 	}
 
