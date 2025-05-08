@@ -31,13 +31,21 @@ extern struct frr_socket_entry_table frr_socket_hash_table;
 
 PREDECL_LIST(fd_fifo);
 
+enum quic_socket_state {
+	QUIC_SOCKET_NONE,
+	QUIC_SOCKET_LISTENING,
+	QUIC_SOCKET_NO_STREAM,
+	QUIC_SOCKET_STREAM,
+	QUIC_SOCKET_CLOSED,
+	QUIC_SOCKET_STATE_MAX,
+};
+
 enum quic_state {
 	QUIC_NONE,
 	QUIC_LISTENING,
 	QUIC_CONNECTING,
-	QUIC_STREAM_READY,
-	QUIC_STREAM_CLOSING,
-	QUIC_STREAM_CLOSED,
+	QUIC_CONNECTED,
+	QUIC_CLOSING,
 	QUIC_CLOSED,
 	QUIC_STATE_MAX,
 };
@@ -47,15 +55,13 @@ struct fd_fifo_entry {
 	struct fd_fifo_item next_fd_entry;
 };
 
-struct ngtcp2_socket_entry {
+struct ngtcp2_conn_entry {
 	/* Each protocol entry must begin with the generic socket entry */
 	struct frr_socket_entry entry;
 
-	/* Per-connection state.
-	 *
-	 * This state may need to be separated, ref-counted, and individually locked in the future
-	 * if QUIC multiplexing is to be supported.
-	 */
+	/* Per-connection state. May correspond to multiple streams in the future */
+	enum quic_state state;
+
 	union sockunion local_addr;
 	socklen_t local_addrlen;
 	ngtcp2_transport_params initial_params;
@@ -65,21 +71,32 @@ struct ngtcp2_socket_entry {
 	ngtcp2_crypto_ossl_ctx *ossl_ctx;
 	ngtcp2_crypto_conn_ref conn_ref;
 	ngtcp2_ccerr last_error;
+	struct fd_fifo_head stream_endpoints;
 	struct event *t_background_process;
 	struct event *t_background_timeout;
+	struct event *t_background_listen;
+	struct event *t_background_delete;
+}
 
-	/* Per-stream state */
-	enum quic_state state;
+struct ngtcp2_socket_entry {
+	/* Each protocol entry must begin with the generic socket entry */
+	struct frr_socket_entry entry;
+
+	/* Per-stream state. Corresponds to a single QUIC connection */
+	enum quic_socket_state state;
+
+	int conn_fd;  /* Corresponds with a ngtcp2_conn_entry. NOT SAFE TO AQUIRE */
 	bool close_when_ready;
+	bool is_closed;
 	int64_t stream_id;
 	struct stream_fifi *rx_buffer_stream;
 	struct stream_fifi *tx_retransmit_stream;
 	int64_t tx_offset_acked;
-	struct fd_fifo_head unclaimed_fds; /* Listener only. All not-yet-established connections. */
-	int listener_backlog;
-	bool is_closed;
-	struct event *t_background_listen;
 	struct event *t_background_delete;
+
+	/* Listener state */
+	struct fd_fifo_head unclaimed_fds;
+	int listener_backlog;
 };
 
 DECLARE_LIST(fd_fifo, struct fd_fifo_entry, next_fd_entry);
