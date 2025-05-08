@@ -31,11 +31,6 @@ extern struct frr_socket_entry_table frr_socket_hash_table;
 
 PREDECL_LIST(fd_fifo);
 
-enum quic_role {
-	QUIC_CLIENT,
-	QUIC_SERVER,
-};
-
 enum quic_state {
 	QUIC_NONE,
 	QUIC_LISTENING,
@@ -62,9 +57,8 @@ struct ngtcp2_socket_entry {
 	 * if QUIC multiplexing is to be supported.
 	 */
 	union sockunion local_addr;
-	ssize_t local_addrlen;
+	socklen_t local_addrlen;
 	ngtcp2_transport_params initial_params;
-	enum quic_role role;
 	ngtcp2_conn *conn;
 	SSL_CTX *ssl_ctx;
 	SSL *ssl;
@@ -72,7 +66,7 @@ struct ngtcp2_socket_entry {
 	ngtcp2_crypto_conn_ref conn_ref;
 	ngtcp2_ccerr last_error;
 	struct event *t_background_process;
-	struct event *t_background_probe;
+	struct event *t_background_timeout;
 
 	/* Per-stream state */
 	enum quic_state state;

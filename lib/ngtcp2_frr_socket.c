@@ -49,6 +49,20 @@ static uint64_t timestamp(void)
 }
 
 
+void keylog_cb(const SSL *ssl, const char *line)
+{
+	// XXX Read from KEYLOGFILE env variable instead of hardcoded
+	FILE *file = fopen("./key.log", "a");
+
+	(void)ssl;
+
+	assert(file != NULL);
+	fputs(line, file);
+	fputc('\n', file);
+	assert(fclose(file) == 0);
+}
+
+
 static void rand_cb(uint8_t *dest, size_t destlen, const ngtcp2_rand_ctx *rand_ctx)
 {
 	size_t i;
@@ -168,7 +182,9 @@ static int handshake_confirmed_client_cb(ngtcp2_conn *conn, void *user_data)
 
 	rv = ngtcp2_conn_open_bidi_stream(conn, &stream_id, &found_entry->fd);
 	if (rv != 0) {
-		return 0;
+		zlog_err("QUIC: Failed to open stream during handshake confirmation, fd %d", fd);
+		// XXX implement proper recover from this error.
+		assert(0);
 	}
 	ngtcp2_entry->stream_id = stream_id;
 
@@ -336,40 +352,18 @@ static void cleanup_on_init_failure(struct ngtcp2_socket_entry* ngtcp2_entry)
 }
 
 
-static int quic_tls_init(struct ngtcp2_socket_entry *ngtcp2_entry) {
+static int quic_client_tls_init(struct ngtcp2_socket_entry *ngtcp2_entry) {
 	// XXX Change the allowed ciphers or curves?
 	uint64_t ssl_opts;
 	const char *ciphers =
 		"TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256";
 	const char *curves = "X25519:P-256:P-384:P-521";
 
-	if (ngtcp2_entry->role == QUIC_SERVER) {
-		ngtcp2_entry->ssl_ctx = SSL_CTX_new(TLS_server_method());
+	ngtcp2_entry->ssl_ctx = SSL_CTX_new(TLS_client_method());
 
-		if (!ngtcp2_entry->ssl_ctx) {
-			zlog_warn("QUIC: SSL_CTX_new server: %s",
-				  ERR_error_string(ERR_get_error(), NULL));
-			goto failed;
-		}
-
-		// XXX Not starting with early data. Can change later to UINT32_MAX
-		SSL_CTX_set_max_early_data(ngtcp2_entry->ssl_ctx, 0);
-
-		// XXX Revist this to confirm if some aren't necessary. Also, can this be moved out of loop?
-		ssl_opts = (SSL_OP_ALL & ~SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS) |
-			   SSL_OP_CIPHER_SERVER_PREFERENCE;
-		SSL_CTX_set_options(ngtcp2_entry->ssl_ctx, ssl_opts);
-	} else if (ngtcp2_entry->role == QUIC_CLIENT) {
-		ngtcp2_entry->ssl_ctx = SSL_CTX_new(TLS_client_method());
-
-		if (!ngtcp2_entry->ssl_ctx) {
-			zlog_warn("QUIC: SSL_CTX_new client: %s",
-				  ERR_error_string(ERR_get_error(), NULL));
-			goto failed;
-		}
-	} else {
-		zlog_err("QUIC: Illegal role (neither client or server role selected)");
-		assert(0);
+	if (!ngtcp2_entry->ssl_ctx) {
+		zlog_warn("QUIC: SSL_CTX_new client: %s", ERR_error_string(ERR_get_error(), NULL));
+		goto failed;
 	}
 
 
@@ -385,35 +379,99 @@ static int quic_tls_init(struct ngtcp2_socket_entry *ngtcp2_entry) {
 	}
 
 	SSL_CTX_set_mode(ngtcp2_entry->ssl_ctx, SSL_MODE_RELEASE_BUFFERS);
+	SSL_CTX_set_default_verify_paths(ngtcp2_entry->ssl_ctx);
 
-	//SSL_CTX_set_alpn_select_cb(s->ssl_ctx, alpn_select_proto_cb, NULL);
+	/* XXX Set and check certs here */
+
+	ngtcp2_entry->ssl = SSL_new(ngtcp2_entry->ssl_ctx);
+	if (!ngtcp2_entry->ssl) {
+		zlog_warn("QUIC: SSL_new: %s", ERR_error_string(ERR_get_error(), NULL));
+		goto failed;
+	}
+
+	ngtcp2_crypto_ossl_ctx_new(&ngtcp2_entry->ossl_ctx, NULL);
+	ngtcp2_crypto_ossl_ctx_set_ssl(ngtcp2_entry->ossl_ctx, ngtcp2_entry->ssl);
+
+	if (ngtcp2_crypto_ossl_configure_client_session(ngtcp2_entry->ssl) != 0) {
+		zlog_warn("QUIC: ngtcp2_crypto_ossl_configure_client_session failed");
+		goto failed;
+	}
+
+	SSL_set_app_data(ngtcp2_entry->ssl, &ngtcp2_entry->conn_ref);
+	SSL_set_connect_state(ngtcp2_entry->ssl);
+	// XXX Set up Server Name Indication? e.g. SSL_set_tlsext_host_name
+
+	return 0;
+
+failed:
+	cleanup_on_init_failure(ngtcp2_entry);
+	return -1;
+}
+
+
+static int quic_server_tls_init(struct ngtcp2_socket_entry *ngtcp2_entry) {
+	// XXX Change the allowed ciphers or curves?
+	uint64_t ssl_opts;
+	const char *ciphers =
+		"TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256";
+	const char *curves = "X25519:P-256:P-384:P-521";
+
+	ngtcp2_entry->ssl_ctx = SSL_CTX_new(TLS_server_method());
+
+	if (!ngtcp2_entry->ssl_ctx) {
+		zlog_warn("QUIC: SSL_CTX_new server: %s", ERR_error_string(ERR_get_error(), NULL));
+		goto failed;
+	}
+
+	// XXX Not starting with early data. Can change later to UINT32_MAX
+	SSL_CTX_set_max_early_data(ngtcp2_entry->ssl_ctx, 0);
+
+	// XXX Revist this to confirm if some aren't necessary. Also, can this be moved out of loop?
+	ssl_opts = (SSL_OP_ALL & ~SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS) |
+		   SSL_OP_CIPHER_SERVER_PREFERENCE;
+	SSL_CTX_set_options(ngtcp2_entry->ssl_ctx, ssl_opts);
+
+
+	if (SSL_CTX_set_ciphersuites(ngtcp2_entry->ssl_ctx, ciphers) != 1) {
+		zlog_warn("QUIC: SSL_CTX_set_ciphersuites: %s",
+			  ERR_error_string(ERR_get_error(), NULL));
+		goto failed;
+	}
+
+	if (SSL_CTX_set1_groups_list(ngtcp2_entry->ssl_ctx, curves) != 1) {
+		zlog_warn("QUIC: SSL_CTX_set1_groups_list failed");
+		goto failed;
+	}
+
+	SSL_CTX_set_mode(ngtcp2_entry->ssl_ctx, SSL_MODE_RELEASE_BUFFERS);
 
 	SSL_CTX_set_default_verify_paths(ngtcp2_entry->ssl_ctx);
-	/*
-	const char *private_key_file = "./certs/priv.key";
-	const char *cert_file = "./certs/cert.pem";
-	const char *ca_file = "./certs/ca.pem";
-	if (SSL_CTX_load_verify_file(s->ssl_ctx, ca_file) != 1) {
-		fprintf(stderr, "SSL_CTX_load_verify_file: %s",
-			ERR_error_string(ERR_get_error(), NULL));
-		return -1;
+
+	// XXX Do not hardcode this!
+	const char *private_key_file = "/usr/local/ssl/certs/priv.key";
+	const char *cert_file = "/usr/local/ssl/certs/cert.pem";
+	const char *ca_file = "/usr/local/ssl/certs/ca.pem";
+	if (SSL_CTX_load_verify_file(ngtcp2_entry->ssl_ctx, ca_file) != 1) {
+		zlog_err("QUIC: SSL_CTX_load_verify_file: %s",
+			 ERR_error_string(ERR_get_error(), NULL));
+		goto failed;
 	}
-	if (SSL_CTX_use_PrivateKey_file(s->ssl_ctx, private_key_file, SSL_FILETYPE_PEM) != 1) {
-		fprintf(stderr, "SSL_CTX_use_PrivateKey_file: %s",
-			ERR_error_string(ERR_get_error(), NULL));
-		return -1;
+	if (SSL_CTX_use_PrivateKey_file(ngtcp2_entry->ssl_ctx, private_key_file,
+					SSL_FILETYPE_PEM) != 1) {
+		zlog_err("QUIC: SSL_CTX_use_PrivateKey_file: %s",
+			 ERR_error_string(ERR_get_error(), NULL));
+		goto failed;
 	}
-	if (SSL_CTX_use_certificate_chain_file(s->ssl_ctx, cert_file) != 1) {
-		fprintf(stderr, "SSL_CTX_use_certificate_chain_file: %s",
-			ERR_error_string(ERR_get_error(), NULL));
-		return -1;
+	if (SSL_CTX_use_certificate_chain_file(ngtcp2_entry->ssl_ctx, cert_file) != 1) {
+		zlog_err("QUIC: SSL_CTX_use_certificate_chain_file: %s",
+			 ERR_error_string(ERR_get_error(), NULL));
+		goto failed;
 	}
-	if (SSL_CTX_check_private_key(s->ssl_ctx) != 1) {
-		fprintf(stderr, "SSL_CTX_check_private_key: %s",
-			ERR_error_string(ERR_get_error(), NULL));
-		return -1;
+	if (SSL_CTX_check_private_key(ngtcp2_entry->ssl_ctx) != 1) {
+		zlog_err("QUIC: SSL_CTX_check_private_key: %s",
+			 ERR_error_string(ERR_get_error(), NULL));
+		goto failed;
 	}
-	*/
 
 	/*
 	if (ngtcp2_entry->role == NGTCP2_SERVER) {
@@ -436,29 +494,18 @@ static int quic_tls_init(struct ngtcp2_socket_entry *ngtcp2_entry) {
 	ngtcp2_crypto_ossl_ctx_new(&ngtcp2_entry->ossl_ctx, NULL);
 	ngtcp2_crypto_ossl_ctx_set_ssl(ngtcp2_entry->ossl_ctx, ngtcp2_entry->ssl);
 
-	if (ngtcp2_entry->role == QUIC_CLIENT) {
-		if (ngtcp2_crypto_ossl_configure_client_session(ngtcp2_entry->ssl) != 0) {
-			zlog_warn("QUIC: ngtcp2_crypto_ossl_configure_client_session failed");
-			goto failed;
-		}
-	} else if (ngtcp2_entry->role == QUIC_SERVER) {
-		if (ngtcp2_crypto_ossl_configure_server_session(ngtcp2_entry->ssl) != 0) {
-			zlog_warn("QUIC: ngtcp2_crypto_ossl_configure_server_session failed");
-			goto failed;
-		}
-	} else {
-		zlog_err("QUIC: Illegal role (neither client or server role selected)");
-		assert(0);
+	if (ngtcp2_crypto_ossl_configure_server_session(ngtcp2_entry->ssl) != 0) {
+		zlog_warn("QUIC: ngtcp2_crypto_ossl_configure_server_session failed");
+		goto failed;
 	}
 
 	SSL_set_app_data(ngtcp2_entry->ssl, &ngtcp2_entry->conn_ref);
-	SSL_set_connect_state(ngtcp2_entry->ssl);
-	/* XXX Is any of the following actually needed?
-	SSL_set_alpn_protos(ssl, (const unsigned char *)ALPN, sizeof(ALPN) - 1);
-	if (!numeric_host(REMOTE_HOST)) {
-		SSL_set_tlsext_host_name(c->ssl, REMOTE_HOST);
-	}
-	*/
+	SSL_set_accept_state(ngtcp2_entry->ssl);
+	// XXX Set up Server Name Indication? e.g. SSL_set_tlsext_servername_callback, etc.
+
+	// XXX Should be turned into a debug-only option later
+	remove("./key.log");
+	SSL_CTX_set_keylog_callback(ngtcp2_entry->ssl_ctx, keylog_cb);
 
 	return 0;
 
@@ -530,8 +577,7 @@ static int quic_server_conn_init(struct ngtcp2_socket_entry *ngtcp2_entry,
 	ngtcp2_ccerr_default(&ngtcp2_entry->last_error);
 
 	/* Create an OpenSSL TLS context for ngtcp2 */
-	ngtcp2_entry->role = QUIC_SERVER;
-	rv = quic_tls_init(ngtcp2_entry);
+	rv = quic_server_tls_init(ngtcp2_entry);
 	if (rv != 0) {
 		zlog_warn("QUIC: Failed to create TLS context");
 		goto failure;
@@ -632,8 +678,7 @@ static int quic_client_conn_init(struct ngtcp2_socket_entry *ngtcp2_entry,
 	ngtcp2_ccerr_default(&ngtcp2_entry->last_error);
 
 	/* Create an OpenSSL TLS context for ngtcp2 */
-	ngtcp2_entry->role = QUIC_CLIENT;
-	rv = quic_tls_init(ngtcp2_entry);
+	rv = quic_client_tls_init(ngtcp2_entry);
 	if (rv != 0) {
 		zlog_warn("QUIC: Failure to create TLS context");
 		goto failure;
@@ -846,6 +891,30 @@ static void quic_close_conn(struct ngtcp2_socket_entry *ngtcp2_entry)
 }
 
 
+static void quic_reschedule_timeout_process(struct ngtcp2_socket_entry *ngtcp2_entry)
+{
+	ngtcp2_tstamp expiry, now;
+	uint64_t timeout;
+
+	if (ngtcp2_entry->t_background_timeout) {
+		event_cancel_async(frr_socket_threadmaster, &ngtcp2_entry->t_background_timeout,
+				   NULL);
+		ngtcp2_entry->t_background_timeout = NULL;
+	}
+
+	expiry = ngtcp2_conn_get_expiry(ngtcp2_entry->conn);
+	now = timestamp();
+
+	/* nanoseconds --> microseconds (rounded up) */
+	timeout = expiry < now ? 0 : (expiry - now + 999) / 1000;
+
+	event_add_timer_msec(frr_socket_threadmaster, quic_background_timeout_process,
+			     &ngtcp2_entry->entry.fd, timeout, &ngtcp2_entry->t_background_timeout);
+
+	return 0;
+}
+
+
 static int quic_write_to_endpoint(struct ngtcp2_socket_entry *ngtcp2_entry)
 {
 	ngtcp2_tstamp ts = timestamp();
@@ -859,11 +928,15 @@ static int quic_write_to_endpoint(struct ngtcp2_socket_entry *ngtcp2_entry)
 	ngtcp2_ssize written_datalen;
 	uint32_t flags = NGTCP2_WRITE_STREAM_FLAG_MORE;
 	bool stream_fin;
+	const char* msg = NULL; // XXX Remove me!
+	size_t msg_size = 0;
 
 	ngtcp2_path_storage_zero(&ps);
 
 	if (ngtcp2_entry->state == QUIC_STREAM_READY) {
 		stream_id = ngtcp2_entry->stream_id;
+		msg = "Hello world"; // XXX Remove me!
+		msg_size = 11;
 	} else if (ngtcp2_entry->state == QUIC_STREAM_CLOSING) {
 		stream_id = ngtcp2_entry->stream_id;
 		flags |= NGTCP2_WRITE_STREAM_FLAG_FIN;
@@ -877,9 +950,15 @@ static int quic_write_to_endpoint(struct ngtcp2_socket_entry *ngtcp2_entry)
 
 		// XXX Get data to read/write (but not if stream_fin!)
 
-		nwrite = ngtcp2_conn_writev_stream(ngtcp2_entry->conn, &ps.path, &pi, buf,
-						   sizeof(buf), &written_datalen, flags, stream_id,
-						   NULL, 0, ts);
+		nwrite = ngtcp2_conn_write_stream(ngtcp2_entry->conn, &ps.path, &pi, buf,
+						  sizeof(buf), &written_datalen, flags, stream_id,
+						  msg, msg_size, ts);
+
+		// XXX Remove me
+		if (msg && written_datalen > 0) {
+			msg = NULL;
+			msg_size = 0;
+		}
 
 		if (nwrite < 0) {
 			switch (nwrite) {
@@ -943,6 +1022,11 @@ static int quic_write_to_endpoint(struct ngtcp2_socket_entry *ngtcp2_entry)
 		quic_send_packet(ngtcp2_entry, buf, (size_t)nwrite);
 		break;
 	}
+
+	if (ngtcp2_entry->state == QUIC_CLOSED || ngtcp2_entry->state == QUIC_NONE)
+		return 0;
+
+	quic_reschedule_timeout_process(ngtcp2_entry);
 
 	return 0;
 }
@@ -1043,8 +1127,6 @@ static int quic_process_listener_packet(struct ngtcp2_socket_entry *ngtcp2_entry
 	path.remote.addr = msg->msg_name;
 
 	/* Valid packet! Create a new connected socket ontop the unconnected listening socket */
-	struct sockaddr *local_addr = (struct sockaddr *)&ngtcp2_entry->local_addr;
-	socklen_t local_addrlen = ngtcp2_entry->local_addrlen;
 	int domain;
 	socklen_t domain_len = sizeof(domain);
 	if (getsockopt(ngtcp2_entry->entry.fd, SOL_SOCKET, SO_DOMAIN, &domain, &domain_len) != 0) {
@@ -1067,23 +1149,22 @@ static int quic_process_listener_packet(struct ngtcp2_socket_entry *ngtcp2_entry
 	assert(new_entry && new_entry->protocol == IPPROTO_QUIC);
 	new_ngtcp2_entry = (struct ngtcp2_socket_entry *)new_entry;
 
-	if (quic_setsockopt(new_entry, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int)) < 0) {
-		zlog_warn("QUIC: listener setsockopt SO_REUSEADDR: %s", safe_strerror(errno));
-		goto failure;
-	}
-	if (quic_bind(new_entry, local_addr, local_addrlen) != 0) {
+	rv = quic_bind(new_entry, (struct sockaddr *)&ngtcp2_entry->local_addr,
+		       ngtcp2_entry->local_addrlen);
+	if (rv != 0) {
 		zlog_warn("QUIC: listener bind error: %s", safe_strerror(errno));
 		goto failure;
 	}
 
-	if (connect(new_fd, path.remote.addr, path.remote.addrlen) < 0) {
+	rv = connect(new_fd, path.remote.addr, path.remote.addrlen);
+	if (rv < 0) {
 		zlog_warn("QUIC: listener connect: %s", safe_strerror(errno));
 		goto failure;
 	}
 
 	rv = quic_server_conn_init(new_ngtcp2_entry, path.remote.addr, path.remote.addrlen,
 				   &hd.scid, &hd.dcid);
-	if (!rv) {
+	if (rv != 0) {
 		zlog_warn("QUIC: failed to create server connection context");
 		goto failure;
 	}
@@ -1091,7 +1172,8 @@ static int quic_process_listener_packet(struct ngtcp2_socket_entry *ngtcp2_entry
 	quic_change_state(new_ngtcp2_entry, QUIC_CONNECTING);
 
 	/* Finally, read the packet that started this new connection. */
-	if (quic_process_read_packet(new_ngtcp2_entry, pkt, pktsize, msg) == -1) {
+	rv = quic_process_read_packet(new_ngtcp2_entry, pkt, pktsize, msg);
+	if (rv == -1) {
 		zlog_warn(
 			"QUIC: newly created server connection context is being immediately destroyed");
 		goto failure;
@@ -1099,7 +1181,7 @@ static int quic_process_listener_packet(struct ngtcp2_socket_entry *ngtcp2_entry
 
 	/* We have to manually track this fd until it is handed out to the user */
 	struct fd_fifo_entry *fd_entry = XMALLOC(MTYPE_FRR_SOCKET, sizeof(*fd_entry));
-	if (fd_entry) {
+	if (!fd_entry) {
 		errno = ENOMEM;
 		zlog_warn("QUIC: Internal memory allocation failed");
 		goto failure;
@@ -1108,7 +1190,14 @@ static int quic_process_listener_packet(struct ngtcp2_socket_entry *ngtcp2_entry
 	fd_entry->fd = new_entry->fd;
 	fd_fifo_add_tail(&ngtcp2_entry->unclaimed_fds, fd_entry);
 
-	// XXX Need to schedule background events on the new socket!
+	/* Start the normal background processing loop. The response to the initial packet will be
+	 * generated within this loop by the ngtcp2 library.
+	 */
+	quic_change_state(new_ngtcp2_entry, QUIC_CONNECTING);
+	event_add_write(frr_socket_threadmaster, quic_background_process, &new_entry->fd,
+			new_entry->fd, &new_ngtcp2_entry->t_background_process);
+
+	// XXX Also start the loop on timeout.
 
 	return 0;
 
@@ -1206,6 +1295,44 @@ static void quic_background_process(struct event *thread)
 	}
 }
 
+static void quic_background_timeout_process(struct event *thread)
+{
+	int *fd_ref = EVENT_ARG(thread);
+	int rv, fd = *fd_ref;
+	struct frr_socket_entry search_entry = {
+		.fd = fd,
+	};
+	struct ngtcp2_socket_entry *ngtcp2_entry = NULL;
+
+	frr_socket_table_find(&search_entry, found_entry);
+	if (!found_entry) {
+		zlog_warn("QUIC: On-timer background process for fd %d is missing a socket entry. Cancelling it.",
+			  fd);
+		return;
+	}
+	assert(found_entry->protocol == IPPROTO_QUIC);
+	ngtcp2_entry = (struct ngtcp2_socket_entry *)found_entry;
+
+	ngtcp2_entry->t_background_timer_process = NULL;
+
+	if (quic_read_from_endpoint(ngtcp2_entry) < 0) {
+		// XXX Reset the connection?
+	}
+
+	rv = ngtcp2_conn_handle_expiry(c->conn, timestamp());
+	if (rv != 0) {
+		qlog_err("QUIC: ngtcp2_conn_handle_expiry: %s", ngtcp2_strerror(rv));
+		assert(0); // XXX Properly handle the error?
+	}
+
+	if (quic_write_to_endpoint(ngtcp2_entry) < 0) {
+		// XXX Reset the connection?
+	}
+
+	/* This event gets rescheduled within quic_write_to_endpoint */
+}
+
+
 
 static void quic_background_listen(struct event *thread)
 {
@@ -1295,8 +1422,28 @@ int quic_socket(int domain, int type)
 
 int quic_bind(struct frr_socket_entry *entry, const struct sockaddr *addr, socklen_t addrlen)
 {
+	int rv;
+	struct ngtcp2_socket_entry *ngtcp2_entry = (struct ngtcp2_socket_entry *)entry;
+
+	if (setsockopt(entry->fd, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int)) < 0) {
+		zlog_warn("QUIC: listener setsockopt SO_REUSEADDR: %s", safe_strerror(errno));
+		errno = EADDRINUSE;
+		return -1;
+	}
+
 	assert(entry->protocol == IPPROTO_QUIC);
-	return bind(entry->fd, addr, addrlen);
+	rv = bind(entry->fd, addr, addrlen);
+	if (rv != 0) {
+		/* errno is kept */
+		return -1;
+	}
+
+	ngtcp2_entry->local_addrlen = sizeof(ngtcp2_entry->local_addr);
+	rv = getsockname(entry->fd, (struct sockaddr *)&ngtcp2_entry->local_addr,
+			 &ngtcp2_entry->local_addrlen);
+	assert(rv == 0);
+
+	return 0;
 }
 
 
@@ -1558,7 +1705,7 @@ int quic_getaddrinfo(const char *node, const char *service, const struct addrinf
 
 	memcpy(&frr_hints, hints, sizeof(*hints));
 
-	/* QUIC sockets should requires an underlying UDP socket */
+	/* QUIC sockets required an underlying UDP socket */
 	frr_hints.ai_protocol = IPPROTO_UDP;
 	frr_hints.ai_socktype = SOCK_DGRAM;
 	rv = getaddrinfo(node, service, &frr_hints, res);
@@ -1677,9 +1824,9 @@ void quic_socket_lib_finish_hook(struct frr_socket_entry *entry)
 	 * events that we have scheduled *before* RCU calls quic_detroy_entry()! (Because RCU shuts
 	 * down after all pthreads).
 	 */
-	if (ngtcp2_entry->t_background_probe != NULL) {
-		event_cancel_async(frr_socket_threadmaster, &ngtcp2_entry->t_background_probe, NULL);
-		ngtcp2_entry->t_background_probe = NULL;
+	if (ngtcp2_entry->t_background_timeout != NULL) {
+		event_cancel_async(frr_socket_threadmaster, &ngtcp2_entry->t_background_timeout, NULL);
+		ngtcp2_entry->t_background_timeout = NULL;
 	}
 	if (ngtcp2_entry->t_background_process != NULL) {
 		event_cancel_async(frr_socket_threadmaster, &ngtcp2_entry->t_background_process,
@@ -1729,8 +1876,8 @@ int quic_destroy_entry(struct frr_socket_entry *entry)
 	 * still any good. Thus, we avoid taking action and instead log a warnings if we find events
 	 * that we don't expect to exist.
 	 */
-	if (ngtcp2_entry->t_background_probe != NULL) {
-		zlog_warn("QUIC: entry with fd=%d had event t_background_probe scheduled at deletion",
+	if (ngtcp2_entry->t_background_timeout != NULL) {
+		zlog_warn("QUIC: entry with fd=%d had event t_background_timeout scheduled at deletion",
 			  ngtcp2_entry->entry.fd);
 	}
 	if (ngtcp2_entry->t_background_process != NULL) {

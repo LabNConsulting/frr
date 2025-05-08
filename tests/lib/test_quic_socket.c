@@ -279,7 +279,7 @@ static void test_listen_then_close(void)
 	pthread_t pthr_s;
 
 	params.desc = "test_listen_then_close";
-	params.addr = "127.0.0.1";
+	params.addr = "127.0.1.1";
 	params.stop_at = LISTEN;
 
 	rcu_read_lock();
@@ -308,7 +308,7 @@ static void test_connect_then_close(void)
 	};
 
 	/* Use an address that is not listening so the connection guarenteed fails */
-	if (frr_getaddrinfo("127.0.0.2", NULL, &hints, &ainfo)) {
+	if (frr_getaddrinfo("127.0.2.1", NULL, &hints, &ainfo)) {
 		printf("%s: frr_getaddrinfo failed ahead of run: %s\n", desc, strerror(errno));
 		assert(0);
 	}
@@ -325,7 +325,7 @@ static void test_connect_then_close(void)
 
 	params.desc = desc;
 	params.stop_at = CONNECT;
-	params.addr = "127.0.0.2";
+	params.addr = "127.0.2.2";
 
 	rcu_read_lock();
 	params.rcu_thr = rcu_thread_prepare();
@@ -347,10 +347,10 @@ static void test_accept_then_close(void)
 
 	params_s.desc = "test_accept_then_close: server";
 	params_s.stop_at = ACCEPT;
-	params_s.addr = "127.0.0.3";
+	params_s.addr = "127.0.3.1";
 	params_c.desc = "test_accept_then_close: client";
 	params_c.stop_at = GETSOCKOPT;
-	params_c.addr = "127.0.0.3";
+	params_c.addr = "127.0.3.2";
 
 	rcu_read_lock();
 	params_s.rcu_thr = rcu_thread_prepare();
