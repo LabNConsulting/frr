@@ -31,20 +31,12 @@ extern struct frr_socket_entry_table frr_socket_hash_table;
 
 PREDECL_LIST(fd_fifo);
 
-enum quic_socket_state {
-	QUIC_SOCKET_NONE,
-	QUIC_SOCKET_LISTENING,
-	QUIC_SOCKET_NO_STREAM,
-	QUIC_SOCKET_STREAM,
-	QUIC_SOCKET_CLOSED,
-	QUIC_SOCKET_STATE_MAX,
-};
-
 enum quic_state {
 	QUIC_NONE,
 	QUIC_LISTENING,
 	QUIC_CONNECTING,
 	QUIC_CONNECTED,
+	QUIC_NO_STREAMS,
 	QUIC_CLOSING,
 	QUIC_CLOSED,
 	QUIC_STATE_MAX,
@@ -55,13 +47,14 @@ struct fd_fifo_entry {
 	struct fd_fifo_item next_fd_entry;
 };
 
-struct ngtcp2_conn_entry {
-	/* Each protocol entry must begin with the generic socket entry */
-	struct frr_socket_entry entry;
-
-	/* Per-connection state. May correspond to multiple streams in the future */
+struct ngtcp2_conn_data {
+	/* Per-connection state. May correspond to multiple streams in the future.
+	 * XXX Explain safe access rules from a socket entry
+	 */
 	enum quic_state state;
+	pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
+	int fd;  /* Underlying UDP connection socket */
 	union sockunion local_addr;
 	socklen_t local_addrlen;
 	ngtcp2_transport_params initial_params;
@@ -71,11 +64,14 @@ struct ngtcp2_conn_entry {
 	ngtcp2_crypto_ossl_ctx *ossl_ctx;
 	ngtcp2_crypto_conn_ref conn_ref;
 	ngtcp2_ccerr last_error;
-	struct fd_fifo_head stream_endpoints;
+	struct fd_fifo_head stream_fds;  /* per-stream ngtcp2_socket_entry list */
 	struct event *t_background_process;
 	struct event *t_background_timeout;
 	struct event *t_background_listen;
-	struct event *t_background_delete;
+	struct event *t_socket_closed;
+
+	/* Listener only state */
+	int listener_backlog;
 }
 
 struct ngtcp2_socket_entry {
@@ -83,20 +79,20 @@ struct ngtcp2_socket_entry {
 	struct frr_socket_entry entry;
 
 	/* Per-stream state. Corresponds to a single QUIC connection */
-	enum quic_socket_state state;
-
-	int conn_fd;  /* Corresponds with a ngtcp2_conn_entry. NOT SAFE TO AQUIRE */
-	bool close_when_ready;
-	bool is_closed;
+	bool is_user_closed;
+	bool is_conn_closed;
+	bool is_stream_fin;
 	int64_t stream_id;
 	struct stream_fifi *rx_buffer_stream;
 	struct stream_fifi *tx_retransmit_stream;
 	int64_t tx_offset_acked;
 	struct event *t_background_delete;
 
+	/* This reference should be refcounted when multi-stream support is added */
+	struct ngtcp2_conn_data *conn_data;
+
 	/* Listener state */
 	struct fd_fifo_head unclaimed_fds;
-	int listener_backlog;
 };
 
 DECLARE_LIST(fd_fifo, struct fd_fifo_entry, next_fd_entry);

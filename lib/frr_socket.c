@@ -72,13 +72,18 @@ int frr_socket_lib_finish(void)
 
 int frr_socket_init(struct frr_socket_entry *entry)
 {
-	return pthread_mutex_init(&entry->lock, NULL);
+	pthread_mutexattr_init(&entry->attr);
+	pthread_mutexattr_settype(&entry->attr, PTHREAD_MUTEX_RECURSIVE);
+	pthread_mutex_init(&entry->lock, &entry->attr);
+	return 0;
 }
 
 // XXX explanation
 int frr_socket_cleanup(struct frr_socket_entry *entry)
 {
-	return pthread_mutex_destroy(&entry->lock);
+	pthread_mutex_destroy(&entry->lock);
+	pthread_mutexattr_destroy(&entry->attr);
+	return 0;
 }
 
 // XXX Add explanation

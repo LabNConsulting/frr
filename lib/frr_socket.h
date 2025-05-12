@@ -24,7 +24,6 @@
 
 #define IPPROTO_FRR_TCP (IPPROTO_MAX + 1)
 #define IPPROTO_QUIC (IPPROTO_MAX + 2)
-#define IPPROTO_QUIC_INTERNAL (IPPROTO_MAX + 3)
 
 DECLARE_MTYPE(FRR_SOCKET);
 PREDECL_HASH(frr_socket_entry);
@@ -32,6 +31,7 @@ PREDECL_HASH(frr_socket_entry);
 struct frr_socket_entry {
 	int protocol;
 	int fd;
+	pthread_mutexattr_t attr;
 	pthread_mutex_t lock;
 	_Atomic int ref_count;
 

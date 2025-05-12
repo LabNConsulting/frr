@@ -250,10 +250,21 @@ int frr_pthread_non_controlled_startup(pthread_t thread, const char *name,
 				    _frr_mtx_lock(mutex)                       \
 	/* end */
 
+#define frr_mutex_trylock_autounlock(mutex)                                    \
+	pthread_mutex_t *NAMECTR(_mtx_)                                        \
+		__attribute__((unused, cleanup(_frr_mtx_unlock))) =            \
+				    _frr_mtx_trylock(mutex)                    \
+	/* end */
+
 static inline pthread_mutex_t *_frr_mtx_lock(pthread_mutex_t *mutex)
 {
 	pthread_mutex_lock(mutex);
 	return mutex;
+}
+
+static inline pthread_mutex_t *_frr_mtx_trylock(pthread_mutex_t *mutex)
+{
+	return pthread_mutex_trylock(mutex) == 0 ? mutex : NULL;
 }
 
 static inline void _frr_mtx_unlock(pthread_mutex_t **mutex)
