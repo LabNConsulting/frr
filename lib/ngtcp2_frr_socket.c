@@ -98,39 +98,24 @@ static const char *quic_strstate(int state) {
 
 static ngtcp2_conn *get_conn(ngtcp2_crypto_conn_ref *conn_ref)
 {
-	int *fd_ref = conn_ref->user_data;
-	assert(fd_ref != NULL);
-	int rv, fd = *fd_ref;
-	int64_t stream_id;
-	struct ngtcp2_conn *conn;
-	struct frr_socket_entry *found_entry;
-	struct frr_socket_entry search_entry = {
-		.fd = fd,
-	};
-	struct ngtcp2_socket_entry *socket_entry = NULL;
+	struct ngtcp2_conn_data *conn_data = conn_ref->user_data;
 
-	/* XXX Unsafe! Fix me! We never lock the entry we receive!!
-	 * (because we can't without blocking. Need a refactor) */
-	pthread_rwlock_rdlock(&frr_socket_table.rwlock);
-	rcu_read_lock();
-	found_entry = frr_socket_entry_find(&frr_socket_table.table, &search_entry);
-	pthread_rwlock_unlock(&frr_socket_table.rwlock);
-
-	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct ngtcp2_socket_entry *)found_entry;
+	/* This callback is needed by ngtcp2 to retreive the connection reference from the SSL
+	 * context that we created. It should only be called when conn_data is locked and in the
+	 * frr_socket_threadmaster's pthread.
+	 */
+	assert(pthread_self() == frr_socket_threadmaster->owner);
+	assert(pthread_mutex_trylock(&conn_data->lock) != 0);
 
 	/* Confirm that this socket does in fact maintain active connections */
-	if (socket_entry->state == QUIC_LISTENING || socket_entry->state == QUIC_NONE ||
-	    socket_entry->state == QUIC_CLOSED) {
-		zlog_err("QUIC: Trying to get connection of entry in state %s with fd %d",
-			 quic_strstate(socket_entry->state), socket_entry->entry.fd);
+	if (conn_data->state == QUIC_LISTENING || conn_data->state == QUIC_NONE ||
+	    conn_data->state == QUIC_CLOSED) {
+		zlog_err("QUIC: Trying to get connection of entry in state %s (conn fd %d)",
+			 quic_strstate(conn_data->state), conn_data->fd);
 		assert(0);
 	}
 
-	// XXX Again, unsafe! Fix me!
-	conn = socket_entry->conn;
-	rcu_read_unlock();
-	return conn;
+	return conn_data->conn;
 }
 
 
@@ -167,33 +152,33 @@ static int get_new_connection_id_cb(ngtcp2_conn *conn, ngtcp2_cid *cid, uint8_t 
 
 static int handshake_confirmed_client_cb(ngtcp2_conn *conn, void *user_data)
 {
-	int *fd_ref = user_data;
-	int rv, fd = *fd_ref;
+	int rv;
 	int64_t stream_id;
-	struct frr_socket_entry search_entry = {
-		.fd = fd,
-	};
 	struct ngtcp2_socket_entry *socket_entry = NULL;
+	struct ngtcp2_conn_data *conn_data = user_data;
+	assert(conn == conn_data->conn);
 
+	fd_entry = fd_fifo_first(&conn_data->stream_fds);
+	search_entry.fd = fd_entry->fd;
 	frr_socket_table_find(&search_entry, found_entry);
 	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
 	socket_entry = (struct ngtcp2_socket_entry *)found_entry;
 
 	/* Confirm that we are client-side and not server-side */
-	assert(socket_entry->state == QUIC_CONNECTING);
+	assert(conn_data->state == QUIC_CONNECTING);
 	assert(socket_entry->stream_id == -1);
 
 	rv = ngtcp2_conn_open_bidi_stream(conn, &stream_id, &found_entry->fd);
 	if (rv != 0) {
 		zlog_err("QUIC: Failed to open stream during handshake confirmation, fd %d", fd);
-		// XXX implement proper recover from this error.
+		// XXX implement proper recovery from this error.
 		assert(0);
 	}
 	socket_entry->stream_id = stream_id;
 
 	zlog_info("QUIC: Handshake confirmed by client on fd %d. Opening stream %lld", fd,
 		  stream_id);
-	quic_change_state(socket_entry, QUIC_STREAM_READY);
+	quic_change_state(conn_data, QUIC_CONNECTED);
 
 	return 0;
 }
@@ -201,28 +186,16 @@ static int handshake_confirmed_client_cb(ngtcp2_conn *conn, void *user_data)
 
 static int stream_open_server_cb(ngtcp2_conn *conn, int64_t stream_id, void *user_data) {
 
-	int *fd_ref_listener = user_data;
-	int fd_listener = *fd_ref_listener;
 	struct fd_fifo_entry *fd_entry;
-	struct frr_socket_entry search_entry = {
-		.fd = fd_listener,
-	};
+	struct frr_socket_entry search_entry = {};
 	struct ngtcp2_socket_entry *socket_entry = NULL;
+	struct ngtcp2_conn_data *conn_data = user_data;
+	assert(conn == conn_data->conn);
 
-	frr_socket_table_find(&search_entry, found_entry);
-	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct ngtcp2_socket_entry *)found_entry;
-
-	assert(socket_entry->state == QUIC_LISTENING);
-
-	frr_each_safe (fd_fifo, &socket_entry->unclaimed_fds, fd_entry) {
+	frr_each_safe (fd_fifo, &conn_data->stream_fds, fd_entry) {
 		struct ngtcp2_socket_entry *t_socket_entry = NULL;
 		search_entry.fd = fd_entry->fd;
 
-		/* This locks the returned entry for the local scope. However, since the returned
-		 * entry should never be try to aquire the listening entry, deadlock should not be
-		 * possible.
-		 */
 		frr_socket_table_find(&search_entry, t_entry);
 
 		/* We dont' concern ourselves with cleaning up bad entries. That is quic_accept()'s
@@ -234,17 +207,14 @@ static int stream_open_server_cb(ngtcp2_conn *conn, int64_t stream_id, void *use
 		assert(t_entry->protocol == IPPROTO_QUIC);
 		t_socket_entry = (struct ngtcp2_socket_entry *)t_entry;
 
-		if (t_socket_entry->state != QUIC_CONNECTING || t_socket_entry->conn != conn)
+		if (t_socket_entry->stream_id == -1)
 			continue;
 
 		/* At this point, there is a satisfactory entry to assign the stream_id to */
-		assert(t_socket_entry->stream_id == -1);
 		t_socket_entry->stream_id = stream_id;
 		ngtcp2_conn_set_stream_user_data(conn, stream_id, &t_entry->fd);
-		quic_change_state(socket_entry, QUIC_STREAM_READY);
 
-		//XXX Cancel all POLLIN-POLLOUT events if they are still going instead of assert
-		assert(socket_entry->t_background_process == NULL);
+		quic_change_state(conn_data, QUIC_CONNECTED);
 
 		zlog_info("QUIC: Server found new stream with id %lld. Assigned to fd %d",
 			  stream_id, t_entry->fd);
@@ -264,6 +234,8 @@ static int stream_close_cb(ngtcp2_conn *conn, uint32_t flags, int64_t stream_id,
 	int fd, *fd_ref = stream_user_data;
 	struct frr_socket_entry search_entry = {};
 	struct ngtcp2_socket_entry *socket_entry = NULL;
+	struct ngtcp2_conn_data *conn_data = user_data;
+	assert(conn == conn_data->conn);
 
 	/* Our design should result in fd_ref *always* being populated before data is received */
 	if (fd_ref != NULL) {
@@ -277,9 +249,11 @@ static int stream_close_cb(ngtcp2_conn *conn, uint32_t flags, int64_t stream_id,
 	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
 	socket_entry = (struct ngtcp2_socket_entry *)found_entry;
 
-	assert(socket_entry->state == QUIC_STREAM_CLOSING);
-	quic_change_state(socket_entry, QUIC_STREAM_CLOSED);
 	socket_entry->stream_id = -1;
+
+	/* XXX Until we support multiplexing, only a single stream could have existed */
+	assert(conn_data->state == QUIC_CONNECTED);
+	quic_change_state(conn_data, QUIC_NO_STREAMS);
 
 	return 0;
 }
@@ -292,6 +266,8 @@ static int recv_stream_data_cb(ngtcp2_conn *conn, uint32_t flags, int64_t stream
 	int fd, *fd_ref = stream_user_data;
 	struct frr_socket_entry search_entry = {};
 	struct ngtcp2_socket_entry *socket_entry = NULL;
+	struct ngtcp2_conn_data *conn_data = user_data;
+	assert(conn == conn_data->conn);
 
 	(void)offset;
 
@@ -611,7 +587,7 @@ static int quic_server_conn_init(struct ngtcp2_conn_data *conn_data,
 	ngtcp2_conn_set_tls_native_handle(conn_data->conn, conn_data->ossl_ctx);
 
 	conn_data->conn_ref.get_conn = get_conn;
-	conn_data->conn_ref.user_data = &conn_data->entry.fd;
+	conn_data->conn_ref.user_data = &conn_data;
 
 	return 0;
 
@@ -714,7 +690,7 @@ static int quic_client_conn_init(struct ngtcp2_conn_data *conn_data,
 	ngtcp2_conn_set_tls_native_handle(conn_data->conn, conn_data->ossl_ctx);
 
 	conn_data->conn_ref.get_conn = get_conn;
-	conn_data->conn_ref.user_data = &conn_data->entry.fd;
+	conn_data->conn_ref.user_data = &conn_data;
 
 	return 0;
 
@@ -786,29 +762,21 @@ static void quic_entry_delete_event(struct event *thread)
 }
 
 
-static void quic_delayed_delete(struct ngtcp2_conn_data *conn_data)
+static void quic_entry_delayed_delete(struct ngtcp2_conn_data *conn_data)
 {
 	ngtcp2_duration pto = 1000000000; /* 1 second in nanosecond resultion */
 	struct fd_fifo_entry fd_entry = NULL;
 	struct frr_socket_entry search_entry = {};
 	struct ngtcp2_socket_entry *socket_entry = NULL;
 
-	assert(conn_data->state == QUIC_CLOSED);
+	/* XXX Only one entry is associated with a connection at the moment. This approach
+	 * must change if stream multiplexing is to be properly supported.
+	 */
 	fd_entry = fd_fifo_first(&conn_data->stream_fds);
 	search_entry.fd = fd_entry->fd;
 	frr_socket_table_find(&search_entry, found_entry);
 	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
 	socket_entry = (struct ngtcp2_socket_entry *)found_entry;
-
-	/* Stop all I/O-related background events */
-	if (conn_data->t_background_process) {
-		event_cancel(&conn_data->t_background_process);
-		conn_data->t_background_process = NULL;
-	}
-	if (conn_data->t_background_timeout) {
-		event_cancel(&conn_data->t_background_timeout);
-		conn_data->t_background_timeout = NULL;
-	}
 
 	if (conn_data->conn)
 		pto = 3 * ngtcp2_conn_get_pto(conn_data->conn); /* As per RFC 9000 */
@@ -822,27 +790,41 @@ static void quic_delayed_delete(struct ngtcp2_conn_data *conn_data)
 static void quic_closed(struct ngtcp2_conn_data *conn_data)
 {
 	quic_change_state(conn_data, QUIC_CLOSED);
+	quic_entry_delayed_delete(conn_data);
 
-	/* We must wait to delete the socket entry until the user has explicitely closed such */
-	if (conn_data->is_user_closed) {
-		quic_delayed_delete(conn_data);
+	/* Stop all I/O-related background events */
+	if (conn_data->t_background_process) {
+		event_cancel(&conn_data->t_background_process);
+		conn_data->t_background_process = NULL;
+	}
+	if (conn_data->t_background_timeout) {
+		event_cancel(&conn_data->t_background_timeout);
+		conn_data->t_background_timeout = NULL;
 	}
 }
 
 
-static void quic_close_listener(struct ngtcp2_socket_entry *socket_entry)
+static void quic_close_listener(struct ngtcp2_conn_data *conn_data)
 {
 	struct fd_fifo_entry *fd_entry;
-	struct frr_socket_entry search_entry = {};
+	struct frr_conn_data search_entry = {};
+	struct ngtcp2_socket_entry *listener_entry = NULL;
+	struct ngtcp2_socket_entry *socket_entry = NULL;
 
-	if (socket_entry->state != QUIC_LISTENING) {
+	if (conn_data->state != QUIC_LISTENING) {
 		zlog_err("QUIC: Trying to close a non-listener with fd=%d as a listener",
-			 socket_entry->entry.fd);
+			 conn_data->entry.fd);
 		assert(0);
 	}
 
+	fd_entry = fd_fifo_first(&conn_data->stream_fds);
+	search_entry.fd = fd_entry->fd;
+	frr_socket_table_find(&search_entry, found_l_entry);
+	assert(found_l_entry && found_l_entry->protocol == IPPROTO_QUIC);
+	listener_entry = (struct ngtcp2_socket_entry *)found_l_entry;
+
 	/* Any in-progress connections must be terminated */
-	frr_each_safe(fd_fifo, &socket_entry->unclaimed_fds, fd_entry) {
+	frr_each_safe(fd_fifo, &listener_entry->unclaimed_fds, fd_entry) {
 		search_entry.fd = fd_entry->fd;
 
 		/* Safe from deadlock since t_entry should never try to find us */
@@ -852,12 +834,12 @@ static void quic_close_listener(struct ngtcp2_socket_entry *socket_entry)
 			quic_close(t_entry);
 		}
 
-		fd_fifo_del(&socket_entry->unclaimed_fds, fd_entry);
+		fd_fifo_del(&listener_entry->unclaimed_fds, fd_entry);
 		XFREE(MTYPE_FRR_SOCKET, fd_entry);
 	}
 
-	event_cancel_async(frr_socket_threadmaster, &socket_entry->t_background_listen, NULL);
-	quic_closed(socket_entry);
+	event_cancel_async(frr_socket_threadmaster, &conn_data->t_background_listen, NULL);
+	quic_closed(conn_data);
 }
 
 
