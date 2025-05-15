@@ -52,7 +52,7 @@ struct ngtcp2_conn_data {
 	 * XXX Explain safe access rules from a socket entry
 	 */
 	enum quic_state state;
-	pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+	pthread_mutex_t lock;
 
 	int fd;  /* Underlying UDP connection socket */
 	union sockunion local_addr;
@@ -69,10 +69,10 @@ struct ngtcp2_conn_data {
 	struct event *t_background_timeout;
 	struct event *t_background_listen;
 	struct event *t_socket_closed;
+	struct event *t_quic_delete;
 
-	/* Listener only state */
-	int listener_backlog;
-}
+	bool abrupt_shutdown;
+};
 
 struct ngtcp2_socket_entry {
 	/* Each protocol entry must begin with the generic socket entry */
@@ -86,13 +86,15 @@ struct ngtcp2_socket_entry {
 	struct stream_fifi *rx_buffer_stream;
 	struct stream_fifi *tx_retransmit_stream;
 	int64_t tx_offset_acked;
-	struct event *t_background_delete;
+
+	const char *msg;  //XXX Remove me!
 
 	/* This reference should be refcounted when multi-stream support is added */
 	struct ngtcp2_conn_data *conn_data;
 
 	/* Listener state */
 	struct fd_fifo_head unclaimed_fds;
+	int listener_backlog;
 };
 
 DECLARE_LIST(fd_fifo, struct fd_fifo_entry, next_fd_entry);

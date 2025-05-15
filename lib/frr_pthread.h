@@ -250,21 +250,10 @@ int frr_pthread_non_controlled_startup(pthread_t thread, const char *name,
 				    _frr_mtx_lock(mutex)                       \
 	/* end */
 
-#define frr_mutex_trylock_autounlock(mutex)                                    \
-	pthread_mutex_t *NAMECTR(_mtx_)                                        \
-		__attribute__((unused, cleanup(_frr_mtx_unlock))) =            \
-				    _frr_mtx_trylock(mutex)                    \
-	/* end */
-
 static inline pthread_mutex_t *_frr_mtx_lock(pthread_mutex_t *mutex)
 {
 	pthread_mutex_lock(mutex);
 	return mutex;
-}
-
-static inline pthread_mutex_t *_frr_mtx_trylock(pthread_mutex_t *mutex)
-{
-	return pthread_mutex_trylock(mutex) == 0 ? mutex : NULL;
 }
 
 static inline void _frr_mtx_unlock(pthread_mutex_t **mutex)
@@ -274,6 +263,30 @@ static inline void _frr_mtx_unlock(pthread_mutex_t **mutex)
 	pthread_mutex_unlock(*mutex);
 	*mutex = NULL;
 }
+
+/* variant 3:
+ * (for short blocks, trylock single mutex)
+ * break & return can be used for aborting the block
+ * the block is not executed if the lock is not obtained
+ *
+ * frr_try_with_mutex(&mtx) {
+ *    if (error)
+ *       break;
+ *    ...
+ * }
+ */
+static inline pthread_mutex_t *_frr_mtx_trylock(pthread_mutex_t *mutex)
+{
+	return pthread_mutex_trylock(mutex) ? NULL : mutex;
+}
+
+#define frr_try_with_mutex(mutex)                                              \
+	for (pthread_mutex_t * _mutex_once                                     \
+		     __attribute__((unused, cleanup(_frr_mtx_unlock))) =       \
+		     _frr_mtx_trylock(mutex),                                  \
+					    *_once = NULL;                     \
+	     _once == NULL && _mutex_once != NULL; _once = (void *)1)          \
+	/* end */
 
 #ifdef __cplusplus
 }

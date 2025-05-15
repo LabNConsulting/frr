@@ -226,8 +226,10 @@ static void *pthread_quic_client(void *arg)
 		assert(0);
 	}
 
-	if (params->stop_at == GETSOCKOPT)
+	if (params->stop_at == GETSOCKOPT) {
+		sleep(1);  /* Give the server time to accept the connection before we close it. */
 		goto finish;
+	}
 
 	/* Socket is ready for write */
 
@@ -397,6 +399,7 @@ int main(int argc, char **argv)
 	frr_socket_lib_finish();
 
 	printf("Finishing\n");
+	sleep(10); // XXX Remove me!
 	frr_pthread_stop(pth_shared, NULL);
 	frr_pthread_finish();
 	rcu_read_lock();
