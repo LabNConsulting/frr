@@ -721,8 +721,11 @@ static void quic_entry_delete(struct ngtcp2_socket_entry *socket_entry)
 	int rv;
 
 	/* There must be agreement between user and conn_data that the entry is ready to be freed */
-	if (!socket_entry->is_user_closed || !socket_entry->is_conn_closed)
-		return;
+	if (!socket_entry->is_user_closed || !socket_entry->is_conn_closed) {
+		zlog_warn("QUIC: Trying to destroy socket entry with fd=%d but is not agreed that should close.",
+			  socket_entry->entry.fd);
+		assert(0);
+	}
 
 	/* Removes the entry from the FRR socket table and destroys it via a callback after RCU finds
 	 * no more references to it. When the last entry is destroyed, so it the conn_data instance.
@@ -741,6 +744,10 @@ static void quic_delete(struct ngtcp2_conn_data *conn_data)
 	struct frr_socket_entry search_entry = {};
 	struct fd_fifo_entry *fd_entry;
 
+	/* When the lib is shutting down, it will destroy the socket entries instead of us */
+	if (conn_data->lib_shutdown)
+		return;
+
 	frr_each_safe(fd_fifo, &conn_data->stream_fds, fd_entry) {
 		struct ngtcp2_socket_entry *socket_entry = NULL;
 
@@ -752,7 +759,8 @@ static void quic_delete(struct ngtcp2_conn_data *conn_data)
 		socket_entry = (struct ngtcp2_socket_entry *)t_entry;
 
 		socket_entry->is_conn_closed = true;
-		quic_entry_delete(socket_entry);
+		if (socket_entry->is_user_closed)
+			quic_entry_delete(socket_entry);
 	}
 }
 
@@ -798,11 +806,16 @@ static void quic_closed(struct ngtcp2_conn_data *conn_data)
 	if (conn_data->t_background_listen)
 		event_cancel(&conn_data->t_background_listen);
 
+	/* In case quic_closed was previously called, but this time we must close abruptly */
+	if (conn_data->t_quic_delete)
+		event_cancel(&conn_data->t_quic_delete);
+
 	conn_data->t_background_process = NULL;
 	conn_data->t_background_timeout = NULL;
 	conn_data->t_background_listen = NULL;
+	conn_data->t_quic_delete = NULL;
 
-	if (conn_data->abrupt_shutdown) {
+	if (conn_data->lib_shutdown) {
 		quic_delete(conn_data);
 	} else {
 		quic_delayed_delete(conn_data);
@@ -882,24 +895,28 @@ static void quic_close_conn(struct ngtcp2_conn_data *conn_data)
 }
 
 
-static void quic_check_all_sockets_closed(struct ngtcp2_conn_data *conn_data)
+static void quic_check_all_sockets_user_closed(struct ngtcp2_conn_data *conn_data)
 {
 	struct fd_fifo_entry *fd_entry = NULL;
 	struct frr_socket_entry search_entry = {};
-	struct ngtcp2_socket_entry *socket_entry = NULL;
 
-	fd_entry = fd_fifo_first(&conn_data->stream_fds);
-	assert(fd_entry != NULL);
-	search_entry.fd = fd_entry->fd;
-	frr_socket_table_find(&search_entry, found_entry);
-	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct ngtcp2_socket_entry *)found_entry;
+	/* The connection is only closed once *every* entry is closed (either user/conn side) */
+	frr_each_safe(fd_fifo, &conn_data->stream_fds, fd_entry) {
+		struct ngtcp2_socket_entry *t_socket_entry = NULL;
+		search_entry.fd = fd_entry->fd;
 
-	/* Check all streams instead of just the first if QUIC multiplexing is configured later down
-	 * the road*/
-	if (!socket_entry->is_user_closed)
-		return;
+		frr_socket_table_find(&search_entry, t_entry);
+		if (!t_entry)
+			continue;
 
+		assert(t_entry->protocol == IPPROTO_QUIC);
+		t_socket_entry = (struct ngtcp2_socket_entry *)t_entry;
+
+		if (!t_socket_entry->is_user_closed)
+			return;
+	}
+
+	/* We determined that the connection needs to be closed. The how-to depends on state */
 	switch(conn_data->state) {
 	case QUIC_NONE:
 	case QUIC_CLOSED:
@@ -914,10 +931,10 @@ static void quic_check_all_sockets_closed(struct ngtcp2_conn_data *conn_data)
 		quic_close_conn(conn_data);
 		break;
 	case QUIC_CONNECTED:
-		/* Don't take action and let streams flush themselves if able. Not possible during
-		 * library shutdown, where each connection must abruptly end.
+		/* Don't take action and let streams flush themselves if able. Not possible in
+		 * instances where we are abruptly shutting down.
 		 */
-		if (conn_data->abrupt_shutdown)
+		if (conn_data->lib_shutdown)
 			quic_close_conn(conn_data);
 		break;
 	case QUIC_CLOSING:
@@ -937,8 +954,9 @@ static void quic_socket_closed(struct event *thread)
 	frr_mutex_lock_autounlock(&conn_data->lock);
 
 	conn_data->t_socket_closed = NULL;
+	conn_data->wait_for_shutdown_event = false;
 
-	quic_check_all_sockets_closed(conn_data);
+	quic_check_all_sockets_user_closed(conn_data);
 
 	return;
 }
@@ -2000,16 +2018,28 @@ void quic_socket_lib_finish_hook(struct frr_socket_entry *entry)
 	pthread_mutex_unlock(&entry->lock);
 	conn_data = socket_entry->conn_data;
 	frr_mutex_lock_autounlock(&conn_data->lock);
-	pthread_mutex_lock(&entry->lock);
 
 	/* This is the last point at run-time where we are sure that the frr_socket_threadmaster is
-	 * a valid reference. However, since the connection can only be shutdown within the event
-	 * loop, we have to hope that this event gets executed before the pthread shuts down */
-	conn_data->abrupt_shutdown = true;
+	 * a valid reference. Since the connection can only be shutdown within the event loop, we
+	 * must schedule the event and then wait until the event executes.
+	 */
+	conn_data->lib_shutdown = true;
+	conn_data->wait_for_shutdown_event = true;
 	if (!conn_data->t_socket_closed) {
 		event_add_timer_msec(frr_socket_threadmaster, quic_socket_closed,
 				     conn_data, 0, &conn_data->t_socket_closed);
 	}
+
+	/* Ugly hack. We need assurance that the quic_socket_closed event has completed before we
+	 * return control to frr_socket_lib_finish. Any open connections need to properly close.
+	 */
+	while(conn_data->wait_for_shutdown_event) {
+		pthread_mutex_unlock(&conn_data->lock);
+		usleep(1000);
+		pthread_mutex_lock(&conn_data->lock);
+	}
+
+	pthread_mutex_lock(&entry->lock);
 }
 
 

@@ -11,6 +11,11 @@
 #include "frr_pthread.h"
 #include "frr_socket.h"
 
+#define ONESEC2MICRO 1000000
+#define TIMEOUT (30 * ONESEC2MICRO)
+#define POLL_SLEEP (ONESEC2MICRO / 4)
+#define POLL_ATTEMPTS (TIMEOUT / POLL_SLEEP)
+
 enum finish_point {
 	SOCKET,
 	LISTEN,
@@ -96,7 +101,7 @@ static void *pthread_quic_server(void *arg)
 		.fd = fd_l,
 		.events = POLLIN,
 	};
-	int poll_rv, attempts = 30;
+	int poll_rv, attempts = POLL_ATTEMPTS;
 	while (attempts-- > 0) {
 		if ((poll_rv = poll(&fd_poll, 1, 0)) < 0) {
 			printf("%s: Unexpected result of poll: %s\n", params->desc,
@@ -109,7 +114,7 @@ static void *pthread_quic_server(void *arg)
 		if (poll_rv > 0)
 			break;
 
-		sleep(1);
+		usleep(POLL_SLEEP);
 	}
 
 	if (!(fd_poll.revents & POLLIN)) {
@@ -195,7 +200,7 @@ static void *pthread_quic_client(void *arg)
 		.fd = fd,
 		.events = POLLOUT,
 	};
-	int poll_rv, attempts = 30;
+	int poll_rv, attempts = POLL_ATTEMPTS;
 	while (attempts-- > 0) {
 		if ((poll_rv = poll(&fd_poll, 1, 0)) < 0) {
 			printf("%s: Unexpected result of poll: %s\n", params->desc,
@@ -208,7 +213,7 @@ static void *pthread_quic_client(void *arg)
 		if (poll_rv > 0)
 			break;
 
-		sleep(1);
+		usleep(POLL_SLEEP);
 	}
 
 	if (!(fd_poll.revents & POLLOUT)) {
@@ -347,10 +352,10 @@ static void test_accept_then_close(void)
 	struct socket_test_arg params_s = {}, params_c = {};
 	pthread_t pthr_s, pthr_c;
 
-	params_s.desc = "test_accept_then_close: server";
+	params_s.desc = "test_accept_then_close (server)";
 	params_s.stop_at = ACCEPT;
 	params_s.addr = "127.0.3.1";
-	params_c.desc = "test_accept_then_close: client";
+	params_c.desc = "test_accept_then_close (client)";
 	params_c.stop_at = GETSOCKOPT;
 	params_c.addr = "127.0.3.2";
 
@@ -399,7 +404,6 @@ int main(int argc, char **argv)
 	frr_socket_lib_finish();
 
 	printf("Finishing\n");
-	sleep(10); // XXX Remove me!
 	frr_pthread_stop(pth_shared, NULL);
 	frr_pthread_finish();
 	rcu_read_lock();

@@ -71,7 +71,8 @@ struct ngtcp2_conn_data {
 	struct event *t_socket_closed;
 	struct event *t_quic_delete;
 
-	bool abrupt_shutdown;
+	bool lib_shutdown;
+	bool wait_for_shutdown_event;
 };
 
 struct ngtcp2_socket_entry {
