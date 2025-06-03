@@ -101,7 +101,7 @@ static const char *quic_strstate(int state) {
 
 static ngtcp2_conn *get_conn(ngtcp2_crypto_conn_ref *conn_ref)
 {
-	struct ngtcp2_conn_data *conn_data = conn_ref->user_data;
+	struct quic_conn_data *conn_data = conn_ref->user_data;
 
 	/* This callback is needed by ngtcp2 to retreive the connection reference from the SSL
 	 * context that we created. It should only be called when conn_data is locked and in the
@@ -122,7 +122,7 @@ static ngtcp2_conn *get_conn(ngtcp2_crypto_conn_ref *conn_ref)
 }
 
 
-static void quic_change_state(struct ngtcp2_conn_data *conn_data, enum quic_state state) {
+static void quic_change_state(struct quic_conn_data *conn_data, enum quic_state state) {
 	enum quic_state prev_state = conn_data->state;
 
 	if (conn_data->state == state)
@@ -158,15 +158,15 @@ static int handshake_confirmed_client_cb(ngtcp2_conn *conn, void *user_data)
 	int rv;
 	struct fd_fifo_entry *fd_entry;
 	struct frr_socket_entry search_entry = {};
-	struct ngtcp2_socket_entry *socket_entry = NULL;
-	struct ngtcp2_conn_data *conn_data = user_data;
+	struct quic_socket_entry *socket_entry = NULL;
+	struct quic_conn_data *conn_data = user_data;
 	assert(conn == conn_data->conn);
 
 	fd_entry = fd_fifo_first(&conn_data->stream_fds);
 	search_entry.fd = fd_entry->fd;
 	frr_socket_table_find(&search_entry, found_entry);
 	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct ngtcp2_socket_entry *)found_entry;
+	socket_entry = (struct quic_socket_entry *)found_entry;
 
 	/* Confirm that we are client-side and not server-side */
 	assert(conn_data->state == QUIC_CONNECTING);
@@ -192,12 +192,12 @@ static int stream_open_server_cb(ngtcp2_conn *conn, int64_t stream_id, void *use
 
 	struct fd_fifo_entry *fd_entry;
 	struct frr_socket_entry search_entry = {};
-	struct ngtcp2_conn_data *conn_data = user_data;
+	struct quic_conn_data *conn_data = user_data;
 	assert(conn == conn_data->conn);
 
 	/* Find an entry with that we can assign the stream_id to */
 	frr_each_safe (fd_fifo, &conn_data->stream_fds, fd_entry) {
-		struct ngtcp2_socket_entry *t_socket_entry = NULL;
+		struct quic_socket_entry *t_socket_entry = NULL;
 
 		search_entry.fd = fd_entry->fd;
 		frr_socket_table_find(&search_entry, t_entry);
@@ -207,7 +207,7 @@ static int stream_open_server_cb(ngtcp2_conn *conn, int64_t stream_id, void *use
 			continue;
 
 		assert(t_entry->protocol == IPPROTO_QUIC);
-		t_socket_entry = (struct ngtcp2_socket_entry *)t_entry;
+		t_socket_entry = (struct quic_socket_entry *)t_entry;
 
 		if (t_socket_entry->stream_id != -1)
 			continue;
@@ -233,8 +233,8 @@ static int stream_close_cb(ngtcp2_conn *conn, uint32_t flags, int64_t stream_id,
 {
 	int *fd_ref = stream_user_data;
 	struct frr_socket_entry search_entry = {};
-	struct ngtcp2_socket_entry *socket_entry = NULL;
-	struct ngtcp2_conn_data *conn_data = user_data;
+	struct quic_socket_entry *socket_entry = NULL;
+	struct quic_conn_data *conn_data = user_data;
 	assert(conn == conn_data->conn);
 
 	/* fd_ref should have populated in stream_open_server_cb or handshake_confirmed_client_cb */
@@ -246,7 +246,7 @@ static int stream_close_cb(ngtcp2_conn *conn, uint32_t flags, int64_t stream_id,
 	search_entry.fd = *fd_ref;
 	frr_socket_table_find(&search_entry, found_entry);
 	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct ngtcp2_socket_entry *)found_entry;
+	socket_entry = (struct quic_socket_entry *)found_entry;
 
 	socket_entry->stream_id = -1;
 
@@ -264,8 +264,8 @@ static int recv_stream_data_cb(ngtcp2_conn *conn, uint32_t flags, int64_t stream
 {
 	int *fd_ref = stream_user_data;
 	struct frr_socket_entry search_entry = {};
-	struct ngtcp2_socket_entry *socket_entry = NULL;
-	struct ngtcp2_conn_data *conn_data = user_data;
+	struct quic_socket_entry *socket_entry = NULL;
+	struct quic_conn_data *conn_data = user_data;
 	assert(conn == conn_data->conn);
 
 	(void)offset;
@@ -279,7 +279,7 @@ static int recv_stream_data_cb(ngtcp2_conn *conn, uint32_t flags, int64_t stream
 	search_entry.fd = *fd_ref;
 	frr_socket_table_find(&search_entry, found_entry);
 	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct ngtcp2_socket_entry *)found_entry;
+	socket_entry = (struct quic_socket_entry *)found_entry;
 
 	if (datalen > 0 ) {
 		/* XXX Copy the data into the fifo stream buffer! */
@@ -309,7 +309,7 @@ static int recv_stream_data_cb(ngtcp2_conn *conn, uint32_t flags, int64_t stream
  */
 
 
-static void cleanup_on_init_failure(struct ngtcp2_conn_data* conn_data)
+static void cleanup_on_init_failure(struct quic_conn_data* conn_data)
 {
 	if (conn_data->conn) {
 		ngtcp2_conn_del(conn_data->conn);
@@ -330,7 +330,7 @@ static void cleanup_on_init_failure(struct ngtcp2_conn_data* conn_data)
 }
 
 
-static int quic_client_tls_init(struct ngtcp2_conn_data *conn_data) {
+static int quic_client_tls_init(struct quic_conn_data *conn_data) {
 	// XXX Change the allowed ciphers or curves?
 	uint64_t ssl_opts;
 	const char *ciphers =
@@ -387,7 +387,7 @@ failed:
 }
 
 
-static int quic_server_tls_init(struct ngtcp2_conn_data *conn_data) {
+static int quic_server_tls_init(struct quic_conn_data *conn_data) {
 	// XXX Change the allowed ciphers or curves?
 	uint64_t ssl_opts;
 	const char *ciphers =
@@ -493,7 +493,7 @@ failed:
 }
 
 
-static int quic_server_conn_init(struct ngtcp2_conn_data *conn_data,
+static int quic_server_conn_init(struct quic_conn_data *conn_data,
 				 const struct sockaddr *remote_addr, socklen_t remote_addrlen,
 				 ngtcp2_cid *dcid, ngtcp2_cid *scid)
 {
@@ -593,7 +593,7 @@ failed:
 	return -1;
 }
 
-static int quic_client_conn_init(struct ngtcp2_conn_data *conn_data,
+static int quic_client_conn_init(struct quic_conn_data *conn_data,
 				 const struct sockaddr *remote_addr, socklen_t remote_addrlen)
 {
 	ngtcp2_path path = {
@@ -695,7 +695,7 @@ failed:
 }
 
 
-static int quic_send_packet(struct ngtcp2_conn_data *conn_data, const uint8_t *data, size_t datalen)
+static int quic_send_packet(struct quic_conn_data *conn_data, const uint8_t *data, size_t datalen)
 {
 	struct iovec iov = { (uint8_t *)data, datalen };
 	struct msghdr msg = { 0 };
@@ -717,7 +717,7 @@ static int quic_send_packet(struct ngtcp2_conn_data *conn_data, const uint8_t *d
 }
 
 
-static void quic_entry_delete(struct ngtcp2_socket_entry *socket_entry)
+static void quic_entry_delete(struct quic_socket_entry *socket_entry)
 {
 	int rv;
 
@@ -740,7 +740,7 @@ static void quic_entry_delete(struct ngtcp2_socket_entry *socket_entry)
 }
 
 
-static void quic_delete_conn(struct ngtcp2_conn_data *conn_data)
+static void quic_delete_conn(struct quic_conn_data *conn_data)
 {
 	struct frr_socket_entry search_entry = {};
 	struct fd_fifo_entry *fd_entry;
@@ -750,14 +750,14 @@ static void quic_delete_conn(struct ngtcp2_conn_data *conn_data)
 		return;
 
 	frr_each_safe(fd_fifo, &conn_data->stream_fds, fd_entry) {
-		struct ngtcp2_socket_entry *socket_entry = NULL;
+		struct quic_socket_entry *socket_entry = NULL;
 
 		search_entry.fd = fd_entry->fd;
 		frr_socket_table_find(&search_entry, t_entry);
 		if (!t_entry)
 			continue;
 		assert(t_entry->protocol == IPPROTO_QUIC);
-		socket_entry = (struct ngtcp2_socket_entry *)t_entry;
+		socket_entry = (struct quic_socket_entry *)t_entry;
 
 		socket_entry->is_conn_closed = true;
 		if (socket_entry->is_user_closed)
@@ -768,7 +768,7 @@ static void quic_delete_conn(struct ngtcp2_conn_data *conn_data)
 
 static void quic_delete_event(struct event *thread)
 {
-	struct ngtcp2_conn_data *conn_data = EVENT_ARG(thread);
+	struct quic_conn_data *conn_data = EVENT_ARG(thread);
 
 	assert(conn_data);
 	conn_data->t_quic_delete = NULL;
@@ -780,7 +780,7 @@ static void quic_delete_event(struct event *thread)
 }
 
 
-static void quic_schedule_delete_conn(struct ngtcp2_conn_data *conn_data)
+static void quic_schedule_delete_conn(struct quic_conn_data *conn_data)
 {
 	ngtcp2_duration pto = ONESEC2NANO;
 
@@ -794,7 +794,7 @@ static void quic_schedule_delete_conn(struct ngtcp2_conn_data *conn_data)
 }
 
 
-static void quic_declare_conn_closed(struct ngtcp2_conn_data *conn_data)
+static void quic_declare_conn_closed(struct quic_conn_data *conn_data)
 {
 	quic_change_state(conn_data, QUIC_CLOSED);
 
@@ -824,11 +824,11 @@ static void quic_declare_conn_closed(struct ngtcp2_conn_data *conn_data)
 }
 
 
-static void quic_close_listener(struct ngtcp2_conn_data *conn_data)
+static void quic_close_listener(struct quic_conn_data *conn_data)
 {
 	struct fd_fifo_entry *fd_entry;
 	struct frr_socket_entry search_entry = {};
-	struct ngtcp2_socket_entry *listener_entry = NULL;
+	struct quic_socket_entry *listener_entry = NULL;
 
 	if (conn_data->state != QUIC_LISTENING) {
 		zlog_err("QUIC: Trying to close a non-listener with fd=%d as a listener",
@@ -840,7 +840,7 @@ static void quic_close_listener(struct ngtcp2_conn_data *conn_data)
 	search_entry.fd = fd_entry->fd;
 	frr_socket_table_find(&search_entry, found_l_entry);
 	assert(found_l_entry && found_l_entry->protocol == IPPROTO_QUIC);
-	listener_entry = (struct ngtcp2_socket_entry *)found_l_entry;
+	listener_entry = (struct quic_socket_entry *)found_l_entry;
 
 	/* Any in-progress connections must be terminated */
 	frr_each_safe(fd_fifo, &listener_entry->unclaimed_fds, fd_entry) {
@@ -862,7 +862,7 @@ static void quic_close_listener(struct ngtcp2_conn_data *conn_data)
 }
 
 
-static void quic_close_conn(struct ngtcp2_conn_data *conn_data)
+static void quic_close_conn(struct quic_conn_data *conn_data)
 {
 	ngtcp2_ssize nwrite;
 	ngtcp2_pkt_info pi;
@@ -896,14 +896,14 @@ static void quic_close_conn(struct ngtcp2_conn_data *conn_data)
 }
 
 
-static void quic_check_all_entries_user_closed(struct ngtcp2_conn_data *conn_data)
+static void quic_check_all_entries_user_closed(struct quic_conn_data *conn_data)
 {
 	struct fd_fifo_entry *fd_entry = NULL;
 	struct frr_socket_entry search_entry = {};
 
 	/* The connection is only closed once *every* entry is closed (either user/conn side) */
 	frr_each_safe(fd_fifo, &conn_data->stream_fds, fd_entry) {
-		struct ngtcp2_socket_entry *t_socket_entry = NULL;
+		struct quic_socket_entry *t_socket_entry = NULL;
 		search_entry.fd = fd_entry->fd;
 
 		frr_socket_table_find(&search_entry, t_entry);
@@ -911,7 +911,7 @@ static void quic_check_all_entries_user_closed(struct ngtcp2_conn_data *conn_dat
 			continue;
 
 		assert(t_entry->protocol == IPPROTO_QUIC);
-		t_socket_entry = (struct ngtcp2_socket_entry *)t_entry;
+		t_socket_entry = (struct quic_socket_entry *)t_entry;
 
 		if (!t_socket_entry->is_user_closed)
 			return;
@@ -949,7 +949,7 @@ static void quic_check_all_entries_user_closed(struct ngtcp2_conn_data *conn_dat
 
 static void quic_close_event(struct event *thread)
 {
-	struct ngtcp2_conn_data *conn_data = EVENT_ARG(thread);
+	struct quic_conn_data *conn_data = EVENT_ARG(thread);
 
 	assert(conn_data != NULL);
 	frr_mutex_lock_autounlock(&conn_data->lock);
@@ -963,33 +963,7 @@ static void quic_close_event(struct event *thread)
 }
 
 
-/*
-static void quic_shutdown_conn(struct event *thread)
-{
-	struct ngtcp2_conn_data *conn_data = EVENT_ARG(thread);
-
-	if (conn_data->state == QUIC_CLOSED)
-		return;
-
-	quic_close_conn(conn_data);
-
-	if (conn_data->t_background_timeout != NULL) {
-		event_cancel(&conn_data->t_background_timeout);
-		conn_data->t_background_timeout = NULL;
-	}
-	if (conn_data->t_background_process != NULL) {
-		event_cancel(&conn_data->t_background_process);
-		conn_data->t_background_process = NULL;
-	}
-	if (conn_data->t_background_listen != NULL) {
-		event_cancel(&conn_data->t_background_listen);
-		conn_data->t_background_listen = NULL;
-	}
-}
-*/
-
-
-static void quic_reschedule_timeout_process(struct ngtcp2_conn_data *conn_data)
+static void quic_reschedule_timeout_process(struct quic_conn_data *conn_data)
 {
 	ngtcp2_tstamp expiry, now;
 	uint64_t timeout;
@@ -1015,7 +989,7 @@ static void quic_reschedule_timeout_process(struct ngtcp2_conn_data *conn_data)
 }
 
 
-static int quic_write_to_conn(struct ngtcp2_conn_data *conn_data)
+static int quic_write_to_conn(struct quic_conn_data *conn_data)
 {
 	ngtcp2_tstamp ts = timestamp();
 	ngtcp2_pkt_info pi;
@@ -1032,7 +1006,7 @@ static int quic_write_to_conn(struct ngtcp2_conn_data *conn_data)
 	size_t msg_size = 0;
 	struct fd_fifo_entry *fd_entry;
 	struct frr_socket_entry search_entry = {};
-	struct ngtcp2_socket_entry *socket_entry;
+	struct quic_socket_entry *socket_entry;
 
 	ngtcp2_path_storage_zero(&ps);
 
@@ -1041,7 +1015,7 @@ static int quic_write_to_conn(struct ngtcp2_conn_data *conn_data)
 	search_entry.fd = fd_entry->fd;
 	frr_socket_table_find(&search_entry, found_entry);
 	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct ngtcp2_socket_entry *)found_entry;
+	socket_entry = (struct quic_socket_entry *)found_entry;
 
 	if (socket_entry->msg && socket_entry->stream_id != -1 &&
 	    conn_data->state == QUIC_CONNECTED) {
@@ -1145,7 +1119,7 @@ static int quic_write_to_conn(struct ngtcp2_conn_data *conn_data)
 }
 
 
-static int quic_process_read_packet(struct ngtcp2_conn_data *conn_data, uint8_t *pkt,
+static int quic_process_read_packet(struct quic_conn_data *conn_data, uint8_t *pkt,
 				    size_t pktsize, struct msghdr *msg)
 {
 	ngtcp2_path path = {};
@@ -1211,7 +1185,7 @@ static int quic_process_read_packet(struct ngtcp2_conn_data *conn_data, uint8_t 
 }
 
 
-static int quic_process_listener_packet(struct ngtcp2_conn_data *conn_data, uint8_t *pkt,
+static int quic_process_listener_packet(struct quic_conn_data *conn_data, uint8_t *pkt,
 					size_t pktsize, struct msghdr *msg)
 {
 	ngtcp2_path path;
@@ -1220,9 +1194,9 @@ static int quic_process_listener_packet(struct ngtcp2_conn_data *conn_data, uint
 	ngtcp2_pkt_hd hd;
 	int rv, domain, new_fd = 0;
 	socklen_t domain_len = sizeof(domain);
-	struct ngtcp2_socket_entry *socket_entry = NULL;
-	struct ngtcp2_socket_entry *listen_entry = NULL;
-	struct ngtcp2_conn_data *new_conn_data = NULL;
+	struct quic_socket_entry *socket_entry = NULL;
+	struct quic_socket_entry *listen_entry = NULL;
+	struct quic_conn_data *new_conn_data = NULL;
 	struct frr_socket_entry search_entry = {};
 	struct fd_fifo_entry *listen_fd_entry = NULL;
 	struct fd_fifo_entry *fd_entry = NULL;
@@ -1242,7 +1216,7 @@ static int quic_process_listener_packet(struct ngtcp2_conn_data *conn_data, uint
 	search_entry.fd = listen_fd_entry->fd;
 	frr_socket_table_find(&search_entry, found_entry);
 	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
-	listen_entry = (struct ngtcp2_socket_entry *)found_entry;
+	listen_entry = (struct quic_socket_entry *)found_entry;
 
 	/* Ignore the new connection if we are at capacity */
 	// XXX Need to check listener entry for this
@@ -1273,7 +1247,7 @@ static int quic_process_listener_packet(struct ngtcp2_conn_data *conn_data, uint
 	search_entry.fd = new_fd;
 	frr_socket_table_find(&search_entry, new_entry);
 	assert(new_entry && new_entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct ngtcp2_socket_entry *)new_entry;
+	socket_entry = (struct quic_socket_entry *)new_entry;
 
 	rv = quic_bind(new_entry, (struct sockaddr *)&conn_data->local_addr,
 		       conn_data->local_addrlen);
@@ -1333,6 +1307,7 @@ static int quic_process_listener_packet(struct ngtcp2_conn_data *conn_data, uint
 
 failed:
 	/* quic_close() can cleanup after all these failure states already */
+	// XXX Is the previous statement true?
 	if (socket_entry != NULL) {
 		quic_close((struct frr_socket_entry *)socket_entry);
 	}
@@ -1341,7 +1316,7 @@ failed:
 }
 
 
-static int quic_read_from_conn(struct ngtcp2_conn_data *conn_data)
+static int quic_read_from_conn(struct quic_conn_data *conn_data)
 {
 	uint8_t buf[65536];
 	union sockunion addr;
@@ -1398,7 +1373,7 @@ static int quic_read_from_conn(struct ngtcp2_conn_data *conn_data)
 
 static void quic_background_process(struct event *thread)
 {
-	struct ngtcp2_conn_data *conn_data = EVENT_ARG(thread);
+	struct quic_conn_data *conn_data = EVENT_ARG(thread);
 	assert(conn_data != NULL);
 	frr_mutex_lock_autounlock(&conn_data->lock);
 
@@ -1426,7 +1401,7 @@ static void quic_background_process(struct event *thread)
 static void quic_background_timeout_process(struct event *thread)
 {
 	int rv;
-	struct ngtcp2_conn_data *conn_data = EVENT_ARG(thread);
+	struct quic_conn_data *conn_data = EVENT_ARG(thread);
 
 	assert(conn_data != NULL);
 	frr_mutex_lock_autounlock(&conn_data->lock);
@@ -1454,7 +1429,7 @@ static void quic_background_timeout_process(struct event *thread)
 
 static void quic_background_listen(struct event *thread)
 {
-	struct ngtcp2_conn_data *conn_data = EVENT_ARG(thread);
+	struct quic_conn_data *conn_data = EVENT_ARG(thread);
 	assert(conn_data != NULL);
 	frr_mutex_lock_autounlock(&conn_data->lock);
 
@@ -1486,8 +1461,8 @@ int quic_socket(int domain, int type)
 {
 	int sock_fd, conn_fd;
 	bool del_mutex = false;
-	struct ngtcp2_socket_entry *socket_entry;
-	struct ngtcp2_conn_data *conn_data;
+	struct quic_socket_entry *socket_entry;
+	struct quic_conn_data *conn_data;
 	struct fd_fifo_entry *fd_entry;
 
 	/* A user should understand this as a stream socket (even when UDP is underlying) */
@@ -1598,8 +1573,8 @@ failed:
 int quic_bind(struct frr_socket_entry *entry, const struct sockaddr *addr, socklen_t addrlen)
 {
 	int rv;
-	struct ngtcp2_socket_entry *socket_entry = (struct ngtcp2_socket_entry *)entry;
-	struct ngtcp2_conn_data *conn_data;
+	struct quic_socket_entry *socket_entry = (struct quic_socket_entry *)entry;
+	struct quic_conn_data *conn_data;
 	assert(entry->protocol == IPPROTO_QUIC);
 	conn_data = socket_entry->conn_data;
 
@@ -1640,8 +1615,8 @@ int quic_bind(struct frr_socket_entry *entry, const struct sockaddr *addr, sockl
 int quic_connect(struct frr_socket_entry *entry, const struct sockaddr *addr, socklen_t addrlen)
 {
 	int rv;
-	struct ngtcp2_socket_entry *socket_entry = (struct ngtcp2_socket_entry *)entry;
-	struct ngtcp2_conn_data *conn_data;
+	struct quic_socket_entry *socket_entry = (struct quic_socket_entry *)entry;
+	struct quic_conn_data *conn_data;
 	assert(entry->protocol == IPPROTO_QUIC);
 	conn_data = socket_entry->conn_data;
 
@@ -1688,8 +1663,8 @@ int quic_connect(struct frr_socket_entry *entry, const struct sockaddr *addr, so
 
 int quic_listen(struct frr_socket_entry *entry, int backlog)
 {
-	struct ngtcp2_socket_entry *socket_entry = (struct ngtcp2_socket_entry *)entry;
-	struct ngtcp2_conn_data *conn_data;
+	struct quic_socket_entry *socket_entry = (struct quic_socket_entry *)entry;
+	struct quic_conn_data *conn_data;
 
 	assert(entry->protocol == IPPROTO_QUIC);
 	conn_data = socket_entry->conn_data;
@@ -1721,9 +1696,9 @@ int quic_accept(struct frr_socket_entry *entry, struct sockaddr *addr, socklen_t
 {
 	struct fd_fifo_entry *fd_entry = NULL;
 	struct frr_socket_entry search_entry = {};
-	struct ngtcp2_socket_entry *socket_entry = NULL;
+	struct quic_socket_entry *socket_entry = NULL;
 	assert(entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct ngtcp2_socket_entry *)entry;
+	socket_entry = (struct quic_socket_entry *)entry;
 
 	if (socket_entry->listener_backlog <= 0) {
 		errno = EINVAL;
@@ -1731,7 +1706,7 @@ int quic_accept(struct frr_socket_entry *entry, struct sockaddr *addr, socklen_t
 	}
 
 	frr_each_safe(fd_fifo, &socket_entry->unclaimed_fds, fd_entry) {
-		struct ngtcp2_socket_entry *t_socket_entry = NULL;
+		struct quic_socket_entry *t_socket_entry = NULL;
 		search_entry.fd = fd_entry->fd;
 
 		frr_socket_table_find(&search_entry, t_entry);
@@ -1745,7 +1720,7 @@ int quic_accept(struct frr_socket_entry *entry, struct sockaddr *addr, socklen_t
 		}
 
 		assert(t_entry->protocol == IPPROTO_QUIC);
-		t_socket_entry = (struct ngtcp2_socket_entry *)t_entry;
+		t_socket_entry = (struct quic_socket_entry *)t_entry;
 
 		if (t_socket_entry->is_user_closed) {
 			/* Connection has failed. Stop tracking this entry */
@@ -1772,11 +1747,11 @@ int quic_accept(struct frr_socket_entry *entry, struct sockaddr *addr, socklen_t
 
 int quic_close(struct frr_socket_entry *entry)
 {
-	struct ngtcp2_socket_entry *socket_entry = NULL;
-	struct ngtcp2_conn_data *conn_data;
+	struct quic_socket_entry *socket_entry = NULL;
+	struct quic_conn_data *conn_data;
 
 	assert(entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct ngtcp2_socket_entry *)entry;
+	socket_entry = (struct quic_socket_entry *)entry;
 
 	socket_entry->is_user_closed = true;
 	socket_entry->is_stream_fin = true;
@@ -1831,11 +1806,11 @@ int quic_getsockopt(struct frr_socket_entry *entry, int level, int optname, void
 		    socklen_t *optlen)
 {
 	int rv = 1;
-	struct ngtcp2_socket_entry *socket_entry = NULL;
-	struct ngtcp2_conn_data *conn_data;
+	struct quic_socket_entry *socket_entry = NULL;
+	struct quic_conn_data *conn_data;
 
 	assert(entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct ngtcp2_socket_entry *)entry;
+	socket_entry = (struct quic_socket_entry *)entry;
 	conn_data = socket_entry->conn_data;
 	assert(conn_data);
 
@@ -1872,11 +1847,11 @@ int quic_getsockopt(struct frr_socket_entry *entry, int level, int optname, void
 int quic_getpeername(struct frr_socket_entry *entry, struct sockaddr *addr, socklen_t *addrlen)
 {
 	int rv = -1;
-	struct ngtcp2_socket_entry *socket_entry = NULL;
-	struct ngtcp2_conn_data *conn_data;
+	struct quic_socket_entry *socket_entry = NULL;
+	struct quic_conn_data *conn_data;
 
 	assert(entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct ngtcp2_socket_entry *)entry;
+	socket_entry = (struct quic_socket_entry *)entry;
 	conn_data = socket_entry->conn_data;
 	assert(conn_data);
 
@@ -1894,11 +1869,11 @@ int quic_getpeername(struct frr_socket_entry *entry, struct sockaddr *addr, sock
 int quic_getsockname(struct frr_socket_entry *entry, struct sockaddr *addr, socklen_t *addrlen)
 {
 	int rv = -1;
-	struct ngtcp2_socket_entry *socket_entry = NULL;
-	struct ngtcp2_conn_data *conn_data;
+	struct quic_socket_entry *socket_entry = NULL;
+	struct quic_conn_data *conn_data;
 
 	assert(entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct ngtcp2_socket_entry *)entry;
+	socket_entry = (struct quic_socket_entry *)entry;
 	conn_data = socket_entry->conn_data;
 	assert(conn_data);
 
@@ -1948,9 +1923,9 @@ int quic_getaddrinfo(const char *node, const char *service, const struct addrinf
 // XXX Fix this
 int quic_poll_hook(struct frr_socket_entry *entry, struct pollfd *p_fd, int *poll_rv)
 {
-	struct ngtcp2_socket_entry *socket_entry = NULL;
+	struct quic_socket_entry *socket_entry = NULL;
 	assert(entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct ngtcp2_socket_entry *)entry;
+	socket_entry = (struct quic_socket_entry *)entry;
 
 	if (socket_entry->listener_backlog > 0) {
 		/* Search for an established connection with a stream ready for accept */
@@ -1958,7 +1933,7 @@ int quic_poll_hook(struct frr_socket_entry *entry, struct pollfd *p_fd, int *pol
 		struct frr_socket_entry search_entry = {};
 
 		frr_each_safe (fd_fifo, &socket_entry->unclaimed_fds, fd_entry) {
-			struct ngtcp2_socket_entry *t_socket_entry = NULL;
+			struct quic_socket_entry *t_socket_entry = NULL;
 			search_entry.fd = fd_entry->fd;
 
 			frr_socket_table_find(&search_entry, t_entry);
@@ -1966,7 +1941,7 @@ int quic_poll_hook(struct frr_socket_entry *entry, struct pollfd *p_fd, int *pol
 				continue;
 
 			assert(t_entry->protocol == IPPROTO_QUIC);
-			t_socket_entry = (struct ngtcp2_socket_entry *)t_entry;
+			t_socket_entry = (struct quic_socket_entry *)t_entry;
 
 			if (t_socket_entry->stream_id == -1)
 				continue;
@@ -2003,12 +1978,12 @@ int quic_poll_hook(struct frr_socket_entry *entry, struct pollfd *p_fd, int *pol
 // XXX Fix issue regarding event_cancel_async vs event_cancel
 void quic_socket_lib_finish_hook(struct frr_socket_entry *entry)
 {
-	struct ngtcp2_socket_entry *socket_entry = NULL;
+	struct quic_socket_entry *socket_entry = NULL;
 	if (entry == NULL)
 		return;
-	struct ngtcp2_conn_data *conn_data;
+	struct quic_conn_data *conn_data;
 	assert(entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct ngtcp2_socket_entry *)entry;
+	socket_entry = (struct quic_socket_entry *)entry;
 	conn_data = socket_entry->conn_data;
 
 	socket_entry->is_user_closed = true;
@@ -2045,7 +2020,7 @@ void quic_socket_lib_finish_hook(struct frr_socket_entry *entry)
 }
 
 
-static void quic_destroy_conn(struct ngtcp2_conn_data *conn_data)
+static void quic_destroy_conn(struct quic_conn_data *conn_data)
 {
 	struct fd_fifo_entry *fd_entry = NULL;
 
@@ -2112,10 +2087,10 @@ static void quic_destroy_conn(struct ngtcp2_conn_data *conn_data)
 int quic_destroy_entry(struct frr_socket_entry *entry)
 {
 	int rv;
-	struct ngtcp2_socket_entry *socket_entry = NULL;
-	struct ngtcp2_conn_data *conn_data;
+	struct quic_socket_entry *socket_entry = NULL;
+	struct quic_conn_data *conn_data;
 	assert(entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct ngtcp2_socket_entry *)entry;
+	socket_entry = (struct quic_socket_entry *)entry;
 	conn_data = socket_entry->conn_data;
 
 	zlog_info("QUIC: Destroying socket entry with fd=%d", entry->fd);

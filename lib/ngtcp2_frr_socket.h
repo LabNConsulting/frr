@@ -47,7 +47,7 @@ struct fd_fifo_entry {
 	struct fd_fifo_item next_fd_entry;
 };
 
-struct ngtcp2_conn_data {
+struct quic_conn_data {
 	/* Per-connection state. May correspond to multiple streams in the future.
 	 * XXX Explain safe access rules from a socket entry
 	 */
@@ -64,7 +64,7 @@ struct ngtcp2_conn_data {
 	ngtcp2_crypto_ossl_ctx *ossl_ctx;
 	ngtcp2_crypto_conn_ref conn_ref;
 	ngtcp2_ccerr last_error;
-	struct fd_fifo_head stream_fds;  /* per-stream ngtcp2_socket_entry list */
+	struct fd_fifo_head stream_fds;  /* per-stream quic_socket_entry list */
 	struct event *t_background_process;
 	struct event *t_background_timeout;
 	struct event *t_background_listen;
@@ -75,7 +75,7 @@ struct ngtcp2_conn_data {
 	bool wait_for_shutdown_event;
 };
 
-struct ngtcp2_socket_entry {
+struct quic_socket_entry {
 	/* Each protocol entry must begin with the generic socket entry */
 	struct frr_socket_entry entry;
 
@@ -91,7 +91,7 @@ struct ngtcp2_socket_entry {
 	const char *msg;  //XXX Remove me!
 
 	/* This reference should be refcounted when multi-stream support is added */
-	struct ngtcp2_conn_data *conn_data;
+	struct quic_conn_data *conn_data;
 
 	/* Listener state */
 	struct fd_fifo_head unclaimed_fds;
