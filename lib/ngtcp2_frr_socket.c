@@ -158,7 +158,7 @@ static int handshake_confirmed_client_cb(ngtcp2_conn *conn, void *user_data)
 	int rv;
 	struct fd_fifo_entry *fd_entry;
 	struct frr_socket_entry search_entry = {};
-	struct quic_socket_entry *socket_entry = NULL;
+	struct quic_socket_entry *quic_entry = NULL;
 	struct quic_conn_data *conn_data = user_data;
 	assert(conn == conn_data->conn);
 
@@ -166,13 +166,13 @@ static int handshake_confirmed_client_cb(ngtcp2_conn *conn, void *user_data)
 	search_entry.fd = fd_entry->fd;
 	frr_socket_table_find(&search_entry, found_entry);
 	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct quic_socket_entry *)found_entry;
+	quic_entry = (struct quic_socket_entry *)found_entry;
 
 	/* Confirm that we are client-side and not server-side */
 	assert(conn_data->state == QUIC_CONNECTING);
-	assert(socket_entry->stream_id == -1);
+	assert(quic_entry->stream_id == -1);
 
-	rv = ngtcp2_conn_open_bidi_stream(conn, &socket_entry->stream_id, &found_entry->fd);
+	rv = ngtcp2_conn_open_bidi_stream(conn, &quic_entry->stream_id, &found_entry->fd);
 	if (rv != 0) {
 		zlog_err("QUIC: Failed to open stream during handshake confirmation, fd %d (conn fd %d)",
 			 found_entry->fd, conn_data->fd);
@@ -181,7 +181,7 @@ static int handshake_confirmed_client_cb(ngtcp2_conn *conn, void *user_data)
 	}
 
 	zlog_info("QUIC: Handshake confirmed by client on fd %d (conn fd %d). Opening stream %lld",
-		  found_entry->fd, conn_data->fd, socket_entry->stream_id);
+		  found_entry->fd, conn_data->fd, quic_entry->stream_id);
 	quic_change_state(conn_data, QUIC_CONNECTED);
 
 	return 0;
@@ -197,7 +197,7 @@ static int stream_open_server_cb(ngtcp2_conn *conn, int64_t stream_id, void *use
 
 	/* Find an entry with that we can assign the stream_id to */
 	frr_each_safe (fd_fifo, &conn_data->stream_fds, fd_entry) {
-		struct quic_socket_entry *t_socket_entry = NULL;
+		struct quic_socket_entry *t_quic_entry = NULL;
 
 		search_entry.fd = fd_entry->fd;
 		frr_socket_table_find(&search_entry, t_entry);
@@ -207,12 +207,12 @@ static int stream_open_server_cb(ngtcp2_conn *conn, int64_t stream_id, void *use
 			continue;
 
 		assert(t_entry->protocol == IPPROTO_QUIC);
-		t_socket_entry = (struct quic_socket_entry *)t_entry;
+		t_quic_entry = (struct quic_socket_entry *)t_entry;
 
-		if (t_socket_entry->stream_id != -1)
+		if (t_quic_entry->stream_id != -1)
 			continue;
 
-		t_socket_entry->stream_id = stream_id;
+		t_quic_entry->stream_id = stream_id;
 		ngtcp2_conn_set_stream_user_data(conn, stream_id, &t_entry->fd);
 		quic_change_state(conn_data, QUIC_CONNECTED);
 
@@ -233,7 +233,7 @@ static int stream_close_cb(ngtcp2_conn *conn, uint32_t flags, int64_t stream_id,
 {
 	int *fd_ref = stream_user_data;
 	struct frr_socket_entry search_entry = {};
-	struct quic_socket_entry *socket_entry = NULL;
+	struct quic_socket_entry *quic_entry = NULL;
 	struct quic_conn_data *conn_data = user_data;
 	assert(conn == conn_data->conn);
 
@@ -246,9 +246,9 @@ static int stream_close_cb(ngtcp2_conn *conn, uint32_t flags, int64_t stream_id,
 	search_entry.fd = *fd_ref;
 	frr_socket_table_find(&search_entry, found_entry);
 	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct quic_socket_entry *)found_entry;
+	quic_entry = (struct quic_socket_entry *)found_entry;
 
-	socket_entry->stream_id = -1;
+	quic_entry->stream_id = -1;
 
 	/* XXX Until we support multiplexing, only a single stream could have existed */
 	assert(conn_data->state == QUIC_CONNECTED);
@@ -264,7 +264,7 @@ static int recv_stream_data_cb(ngtcp2_conn *conn, uint32_t flags, int64_t stream
 {
 	int *fd_ref = stream_user_data;
 	struct frr_socket_entry search_entry = {};
-	struct quic_socket_entry *socket_entry = NULL;
+	struct quic_socket_entry *quic_entry = NULL;
 	struct quic_conn_data *conn_data = user_data;
 	assert(conn == conn_data->conn);
 
@@ -279,7 +279,7 @@ static int recv_stream_data_cb(ngtcp2_conn *conn, uint32_t flags, int64_t stream
 	search_entry.fd = *fd_ref;
 	frr_socket_table_find(&search_entry, found_entry);
 	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct quic_socket_entry *)found_entry;
+	quic_entry = (struct quic_socket_entry *)found_entry;
 
 	if (datalen > 0 ) {
 		/* XXX Copy the data into the fifo stream buffer! */
@@ -290,7 +290,7 @@ static int recv_stream_data_cb(ngtcp2_conn *conn, uint32_t flags, int64_t stream
 		 * inside any callback. XXX Implement me!
 		 */
 		// XXX Now what should be done here!
-		//socket_entry->is_conn_closed = true;
+		//quic_entry->is_conn_closed = true;
 	}
 
 	/* ngtcp2's on-the-wire window limits do not adjust automatically based on user data */
@@ -717,24 +717,24 @@ static int quic_send_packet(struct quic_conn_data *conn_data, const uint8_t *dat
 }
 
 
-static void quic_entry_delete(struct quic_socket_entry *socket_entry)
+static void quic_entry_delete(struct quic_socket_entry *quic_entry)
 {
 	int rv;
 
 	/* There must be agreement between user and conn_data that the entry is ready to be freed */
-	if (!socket_entry->is_user_closed || !socket_entry->is_conn_closed) {
+	if (!quic_entry->is_user_closed || !quic_entry->is_conn_closed) {
 		zlog_warn("QUIC: Trying to destroy socket entry with fd=%d but is not agreed that should close.",
-			  socket_entry->entry.fd);
+			  quic_entry->entry.fd);
 		assert(0);
 	}
 
 	/* Removes the entry from the FRR socket table and destroys it via a callback after RCU finds
 	 * no more references to it. When the last entry is destroyed, so it the conn_data instance.
 	 */
-	rv = frr_socket_table_delete(&socket_entry->entry);
+	rv = frr_socket_table_delete(&quic_entry->entry);
 	if (rv != 0) {
 		zlog_warn("QUIC: Trying to destroy socket entry with fd=%d but not found in the table.",
-			  socket_entry->entry.fd);
+			  quic_entry->entry.fd);
 		assert(0);
 	}
 }
@@ -750,18 +750,18 @@ static void quic_delete_conn(struct quic_conn_data *conn_data)
 		return;
 
 	frr_each_safe(fd_fifo, &conn_data->stream_fds, fd_entry) {
-		struct quic_socket_entry *socket_entry = NULL;
+		struct quic_socket_entry *quic_entry = NULL;
 
 		search_entry.fd = fd_entry->fd;
 		frr_socket_table_find(&search_entry, t_entry);
 		if (!t_entry)
 			continue;
 		assert(t_entry->protocol == IPPROTO_QUIC);
-		socket_entry = (struct quic_socket_entry *)t_entry;
+		quic_entry = (struct quic_socket_entry *)t_entry;
 
-		socket_entry->is_conn_closed = true;
-		if (socket_entry->is_user_closed)
-			quic_entry_delete(socket_entry);
+		quic_entry->is_conn_closed = true;
+		if (quic_entry->is_user_closed)
+			quic_entry_delete(quic_entry);
 	}
 }
 
@@ -828,7 +828,7 @@ static void quic_close_listener(struct quic_conn_data *conn_data)
 {
 	struct fd_fifo_entry *fd_entry;
 	struct frr_socket_entry search_entry = {};
-	struct quic_socket_entry *listener_entry = NULL;
+	struct quic_socket_entry *listen_entry = NULL;
 
 	if (conn_data->state != QUIC_LISTENING) {
 		zlog_err("QUIC: Trying to close a non-listener with fd=%d as a listener",
@@ -840,10 +840,10 @@ static void quic_close_listener(struct quic_conn_data *conn_data)
 	search_entry.fd = fd_entry->fd;
 	frr_socket_table_find(&search_entry, found_l_entry);
 	assert(found_l_entry && found_l_entry->protocol == IPPROTO_QUIC);
-	listener_entry = (struct quic_socket_entry *)found_l_entry;
+	listen_entry = (struct quic_socket_entry *)found_l_entry;
 
 	/* Any in-progress connections must be terminated */
-	frr_each_safe(fd_fifo, &listener_entry->unclaimed_fds, fd_entry) {
+	frr_each_safe(fd_fifo, &listen_entry->unclaimed_fds, fd_entry) {
 		search_entry.fd = fd_entry->fd;
 
 		frr_socket_table_find(&search_entry, t_entry);
@@ -851,7 +851,7 @@ static void quic_close_listener(struct quic_conn_data *conn_data)
 		if (t_entry)
 			quic_close(t_entry);
 
-		fd_fifo_del(&listener_entry->unclaimed_fds, fd_entry);
+		fd_fifo_del(&listen_entry->unclaimed_fds, fd_entry);
 		XFREE(MTYPE_FRR_SOCKET, fd_entry);
 	}
 
@@ -903,7 +903,7 @@ static void quic_check_all_entries_user_closed(struct quic_conn_data *conn_data)
 
 	/* The connection is only closed once *every* entry is closed (either user/conn side) */
 	frr_each_safe(fd_fifo, &conn_data->stream_fds, fd_entry) {
-		struct quic_socket_entry *t_socket_entry = NULL;
+		struct quic_socket_entry *t_quic_entry = NULL;
 		search_entry.fd = fd_entry->fd;
 
 		frr_socket_table_find(&search_entry, t_entry);
@@ -911,9 +911,9 @@ static void quic_check_all_entries_user_closed(struct quic_conn_data *conn_data)
 			continue;
 
 		assert(t_entry->protocol == IPPROTO_QUIC);
-		t_socket_entry = (struct quic_socket_entry *)t_entry;
+		t_quic_entry = (struct quic_socket_entry *)t_entry;
 
-		if (!t_socket_entry->is_user_closed)
+		if (!t_quic_entry->is_user_closed)
 			return;
 	}
 
@@ -1006,7 +1006,7 @@ static int quic_write_to_conn(struct quic_conn_data *conn_data)
 	size_t msg_size = 0;
 	struct fd_fifo_entry *fd_entry;
 	struct frr_socket_entry search_entry = {};
-	struct quic_socket_entry *socket_entry;
+	struct quic_socket_entry *quic_entry;
 
 	ngtcp2_path_storage_zero(&ps);
 
@@ -1015,12 +1015,12 @@ static int quic_write_to_conn(struct quic_conn_data *conn_data)
 	search_entry.fd = fd_entry->fd;
 	frr_socket_table_find(&search_entry, found_entry);
 	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct quic_socket_entry *)found_entry;
+	quic_entry = (struct quic_socket_entry *)found_entry;
 
-	if (socket_entry->msg && socket_entry->stream_id != -1 &&
+	if (quic_entry->msg && quic_entry->stream_id != -1 &&
 	    conn_data->state == QUIC_CONNECTED) {
-		stream_id = socket_entry->stream_id;
-		msg = (const uint8_t *)socket_entry->msg;
+		stream_id = quic_entry->stream_id;
+		msg = (const uint8_t *)quic_entry->msg;
 		msg_size = 11;
 		//flags |= NGTCP2_WRITE_STREAM_FLAG_FIN;
 		//stream_fin = true;
@@ -1045,7 +1045,7 @@ static int quic_write_to_conn(struct quic_conn_data *conn_data)
 		if (msg && written_datalen > 0) {
 			msg = NULL;
 			msg_size = 0;
-			socket_entry->msg = NULL;
+			quic_entry->msg = NULL;
 			stream_id = -1;
 		}
 
@@ -1194,7 +1194,7 @@ static int quic_process_listener_packet(struct quic_conn_data *conn_data, uint8_
 	ngtcp2_pkt_hd hd;
 	int rv, domain, new_fd = 0;
 	socklen_t domain_len = sizeof(domain);
-	struct quic_socket_entry *socket_entry = NULL;
+	struct quic_socket_entry *quic_entry = NULL;
 	struct quic_socket_entry *listen_entry = NULL;
 	struct quic_conn_data *new_conn_data = NULL;
 	struct frr_socket_entry search_entry = {};
@@ -1247,7 +1247,7 @@ static int quic_process_listener_packet(struct quic_conn_data *conn_data, uint8_
 	search_entry.fd = new_fd;
 	frr_socket_table_find(&search_entry, new_entry);
 	assert(new_entry && new_entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct quic_socket_entry *)new_entry;
+	quic_entry = (struct quic_socket_entry *)new_entry;
 
 	rv = quic_bind(new_entry, (struct sockaddr *)&conn_data->local_addr,
 		       conn_data->local_addrlen);
@@ -1257,7 +1257,7 @@ static int quic_process_listener_packet(struct quic_conn_data *conn_data, uint8_
 	}
 
 	/* locking conn_data is safe, since we know its state (we just created it!) */
-	new_conn_data = socket_entry->conn_data;
+	new_conn_data = quic_entry->conn_data;
 	frr_mutex_lock_autounlock(&new_conn_data->lock);
 
 	rv = connect(new_conn_data->fd, path.remote.addr, path.remote.addrlen);
@@ -1308,8 +1308,8 @@ static int quic_process_listener_packet(struct quic_conn_data *conn_data, uint8_
 failed:
 	/* quic_close() can cleanup after all these failure states already */
 	// XXX Is the previous statement true?
-	if (socket_entry != NULL) {
-		quic_close((struct frr_socket_entry *)socket_entry);
+	if (quic_entry != NULL) {
+		quic_close((struct frr_socket_entry *)quic_entry);
 	}
 
 	return -1;
@@ -1461,7 +1461,7 @@ int quic_socket(int domain, int type)
 {
 	int sock_fd, conn_fd;
 	bool del_mutex = false;
-	struct quic_socket_entry *socket_entry;
+	struct quic_socket_entry *quic_entry;
 	struct quic_conn_data *conn_data;
 	struct fd_fifo_entry *fd_entry;
 
@@ -1488,9 +1488,9 @@ int quic_socket(int domain, int type)
 	sock_fd = open("/dev/null", O_RDWR);
 	assert(sock_fd);
 
-	socket_entry = XMALLOC(MTYPE_FRR_SOCKET, sizeof(*socket_entry));
+	quic_entry = XMALLOC(MTYPE_FRR_SOCKET, sizeof(*quic_entry));
 	conn_data = XMALLOC(MTYPE_FRR_SOCKET, sizeof(*conn_data));
-	if (!socket_entry || !conn_data) {
+	if (!quic_entry || !conn_data) {
 		errno = ENOMEM;
 		goto failed;
 	}
@@ -1513,19 +1513,19 @@ int quic_socket(int domain, int type)
 		goto failed;
 	}
 
-	memset(socket_entry, 0x00, sizeof(*socket_entry));
-	frr_socket_init(&socket_entry->entry);
-	socket_entry->entry.protocol = IPPROTO_QUIC;
-	socket_entry->entry.fd = sock_fd;
-	socket_entry->stream_id = -1;  /* Stream id may be 0, but is guarenteed not -1 */
-	socket_entry->is_user_closed = false;
-	socket_entry->is_conn_closed = false;
-	socket_entry->is_stream_fin = false;
-	socket_entry->conn_data = conn_data;
-	fd_fifo_init(&socket_entry->unclaimed_fds);
-	socket_entry->msg = "Hello world"; // XXX Remove me!
+	memset(quic_entry, 0x00, sizeof(*quic_entry));
+	frr_socket_init(&quic_entry->entry);
+	quic_entry->entry.protocol = IPPROTO_QUIC;
+	quic_entry->entry.fd = sock_fd;
+	quic_entry->stream_id = -1;  /* Stream id may be 0, but is guarenteed not -1 */
+	quic_entry->is_user_closed = false;
+	quic_entry->is_conn_closed = false;
+	quic_entry->is_stream_fin = false;
+	quic_entry->conn_data = conn_data;
+	fd_fifo_init(&quic_entry->unclaimed_fds);
+	quic_entry->msg = "Hello world"; // XXX Remove me!
 
-	/* Add a "reference" from the conn_data -> socket_entry. The conn_data WILL aquire this
+	/* Add a "reference" from the conn_data -> quic_entry. The conn_data WILL aquire this
 	 * socket entry (via locking) to fetch/deposit stream data, change values, etc.
 	 */
 	fd_entry = XMALLOC(MTYPE_FRR_SOCKET, sizeof(*fd_entry));
@@ -1537,7 +1537,7 @@ int quic_socket(int domain, int type)
 	fd_entry->fd = sock_fd;
 	fd_fifo_add_tail(&conn_data->stream_fds, fd_entry);
 
-	frr_socket_table_add((struct frr_socket_entry *)socket_entry);
+	frr_socket_table_add((struct frr_socket_entry *)quic_entry);
 
 	return sock_fd;
 
@@ -1553,9 +1553,9 @@ failed:
 	if (del_mutex) {
 		pthread_mutex_destroy(&conn_data->lock);
 	}
-	if (socket_entry) {
-	        XFREE(MTYPE_FRR_SOCKET, socket_entry);
-		socket_entry = NULL;
+	if (quic_entry) {
+	        XFREE(MTYPE_FRR_SOCKET, quic_entry);
+		quic_entry = NULL;
 	}
 	if (conn_data) {
 	        XFREE(MTYPE_FRR_SOCKET, conn_data);
@@ -1573,10 +1573,10 @@ failed:
 int quic_bind(struct frr_socket_entry *entry, const struct sockaddr *addr, socklen_t addrlen)
 {
 	int rv;
-	struct quic_socket_entry *socket_entry = (struct quic_socket_entry *)entry;
+	struct quic_socket_entry *quic_entry = (struct quic_socket_entry *)entry;
 	struct quic_conn_data *conn_data;
 	assert(entry->protocol == IPPROTO_QUIC);
-	conn_data = socket_entry->conn_data;
+	conn_data = quic_entry->conn_data;
 
 	frr_try_with_mutex(&conn_data->lock)
 	{
@@ -1615,10 +1615,10 @@ int quic_bind(struct frr_socket_entry *entry, const struct sockaddr *addr, sockl
 int quic_connect(struct frr_socket_entry *entry, const struct sockaddr *addr, socklen_t addrlen)
 {
 	int rv;
-	struct quic_socket_entry *socket_entry = (struct quic_socket_entry *)entry;
+	struct quic_socket_entry *quic_entry = (struct quic_socket_entry *)entry;
 	struct quic_conn_data *conn_data;
 	assert(entry->protocol == IPPROTO_QUIC);
-	conn_data = socket_entry->conn_data;
+	conn_data = quic_entry->conn_data;
 
 	frr_try_with_mutex(&conn_data->lock)
 	{
@@ -1663,11 +1663,11 @@ int quic_connect(struct frr_socket_entry *entry, const struct sockaddr *addr, so
 
 int quic_listen(struct frr_socket_entry *entry, int backlog)
 {
-	struct quic_socket_entry *socket_entry = (struct quic_socket_entry *)entry;
+	struct quic_socket_entry *quic_entry = (struct quic_socket_entry *)entry;
 	struct quic_conn_data *conn_data;
 
 	assert(entry->protocol == IPPROTO_QUIC);
-	conn_data = socket_entry->conn_data;
+	conn_data = quic_entry->conn_data;
 
 	frr_try_with_mutex(&conn_data->lock)
 	{
@@ -1677,7 +1677,7 @@ int quic_listen(struct frr_socket_entry *entry, int backlog)
 			return -1;
 		}
 
-		socket_entry->listener_backlog = backlog;
+		quic_entry->listener_backlog = backlog;
 
 		quic_change_state(conn_data, QUIC_LISTENING);
 		event_add_read(frr_socket_threadmaster, quic_background_listen, conn_data,
@@ -1696,17 +1696,17 @@ int quic_accept(struct frr_socket_entry *entry, struct sockaddr *addr, socklen_t
 {
 	struct fd_fifo_entry *fd_entry = NULL;
 	struct frr_socket_entry search_entry = {};
-	struct quic_socket_entry *socket_entry = NULL;
+	struct quic_socket_entry *quic_entry = NULL;
 	assert(entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct quic_socket_entry *)entry;
+	quic_entry = (struct quic_socket_entry *)entry;
 
-	if (socket_entry->listener_backlog <= 0) {
+	if (quic_entry->listener_backlog <= 0) {
 		errno = EINVAL;
 		return -1;
 	}
 
-	frr_each_safe(fd_fifo, &socket_entry->unclaimed_fds, fd_entry) {
-		struct quic_socket_entry *t_socket_entry = NULL;
+	frr_each_safe(fd_fifo, &quic_entry->unclaimed_fds, fd_entry) {
+		struct quic_socket_entry *t_quic_entry = NULL;
 		search_entry.fd = fd_entry->fd;
 
 		frr_socket_table_find(&search_entry, t_entry);
@@ -1714,25 +1714,25 @@ int quic_accept(struct frr_socket_entry *entry, struct sockaddr *addr, socklen_t
 		/* Connection failed, and has already been deleted */
 		// XXX How to deal with the kernel re-using fd's? Could that cause a bug?
 		if (t_entry == NULL) {
-			fd_fifo_del(&socket_entry->unclaimed_fds, fd_entry);
+			fd_fifo_del(&quic_entry->unclaimed_fds, fd_entry);
 			XFREE(MTYPE_FRR_SOCKET, fd_entry);
 			continue;
 		}
 
 		assert(t_entry->protocol == IPPROTO_QUIC);
-		t_socket_entry = (struct quic_socket_entry *)t_entry;
+		t_quic_entry = (struct quic_socket_entry *)t_entry;
 
-		if (t_socket_entry->is_user_closed) {
+		if (t_quic_entry->is_user_closed) {
 			/* Connection has failed. Stop tracking this entry */
 			// XXX If accept is not called, then failed connections can be missed?
-			fd_fifo_del(&socket_entry->unclaimed_fds, fd_entry);
+			fd_fifo_del(&quic_entry->unclaimed_fds, fd_entry);
 			XFREE(MTYPE_FRR_SOCKET, fd_entry);
 			continue;
-		} else if (t_socket_entry->stream_id == -1) {
+		} else if (t_quic_entry->stream_id == -1) {
 			continue;
 		}
 
-		fd_fifo_del(&socket_entry->unclaimed_fds, fd_entry);
+		fd_fifo_del(&quic_entry->unclaimed_fds, fd_entry);
 		XFREE(MTYPE_FRR_SOCKET, fd_entry);
 
 		/* XXX Copy address information into return buffers */
@@ -1747,20 +1747,20 @@ int quic_accept(struct frr_socket_entry *entry, struct sockaddr *addr, socklen_t
 
 int quic_close(struct frr_socket_entry *entry)
 {
-	struct quic_socket_entry *socket_entry = NULL;
+	struct quic_socket_entry *quic_entry = NULL;
 	struct quic_conn_data *conn_data;
 
 	assert(entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct quic_socket_entry *)entry;
+	quic_entry = (struct quic_socket_entry *)entry;
 
-	socket_entry->is_user_closed = true;
-	socket_entry->is_stream_fin = true;
+	quic_entry->is_user_closed = true;
+	quic_entry->is_stream_fin = true;
 
-	if (socket_entry->is_conn_closed) {
-		quic_entry_delete(socket_entry);
+	if (quic_entry->is_conn_closed) {
+		quic_entry_delete(quic_entry);
 	} else {
 		/* Notification to the conn_data instance that a user is ready to close an entry */
-		conn_data = socket_entry->conn_data;
+		conn_data = quic_entry->conn_data;
 		pthread_mutex_unlock(&entry->lock);
 		frr_with_mutex (&conn_data->lock) {
 			event_add_timer_msec(frr_socket_threadmaster, quic_close_event, conn_data,
@@ -1806,12 +1806,12 @@ int quic_getsockopt(struct frr_socket_entry *entry, int level, int optname, void
 		    socklen_t *optlen)
 {
 	int rv = 1;
-	struct quic_socket_entry *socket_entry = NULL;
+	struct quic_socket_entry *quic_entry = NULL;
 	struct quic_conn_data *conn_data;
 
 	assert(entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct quic_socket_entry *)entry;
-	conn_data = socket_entry->conn_data;
+	quic_entry = (struct quic_socket_entry *)entry;
+	conn_data = quic_entry->conn_data;
 	assert(conn_data);
 
 	/* We need to aquire both the frr_socket_entry and conn_data intance, but don't have priority
@@ -1826,7 +1826,7 @@ int quic_getsockopt(struct frr_socket_entry *entry, int level, int optname, void
 		case SO_ERROR:
 			// XXX Handle ECONNREFUSED? ENETUNREACH? etc.
 			rv = getsockopt(conn_data->fd, level, optname, optval, optlen);
-			if (rv == 0 && socket_entry->stream_id == -1) {
+			if (rv == 0 && quic_entry->stream_id == -1) {
 				/* Overwrite optval with EINPRORESS if still connecting */
 				rv = 0;
 				*(int *)optval = EINPROGRESS;
@@ -1847,12 +1847,12 @@ int quic_getsockopt(struct frr_socket_entry *entry, int level, int optname, void
 int quic_getpeername(struct frr_socket_entry *entry, struct sockaddr *addr, socklen_t *addrlen)
 {
 	int rv = -1;
-	struct quic_socket_entry *socket_entry = NULL;
+	struct quic_socket_entry *quic_entry = NULL;
 	struct quic_conn_data *conn_data;
 
 	assert(entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct quic_socket_entry *)entry;
-	conn_data = socket_entry->conn_data;
+	quic_entry = (struct quic_socket_entry *)entry;
+	conn_data = quic_entry->conn_data;
 	assert(conn_data);
 
 	/* To safely aquire the conn_data lock, we must release our own */
@@ -1869,12 +1869,12 @@ int quic_getpeername(struct frr_socket_entry *entry, struct sockaddr *addr, sock
 int quic_getsockname(struct frr_socket_entry *entry, struct sockaddr *addr, socklen_t *addrlen)
 {
 	int rv = -1;
-	struct quic_socket_entry *socket_entry = NULL;
+	struct quic_socket_entry *quic_entry = NULL;
 	struct quic_conn_data *conn_data;
 
 	assert(entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct quic_socket_entry *)entry;
-	conn_data = socket_entry->conn_data;
+	quic_entry = (struct quic_socket_entry *)entry;
+	conn_data = quic_entry->conn_data;
 	assert(conn_data);
 
 	/* To safely aquire the conn lock, we must release our own */
@@ -1923,17 +1923,17 @@ int quic_getaddrinfo(const char *node, const char *service, const struct addrinf
 // XXX Fix this
 int quic_poll_hook(struct frr_socket_entry *entry, struct pollfd *p_fd, int *poll_rv)
 {
-	struct quic_socket_entry *socket_entry = NULL;
+	struct quic_socket_entry *quic_entry = NULL;
 	assert(entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct quic_socket_entry *)entry;
+	quic_entry = (struct quic_socket_entry *)entry;
 
-	if (socket_entry->listener_backlog > 0) {
+	if (quic_entry->listener_backlog > 0) {
 		/* Search for an established connection with a stream ready for accept */
 		struct fd_fifo_entry *fd_entry = NULL;
 		struct frr_socket_entry search_entry = {};
 
-		frr_each_safe (fd_fifo, &socket_entry->unclaimed_fds, fd_entry) {
-			struct quic_socket_entry *t_socket_entry = NULL;
+		frr_each_safe (fd_fifo, &quic_entry->unclaimed_fds, fd_entry) {
+			struct quic_socket_entry *t_quic_entry = NULL;
 			search_entry.fd = fd_entry->fd;
 
 			frr_socket_table_find(&search_entry, t_entry);
@@ -1941,9 +1941,9 @@ int quic_poll_hook(struct frr_socket_entry *entry, struct pollfd *p_fd, int *pol
 				continue;
 
 			assert(t_entry->protocol == IPPROTO_QUIC);
-			t_socket_entry = (struct quic_socket_entry *)t_entry;
+			t_quic_entry = (struct quic_socket_entry *)t_entry;
 
-			if (t_socket_entry->stream_id == -1)
+			if (t_quic_entry->stream_id == -1)
 				continue;
 
 			/* At this point, we have found at least 1 ready socket for accept */
@@ -1959,7 +1959,7 @@ int quic_poll_hook(struct frr_socket_entry *entry, struct pollfd *p_fd, int *pol
 			p_fd->revents &= ~POLLIN;
 			*poll_rv -= p_fd->revents ? 0 : 1;
 		}
-	} else if (socket_entry->stream_id == -1) {
+	} else if (quic_entry->stream_id == -1) {
 		/* Clear all POLLIN and POLLOUT events. Not I/O stream capable yet. */
 		if (p_fd->events & POLLIN && p_fd->revents & POLLIN) {
 			p_fd->revents &= ~POLLIN;
@@ -1978,22 +1978,22 @@ int quic_poll_hook(struct frr_socket_entry *entry, struct pollfd *p_fd, int *pol
 // XXX Fix issue regarding event_cancel_async vs event_cancel
 void quic_socket_lib_finish_hook(struct frr_socket_entry *entry)
 {
-	struct quic_socket_entry *socket_entry = NULL;
+	struct quic_socket_entry *quic_entry = NULL;
 	if (entry == NULL)
 		return;
 	struct quic_conn_data *conn_data;
 	assert(entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct quic_socket_entry *)entry;
-	conn_data = socket_entry->conn_data;
+	quic_entry = (struct quic_socket_entry *)entry;
+	conn_data = quic_entry->conn_data;
 
-	socket_entry->is_user_closed = true;
-	socket_entry->is_stream_fin = true;
+	quic_entry->is_user_closed = true;
+	quic_entry->is_stream_fin = true;
 
 	/* conn_data events; Since we don't have priority to aquire the conn_data lock, but we must
 	 * aquire it, we release the frr_socket_entry lock that is implicitely held.
 	 */
 	pthread_mutex_unlock(&entry->lock);
-	conn_data = socket_entry->conn_data;
+	conn_data = quic_entry->conn_data;
 	frr_mutex_lock_autounlock(&conn_data->lock);
 
 	/* This is the last point at run-time where we are sure that the frr_socket_threadmaster is
@@ -2087,11 +2087,11 @@ static void quic_destroy_conn(struct quic_conn_data *conn_data)
 int quic_destroy_entry(struct frr_socket_entry *entry)
 {
 	int rv;
-	struct quic_socket_entry *socket_entry = NULL;
+	struct quic_socket_entry *quic_entry = NULL;
 	struct quic_conn_data *conn_data;
 	assert(entry->protocol == IPPROTO_QUIC);
-	socket_entry = (struct quic_socket_entry *)entry;
-	conn_data = socket_entry->conn_data;
+	quic_entry = (struct quic_socket_entry *)entry;
+	conn_data = quic_entry->conn_data;
 
 	zlog_info("QUIC: Destroying socket entry with fd=%d", entry->fd);
 
@@ -2109,17 +2109,17 @@ int quic_destroy_entry(struct frr_socket_entry *entry)
 
 	/* XXX When multiplexing is supported, only destroy conn on last refcount */
 	quic_destroy_conn(conn_data);
-	socket_entry->conn_data = NULL;
+	quic_entry->conn_data = NULL;
 
 	// XXX Cleanup streams
 
 	/* Clean up listener state if it exists */
 	struct fd_fifo_entry *fd_entry;
-	frr_each_safe (fd_fifo, &socket_entry->unclaimed_fds, fd_entry) {
-		fd_fifo_del(&socket_entry->unclaimed_fds, fd_entry);
+	frr_each_safe (fd_fifo, &quic_entry->unclaimed_fds, fd_entry) {
+		fd_fifo_del(&quic_entry->unclaimed_fds, fd_entry);
 		XFREE(MTYPE_FRR_SOCKET, fd_entry);
 	}
-	fd_fifo_fini(&socket_entry->unclaimed_fds);
+	fd_fifo_fini(&quic_entry->unclaimed_fds);
 
 	close(entry->fd);
 	entry->fd = -1;
