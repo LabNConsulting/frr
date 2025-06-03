@@ -19,6 +19,7 @@
 #include "ngtcp2_frr_socket.h"
 
 #define ONESEC2NANO 1000000000
+#define ONEMILLISEC2NANO 1000000
 
 static void quic_background_process(struct event *thread);
 static void quic_background_timeout_process(struct event *thread);
@@ -739,7 +740,7 @@ static void quic_entry_delete(struct ngtcp2_socket_entry *socket_entry)
 }
 
 
-static void quic_delete(struct ngtcp2_conn_data *conn_data)
+static void quic_delete_conn(struct ngtcp2_conn_data *conn_data)
 {
 	struct frr_socket_entry search_entry = {};
 	struct fd_fifo_entry *fd_entry;
@@ -774,26 +775,26 @@ static void quic_delete_event(struct event *thread)
 
 	frr_with_mutex(&conn_data->lock)
 	{
-		quic_delete(conn_data);
+		quic_delete_conn(conn_data);
 	}
 }
 
 
-static void quic_delayed_delete(struct ngtcp2_conn_data *conn_data)
+static void quic_schedule_delete_conn(struct ngtcp2_conn_data *conn_data)
 {
 	ngtcp2_duration pto = ONESEC2NANO;
 
 	if (conn_data->conn)
 		pto = 3 * ngtcp2_conn_get_pto(conn_data->conn); /* As per RFC 9000 */
 	pto = MIN(pto, (ngtcp2_duration)ONESEC2NANO*60*15); /* Arbitrary 15 Minute max */
-	pto = pto / 10000000; /* nanoseconds --> milliseconds */
+	pto = pto / ONEMILLISEC2NANO; /* nanoseconds --> milliseconds */
 
 	event_add_timer_msec(frr_socket_threadmaster, quic_delete_event,
 			     conn_data, pto, &conn_data->t_quic_delete);
 }
 
 
-static void quic_closed(struct ngtcp2_conn_data *conn_data)
+static void quic_declare_conn_closed(struct ngtcp2_conn_data *conn_data)
 {
 	quic_change_state(conn_data, QUIC_CLOSED);
 
@@ -806,7 +807,7 @@ static void quic_closed(struct ngtcp2_conn_data *conn_data)
 	if (conn_data->t_background_listen)
 		event_cancel(&conn_data->t_background_listen);
 
-	/* In case quic_closed was previously called, but this time we must close abruptly */
+	/* In case a delayed close is in progress, but this time we must close abruptly */
 	if (conn_data->t_quic_delete)
 		event_cancel(&conn_data->t_quic_delete);
 
@@ -816,9 +817,9 @@ static void quic_closed(struct ngtcp2_conn_data *conn_data)
 	conn_data->t_quic_delete = NULL;
 
 	if (conn_data->lib_shutdown) {
-		quic_delete(conn_data);
+		quic_delete_conn(conn_data);
 	} else {
-		quic_delayed_delete(conn_data);
+		quic_schedule_delete_conn(conn_data);
 	}
 }
 
@@ -857,7 +858,7 @@ static void quic_close_listener(struct ngtcp2_conn_data *conn_data)
 	if (conn_data->t_background_listen) {
 		event_cancel(&conn_data->t_background_listen);
 	}
-	quic_closed(conn_data);
+	quic_declare_conn_closed(conn_data);
 }
 
 
@@ -891,11 +892,11 @@ static void quic_close_conn(struct ngtcp2_conn_data *conn_data)
 		quic_send_packet(conn_data, buf, (size_t)nwrite);
 	} /* nwrite == 0 is a noop */
 
-	quic_closed(conn_data);
+	quic_declare_conn_closed(conn_data);
 }
 
 
-static void quic_check_all_sockets_user_closed(struct ngtcp2_conn_data *conn_data)
+static void quic_check_all_entries_user_closed(struct ngtcp2_conn_data *conn_data)
 {
 	struct fd_fifo_entry *fd_entry = NULL;
 	struct frr_socket_entry search_entry = {};
@@ -920,8 +921,8 @@ static void quic_check_all_sockets_user_closed(struct ngtcp2_conn_data *conn_dat
 	switch(conn_data->state) {
 	case QUIC_NONE:
 	case QUIC_CLOSED:
-		quic_closed(conn_data);
-		/* quic_closed will start the entry destruction process immediately. */
+		quic_declare_conn_closed(conn_data);
+		/* quic_declare_conn_closed will start the entry destruction process immediately. */
 		break;
 	case QUIC_LISTENING:
 		quic_close_listener(conn_data);
@@ -946,7 +947,7 @@ static void quic_check_all_sockets_user_closed(struct ngtcp2_conn_data *conn_dat
 }
 
 
-static void quic_socket_closed(struct event *thread)
+static void quic_close_event(struct event *thread)
 {
 	struct ngtcp2_conn_data *conn_data = EVENT_ARG(thread);
 
@@ -956,7 +957,7 @@ static void quic_socket_closed(struct event *thread)
 	conn_data->t_socket_closed = NULL;
 	conn_data->wait_for_shutdown_event = false;
 
-	quic_check_all_sockets_user_closed(conn_data);
+	quic_check_all_entries_user_closed(conn_data);
 
 	return;
 }
@@ -1006,7 +1007,8 @@ static void quic_reschedule_timeout_process(struct ngtcp2_conn_data *conn_data)
 
 	timeout = expiry < now ? 0 : expiry - now;
 	timeout = MIN(timeout, (ngtcp2_duration)ONESEC2NANO*60*15); /* Arbitrary 15 Minute max */
-	timeout = (timeout + 999999) / 10000000; /* nanoseconds --> milliseconds (rounded up) */
+	/* nanoseconds --> milliseconds (rounded up) */
+	timeout = (timeout + ONEMILLISEC2NANO - 1) / ONEMILLISEC2NANO;
 
 	event_add_timer_msec(frr_socket_threadmaster, quic_background_timeout_process,
 			     conn_data, timeout, &conn_data->t_background_timeout);
@@ -1112,7 +1114,7 @@ static int quic_write_to_conn(struct ngtcp2_conn_data *conn_data)
 			case NGTCP2_ERR_CLOSING:
 			case NGTCP2_ERR_DRAINING:
 				/* The connection has closed */
-				quic_closed(conn_data);
+				quic_declare_conn_closed(conn_data);
 				return 0;
 			default:
 				zlog_err("QUIC: ngtcp2_conn_writev_stream: %s",
@@ -1176,7 +1178,7 @@ static int quic_process_read_packet(struct ngtcp2_conn_data *conn_data, uint8_t 
 	if (rv != 0) {
 		if (rv == NGTCP2_ERR_CLOSING || rv == NGTCP2_ERR_DRAINING) {
 			/* We have detected that the connection is closed */
-			quic_closed(conn_data);
+			quic_declare_conn_closed(conn_data);
 			return 0;
 		}
 
@@ -1786,7 +1788,7 @@ int quic_close(struct frr_socket_entry *entry)
 		conn_data = socket_entry->conn_data;
 		pthread_mutex_unlock(&entry->lock);
 		frr_with_mutex (&conn_data->lock) {
-			event_add_timer_msec(frr_socket_threadmaster, quic_socket_closed, conn_data,
+			event_add_timer_msec(frr_socket_threadmaster, quic_close_event, conn_data,
 					     0, &conn_data->t_socket_closed);
 		}
 		pthread_mutex_lock(&entry->lock);
@@ -2026,11 +2028,11 @@ void quic_socket_lib_finish_hook(struct frr_socket_entry *entry)
 	conn_data->lib_shutdown = true;
 	conn_data->wait_for_shutdown_event = true;
 	if (!conn_data->t_socket_closed) {
-		event_add_timer_msec(frr_socket_threadmaster, quic_socket_closed,
+		event_add_timer_msec(frr_socket_threadmaster, quic_close_event,
 				     conn_data, 0, &conn_data->t_socket_closed);
 	}
 
-	/* Ugly hack. We need assurance that the quic_socket_closed event has completed before we
+	/* Ugly hack. We need assurance that the quic_close_event has completed before we
 	 * return control to frr_socket_lib_finish. Any open connections need to properly close.
 	 */
 	while(conn_data->wait_for_shutdown_event) {
@@ -2043,7 +2045,7 @@ void quic_socket_lib_finish_hook(struct frr_socket_entry *entry)
 }
 
 
-static void quic_destroy_conn_data(struct ngtcp2_conn_data *conn_data)
+static void quic_destroy_conn(struct ngtcp2_conn_data *conn_data)
 {
 	struct fd_fifo_entry *fd_entry = NULL;
 
@@ -2131,7 +2133,7 @@ int quic_destroy_entry(struct frr_socket_entry *entry)
 	}
 
 	/* XXX When multiplexing is supported, only destroy conn on last refcount */
-	quic_destroy_conn_data(conn_data);
+	quic_destroy_conn(conn_data);
 	socket_entry->conn_data = NULL;
 
 	// XXX Cleanup streams
