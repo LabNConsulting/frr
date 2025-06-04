@@ -13,6 +13,7 @@
 #include <netinet/in.h>
 #include <sys/uio.h>
 #include <stddef.h>
+#include <stream.h>
 
 #include <ngtcp2/ngtcp2.h>
 #include <ngtcp2/ngtcp2_crypto.h>
@@ -84,8 +85,9 @@ struct quic_socket_entry {
 	bool is_conn_closed;
 	bool is_stream_fin;
 	int64_t stream_id;
-	struct stream_fifi *rx_buffer_stream;
-	struct stream_fifi *tx_retransmit_stream;
+	struct stream_fifo *rx_buffer;
+	struct stream_fifo *tx_buffer;
+	struct stream_fifo *tx_retransmit_buffer;
 	int64_t tx_offset_acked;
 
 	const char *msg;  //XXX Remove me!

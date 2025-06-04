@@ -1775,15 +1775,61 @@ int quic_close(struct frr_socket_entry *entry)
 
 ssize_t quic_writev(struct frr_socket_entry *entry, const struct iovec *iov, int iovcnt)
 {
-	assert(0); // XXX Implement me
-	return writev(entry->fd, iov, iovcnt);
+	struct quic_socket_entry *quic_entry = NULL;
+	const struct iovec *vec = NULL;
+	struct stream *t_stream = NULL;
+	size_t written = 0;
+
+	assert(entry->protocol == IPPROTO_QUIC);
+	quic_entry = (struct quic_socket_entry *)entry;
+
+	// XXX Limit buffer size
+
+	for (int i = 0; i < iovcnt; i++) {
+		vec = iov + i;
+		t_stream = stream_new(vec->iov_len);
+		if (!t_stream)
+			break;
+		stream_put(t_stream, vec->iov_base, vec->iov_len);
+		stream_fifo_push(quic_entry->tx_buffer, t_stream);
+		written += vec->iov_len;
+	}
+
+	return (ssize_t)written;
 }
 
 
 ssize_t quic_read(struct frr_socket_entry *entry, void *buf, size_t count)
 {
-	assert(0); // XXX Implement me
-	return read(entry->fd, buf, count);
+	struct quic_socket_entry *quic_entry = NULL;
+	struct stream *t_stream;
+	size_t read = 0;
+	size_t t_read = 0;
+
+	assert(entry->protocol == IPPROTO_QUIC);
+	quic_entry = (struct quic_socket_entry *)entry;
+
+	t_stream = stream_fifo_head(quic_entry->rx_buffer);
+	if (!t_stream) {
+		errno = EWOULDBLOCK;
+		return -1;
+	}
+
+	while(t_stream && read < count)
+	{
+		t_read = MIN(STREAM_READABLE(t_stream), count - read);
+		stream_get((uint8_t *)buf + read, t_stream, t_read);
+		read += t_read;
+
+		if (STREAM_READABLE(t_stream) == 0) {
+			stream_fifo_pop(quic_entry->rx_buffer);
+			stream_free(t_stream);
+		}
+
+		t_stream = stream_fifo_head(quic_entry->rx_buffer);
+	}
+
+	return (ssize_t)read;
 }
 
 
