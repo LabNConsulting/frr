@@ -18,8 +18,8 @@
 #include "frr_socket.h"
 #include "ngtcp2_frr_socket.h"
 
-#define ONESEC2NANO 1000000000
-#define ONEMILLISEC2NANO 1000000
+#define ONESEC2NANO ((uint64_t)1000000000)
+#define ONEMILLISEC2NANO ((uint64_t)1000000)
 
 static void quic_background_process(struct event *thread);
 static void quic_background_timeout_process(struct event *thread);
@@ -280,27 +280,26 @@ static int recv_stream_data_cb(ngtcp2_conn *conn, uint32_t flags, int64_t stream
 	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
 	quic_entry = (struct quic_socket_entry *)found_entry;
 
+	assert(quic_entry->stream_id == stream_id);
+
 	if (datalen > 0 ) {
 		assert(quic_entry->rx_offset == offset);
 		t_stream = stream_new(datalen);
 		if (!t_stream) {
-			zlog_warn("QUIC: Not enough memory. Discarding %d bytes of data received on stream fd %d.",
-				  datalen, found_entry->fd);
-			break;
+			zlog_warn("QUIC: Not enough memory. Discarding %lu bytes of data received on stream %lld, fd %d.",
+				  datalen, stream_id, found_entry->fd);
+		} else {
+			stream_put(t_stream, data, datalen);
+			stream_fifo_push(quic_entry->rx_buffer, t_stream);
+			quic_entry->rx_offset = offset + datalen;
 		}
-		stream_put(t_stream, data, datalen);
-		stream_fifo_push(quic_entry->rx_buffer, t_stream);
-		quic_entry->rx_offset = offset + datalen;
 	}
 
 	if (flags & NGTCP2_STREAM_DATA_FLAG_FIN) {
 		zlog_info("QUIC: remote endpoint finished writing to stream fd %d.",
 			  found_entry->fd);
-		/* Opposite endpoint closed their end of the stream. We will follow them, but cannot
-		 * inside any callback. XXX Implement me!
-		 */
-		// XXX Now what should be done here!
-		//quic_entry->is_conn_closed = true;
+		/* Opposite endpoint closed their end of the stream. Follow suite and stop writing */
+		quic_entry->is_stream_fin = true;
 	}
 
 	/* Refresh the connection-scope transmission window */
@@ -339,6 +338,7 @@ static int acked_stream_data_offset_cb(ngtcp2_conn *conn, int64_t stream_id, uin
 	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
 	quic_entry = (struct quic_socket_entry *)found_entry;
 
+	assert(quic_entry->stream_id == stream_id);
 	assert(quic_entry->tx_ack_offset == offset);
 	acked_datalen = datalen + quic_entry->tx_ack_unconsumed;
 
@@ -348,7 +348,7 @@ static int acked_stream_data_offset_cb(ngtcp2_conn *conn, int64_t stream_id, uin
 
 		stream_forward_getp(tx_stream, t_datalen);
 		if (STREAM_READABLE(tx_stream) == 0) {
-			t_stream = stream_fifo_pop(quic_socket->tx_retransmit_buffer);
+			t_stream = stream_fifo_pop(quic_entry->tx_retransmit_buffer);
 			assert(t_stream == tx_stream);
 			stream_free(tx_stream);
 		}
@@ -357,7 +357,10 @@ static int acked_stream_data_offset_cb(ngtcp2_conn *conn, int64_t stream_id, uin
 		acked_datalen -= t_datalen;
 	}
 
-	/* Acked data could be a partial write still in the tx_buffer. We free such cases later */
+	/* Acked data could be a partial write still in the tx_buffer. In such cases, we track the
+	 * excess acked bytes, which will be deducted from the next saved stream whenever a future
+	 * ack occurs.
+	 */
 	quic_entry->tx_ack_unconsumed = acked_datalen;
 	quic_entry->tx_ack_offset = offset + datalen;
 
@@ -542,7 +545,7 @@ static int quic_server_tls_init(struct quic_conn_data *conn_data) {
 	// XXX Set up Server Name Indication? e.g. SSL_set_tlsext_servername_callback, etc.
 
 	// XXX Should be turned into a debug-only option later
-	remove("./key.log");
+	//remove("./key.log");
 	SSL_CTX_set_keylog_callback(conn_data->ssl_ctx, keylog_cb);
 
 	return 0;
@@ -1040,7 +1043,7 @@ static void quic_reschedule_timeout_process(struct quic_conn_data *conn_data)
 	now = timestamp();
 
 	timeout = expiry < now ? 0 : expiry - now;
-	timeout = MIN(timeout, (ngtcp2_duration)ONESEC2NANO*60*15); /* Arbitrary 15 Minute max */
+
 	/* nanoseconds --> milliseconds (rounded up) */
 	timeout = (timeout + ONEMILLISEC2NANO - 1) / ONEMILLISEC2NANO;
 
@@ -1061,7 +1064,6 @@ static int quic_write_to_conn(struct quic_conn_data *conn_data)
 	int64_t stream_id = -1;  /* Default for writing just connection data */
 	ngtcp2_ssize written_datalen;
 	uint32_t flags = NGTCP2_WRITE_STREAM_FLAG_MORE;
-	bool stream_fin;
 	struct fd_fifo_entry *fd_entry;
 	struct frr_socket_entry search_entry = {};
 	struct quic_socket_entry *quic_entry;
@@ -1080,7 +1082,7 @@ static int quic_write_to_conn(struct quic_conn_data *conn_data)
 	quic_entry = (struct quic_socket_entry *)found_entry;
 
 	/* A null quic_entry will result in only control data being written. */
-	if (quic_entry->stream_id == -1 || stream_fifo_count(quic_entry->tx_buffer) == 0)
+	if (quic_entry->stream_id == -1 || stream_fifo_count_safe(quic_entry->tx_buffer) == 0)
 		quic_entry = NULL;
 
 	/*
@@ -1102,43 +1104,54 @@ static int quic_write_to_conn(struct quic_conn_data *conn_data)
 		tx_stream = NULL;
 		tx_data = NULL;
 		tx_datalen = 0;
+		written_datalen = 0;
 		stream_id = -1;
 
 		if (conn_data->state == QUIC_NONE || conn_data->state == QUIC_CLOSED)
 			return 0;
 
-		if (quic_socket) {
-			tx_stream = stream_fifo_head(quic_socket->tx_buffer);
+		if (quic_entry && (tx_stream = stream_fifo_head(quic_entry->tx_buffer))) {
 			tx_datalen = STREAM_READABLE(tx_stream);
-			assert(tx_datalen > 0);
+			stream_id = quic_entry->stream_id;
 
 			/* We need to guarentee that the memory buffer we provide remains intact
 			 * until the data is acked. ngtcp2 will revisit the buffer in the case that
 			 * it needs to retransmit data after declaring a packet lost. We manage this
 			 * by passing internal stream data buffer to ngtcp2, which we can easily
 			 * keep track of within a separate stream_fifo buffer.
+			 *
+			 * On a separate note, empty stream buffers *should* be accepted to expedite
+			 * the stream opening proceses. In this case, tx_data should equal NULL.
 			 */
-			tx_data = STREAM_DATA(tx_stream) + stream_getp(tx_stream);
-			stream_id = quic_socket->stream_id;
+			if (tx_datalen > 0)
+				tx_data = STREAM_DATA(tx_stream) + stream_get_getp(tx_stream);
+
+			if (quic_entry->is_stream_fin &&
+			    stream_fifo_count_safe(quic_entry->tx_buffer) <= 1) {
+				/* This stream endpoint needs to close. */
+				flags |= NGTCP2_WRITE_STREAM_FLAG_FIN;
+			}
 		}
 
 		nwrite = ngtcp2_conn_write_stream(conn_data->conn, &ps.path, &pi, buf,
 						  sizeof(buf), &written_datalen, flags, stream_id,
 						  tx_data, tx_datalen, ts);
 
-		if (written_datalen > 0) {
-			assert(quic_socket && tx_stream);
+		if (written_datalen >= 0) {
+			assert(quic_entry && tx_stream);
 
-			stream_forward_getp(written_datalen);
+			// XXX Not sure if written_datalen is cumulative or per-call
+			assert((size_t)written_datalen <= tx_datalen);
+
+			stream_forward_getp(tx_stream, written_datalen);
 			if (STREAM_READABLE(tx_stream) == 0) {
 				/* Transfer the stream to the retransmit safety buffer until acked */
-				t_stream = stream_fifo_pop(quic_socket->tx_buffer);
+				t_stream = stream_fifo_pop(quic_entry->tx_buffer);
 				assert(t_stream == tx_stream);
 				stream_set_getp(tx_stream, 0); /* We will re-consume it when acked */
-				stream_fifo_push(quic_socket->tx_retransmit_buffer, tx_stream);
+				stream_fifo_push(quic_entry->tx_retransmit_buffer, tx_stream);
 			}
 		}
-
 
 		/*
 		// XXX Remove me
@@ -1167,6 +1180,7 @@ static int quic_write_to_conn(struct quic_conn_data *conn_data)
 				}
 				XXX Actually write from the packet!
 				*/
+				assert(written_datalen >= 0);
 				continue;
 			case NGTCP2_ERR_STREAM_SHUT_WR:
 				/* Stream is half-closed or being reset */
@@ -1203,12 +1217,6 @@ static int quic_write_to_conn(struct quic_conn_data *conn_data)
 
 		if (nwrite == 0)
 			break;
-
-		else if (written_datalen > 0) {
-			/* XXX Adjust data written from the buffer here!
-			c->stream.nwrite += (size_t)wdatalen;
-			*/
-		}
 
 		quic_send_packet(conn_data, buf, (size_t)nwrite);
 		break;
@@ -1515,8 +1523,11 @@ static void quic_background_timeout_process(struct event *thread)
 
 	rv = ngtcp2_conn_handle_expiry(conn_data->conn, timestamp());
 	if (rv != 0) {
-		zlog_err("QUIC: ngtcp2_conn_handle_expiry: %s", ngtcp2_strerror(rv));
-		assert(0); // XXX Properly handle the error?
+		zlog_warn("QUIC: ngtcp2_conn_handle_expiry: %s. Closing connection",
+			  ngtcp2_strerror(rv));
+		// XXX Properly handle the error? (close and drop without CC frame?)
+		quic_declare_conn_closed(conn_data);
+		return;
 	}
 
 	if (quic_write_to_conn(conn_data) < 0) {
@@ -1565,6 +1576,7 @@ int quic_socket(int domain, int type)
 	struct quic_socket_entry *quic_entry;
 	struct quic_conn_data *conn_data;
 	struct fd_fifo_entry *fd_entry;
+	struct stream *initial_stream;
 
 	/* A user should understand this as a stream socket (even when UDP is underlying) */
 	if (type != SOCK_STREAM) {
@@ -1607,6 +1619,7 @@ int quic_socket(int domain, int type)
 	conn_data->initial_params.initial_max_stream_data_bidi_local = 128 * 1024;
 	conn_data->initial_params.initial_max_stream_data_bidi_remote = 128 * 1024;
 	conn_data->initial_params.initial_max_data = 256 * 1024;
+	conn_data->initial_params.max_idle_timeout = 5*60*ONESEC2NANO; /* 5 Minutes */
 	fd_fifo_init(&conn_data->stream_fds);
 	if (pthread_mutex_init(&conn_data->lock, NULL) != 0) {
 		errno = ENOMEM;
@@ -1624,7 +1637,17 @@ int quic_socket(int domain, int type)
 	quic_entry->is_stream_fin = false;
 	quic_entry->conn_data = conn_data;
 	fd_fifo_init(&quic_entry->unclaimed_fds);
-	quic_entry->msg = "Hello world"; // XXX Remove me!
+
+	quic_entry->tx_buffer = stream_fifo_new();
+	quic_entry->tx_retransmit_buffer = stream_fifo_new();
+	quic_entry->rx_buffer = stream_fifo_new();
+	initial_stream = stream_new(1); /* Empty stream frame expedites opening first stream */
+	if (!(quic_entry->tx_buffer && quic_entry->tx_retransmit_buffer && quic_entry->rx_buffer &&
+	      initial_stream)) {
+		errno = ENOMEM;
+		goto failed;
+	}
+	stream_fifo_push(quic_entry->tx_buffer, initial_stream);
 
 	/* Add a "reference" from the conn_data -> quic_entry. The conn_data WILL aquire this
 	 * socket entry (via locking) to fetch/deposit stream data, change values, etc.
@@ -1653,6 +1676,18 @@ failed:
 	}
 	if (del_mutex) {
 		pthread_mutex_destroy(&conn_data->lock);
+	}
+	if (quic_entry->tx_buffer) {
+		stream_fifo_free(quic_entry->tx_buffer);
+		quic_entry->tx_buffer = NULL;
+	}
+	if (quic_entry->tx_retransmit_buffer) {
+		stream_fifo_free(quic_entry->tx_retransmit_buffer);
+		quic_entry->tx_retransmit_buffer = NULL;
+	}
+	if (quic_entry->rx_buffer) {
+		stream_fifo_free(quic_entry->rx_buffer);
+		quic_entry->rx_buffer = NULL;
 	}
 	if (quic_entry) {
 	        XFREE(MTYPE_FRR_SOCKET, quic_entry);
@@ -1854,6 +1889,11 @@ int quic_close(struct frr_socket_entry *entry)
 	assert(entry->protocol == IPPROTO_QUIC);
 	quic_entry = (struct quic_socket_entry *)entry;
 
+	if (quic_entry->is_user_closed) {
+		errno = EBADF;
+		return -1;
+	}
+
 	quic_entry->is_user_closed = true;
 	quic_entry->is_stream_fin = true;
 
@@ -1884,6 +1924,18 @@ ssize_t quic_writev(struct frr_socket_entry *entry, const struct iovec *iov, int
 	assert(entry->protocol == IPPROTO_QUIC);
 	quic_entry = (struct quic_socket_entry *)entry;
 
+	if (quic_entry->is_user_closed) {
+		errno = EINVAL;
+		return -1;
+	} else if (quic_entry->is_stream_fin) {
+		// XXX Should we also raise SIGPIPE?
+		errno = EPIPE;
+		return -1;
+	} else if (quic_entry->stream_id == -1) {
+		errno = EINVAL;
+		return -1;
+	}
+
 	// XXX Limit buffer size
 
 	for (int i = 0; i < iovcnt; i++) {
@@ -1909,6 +1961,11 @@ ssize_t quic_read(struct frr_socket_entry *entry, void *buf, size_t count)
 
 	assert(entry->protocol == IPPROTO_QUIC);
 	quic_entry = (struct quic_socket_entry *)entry;
+
+	if (quic_entry->is_user_closed || quic_entry->stream_id == -1) {
+		errno = EINVAL;
+		return -1;
+	}
 
 	t_stream = stream_fifo_head(quic_entry->rx_buffer);
 	if (!t_stream) {
@@ -1938,8 +1995,12 @@ ssize_t quic_read(struct frr_socket_entry *entry, void *buf, size_t count)
 
 ssize_t quic_write(struct frr_socket_entry *entry, const void *buf, size_t count)
 {
-	assert(0); // XXX Implement me
-	return write(entry->fd, buf, count);
+	struct iovec vec = {};
+
+	vec.iov_base = (void *)buf;
+	vec.iov_len = count;
+
+	return quic_writev(entry, &vec, 1);
 }
 
 
@@ -2118,6 +2179,14 @@ int quic_poll_hook(struct frr_socket_entry *entry, struct pollfd *p_fd, int *pol
 			p_fd->revents &= ~POLLOUT;
 			*poll_rv -= p_fd->revents ? 0 : 1;
 		}
+	} else {
+		/* Clear POLLIN if there is no rx data */
+		if (p_fd->events & POLLIN && p_fd->revents & POLLIN) {
+			p_fd->revents &= ~POLLIN;
+			*poll_rv -= p_fd->revents ? 0 : 1;
+		}
+
+		// XXX Clear POLLOUT if the internal tx buffer is full
 	}
 
 	return 0;

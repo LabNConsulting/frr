@@ -92,10 +92,8 @@ struct quic_socket_entry {
 	int64_t rx_consumed;
 
 	/* used for sanity checking */
-	int64_t tx_ack_offset;
-	int64_t rx_offset;
-
-	const char *msg;  //XXX Remove me!
+	uint64_t tx_ack_offset;
+	uint64_t rx_offset;
 
 	/* This reference should be refcounted when multi-stream support is added */
 	struct quic_conn_data *conn_data;

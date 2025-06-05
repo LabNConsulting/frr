@@ -152,7 +152,7 @@ static struct sockaddr_in addr_server = {};
 static socklen_t addrlen_server = 0;
 static const char *msg_client = "test frr socket client";
 static const char *msg_server = "test frr socket server";
-static ssize_t msg_size = sizeof(msg_client); /* Should also be equal to msg_server */
+static ssize_t msg_size = 22; /* Should also be equal to msg_server */
 
 static void *pthread_frr_tcp_connection(void *arg)
 {
