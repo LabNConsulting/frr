@@ -88,7 +88,12 @@ struct quic_socket_entry {
 	struct stream_fifo *rx_buffer;
 	struct stream_fifo *tx_buffer;
 	struct stream_fifo *tx_retransmit_buffer;
-	int64_t tx_offset_acked;
+	int64_t tx_ack_unconsumed;
+	int64_t rx_consumed;
+
+	/* used for sanity checking */
+	int64_t tx_ack_offset;
+	int64_t rx_offset;
 
 	const char *msg;  //XXX Remove me!
 

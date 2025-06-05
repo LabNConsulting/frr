@@ -266,9 +266,8 @@ static int recv_stream_data_cb(ngtcp2_conn *conn, uint32_t flags, int64_t stream
 	struct frr_socket_entry search_entry = {};
 	struct quic_socket_entry *quic_entry = NULL;
 	struct quic_conn_data *conn_data = user_data;
+	struct stream *t_stream;
 	assert(conn == conn_data->conn);
-
-	(void)offset;
 
 	/* Our design should result in fd_ref *always* being populated before data is received */
 	if (fd_ref == NULL) {
@@ -282,10 +281,21 @@ static int recv_stream_data_cb(ngtcp2_conn *conn, uint32_t flags, int64_t stream
 	quic_entry = (struct quic_socket_entry *)found_entry;
 
 	if (datalen > 0 ) {
-		/* XXX Copy the data into the fifo stream buffer! */
+		assert(quic_entry->rx_offset == offset);
+		t_stream = stream_new(datalen);
+		if (!t_stream) {
+			zlog_warn("QUIC: Not enough memory. Discarding %d bytes of data received on stream fd %d.",
+				  datalen, found_entry->fd);
+			break;
+		}
+		stream_put(t_stream, data, datalen);
+		stream_fifo_push(quic_entry->rx_buffer, t_stream);
+		quic_entry->rx_offset = offset + datalen;
 	}
 
 	if (flags & NGTCP2_STREAM_DATA_FLAG_FIN) {
+		zlog_info("QUIC: remote endpoint finished writing to stream fd %d.",
+			  found_entry->fd);
 		/* Opposite endpoint closed their end of the stream. We will follow them, but cannot
 		 * inside any callback. XXX Implement me!
 		 */
@@ -293,16 +303,66 @@ static int recv_stream_data_cb(ngtcp2_conn *conn, uint32_t flags, int64_t stream
 		//quic_entry->is_conn_closed = true;
 	}
 
-	/* ngtcp2's on-the-wire window limits do not adjust automatically based on user data */
-	// XXX Move this to when data is actually read from the internal buffer! Not just received!
-	ngtcp2_conn_extend_max_stream_offset(conn, stream_id, datalen);
+	/* Refresh the connection-scope transmission window */
 	ngtcp2_conn_extend_max_offset(conn, datalen);
+
+	/* Refresh the stream-scope transmission window */
+	// XXX This should not increase until after bytes are consumed from the buffer, based on rx_consumed
+	ngtcp2_conn_extend_max_stream_offset(conn, stream_id, datalen);
 
 	zlog_debug("QUIC: Received %d bytes of data for stream %lld", (int)datalen, stream_id);
 
 	return 0;
 }
 
+
+static int acked_stream_data_offset_cb(ngtcp2_conn *conn, int64_t stream_id, uint64_t offset,
+				       uint64_t datalen, void *user_data, void *stream_user_data)
+{
+	int *fd_ref = stream_user_data;
+	struct frr_socket_entry search_entry = {};
+	struct quic_socket_entry *quic_entry = NULL;
+	struct quic_conn_data *conn_data = user_data;
+	struct stream *tx_stream, *t_stream;
+	size_t t_datalen;
+	uint64_t acked_datalen;
+	assert(conn == conn_data->conn);
+
+	/* Our design should result in fd_ref *always* being populated before data is received */
+	if (fd_ref == NULL) {
+		zlog_err("QUIC: No entry for acked data. This is unexpected.");
+		assert(0);
+	}
+
+	search_entry.fd = *fd_ref;
+	frr_socket_table_find(&search_entry, found_entry);
+	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
+	quic_entry = (struct quic_socket_entry *)found_entry;
+
+	assert(quic_entry->tx_ack_offset == offset);
+	acked_datalen = datalen + quic_entry->tx_ack_unconsumed;
+
+	while (acked_datalen > 0 &&
+	       (tx_stream = stream_fifo_head(quic_entry->tx_retransmit_buffer))) {
+		t_datalen = MIN(acked_datalen, STREAM_READABLE(tx_stream));
+
+		stream_forward_getp(tx_stream, t_datalen);
+		if (STREAM_READABLE(tx_stream) == 0) {
+			t_stream = stream_fifo_pop(quic_socket->tx_retransmit_buffer);
+			assert(t_stream == tx_stream);
+			stream_free(tx_stream);
+		}
+
+		/* Adjust the total to be acked, and move on to freeing the next stream */
+		acked_datalen -= t_datalen;
+	}
+
+	/* Acked data could be a partial write still in the tx_buffer. We free such cases later */
+	quic_entry->tx_ack_unconsumed = acked_datalen;
+	quic_entry->tx_ack_offset = offset + datalen;
+
+	return 0;
+}
 
 /*
  * The following are internal helper functions used to create/manage QUIC contexts and streams
@@ -517,7 +577,7 @@ static int quic_server_conn_init(struct quic_conn_data *conn_data,
 		ngtcp2_crypto_decrypt_cb,
 		ngtcp2_crypto_hp_mask_cb,
 		recv_stream_data_cb,
-		NULL, /* acked_stream_data_offset */
+		acked_stream_data_offset_cb,
 		stream_open_server_cb,
 		stream_close_cb,
 		NULL, /* recv_stateless_reset */
@@ -616,7 +676,7 @@ static int quic_client_conn_init(struct quic_conn_data *conn_data,
 		ngtcp2_crypto_decrypt_cb,
 		ngtcp2_crypto_hp_mask_cb,
 		recv_stream_data_cb,
-		NULL, /* acked_stream_data_offset */
+		acked_stream_data_offset_cb,
 		NULL, /* stream_open */
 		stream_close_cb,
 		NULL, /* recv_stateless_reset */
@@ -1002,14 +1062,16 @@ static int quic_write_to_conn(struct quic_conn_data *conn_data)
 	ngtcp2_ssize written_datalen;
 	uint32_t flags = NGTCP2_WRITE_STREAM_FLAG_MORE;
 	bool stream_fin;
-	const uint8_t* msg = NULL; // XXX Remove me!
-	size_t msg_size = 0;
 	struct fd_fifo_entry *fd_entry;
 	struct frr_socket_entry search_entry = {};
 	struct quic_socket_entry *quic_entry;
+	struct stream *tx_stream, *t_stream;
+	uint8_t* tx_data;
+	size_t tx_datalen;
 
 	ngtcp2_path_storage_zero(&ps);
 
+	/* In the future, some sort of approach will need to be taken to write from multiple streams */
 	fd_entry = fd_fifo_first(&conn_data->stream_fds);
 	assert(fd_entry);
 	search_entry.fd = fd_entry->fd;
@@ -1017,6 +1079,11 @@ static int quic_write_to_conn(struct quic_conn_data *conn_data)
 	assert(found_entry && found_entry->protocol == IPPROTO_QUIC);
 	quic_entry = (struct quic_socket_entry *)found_entry;
 
+	/* A null quic_entry will result in only control data being written. */
+	if (quic_entry->stream_id == -1 || stream_fifo_count(quic_entry->tx_buffer) == 0)
+		quic_entry = NULL;
+
+	/*
 	if (quic_entry->msg && quic_entry->stream_id != -1 &&
 	    conn_data->state == QUIC_CONNECTED) {
 		stream_id = quic_entry->stream_id;
@@ -1025,22 +1092,55 @@ static int quic_write_to_conn(struct quic_conn_data *conn_data)
 		//flags |= NGTCP2_WRITE_STREAM_FLAG_FIN;
 		//stream_fin = true;
 	}
+	*/
 
 	/* conn_data should be locked by caller who is in the frr_socket_threadmaster's pthread */
 	assert(pthread_self() == frr_socket_threadmaster->owner);
 	assert(pthread_mutex_trylock(&conn_data->lock) != 0);
 
 	for (;;) {
+		tx_stream = NULL;
+		tx_data = NULL;
+		tx_datalen = 0;
+		stream_id = -1;
 
 		if (conn_data->state == QUIC_NONE || conn_data->state == QUIC_CLOSED)
 			return 0;
 
-		// XXX Get data to read/write (but not if stream_fin!)
+		if (quic_socket) {
+			tx_stream = stream_fifo_head(quic_socket->tx_buffer);
+			tx_datalen = STREAM_READABLE(tx_stream);
+			assert(tx_datalen > 0);
+
+			/* We need to guarentee that the memory buffer we provide remains intact
+			 * until the data is acked. ngtcp2 will revisit the buffer in the case that
+			 * it needs to retransmit data after declaring a packet lost. We manage this
+			 * by passing internal stream data buffer to ngtcp2, which we can easily
+			 * keep track of within a separate stream_fifo buffer.
+			 */
+			tx_data = STREAM_DATA(tx_stream) + stream_getp(tx_stream);
+			stream_id = quic_socket->stream_id;
+		}
 
 		nwrite = ngtcp2_conn_write_stream(conn_data->conn, &ps.path, &pi, buf,
 						  sizeof(buf), &written_datalen, flags, stream_id,
-						  msg, msg_size, ts);
+						  tx_data, tx_datalen, ts);
 
+		if (written_datalen > 0) {
+			assert(quic_socket && tx_stream);
+
+			stream_forward_getp(written_datalen);
+			if (STREAM_READABLE(tx_stream) == 0) {
+				/* Transfer the stream to the retransmit safety buffer until acked */
+				t_stream = stream_fifo_pop(quic_socket->tx_buffer);
+				assert(t_stream == tx_stream);
+				stream_set_getp(tx_stream, 0); /* We will re-consume it when acked */
+				stream_fifo_push(quic_socket->tx_retransmit_buffer, tx_stream);
+			}
+		}
+
+
+		/*
 		// XXX Remove me
 		if (msg && written_datalen > 0) {
 			msg = NULL;
@@ -1048,6 +1148,7 @@ static int quic_write_to_conn(struct quic_conn_data *conn_data)
 			quic_entry->msg = NULL;
 			stream_id = -1;
 		}
+		*/
 
 		if (nwrite < 0) {
 			switch (nwrite) {
@@ -1076,14 +1177,14 @@ static int quic_write_to_conn(struct quic_conn_data *conn_data)
 			case NGTCP2_ERR_STREAM_DATA_BLOCKED:
 				/* Stream is blocked due to congestion control */
 				assert(written_datalen == -1);
-				stream_id = -1; /* Return to only writing control data*/
-				// XXX How to check when we are unclocked?
+				quic_entry = NULL;
+				// XXX How to check when we are unblocked?
 				continue;
 			case NGTCP2_ERR_STREAM_NOT_FOUND:
 				/* How did we get this stream? Not fatal, but still concerning. */
 				zlog_warn("QUIC: ngtcp2_conn_writev_stream found invalid stream: %lld",
 					  stream_id);
-				stream_id = -1;
+				quic_entry = NULL;
 				continue;
 			case NGTCP2_ERR_CLOSING:
 			case NGTCP2_ERR_DRAINING:
@@ -1828,6 +1929,8 @@ ssize_t quic_read(struct frr_socket_entry *entry, void *buf, size_t count)
 
 		t_stream = stream_fifo_head(quic_entry->rx_buffer);
 	}
+
+	quic_entry->rx_consumed += read;
 
 	return (ssize_t)read;
 }
