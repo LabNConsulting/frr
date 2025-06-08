@@ -29,6 +29,23 @@ extern void zlog_rotate(void);
 
 DECLARE_HOOK(zlog_cli_show, (struct vty * vty), (vty));
 
+
+/* Internal logging state */
+
+extern unsigned logmsgs_with_persist_bt;
+extern int log_config_stdout_lvl;
+extern int log_config_syslog_lvl;
+extern int log_cmdline_stdout_lvl;
+extern int log_cmdline_syslog_lvl;
+extern struct zlog_cfg_file zt_file_cmdline;
+extern struct zlog_cfg_file zt_file;
+extern struct zlog_cfg_filterfile zt_filterfile;
+extern struct zlog_cfg_file zt_stdout_file;
+extern struct zlog_cfg_5424 zt_stdout_journald;
+extern bool stdout_journald_in_use;
+
+void log_stdout_apply_level(void);
+
 #ifdef __cplusplus
 }
 #endif

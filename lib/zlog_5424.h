@@ -136,6 +136,31 @@ struct zlog_cfg_5424_user {
 
 DECLARE_QOBJ_TYPE(zlog_cfg_5424_user);
 
+struct log_option {
+	const char *name;
+	ptrdiff_t offs;
+	bool dflt;
+};
+extern struct log_option log_opts[];
+
+extern struct cmd_node extlog_node;
+
+#define DFLT_TS_FLAGS (6 | ZLOG_TS_UTC)
+#define DFLT_FACILITY LOG_DAEMON
+#define DFLT_PRIO_MIN LOG_DEBUG
+
+enum unix_special {
+	SPECIAL_NONE = 0,
+	SPECIAL_SYSLOG,
+	SPECIAL_JOURNALD,
+};
+
+extern struct event_loop *log_5424_master;
+extern void log_5424_free(struct zlog_cfg_5424_user *cfg, bool keepopen);
+extern int target_cmp(const struct zlog_cfg_5424_user *a, const struct zlog_cfg_5424_user *b);
+extern struct targets_head targets;
+DECLARE_RBTREE_UNIQ(targets, struct zlog_cfg_5424_user, targets_item, target_cmp);
+
 extern void log_5424_cmd_init(void);
 
 #endif /* _FRR_ZLOG_5424_H */
