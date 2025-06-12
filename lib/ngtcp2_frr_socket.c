@@ -21,9 +21,11 @@
 #define ONESEC2NANO ((uint64_t)1000000000)
 #define ONEMILLISEC2NANO ((uint64_t)1000000)
 
-static void quic_background_process(struct event *thread);
-static void quic_background_timeout_process(struct event *thread);
-static void quic_background_listen(struct event *thread);
+//static void quic_background_process(struct event *thread);
+static void quic_conn_read_event(struct event *thread);
+static void quic_conn_write_event(struct event *thread);
+static void quic_conn_timeout_event(struct event *thread);
+static void quic_listen_event(struct event *thread);
 
 /* Keep up to date with the quic_state enum in ngtcp2_frr_socket.h */
 static const char *const quic_state_str[] = {
@@ -863,20 +865,23 @@ static void quic_declare_conn_closed(struct quic_conn_data *conn_data)
 
 	/* Stop all I/O-related background events */
 	assert(pthread_self() == frr_socket_threadmaster->owner);
-	if (conn_data->t_background_process)
-		event_cancel(&conn_data->t_background_process);
-	if (conn_data->t_background_timeout)
-		event_cancel(&conn_data->t_background_timeout);
-	if (conn_data->t_background_listen)
-		event_cancel(&conn_data->t_background_listen);
+	if (conn_data->t_conn_write)
+		event_cancel(&conn_data->t_conn_write);
+	if (conn_data->t_conn_read)
+		event_cancel(&conn_data->t_conn_read);
+	if (conn_data->t_conn_timeout)
+		event_cancel(&conn_data->t_conn_timeout);
+	if (conn_data->t_listen)
+		event_cancel(&conn_data->t_listen);
 
 	/* In case a delayed close is in progress, but this time we must close abruptly */
 	if (conn_data->t_quic_delete)
 		event_cancel(&conn_data->t_quic_delete);
 
-	conn_data->t_background_process = NULL;
-	conn_data->t_background_timeout = NULL;
-	conn_data->t_background_listen = NULL;
+	conn_data->t_conn_write = NULL;
+	conn_data->t_conn_read = NULL;
+	conn_data->t_conn_timeout = NULL;
+	conn_data->t_listen = NULL;
 	conn_data->t_quic_delete = NULL;
 
 	if (conn_data->lib_shutdown) {
@@ -918,8 +923,8 @@ static void quic_close_listener(struct quic_conn_data *conn_data)
 		XFREE(MTYPE_FRR_SOCKET, fd_entry);
 	}
 
-	if (conn_data->t_background_listen) {
-		event_cancel(&conn_data->t_background_listen);
+	if (conn_data->t_listen) {
+		event_cancel(&conn_data->t_listen);
 	}
 	quic_declare_conn_closed(conn_data);
 }
@@ -1031,9 +1036,9 @@ static void quic_reschedule_timeout_process(struct quic_conn_data *conn_data)
 	ngtcp2_tstamp expiry, now;
 	uint64_t timeout;
 
-	if (conn_data->t_background_timeout) {
-		event_cancel(&conn_data->t_background_timeout);
-		conn_data->t_background_timeout = NULL;
+	if (conn_data->t_conn_timeout) {
+		event_cancel(&conn_data->t_conn_timeout);
+		conn_data->t_conn_timeout = NULL;
 	}
 
 	if (conn_data->state == QUIC_NONE || conn_data->state == QUIC_CLOSED)
@@ -1047,8 +1052,8 @@ static void quic_reschedule_timeout_process(struct quic_conn_data *conn_data)
 	/* nanoseconds --> milliseconds (rounded up) */
 	timeout = (timeout + ONEMILLISEC2NANO - 1) / ONEMILLISEC2NANO;
 
-	event_add_timer_msec(frr_socket_threadmaster, quic_background_timeout_process,
-			     conn_data, timeout, &conn_data->t_background_timeout);
+	event_add_timer_msec(frr_socket_threadmaster, quic_conn_timeout_event,
+			     conn_data, timeout, &conn_data->t_conn_timeout);
 }
 
 
@@ -1407,10 +1412,13 @@ static int quic_process_listener_packet(struct quic_conn_data *conn_data, uint8_
 	/* Start the normal background processing loop. The response to the initial packet will be
 	 * generated within this loop by the ngtcp2 library.
 	 */
-	event_add_write(frr_socket_threadmaster, quic_background_process, new_conn_data,
-			new_conn_data->fd, &new_conn_data->t_background_process);
+	event_add_write(frr_socket_threadmaster, quic_conn_write_event, new_conn_data,
+			new_conn_data->fd, &new_conn_data->t_conn_write);
+	event_add_read(frr_socket_threadmaster, quic_conn_read_event, new_conn_data,
+		       new_conn_data->fd, &new_conn_data->t_conn_read);
 
 	// XXX Also start the loop on timeout.
+	// XXX What did I mean here? Timeout event is rescheduled within quic_conn_write_event
 
 	return 0;
 
@@ -1480,7 +1488,7 @@ static int quic_read_from_conn(struct quic_conn_data *conn_data)
  */
 
 
-static void quic_background_process(struct event *thread)
+static void quic_conn_read_event(struct event *thread)
 {
 	struct quic_conn_data *conn_data = EVENT_ARG(thread);
 	assert(conn_data != NULL);
@@ -1490,24 +1498,51 @@ static void quic_background_process(struct event *thread)
 		return;
 	}
 
-	conn_data->t_background_process = NULL;
+	conn_data->t_conn_read = NULL;
 
 	if (quic_read_from_conn(conn_data) < 0) {
 		// XXX Reset the connection?
 	}
 
-	if (quic_write_to_conn(conn_data) < 0) {
-		// XXX Reset the connection?
-	}
-
+	/* Reschedule this read event. Schedule a write event to write control data, etc. */
 	if (conn_data->state != QUIC_CLOSED) {
-		event_add_read(frr_socket_threadmaster, quic_background_process, conn_data,
-			       conn_data->fd, &conn_data->t_background_process);
+		if (conn_data->t_conn_read == NULL) {
+			event_add_read(frr_socket_threadmaster, quic_conn_read_event, conn_data,
+				       conn_data->fd, &conn_data->t_conn_read);
+		}
+		if (conn_data->t_conn_write == NULL) {
+			event_add_write(frr_socket_threadmaster, quic_conn_write_event, conn_data,
+					conn_data->fd, &conn_data->t_conn_write);
+		}
 	}
 }
 
 
-static void quic_background_timeout_process(struct event *thread)
+static void quic_conn_write_event(struct event *thread)
+{
+	struct quic_conn_data *conn_data = EVENT_ARG(thread);
+	assert(conn_data != NULL);
+	frr_mutex_lock_autounlock(&conn_data->lock);
+
+	if (conn_data->state == QUIC_NONE || conn_data->state == QUIC_CLOSED) {
+		return;
+	}
+
+	conn_data->t_conn_write = NULL;
+
+	if (quic_write_to_conn(conn_data) < 0) {
+		// XXX Reset the connection?
+	}
+
+	// XXX Only definitively schedule if data remains to be written. How to know this?
+	if (conn_data->state != QUIC_CLOSED && conn_data->t_conn_write == NULL && 1 == 1) {
+		event_add_write(frr_socket_threadmaster, quic_conn_write_event, conn_data,
+				conn_data->fd, &conn_data->t_conn_write);
+	}
+}
+
+
+static void quic_conn_timeout_event(struct event *thread)
 {
 	int rv;
 	struct quic_conn_data *conn_data = EVENT_ARG(thread);
@@ -1519,7 +1554,7 @@ static void quic_background_timeout_process(struct event *thread)
 		return;
 	}
 
-	conn_data->t_background_timeout = NULL;
+	conn_data->t_conn_timeout = NULL;
 
 	rv = ngtcp2_conn_handle_expiry(conn_data->conn, timestamp());
 	if (rv != 0) {
@@ -1539,7 +1574,7 @@ static void quic_background_timeout_process(struct event *thread)
 
 
 
-static void quic_background_listen(struct event *thread)
+static void quic_listen_event(struct event *thread)
 {
 	struct quic_conn_data *conn_data = EVENT_ARG(thread);
 	assert(conn_data != NULL);
@@ -1553,15 +1588,15 @@ static void quic_background_listen(struct event *thread)
 		assert(0);
 	}
 
-	conn_data->t_background_listen = NULL;
+	conn_data->t_listen = NULL;
 
 	if (quic_read_from_conn(conn_data) < 0) {
 		//XXX Reset the connection?
 	}
 
 	if (conn_data->state != QUIC_CLOSED) {
-		event_add_read(frr_socket_threadmaster, quic_background_listen, conn_data,
-			       conn_data->fd, &conn_data->t_background_listen);
+		event_add_read(frr_socket_threadmaster, quic_listen_event, conn_data,
+			       conn_data->fd, &conn_data->t_listen);
 	}
 }
 
@@ -1780,8 +1815,10 @@ int quic_connect(struct frr_socket_entry *entry, const struct sockaddr *addr, so
 		}
 
 		quic_change_state(conn_data, QUIC_CONNECTING);
-		event_add_write(frr_socket_threadmaster, quic_background_process, conn_data,
-				conn_data->fd, &conn_data->t_background_process);
+		event_add_read(frr_socket_threadmaster, quic_conn_read_event, conn_data,
+			       conn_data->fd, &conn_data->t_conn_read);
+		event_add_write(frr_socket_threadmaster, quic_conn_write_event, conn_data,
+				conn_data->fd, &conn_data->t_conn_write);
 
 		/* We always will "fail" with EINPROGRESS in order to allow for background events to
 		 * be completed. This includes perfoming the handshake and automatically creating at
@@ -1816,8 +1853,8 @@ int quic_listen(struct frr_socket_entry *entry, int backlog)
 		quic_entry->listener_backlog = backlog;
 
 		quic_change_state(conn_data, QUIC_LISTENING);
-		event_add_read(frr_socket_threadmaster, quic_background_listen, conn_data,
-			       conn_data->fd, &conn_data->t_background_process);
+		event_add_read(frr_socket_threadmaster, quic_listen_event, conn_data,
+			       conn_data->fd, &conn_data->t_listen);
 
 		return 0;
 	}
@@ -1904,8 +1941,10 @@ int quic_close(struct frr_socket_entry *entry)
 		conn_data = quic_entry->conn_data;
 		pthread_mutex_unlock(&entry->lock);
 		frr_with_mutex (&conn_data->lock) {
-			event_add_timer_msec(frr_socket_threadmaster, quic_close_event, conn_data,
-					     0, &conn_data->t_socket_closed);
+			if (conn_data->t_socket_closed == NULL) {
+				event_add_timer_msec(frr_socket_threadmaster, quic_close_event,
+						     conn_data, 0, &conn_data->t_socket_closed);
+			}
 		}
 		pthread_mutex_lock(&entry->lock);
 	}
@@ -1917,6 +1956,7 @@ int quic_close(struct frr_socket_entry *entry)
 ssize_t quic_writev(struct frr_socket_entry *entry, const struct iovec *iov, int iovcnt)
 {
 	struct quic_socket_entry *quic_entry = NULL;
+	struct quic_conn_data *conn_data = NULL;
 	const struct iovec *vec = NULL;
 	struct stream *t_stream = NULL;
 	size_t written = 0;
@@ -1946,6 +1986,20 @@ ssize_t quic_writev(struct frr_socket_entry *entry, const struct iovec *iov, int
 		stream_put(t_stream, vec->iov_base, vec->iov_len);
 		stream_fifo_push(quic_entry->tx_buffer, t_stream);
 		written += vec->iov_len;
+	}
+
+	if (written > 0) {
+		/* Notification to to the conn_data instance that new tx data is present */
+		conn_data = quic_entry->conn_data;
+		pthread_mutex_unlock(&entry->lock);
+		frr_with_mutex (&conn_data->lock) {
+			if (conn_data->state != QUIC_CLOSED && conn_data->t_conn_write == NULL) {
+				event_add_write(frr_socket_threadmaster, quic_conn_write_event,
+						quic_entry->conn_data, quic_entry->conn_data->fd,
+						&conn_data->t_conn_write);
+			}
+		}
+		pthread_mutex_lock(&entry->lock);
 	}
 
 	return (ssize_t)written;
@@ -2129,6 +2183,29 @@ int quic_getaddrinfo(const char *node, const char *service, const struct addrinf
 	return 0;
 }
 
+static inline int pollfd_set_flag(struct pollfd *p_fd, int flag)
+{
+	int rv = 0;
+
+	if (p_fd->events & flag && !(p_fd->revents & flag)) {
+		rv = p_fd->revents ? 0 : 1;
+		p_fd->revents |= flag;
+	}
+
+	return rv;
+}
+
+static inline int pollfd_unset_flag(struct pollfd *p_fd, int flag)
+{
+	int rv = 0;
+
+	if (p_fd->events & flag && p_fd->revents & flag) {
+		p_fd->revents &= ~flag;
+		rv = p_fd->revents ? 0 : -1;
+	}
+
+	return rv;
+}
 
 // XXX Fix this
 int quic_poll_hook(struct frr_socket_entry *entry, struct pollfd *p_fd, int *poll_rv)
@@ -2157,33 +2234,25 @@ int quic_poll_hook(struct frr_socket_entry *entry, struct pollfd *p_fd, int *pol
 				continue;
 
 			/* At this point, we have found at least 1 ready socket for accept */
-			if (p_fd->events & POLLIN && !(p_fd->revents & POLLIN)) {
-				*poll_rv += p_fd->revents ? 0 : 1;
-				p_fd->revents |= POLLIN;
-			}
+			*poll_rv += pollfd_set_flag(p_fd, POLLIN);
+
 			return 0;
 		}
 
 		/* If we didn't find a ready socket, then clear the result */
-		if (p_fd->events & POLLIN && p_fd->revents & POLLIN) {
-			p_fd->revents &= ~POLLIN;
-			*poll_rv -= p_fd->revents ? 0 : 1;
-		}
+		*poll_rv += pollfd_unset_flag(p_fd, POLLIN);
+
 	} else if (quic_entry->stream_id == -1) {
 		/* Clear all POLLIN and POLLOUT events. Not I/O stream capable yet. */
-		if (p_fd->events & POLLIN && p_fd->revents & POLLIN) {
-			p_fd->revents &= ~POLLIN;
-			*poll_rv -= p_fd->revents ? 0 : 1;
-		}
-		if (p_fd->events & POLLOUT && p_fd->revents & POLLOUT) {
-			p_fd->revents &= ~POLLOUT;
-			*poll_rv -= p_fd->revents ? 0 : 1;
-		}
+		*poll_rv += pollfd_unset_flag(p_fd, POLLIN);
+		*poll_rv += pollfd_unset_flag(p_fd, POLLOUT);
+
 	} else {
-		/* Clear POLLIN if there is no rx data */
-		if (p_fd->events & POLLIN && p_fd->revents & POLLIN) {
-			p_fd->revents &= ~POLLIN;
-			*poll_rv -= p_fd->revents ? 0 : 1;
+		/* Set POLLIN according to the presence of rx data */
+		if (stream_fifo_count_safe(quic_entry->rx_buffer) > 0) {
+			*poll_rv += pollfd_set_flag(p_fd, POLLIN);
+		} else {
+			*poll_rv += pollfd_unset_flag(p_fd, POLLIN);
 		}
 
 		// XXX Clear POLLOUT if the internal tx buffer is full
@@ -2265,16 +2334,20 @@ static void quic_destroy_conn(struct quic_conn_data *conn_data)
 	 * still any good. Thus, we avoid taking action and instead log a warnings if we find events
 	 * that we don't expect to exist.
 	 */
-	if (conn_data->t_background_timeout != NULL) {
-		zlog_warn("QUIC: conn_data with UDP fd=%d had event t_background_timeout scheduled at deletion",
+	if (conn_data->t_conn_timeout != NULL) {
+		zlog_warn("QUIC: conn_data with UDP fd=%d had event t_conn_timeout scheduled at deletion",
 			  conn_data->fd);
 	}
-	if (conn_data->t_background_process != NULL) {
-		zlog_warn("QUIC: conn_data with UDP fd=%d had event t_background_process scheduled at deletion",
+	if (conn_data->t_conn_write != NULL) {
+		zlog_warn("QUIC: conn_data with UDP fd=%d had event t_conn_write scheduled at deletion",
 			  conn_data->fd);
 	}
-	if (conn_data->t_background_listen != NULL) {
-		zlog_warn("QUIC: conn_data with UDP fd=%d had event t_background_listen scheduled at deletion",
+	if (conn_data->t_conn_read != NULL) {
+		zlog_warn("QUIC: conn_data with UDP fd=%d had event t_conn_read scheduled at deletion",
+			  conn_data->fd);
+	}
+	if (conn_data->t_listen != NULL) {
+		zlog_warn("QUIC: conn_data with UDP fd=%d had event t_listen scheduled at deletion",
 			  conn_data->fd);
 	}
 	if (conn_data->t_socket_closed != NULL) {

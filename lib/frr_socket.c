@@ -42,7 +42,7 @@ int frr_socket_lib_finish(void)
 
 	rcu_read_lock();
 	pthread_rwlock_wrlock(&frr_socket_table.rwlock);
-	while ((entry = frr_socket_entry_pop(&frr_socket_table.table))) {
+	frr_each_safe(frr_socket_entry, &frr_socket_table.table, entry) {
 		pthread_rwlock_unlock(&frr_socket_table.rwlock);
 
 		/* The writer lock is only held when entries are being removed from the table. It
@@ -53,9 +53,11 @@ int frr_socket_lib_finish(void)
 		frr_with_mutex(&entry->lock) {
 			frr_socket_lib_finish_hook(entry);
 		}
-		rcu_call(_frr_socket_destroy, entry, rcu_head);
 
+		/* Delete the entry only after a protocol stack has finished its chance to hook */
 		pthread_rwlock_wrlock(&frr_socket_table.rwlock);
+		frr_socket_entry_del(&frr_socket_table.table, entry);
+		rcu_call(_frr_socket_destroy, entry, rcu_head);
 	}
 	pthread_rwlock_unlock(&frr_socket_table.rwlock);
 	rcu_read_unlock();

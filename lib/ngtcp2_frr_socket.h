@@ -66,9 +66,10 @@ struct quic_conn_data {
 	ngtcp2_crypto_conn_ref conn_ref;
 	ngtcp2_ccerr last_error;
 	struct fd_fifo_head stream_fds;  /* per-stream quic_socket_entry list */
-	struct event *t_background_process;
-	struct event *t_background_timeout;
-	struct event *t_background_listen;
+	struct event *t_conn_read;
+	struct event *t_conn_write;
+	struct event *t_conn_timeout;
+	struct event *t_listen;
 	struct event *t_socket_closed;
 	struct event *t_quic_delete;
 
