@@ -44,7 +44,8 @@ enum quic_state {
 };
 
 struct fd_fifo_entry {
-	int fd;
+	int user_pipe;
+	int conn_pipe;
 	struct fd_fifo_item next_fd_entry;
 };
 
@@ -56,6 +57,7 @@ struct quic_conn_data {
 	pthread_mutex_t lock;
 
 	int fd;  /* Underlying UDP connection socket */
+	//int conn_fd;
 	union sockunion local_addr;
 	socklen_t local_addrlen;
 	ngtcp2_transport_params initial_params;
