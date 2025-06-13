@@ -608,20 +608,15 @@ DEFPY(log_5424_ts_prec,
       "Number of sub-second digits to include\n"
       "Number of sub-second digits to include\n")
 {
-	VTY_DECLVAR_CONTEXT(zlog_cfg_5424_user, cfg);
-	uint32_t ts_flags = cfg->cfg.ts_flags;
+	char pbuf[2];
 
-	ts_flags &= ~ZLOG_TS_PREC;
 	if (no)
-		ts_flags |= DFLT_TS_FLAGS & ZLOG_TS_PREC;
-	else
-		ts_flags |= precision;
+		precision = ZLOG_TS_PREC & DFLT_TS_FLAGS;
+	snprintf(pbuf, sizeof(pbuf), "%.1u", (uint)precision);
 
-	if (ts_flags == cfg->cfg.ts_flags)
-		return CMD_SUCCESS;
-
-	cfg->cfg.ts_flags = ts_flags;
-	return reconf_meta(cfg, vty);
+	nb_cli_enqueue_change(vty, "/frr-logging:logging/extended-syslog/timestamp-precision",
+			      NB_OP_MODIFY, pbuf);
+	nb_cli_apply_changes(vty, NULL);
 }
 
 DEFPY(log_5424_ts_local,
@@ -631,23 +626,13 @@ DEFPY(log_5424_ts_local,
       "Timestamp options\n"
       "Use local system time zone rather than UTC\n")
 {
-	VTY_DECLVAR_CONTEXT(zlog_cfg_5424_user, cfg);
-	uint32_t ts_flags = cfg->cfg.ts_flags;
-
-	ts_flags &= ~ZLOG_TS_UTC;
-	if (no)
-		ts_flags |= DFLT_TS_FLAGS & ZLOG_TS_UTC;
-	else
-		ts_flags |= (~DFLT_TS_FLAGS) & ZLOG_TS_UTC;
-
-	if (ts_flags == cfg->cfg.ts_flags)
-		return CMD_SUCCESS;
-
-	cfg->cfg.ts_flags = ts_flags;
-	return reconf_meta(cfg, vty);
+	nb_cli_enqueue_change(vty, "/frr-logging:logging/extended-syslog/timestamp/local-time",
+			      NB_OP_MODIFY, no ? "false" : "true");
+	nb_cli_apply_changes(vty, NULL);
 }
 
-void log_5425_cli_cmd_init(void)
+extern void log_5425_cli_cmd_init(void);
+	void log_5425_cli_cmd_init(void)
 {
 	/* log_5424_cmd_init(); */
 	cmd_variable_handler_register(log_5424_var_handlers);

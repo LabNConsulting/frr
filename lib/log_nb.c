@@ -14,6 +14,7 @@
 #include "lib/vty.h"
 // #include "lib/zlog_targets.h"
 #include "lib/zlog_5424.h"
+#include "lib/log_5424_nb.h"
 
 #define ZLOG_MAXLVL(a, b) MAX(a, b)
 
@@ -143,7 +144,7 @@ void command_setup_early_logging(const char *dest, const char *level)
 	exit(1);
 }
 
-static int _get_level_value(const struct lyd_node *dnode, const char *xpath)
+int log_nb_get_level(const struct lyd_node *dnode, const char *xpath)
 {
 	const struct lyd_node *level_node;
 	const char *level_str;
@@ -173,7 +174,7 @@ static int logging_stdout_create(struct nb_cb_create_args *args)
 	if (args->event != NB_EV_APPLY)
 		return NB_OK;
 
-	log_config_stdout_lvl = _get_level_value(args->dnode, "level");
+	log_config_stdout_lvl = log_nb_get_level(args->dnode, "level");
 	log_stdout_apply_level();
 	return NB_OK;
 }
@@ -197,7 +198,7 @@ static int logging_stdout_level_modify(struct nb_cb_modify_args *args)
 	if (args->event != NB_EV_APPLY)
 		return NB_OK;
 
-	log_config_stdout_lvl = _get_level_value(args->dnode, NULL);
+	log_config_stdout_lvl = log_nb_get_level(args->dnode, NULL);
 	log_stdout_apply_level();
 	return NB_OK;
 }
@@ -211,7 +212,7 @@ static int logging_syslog_create(struct nb_cb_create_args *args)
 	if (args->event != NB_EV_APPLY)
 		return NB_OK;
 
-	log_config_syslog_lvl = _get_level_value(args->dnode, "level");
+	log_config_syslog_lvl = log_nb_get_level(args->dnode, "level");
 	zlog_syslog_set_prio_min(ZLOG_MAXLVL(log_config_syslog_lvl, log_cmdline_syslog_lvl));
 	return NB_OK;
 }
@@ -235,7 +236,7 @@ static int logging_syslog_level_modify(struct nb_cb_modify_args *args)
 	if (args->event != NB_EV_APPLY)
 		return NB_OK;
 
-	log_config_syslog_lvl = _get_level_value(args->dnode, NULL);
+	log_config_syslog_lvl = log_nb_get_level(args->dnode, NULL);
 	zlog_syslog_set_prio_min(ZLOG_MAXLVL(log_config_syslog_lvl, log_cmdline_syslog_lvl));
 	return NB_OK;
 }
@@ -254,7 +255,7 @@ static int logging_file_filename_modify(struct nb_cb_modify_args *args)
 	/* XXX Need to check to see if daemon specific if set and ignore if so */
 
 	fname = yang_dnode_get_string(args->dnode, NULL);
-	level = _get_level_value(args->dnode, "../level");
+	level = log_nb_get_level(args->dnode, "../level");
 	if (set_log_file(&zt_file, NULL, fname, level) != CMD_SUCCESS)
 		return NB_ERR_INCONSISTENCY;
 	return NB_OK;
@@ -290,7 +291,7 @@ static int logging_file_level_modify(struct nb_cb_modify_args *args)
 		fname = yang_dnode_get_string(args->dnode, "../filename");
 	if (!fname)
 		fname = zt_file.filename;
-	level = _get_level_value(args->dnode, NULL);
+	level = log_nb_get_level(args->dnode, NULL);
 	if (set_log_file(&zt_file, NULL, fname, level) != CMD_SUCCESS)
 		return NB_ERR_INCONSISTENCY;
 	return NB_OK;
@@ -308,7 +309,7 @@ static int logging_filtered_file_filename_modify(struct nb_cb_modify_args *args)
 		return NB_OK;
 
 	fname = yang_dnode_get_string(args->dnode, NULL);
-	level = _get_level_value(args->dnode, "../level");
+	level = log_nb_get_level(args->dnode, "../level");
 	if (set_log_file(&zt_filterfile.parent, NULL, fname, level) != CMD_SUCCESS)
 		return NB_ERR_INCONSISTENCY;
 	return NB_OK;
@@ -340,7 +341,7 @@ static int logging_filtered_file_level_modify(struct nb_cb_modify_args *args)
 		fname = yang_dnode_get_string(args->dnode, "../filename");
 	if (!fname)
 		fname = zt_file.filename;
-	level = _get_level_value(args->dnode, NULL);
+	level = log_nb_get_level(args->dnode, NULL);
 	if (set_log_file(&zt_filterfile.parent, NULL, fname, level) != CMD_SUCCESS)
 		return NB_ERR_INCONSISTENCY;
 	return NB_OK;
@@ -391,7 +392,7 @@ static int logging_daemon_file_create(struct nb_cb_create_args *args)
 		return NB_OK;
 
 	fname = yang_dnode_get_string(args->dnode, "filename");
-	level = _get_level_value(args->dnode, "level");
+	level = log_nb_get_level(args->dnode, "level");
 	if (set_log_file(&zt_file, NULL, fname, level) != CMD_SUCCESS)
 		return NB_ERR_INCONSISTENCY;
 	return NB_OK;
@@ -454,7 +455,7 @@ static int logging_daemon_file_level_modify(struct nb_cb_modify_args *args)
 		return NB_OK;
 
 	fname = yang_dnode_get_string(args->dnode, "../filename");
-	level = _get_level_value(args->dnode, NULL);
+	level = log_nb_get_level(args->dnode, NULL);
 	if (set_log_file(&zt_file, NULL, fname, level) != CMD_SUCCESS)
 		return NB_ERR_INCONSISTENCY;
 	return NB_OK;
@@ -624,648 +625,6 @@ static int logging_uid_backtrace_destroy(struct nb_cb_destroy_args *args)
 
 	return NB_OK;
 }
-
-/*
- * XPath: /frr-logging:logging/extended-syslog
- */
-static int logging_extended_syslog_create(struct nb_cb_create_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-static int logging_extended_syslog_destroy(struct nb_cb_destroy_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/file
- */
-static int logging_extended_syslog_destination_file_create(struct nb_cb_create_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-static int logging_extended_syslog_destination_file_destroy(struct nb_cb_destroy_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/file/path
- */
-static int logging_extended_syslog_destination_file_path_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/file/user
- */
-static int logging_extended_syslog_destination_file_user_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-static int logging_extended_syslog_destination_file_user_destroy(struct nb_cb_destroy_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/file/group
- */
-static int logging_extended_syslog_destination_file_group_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-static int logging_extended_syslog_destination_file_group_destroy(struct nb_cb_destroy_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/file/mode
- */
-static int logging_extended_syslog_destination_file_mode_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-static int logging_extended_syslog_destination_file_mode_destroy(struct nb_cb_destroy_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/file/no-create
- */
-static int logging_extended_syslog_destination_file_no_create_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/file/format
- */
-static int logging_extended_syslog_destination_file_format_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/fifo
- */
-static int logging_extended_syslog_destination_fifo_create(struct nb_cb_create_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-static int logging_extended_syslog_destination_fifo_destroy(struct nb_cb_destroy_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/fifo/path
- */
-static int logging_extended_syslog_destination_fifo_path_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/fifo/user
- */
-static int logging_extended_syslog_destination_fifo_user_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-static int logging_extended_syslog_destination_fifo_user_destroy(struct nb_cb_destroy_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/fifo/group
- */
-static int logging_extended_syslog_destination_fifo_group_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-static int logging_extended_syslog_destination_fifo_group_destroy(struct nb_cb_destroy_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/fifo/mode
- */
-static int logging_extended_syslog_destination_fifo_mode_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-static int logging_extended_syslog_destination_fifo_mode_destroy(struct nb_cb_destroy_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/fifo/no-create
- */
-static int logging_extended_syslog_destination_fifo_no_create_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/fifo/format
- */
-static int logging_extended_syslog_destination_fifo_format_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/unix
- */
-static int logging_extended_syslog_destination_unix_create(struct nb_cb_create_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-static int logging_extended_syslog_destination_unix_destroy(struct nb_cb_destroy_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/unix/path
- */
-static int logging_extended_syslog_destination_unix_path_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/unix/format
- */
-static int logging_extended_syslog_destination_unix_format_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/journald
- */
-static int logging_extended_syslog_destination_journald_create(struct nb_cb_create_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-static int logging_extended_syslog_destination_journald_destroy(struct nb_cb_destroy_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/syslog
- */
-static int logging_extended_syslog_destination_syslog_create(struct nb_cb_create_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-static int logging_extended_syslog_destination_syslog_destroy(struct nb_cb_destroy_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/syslog/supports-rfc5424
- */
-static int logging_extended_syslog_destination_syslog_supports_rfc5424_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/fd
- */
-static int logging_extended_syslog_destination_fd_create(struct nb_cb_create_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-static int logging_extended_syslog_destination_fd_destroy(struct nb_cb_destroy_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/fd/number
- */
-static int logging_extended_syslog_destination_fd_number_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-static int logging_extended_syslog_destination_fd_number_destroy(struct nb_cb_destroy_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/fd/envvar
- */
-static int logging_extended_syslog_destination_fd_envvar_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-static int logging_extended_syslog_destination_fd_envvar_destroy(struct nb_cb_destroy_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/fd/stdout
- */
-static int logging_extended_syslog_destination_fd_stdout_create(struct nb_cb_create_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-static int logging_extended_syslog_destination_fd_stdout_destroy(struct nb_cb_destroy_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/fd/stderr
- */
-static int logging_extended_syslog_destination_fd_stderr_create(struct nb_cb_create_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-static int logging_extended_syslog_destination_fd_stderr_destroy(struct nb_cb_destroy_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/fd/format
- */
-static int logging_extended_syslog_destination_fd_format_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/destination/none
- */
-static int logging_extended_syslog_destination_none_create(struct nb_cb_create_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-static int logging_extended_syslog_destination_none_destroy(struct nb_cb_destroy_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/level
- */
-static int logging_extended_syslog_level_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/facility
- */
-static int logging_extended_syslog_facility_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/code-location
- */
-static int logging_extended_syslog_code_location_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/version
- */
-static int logging_extended_syslog_version_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/error-category
- */
-static int logging_extended_syslog_error_category_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/unique-id
- */
-static int logging_extended_syslog_unique_id_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/format-args
- */
-static int logging_extended_syslog_format_args_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/timestamp-precision
- */
-static int logging_extended_syslog_timestamp_precision_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
-
-/*
- * XPath: /frr-logging:logging/extended-syslog/timestamp-local-time
- */
-static int logging_extended_syslog_timestamp_local_time_modify(struct nb_cb_modify_args *args)
-{
-	if (args->event != NB_EV_APPLY)
-		return NB_OK;
-	/* TODO: implement me. */
-
-	return NB_OK;
-}
-
 
 /* clang-format off */
 const struct frr_yang_module_info frr_logging_nb_info = {

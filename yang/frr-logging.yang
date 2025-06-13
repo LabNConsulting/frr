@@ -377,29 +377,31 @@ module frr-logging {
         description "Syslog facility.";
       }
 
-      leaf code-location {
-        type boolean;
-        default true;
-        description "Include source code location.";
-      }
+      // container struct-data {
+        leaf code-location {
+          type boolean;
+          default true;
+          description "Include source code location.";
+        }
 
-      leaf version {
-        type boolean;
-        default false;
-        description "Include FRR version.";
-      }
+        leaf version {
+          type boolean;
+          default false;
+          description "Include FRR version.";
+        }
 
-      leaf error-category {
-        type boolean;
-        default true;
-        description "Include error category.";
-      }
+        leaf error-category {
+          type boolean;
+          default true;
+          description "Include error category.";
+        }
 
-      leaf unique-id {
-        type boolean;
-        default true;
-        description "Include unique message identifier.";
-      }
+        leaf unique-id {
+          type boolean;
+          default true;
+          description "Include unique message identifier.";
+        }
+      // }
 
       leaf format-args {
         type boolean;
