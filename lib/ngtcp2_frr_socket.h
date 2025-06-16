@@ -14,6 +14,7 @@
 #include <sys/uio.h>
 #include <stddef.h>
 #include <stream.h>
+#include <fcntl.h>
 
 #include <ngtcp2/ngtcp2.h>
 #include <ngtcp2/ngtcp2_crypto.h>
@@ -30,7 +31,7 @@
 extern struct event_loop *frr_socket_threadmaster;
 extern struct frr_socket_entry_table frr_socket_hash_table;
 
-PREDECL_LIST(fd_fifo);
+PREDECL_LIST(quic_stream_data);
 
 enum quic_state {
 	QUIC_NONE,
@@ -43,9 +44,31 @@ enum quic_state {
 	QUIC_STATE_MAX,
 };
 
+/*
 struct fd_fifo_entry {
 	int fd;
-	struct fd_fifo_item next_fd_entry;
+	struct fd_fifo_item next_stream_data;
+};
+*/
+
+struct quic_stream_data {
+
+	int entry_fd;  /* Corresponds to entry in the socket table */
+	int conn_fd;  /* Other end of sockpair; for conn_data use only */
+
+	int64_t stream_id;
+
+	struct stream *tx_next_stream;
+	struct stream_fifo *tx_retransmit_buffer;
+	int64_t tx_ack_unconsumed;
+
+	bool is_stream_fin;
+
+	/* used for sanity checking */
+	uint64_t tx_ack_offset;
+	uint64_t rx_offset;
+
+	struct quic_stream_data_item next_stream_data;
 };
 
 struct quic_conn_data {
@@ -56,6 +79,7 @@ struct quic_conn_data {
 	pthread_mutex_t lock;
 
 	int fd;  /* Underlying UDP connection socket */
+	int listen_fd;  /* For poking POLLIN when a new conn is accepted */
 	union sockunion local_addr;
 	socklen_t local_addrlen;
 	ngtcp2_transport_params initial_params;
@@ -65,7 +89,7 @@ struct quic_conn_data {
 	ngtcp2_crypto_ossl_ctx *ossl_ctx;
 	ngtcp2_crypto_conn_ref conn_ref;
 	ngtcp2_ccerr last_error;
-	struct fd_fifo_head stream_fds;  /* per-stream quic_socket_entry list */
+	struct quic_stream_data_head stream_fds;  /* per-stream quic_socket_entry list */
 	struct event *t_conn_read;
 	struct event *t_conn_write;
 	struct event *t_conn_timeout;
@@ -84,27 +108,30 @@ struct quic_socket_entry {
 	/* Per-stream state. Corresponds to a single QUIC connection */
 	bool is_user_closed;
 	bool is_conn_closed;
-	bool is_stream_fin;
-	int64_t stream_id;
-	struct stream_fifo *rx_buffer;
-	struct stream_fifo *tx_buffer;
-	struct stream_fifo *tx_retransmit_buffer;
-	int64_t tx_ack_unconsumed;
-	int64_t rx_consumed;
+	//bool is_stream_fin;
+	//int64_t stream_id;
+	//struct stream_fifo *rx_buffer;
+	//struct stream_fifo *tx_buffer;
+	//struct stream_fifo *tx_retransmit_buffer;
+	//int64_t tx_ack_unconsumed;
+	int64_t rx_consumed; // XXX Change this to atomically increase another counter
 
 	/* used for sanity checking */
-	uint64_t tx_ack_offset;
-	uint64_t rx_offset;
+	//uint64_t tx_ack_offset;
+	//uint64_t rx_offset;
 
-	/* This reference should be refcounted when multi-stream support is added */
+	/* The following references exist *only* for scheduling events. Their reference may need to
+	 * be refcounted when multi-stream support is added in the future.
+	 */
 	struct quic_conn_data *conn_data;
+	//struct quic_stream_data *stream_data;
 
 	/* Listener state */
-	struct fd_fifo_head unclaimed_fds;
+	struct quic_stream_data_head unclaimed_fds;
 	int listener_backlog;
 };
 
-DECLARE_LIST(fd_fifo, struct fd_fifo_entry, next_fd_entry);
+DECLARE_LIST(quic_stream_data, struct quic_stream_data, next_stream_data);
 
 void quic_socket_lib_finish_hook(struct frr_socket_entry *entry);
 
