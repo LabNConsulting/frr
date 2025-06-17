@@ -39,22 +39,16 @@ enum quic_state {
 	QUIC_CONNECTING,
 	QUIC_CONNECTED,
 	QUIC_NO_STREAMS,
-	QUIC_CLOSING,
 	QUIC_CLOSED,
 	QUIC_STATE_MAX,
 };
-
-/*
-struct fd_fifo_entry {
-	int fd;
-	struct fd_fifo_item next_stream_data;
-};
-*/
 
 struct quic_stream_data {
 
 	int entry_fd;  /* Corresponds to entry in the socket table */
 	int conn_fd;  /* Other end of sockpair; for conn_data use only */
+
+	struct quic_conn_data *conn_data;
 
 	int64_t stream_id;
 

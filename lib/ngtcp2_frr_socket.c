@@ -35,7 +35,6 @@ static const char *const quic_state_str[] = {
 	"QUIC Connecting",
 	"QUIC Connected",
 	"QUIC Connected (No Open Streams)",
-	"QUIC Connection Closing",
 	"QUIC Connection Closed",
 };
 
@@ -207,7 +206,6 @@ static int handshake_confirmed_client_cb(ngtcp2_conn *conn, void *user_data)
 
 static int stream_open_server_cb(ngtcp2_conn *conn, int64_t stream_id, void *user_data) {
 
-        uint8_t poke_byte = 0;
 	struct quic_stream_data *stream_data;
 	struct quic_conn_data *conn_data = user_data;
 	assert(conn == conn_data->conn);
@@ -227,8 +225,8 @@ static int stream_open_server_cb(ngtcp2_conn *conn, int64_t stream_id, void *use
 		return 0;
 	}
 
-	/* Poke the listener (via POLLIN) that a new connection has been accepted */
-	send(conn_data->listen_fd, &poke_byte, sizeof(poke_byte), 0);
+	/* Poke the listener (via POLLIN) that a new stream is open on the specific fd */
+	send(conn_data->listen_fd, &stream_data->entry_fd, sizeof(stream_data->entry_fd), 0);
 
 	zlog_err("QUIC: Server found new stream with id %lld, but there was no entry to give it to!",
 		 stream_id);
@@ -430,7 +428,7 @@ static void cleanup_on_init_failure(struct quic_conn_data* conn_data)
 
 static int quic_client_tls_init(struct quic_conn_data *conn_data) {
 	// XXX Change the allowed ciphers or curves?
-	uint64_t ssl_opts;
+	//uint64_t ssl_opts;
 	const char *ciphers =
 		"TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256";
 	const char *curves = "X25519:P-256:P-384:P-521";
@@ -973,8 +971,7 @@ static void quic_close_conn(struct quic_conn_data *conn_data)
 	/* conn_data should be locked by caller */
 	assert(pthread_mutex_trylock(&conn_data->lock) != 0);
 
-	if (conn_data->state == QUIC_CLOSED || conn_data->state == QUIC_CLOSING ||
-	    ngtcp2_conn_in_closing_period(conn_data->conn) ||
+	if (conn_data->state == QUIC_CLOSED || ngtcp2_conn_in_closing_period(conn_data->conn) ||
 	    ngtcp2_conn_in_draining_period(conn_data->conn)) {
 		return;
 	}
@@ -998,79 +995,78 @@ static void quic_close_conn(struct quic_conn_data *conn_data)
 
 
 
-/* static void quic_check_all_entries_user_closed(struct quic_conn_data *conn_data) */
-/* { */
-/* 	struct quic_stream_data *stream_data = NULL; */
-/* 	struct frr_socket_entry search_entry = {}; */
-/* 	uint8_t dummy[1] */
+static void quic_check_all_entries_user_closed(struct quic_conn_data *conn_data)
+{
+	struct quic_stream_data *stream_data = NULL;
+	struct frr_socket_entry search_entry = {};
 
-/* 	/\* The connection is only closed once *every* entry is closed (either user/conn side) *\/ */
-/* 	frr_each_safe(quic_stream_data, &conn_data->stream_fds, stream_data) { */
+	/* The connection is only closed once *every* entry is closed (either user/conn side) */
+	frr_each_safe (quic_stream_data, &conn_data->stream_fds, stream_data)
+	{
+		/* We *must* handle a shutdown immediatly, regardless of state of entries */
+		if (conn_data->lib_shutdown)
+			break;
 
-/* 		/\* Peek to determine whether *\/ */
-/* 		if (recv(stream_data->fd, dummy, 1, MSG_PEEK) != 0) */
-/* 			return; */
+		/* Is there nothing left to receive on this link? */
+		if (!stream_data->is_stream_fin)
+			return;
 
+		struct quic_socket_entry *t_quic_entry = NULL;
+		search_entry.fd = stream_data->entry_fd;
 
-/* 		struct quic_socket_entry *t_quic_entry = NULL; */
-/* 		search_entry.fd = stream_data->entry_fd; */
+		frr_socket_table_find(&search_entry, t_entry);
+		if (!t_entry)
+			continue;
 
-/* 		frr_socket_table_find(&search_entry, t_entry); */
-/* 		if (!t_entry) */
-/* 			continue; */
+		assert(t_entry->protocol == IPPROTO_QUIC);
+		t_quic_entry = (struct quic_socket_entry *)t_entry;
 
-/* 		assert(t_entry->protocol == IPPROTO_QUIC); */
-/* 		t_quic_entry = (struct quic_socket_entry *)t_entry; */
+		if (!t_quic_entry->is_user_closed)
+			return;
+	}
 
-/* 		if (!t_quic_entry->is_user_closed) */
-/* 			return; */
-/* 	} */
-
-/* 	/\* We determined that the connection needs to be closed. The how-to depends on state *\/ */
-/* 	switch(conn_data->state) { */
-/* 	case QUIC_NONE: */
-/* 	case QUIC_CLOSED: */
-/* 		quic_declare_conn_closed(conn_data); */
-/* 		/\* quic_declare_conn_closed will start the entry destruction process immediately. *\/ */
-/* 		break; */
-/* 	case QUIC_LISTENING: */
-/* 		quic_close_listener(conn_data); */
-/* 		break; */
-/* 	case QUIC_CONNECTING: */
-/* 	case QUIC_NO_STREAMS: */
-/* 		quic_close_conn(conn_data); */
-/* 		break; */
-/* 	case QUIC_CONNECTED: */
-/* 		/\* Don't take action and let streams flush themselves if able. Not possible in */
-/* 		 * instances where we are abruptly shutting down. */
-/* 		 *\/ */
-/* 		if (conn_data->lib_shutdown) */
-/* 			quic_close_conn(conn_data); */
-/* 		break; */
-/* 	case QUIC_CLOSING: */
-/* 		/\* Do not take any action. The connection is already closing. *\/ */
-/* 		break; */
-/* 	case QUIC_STATE_MAX: */
-/* 		assert(0); */
-/* 	} */
-/* } */
-
+	/* We determined that the connection needs to be closed. The how-to depends on state */
+	switch(conn_data->state) {
+	case QUIC_NONE:
+	case QUIC_CLOSED:
+		quic_declare_conn_closed(conn_data);
+		/* quic_declare_conn_closed will start the entry destruction process immediately. */
+		break;
+	case QUIC_LISTENING:
+		quic_close_listener(conn_data);
+		break;
+	case QUIC_CONNECTING:
+	case QUIC_NO_STREAMS:
+		quic_close_conn(conn_data);
+		break;
+	case QUIC_CONNECTED:
+		/* Don't take action and let streams flush themselves if able. Not possible in
+		 * instances where we are abruptly shutting down.
+		 */
+		if (conn_data->lib_shutdown)
+			quic_close_conn(conn_data);
+		break;
+	case QUIC_STATE_MAX:
+		assert(0);
+	}
+}
 
 
-/* static void quic_close_event(struct event *thread) */
-/* { */
-/* 	struct quic_conn_data *conn_data = EVENT_ARG(thread); */
 
-/* 	assert(conn_data != NULL); */
-/* 	frr_mutex_lock_autounlock(&conn_data->lock); */
+static void quic_close_event(struct event *thread)
+{
+	struct quic_conn_data *conn_data = EVENT_ARG(thread);
 
-/* 	conn_data->t_socket_closed = NULL; */
-/* 	conn_data->wait_for_shutdown_event = false; */
+	assert(conn_data != NULL);
+	frr_mutex_lock_autounlock(&conn_data->lock);
 
-/* 	quic_check_all_entries_user_closed(conn_data); */
+	conn_data->t_socket_closed = NULL;
+	conn_data->wait_for_shutdown_event = false;
 
-/* 	return; */
-/* } */
+	quic_check_all_entries_user_closed(conn_data);
+
+	return;
+}
 
 
 static void quic_reschedule_timeout_process(struct quic_conn_data *conn_data)
@@ -1107,13 +1103,13 @@ static int quic_write_to_conn(struct quic_conn_data *conn_data)
 	ngtcp2_ssize nwrite;
 	uint8_t buf[1452];
 	ngtcp2_path_storage ps;
-	ngtcp2_vec datav;
-	size_t datavcnt;
+	//ngtcp2_vec datav;
+	//size_t datavcnt;
 	int64_t stream_id = -1;  /* Default for writing just connection data */
 	ngtcp2_ssize written_datalen;
 	uint32_t flags = NGTCP2_WRITE_STREAM_FLAG_MORE;
 	struct quic_stream_data *stream_data;
-	struct stream *tx_stream, *t_stream;
+	struct stream *tx_stream;
 	uint8_t tx_chunk[QUIC_TX_CHUNK_SIZE];
 	ssize_t tx_chunklen;
 	uint8_t *tx_data;
@@ -1156,7 +1152,7 @@ static int quic_write_to_conn(struct quic_conn_data *conn_data)
 				}
 
 				tx_stream = stream_new(tx_chunklen);
-				if (!t_stream) {
+				if (!tx_stream) {
 					zlog_err("QUIC: Ran out of memory when processing chunk received on fd %d (conn fd %d)",
 						 stream_data->entry_fd, conn_data->fd);
 					assert(0);
@@ -1332,8 +1328,8 @@ static int quic_process_listener_packet(struct quic_conn_data *conn_data, uint8_
 					size_t pktsize, struct msghdr *msg)
 {
 	ngtcp2_path path;
-	ngtcp2_pkt_info pi = { 0 };
-	ngtcp2_version_cid vc;
+	//ngtcp2_pkt_info pi = { 0 };
+	//ngtcp2_version_cid vc;
 	ngtcp2_pkt_hd hd;
 	int rv, domain, new_fd = 0;
 	socklen_t domain_len = sizeof(domain);
@@ -1898,7 +1894,7 @@ int quic_listen(struct frr_socket_entry *entry, int backlog)
 
 	frr_try_with_mutex(&conn_data->lock)
 	{
-		if (conn_data->state != QUIC_NONE) {
+		if (conn_data->state != QUIC_NONE || backlog <= 0) {
 			// XXX What is the correct error code?
 			errno = EINVAL;
 			return -1;
@@ -1922,7 +1918,7 @@ int quic_listen(struct frr_socket_entry *entry, int backlog)
 int quic_accept(struct frr_socket_entry *entry, struct sockaddr *addr, socklen_t *addrlen)
 {
 	ssize_t t_read;
-	uint8_t byte_read = -1;
+	int new_fd = -1;
 	struct quic_stream_data *stream_data = NULL;
 	struct frr_socket_entry search_entry = {};
 	struct quic_socket_entry *quic_entry = NULL;
@@ -1933,6 +1929,21 @@ int quic_accept(struct frr_socket_entry *entry, struct sockaddr *addr, socklen_t
 		errno = EINVAL;
 		return -1;
 	}
+
+	/* Read a single int, corresponding to a single poke about a new connection */
+	t_read = recv(entry->fd, &new_fd, sizeof(new_fd), 0);
+	if (t_read < 0) {
+		if (errno == EAGAIN || errno == EWOULDBLOCK) {
+			errno = EWOULDBLOCK;
+			return -1;
+		} else {
+			zlog_err("QUIC: Error with read in quic_accept(): %s", safe_strerror(errno));
+			assert(0);
+		}
+	} else {
+		assert(t_read == sizeof(new_fd));
+	}
+
 
 	frr_each_safe(quic_stream_data, &quic_entry->unclaimed_fds, stream_data) {
 		struct quic_socket_entry *t_quic_entry = NULL;
@@ -1957,18 +1968,16 @@ int quic_accept(struct frr_socket_entry *entry, struct sockaddr *addr, socklen_t
 			quic_stream_data_del(&quic_entry->unclaimed_fds, stream_data);
 			quic_stream_data_destroy(stream_data);
 			continue;
-		} else if (t_quic_entry->stream_id == -1) {
-			continue;
 		}
+
+		/* Find the specific entry that we were notified about */
+		if (t_entry->fd != new_fd)
+			continue;
 
 		quic_stream_data_del(&quic_entry->unclaimed_fds, stream_data);
 		quic_stream_data_destroy(stream_data);
 
 		/* XXX Copy address information into return buffers */
-
-		/* Read a single byte, corresponding to a single poke about a new connection */
-		t_read = read(entry->fd, &byte_read, sizeof(byte_read), 0);
-		assert(t_read == 1 && byte_read == 0);
 
 		return t_entry->fd;
 	}
@@ -1992,7 +2001,6 @@ int quic_close(struct frr_socket_entry *entry)
 	}
 
 	quic_entry->is_user_closed = true;
-	quic_entry->is_stream_fin = true;
 
 	if (quic_entry->is_conn_closed) {
 		quic_entry_delete(quic_entry);
@@ -2017,8 +2025,6 @@ ssize_t quic_writev(struct frr_socket_entry *entry, const struct iovec *iov, int
 {
 	struct quic_socket_entry *quic_entry = NULL;
 	struct quic_conn_data *conn_data = NULL;
-	const struct iovec *vec = NULL;
-	struct stream *t_stream = NULL;
 	ssize_t written = 0;
 
 	assert(entry->protocol == IPPROTO_QUIC);
@@ -2027,7 +2033,7 @@ ssize_t quic_writev(struct frr_socket_entry *entry, const struct iovec *iov, int
 	if (quic_entry->is_user_closed) {
 		errno = EINVAL;
 		return -1;
-	} else if (listener_backlog > 0) {
+	} else if (quic_entry->listener_backlog > 0) {
 		errno = EINVAL;
 		return -1;
 	}
@@ -2057,7 +2063,6 @@ ssize_t quic_writev(struct frr_socket_entry *entry, const struct iovec *iov, int
 ssize_t quic_read(struct frr_socket_entry *entry, void *buf, size_t count)
 {
 	struct quic_socket_entry *quic_entry = NULL;
-	struct stream *t_stream;
 	ssize_t t_read = 0;
 
 	assert(entry->protocol == IPPROTO_QUIC);
@@ -2066,7 +2071,7 @@ ssize_t quic_read(struct frr_socket_entry *entry, void *buf, size_t count)
 	if (quic_entry->is_user_closed) {
 		errno = EINVAL;
 		return -1;
-	} else if (listener_backlog > 0) {
+	} else if (quic_entry->listener_backlog > 0) {
 		errno = EINVAL;
 		return -1;
 	}
@@ -2249,54 +2254,56 @@ int quic_poll_hook(struct frr_socket_entry *entry, struct pollfd *p_fd, int *pol
 	assert(entry->protocol == IPPROTO_QUIC);
 	quic_entry = (struct quic_socket_entry *)entry;
 
+	quic_entry = quic_entry;
 
 	// This entire funtion probably needs to be removed. For now, hardcode early return.
 	if (entry)
 		return 0;
 
-	if (quic_entry->listener_backlog > 0) {
-		/* Search for an established connection with a stream ready for accept */
-		struct quic_stream_data *stream_data = NULL;
-		struct frr_socket_entry search_entry = {};
+	/* if (quic_entry->listener_backlog > 0) { */
+	/* 	/\* Search for an established connection with a stream ready for accept *\/ */
+	/* 	struct quic_stream_data *stream_data = NULL; */
+	/* 	struct frr_socket_entry search_entry = {}; */
 
-		frr_each_safe (quic_stream_data, &quic_entry->unclaimed_fds, stream_data) {
-			struct quic_socket_entry *t_quic_entry = NULL;
-			search_entry.fd = stream_data->entry_fd;
+	/* 	frr_each_safe (quic_stream_data, &quic_entry->unclaimed_fds, stream_data) { */
+	/* 		struct quic_socket_entry *t_quic_entry = NULL; */
+	/* 		search_entry.fd = stream_data->entry_fd; */
 
-			frr_socket_table_find(&search_entry, t_entry);
-			if (t_entry == NULL)
-				continue;
+	/* 		frr_socket_table_find(&search_entry, t_entry); */
+	/* 		if (t_entry == NULL) */
+	/* 			continue; */
 
-			assert(t_entry->protocol == IPPROTO_QUIC);
-			t_quic_entry = (struct quic_socket_entry *)t_entry;
+	/* 		assert(t_entry->protocol == IPPROTO_QUIC); */
+	/* 		t_quic_entry = (struct quic_socket_entry *)t_entry; */
 
-			if (t_quic_entry->stream_id == -1)
-				continue;
+	/* 		if (stream_data->stream_id == -1) */
+	/* 			continue; */
 
-			/* At this point, we have found at least 1 ready socket for accept */
-			*poll_rv += pollfd_set_flag(p_fd, POLLIN);
+	/* 		/\* At this point, we have found at least 1 ready socket for accept *\/ */
+	/* 		*poll_rv += pollfd_set_flag(p_fd, POLLIN); */
 
-			return 0;
-		}
+	/* 		return 0; */
+	/* 	} */
 
-		/* If we didn't find a ready socket, then clear the result */
-		*poll_rv += pollfd_unset_flag(p_fd, POLLIN);
+	/* 	/\* If we didn't find a ready socket, then clear the result *\/ */
+	/* 	*poll_rv += pollfd_unset_flag(p_fd, POLLIN); */
 
-	} else if (quic_entry->stream_id == -1) {
-		/* Clear all POLLIN and POLLOUT events. Not I/O stream capable yet. */
-		*poll_rv += pollfd_unset_flag(p_fd, POLLIN);
-		*poll_rv += pollfd_unset_flag(p_fd, POLLOUT);
+	/* } else if (quic_entry->stream_id == -1) { */
+	/* 	/\* Clear all POLLIN and POLLOUT events. Not I/O stream capable yet. *\/ */
+	/* 	*poll_rv += pollfd_unset_flag(p_fd, POLLIN); */
+	/* 	*poll_rv += pollfd_unset_flag(p_fd, POLLOUT); */
 
-	} else {
-		/* Set POLLIN according to the presence of rx data */
-		if (stream_fifo_count_safe(quic_entry->rx_buffer) > 0) {
-			*poll_rv += pollfd_set_flag(p_fd, POLLIN);
-		} else {
-			*poll_rv += pollfd_unset_flag(p_fd, POLLIN);
-		}
+	/* } else { */
+	/* 	/\* Set POLLIN according to the presence of rx data *\/ */
+	/* 	if (stream_fifo_count_safe(quic_entry->rx_buffer) > 0) { */
+	/* 		*poll_rv += pollfd_set_flag(p_fd, POLLIN); */
+	/* 	} else { */
+	/* 		*poll_rv += pollfd_unset_flag(p_fd, POLLIN); */
+	/* 	} */
 
-		// XXX Clear POLLOUT if the internal tx buffer is full
-	}
+	/* 	// XXX Clear POLLOUT if the internal tx buffer is full */
+	/* } */
+
 
 	return 0;
 }
@@ -2314,7 +2321,6 @@ void quic_socket_lib_finish_hook(struct frr_socket_entry *entry)
 	conn_data = quic_entry->conn_data;
 
 	quic_entry->is_user_closed = true;
-	quic_entry->is_stream_fin = true;
 
 	/* conn_data events; Since we don't have priority to aquire the conn_data lock, but we must
 	 * aquire it, we release the frr_socket_entry lock that is implicitely held.
@@ -2417,7 +2423,6 @@ static void quic_destroy_conn(struct quic_conn_data *conn_data)
 /* XXX This should not be called directly except by RCU_call in frr_socket_table_delete */
 int quic_destroy_entry(struct frr_socket_entry *entry)
 {
-	int rv;
 	struct quic_socket_entry *quic_entry = NULL;
 	struct quic_stream_data *stream_data;
 	struct quic_conn_data *conn_data;
