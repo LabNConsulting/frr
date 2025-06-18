@@ -17,16 +17,29 @@
 #include "mgmt_msg.h"
 #include "mgmt_msg_native.h"
 
+/*
+ * The following define can be used to enable extra debug logs to aide triaging
+ * issues with the actual implementation below
+ */
+/* #define ENABLE_MGMT_MSG_TRACE 1 */
 
-#define MGMT_MSG_DBG(dbgtag, fmt, ...)                                         \
-	do {                                                                   \
-		if (dbgtag)                                                    \
-			zlog_debug("%s: %s: " fmt, dbgtag, __func__,           \
-				   ##__VA_ARGS__);                             \
+#define MGMT_MSG_DBG(dbgtag, fmt, ...)                                                            \
+	do {                                                                                      \
+		if (dbgtag)                                                                       \
+			zlog_debug("%s: %s: " fmt, dbgtag, __func__, ##__VA_ARGS__);              \
 	} while (0)
 
-#define MGMT_MSG_ERR(ms, fmt, ...)                                             \
-	zlog_err("%s: %s: " fmt, (ms)->idtag, __func__, ##__VA_ARGS__)
+#ifdef ENABLE_MGMT_MSG_TRACE
+#define MGMT_MSG_TRACE(dbgtag, fmt, ...)                                                          \
+	do {                                                                                      \
+		if (dbgtag)                                                                       \
+			zlog_debug("%s: %s: " fmt, dbgtag, __func__, ##__VA_ARGS__);              \
+	} while (0)
+#else
+#define MGMT_MSG_TRACE(dbgtag, fmt, ...)
+#endif
+
+#define MGMT_MSG_ERR(ms, fmt, ...) zlog_err("%s: %s: " fmt, (ms)->idtag, __func__, ##__VA_ARGS__)
 
 DEFINE_MTYPE(LIB, MSG_CONN, "msg connection state");
 
@@ -65,7 +78,7 @@ enum mgmt_msg_rsched mgmt_msg_read(struct mgmt_msg_state *ms, int fd,
 
 		/* -2 is normal nothing read, and to retry */
 		if (n == -2) {
-			MGMT_MSG_DBG(dbgtag, "nothing more to read");
+			MGMT_MSG_TRACE(dbgtag, "nothing more to read");
 			break;
 		}
 		if (n <= 0) {
@@ -77,7 +90,7 @@ enum mgmt_msg_rsched mgmt_msg_read(struct mgmt_msg_state *ms, int fd,
 					     safe_strerror(errno));
 			return MSR_DISCONNECT;
 		}
-		MGMT_MSG_DBG(dbgtag, "read %zd bytes", n);
+		MGMT_MSG_TRACE(dbgtag, "read %zd bytes", n);
 		ms->nrxb += n;
 		avail -= n;
 	}
@@ -90,13 +103,13 @@ enum mgmt_msg_rsched mgmt_msg_read(struct mgmt_msg_state *ms, int fd,
 	while (left > (ssize_t)sizeof(struct mgmt_msg_hdr)) {
 		mhdr = (struct mgmt_msg_hdr *)(STREAM_DATA(ms->ins) + total);
 		if (!MGMT_MSG_IS_MARKER(mhdr->marker)) {
-			MGMT_MSG_DBG(dbgtag, "recv corrupt buffer, disconnect");
+			MGMT_MSG_TRACE(dbgtag, "recv corrupt buffer, disconnect");
 			return MSR_DISCONNECT;
 		}
 		if ((ssize_t)mhdr->len > left)
 			break;
 
-		MGMT_MSG_DBG(dbgtag, "read full message len %u", mhdr->len);
+		MGMT_MSG_TRACE(dbgtag, "read full message len %u", mhdr->len);
 		total += mhdr->len;
 		left -= mhdr->len;
 		mcount++;
@@ -230,9 +243,8 @@ enum mgmt_msg_wsched mgmt_msg_write(struct mgmt_msg_state *ms, int fd,
 	ssize_t n;
 
 	if (ms->outs) {
-		MGMT_MSG_DBG(dbgtag,
-			     "found unqueued stream with %zu bytes, queueing",
-			     stream_get_endp(ms->outs));
+		MGMT_MSG_TRACE(dbgtag, "found unqueued stream with %zu bytes, queueing",
+			       stream_get_endp(ms->outs));
 		stream_fifo_push(&ms->outq, ms->outs);
 		ms->outs = NULL;
 	}
@@ -248,10 +260,9 @@ enum mgmt_msg_wsched mgmt_msg_write(struct mgmt_msg_state *ms, int fd,
 				MGMT_MSG_ERR(ms,
 					     "connection closed while writing");
 			else if (ERRNO_IO_RETRY(errno)) {
-				MGMT_MSG_DBG(
-					dbgtag,
-					"retry error while writing %zd bytes: %s (%d)",
-					left, safe_strerror(errno), errno);
+				MGMT_MSG_TRACE(dbgtag,
+					       "retry error while writing %zd bytes: %s (%d)",
+					       left, safe_strerror(errno), errno);
 				return MSW_SCHED_STREAM;
 			} else
 				MGMT_MSG_ERR(
@@ -260,31 +271,28 @@ enum mgmt_msg_wsched mgmt_msg_write(struct mgmt_msg_state *ms, int fd,
 					left, safe_strerror(errno), errno);
 
 			n = mgmt_msg_reset_writes(ms);
-			MGMT_MSG_DBG(dbgtag, "drop and freed %zd streams", n);
+			MGMT_MSG_TRACE(dbgtag, "drop and freed %zd streams", n);
 
 			return MSW_DISCONNECT;
 		}
 
 		ms->ntxb += n;
 		if (n != left) {
-			MGMT_MSG_DBG(dbgtag, "short stream write %zd of %zd", n,
-				     left);
+			MGMT_MSG_TRACE(dbgtag, "short stream write %zd of %zd", n, left);
 			stream_forward_getp(s, n);
 			return MSW_SCHED_STREAM;
 		}
 
 		stream_free(stream_fifo_pop(&ms->outq));
-		MGMT_MSG_DBG(dbgtag, "wrote stream of %zd bytes", n);
+		MGMT_MSG_TRACE(dbgtag, "wrote stream of %zd bytes", n);
 		nproc++;
 	}
 	if (s) {
-		MGMT_MSG_DBG(
-			dbgtag,
-			"reached %zu buffer writes, pausing with %zu streams left",
-			ms->max_write_buf, ms->outq.count);
+		MGMT_MSG_TRACE(dbgtag, "reached %zu buffer writes, pausing with %zu streams left",
+			       ms->max_write_buf, ms->outq.count);
 		return MSW_SCHED_STREAM;
 	}
-	MGMT_MSG_DBG(dbgtag, "flushed all streams from output q");
+	MGMT_MSG_TRACE(dbgtag, "flushed all streams from output q");
 	return MSW_SCHED_NONE;
 }
 
