@@ -146,6 +146,12 @@ module ietf-crypto-types {
        of symmetric keys.";
   }
 
+  feature cleartext-private-keys {
+    description
+      "Indicates that the server supports cleartext
+       private keys.";
+  }
+
   feature hidden-private-keys {
     description
       "Indicates that the server supports hidden keys.";
@@ -880,6 +886,7 @@ module ietf-crypto-types {
       description
         "Choice between key types.";
       case cleartext-private-key {
+        if-feature "cleartext-private-keys";
         leaf cleartext-private-key {
           nacm:default-deny-all;
           type binary;

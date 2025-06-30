@@ -59,10 +59,23 @@ module ietf-truststore {
   /*   Features   */
   /****************/
 
+  feature central-truststore-supported {
+    description
+      "The 'central-truststore-supported' feature indicates that
+       the server supports the truststore (i.e., implements the
+       'ietf-truststore' module).";
+  }
+
   feature inline-definitions-supported {
     description
       "The 'inline-definitions-supported' feature indicates that
        the server supports locally defined trust anchors.";
+  }
+
+  feature certificates {
+    description
+      "The 'certificates' feature indicates that the server
+       implements the /truststore/certificate-bags subtree.";
   }
 
   feature public-keys {
@@ -134,6 +147,8 @@ module ietf-truststore {
        certificate-bag in the central truststore.";
     leaf certificate-bag {
       nacm:default-deny-write;
+      if-feature "central-truststore-supported";
+      if-feature "certificates";
       type ts:central-certificate-bag-ref;
       must '../certificate';
       description
@@ -141,6 +156,8 @@ module ietf-truststore {
     }
     leaf certificate {
       nacm:default-deny-write;
+      if-feature "central-truststore-supported";
+      if-feature "certificates";
       type ts:central-certificate-ref;
       must '../certificate-bag';
       description
@@ -155,6 +172,7 @@ module ietf-truststore {
        public-key-bag in the central truststore.";
     leaf public-key-bag {
       nacm:default-deny-write;
+      if-feature "central-truststore-supported";
       if-feature "public-keys";
       type ts:central-public-key-bag-ref;
       description
@@ -163,6 +181,7 @@ module ietf-truststore {
     }
     leaf public-key {
       nacm:default-deny-write;
+      if-feature "central-truststore-supported";
       if-feature "public-keys";
       type ts:central-public-key-ref;
       description
@@ -213,6 +232,8 @@ module ietf-truststore {
         }
       }
       case central-truststore {
+        if-feature "central-truststore-supported";
+        if-feature "certificates";
         leaf central-truststore-reference {
           type ts:central-certificate-bag-ref;
           description
@@ -257,6 +278,7 @@ module ietf-truststore {
         }
       }
       case central-truststore {
+        if-feature "central-truststore-supported";
         if-feature "public-keys";
         leaf central-truststore-reference {
           type ts:central-public-key-bag-ref;
@@ -279,6 +301,7 @@ module ietf-truststore {
        location(s).";
     container certificate-bags {
       nacm:default-deny-write;
+      if-feature "certificates";
       description
         "A collection of certificate bags.";
       list certificate-bag {
@@ -360,6 +383,7 @@ module ietf-truststore {
   /*********************************/
 
   container truststore {
+    if-feature "central-truststore-supported";
     nacm:default-deny-write;
     description
       "The truststore contains bags of certificates and
