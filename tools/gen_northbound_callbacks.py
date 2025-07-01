@@ -226,9 +226,8 @@ def main(argv=None) -> int:
         parser.print_usage(sys.stderr)
         return 1
 
-    ctx = libyang.Context()
-    for p in args.paths:
-        ctx.search_path_add(p)
+    search_path = ":".join(args.paths)
+    ctx = libyang.Context(search_path)
 
     # Load all FRR native modules first so that augmentations work
     yang_dir = os.path.join(os.path.dirname(__file__), '..', 'yang')
