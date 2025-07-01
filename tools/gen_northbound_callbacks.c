@@ -17,12 +17,14 @@
 
 static bool f_static_cbs;
 static bool f_new_cbs;
+static bool f_python_output;
 
 static void __attribute__((noreturn)) usage(int status)
 {
 	extern const char *__progname;
-	fprintf(stderr, "usage: %s [-h] [-n] [-s] [-p path]* [LOAD-MODULE ...] MODULE\n",
-		__progname);
+       fprintf(stderr,
+               "usage: %s [-h] [-n] [-s] [-y] [-p path]* [LOAD-MODULE ...] MODULE\n",
+               __progname);
 	exit(status);
 }
 
@@ -199,15 +201,21 @@ static void generate_config_write_cb_name(const struct lysc_node *snode,
 }
 
 static void generate_prototype(const struct nb_callback_info *ncinfo,
-			      const char *cb_name)
+                              const char *cb_name)
 {
-	printf("%s%s(%s);\n", ncinfo->return_type, cb_name, ncinfo->arguments);
+       if (f_python_output)
+               return;
+
+       printf("%s%s(%s);\n", ncinfo->return_type, cb_name, ncinfo->arguments);
 }
 
 static void generate_config_write_prototype(const struct nb_callback_info *ncinfo,
-					    const char *cb_name)
+                                            const char *cb_name)
 {
-	printf("%s%s(%s);\n", ncinfo->return_type, cb_name, ncinfo->arguments);
+       if (f_python_output)
+               return;
+
+       printf("%s%s(%s);\n", ncinfo->return_type, cb_name, ncinfo->arguments);
 }
 
 static int generate_prototypes(const struct lysc_node *snode, void *arg)
@@ -257,46 +265,78 @@ static int generate_prototypes(const struct lysc_node *snode, void *arg)
 	return YANG_ITER_CONTINUE;
 }
 
-static void generate_callback(const struct nb_callback_info *ncinfo,
-			      const char *cb_name)
+static const char *python_return_value(const char *ret)
 {
-	printf("%s%s%s(%s)\n{\n", f_static_cbs ? "static " : "", ncinfo->return_type, cb_name,
-	       ncinfo->arguments);
+       return strcmp(ret, "NULL") == 0 ? "None" : ret;
+}
 
-	switch (ncinfo->operation) {
-	case NB_CB_CREATE:
-	case NB_CB_MODIFY:
-	case NB_CB_DESTROY:
-	case NB_CB_MOVE:
-		printf("\tswitch (args->event) {\n"
-		       "\tcase NB_EV_VALIDATE:\n"
-		       "\tcase NB_EV_PREPARE:\n"
-		       "\tcase NB_EV_ABORT:\n"
-		       "\tcase NB_EV_APPLY:\n"
-		       "\t\t/* TODO: implement me. */\n"
-		       "\t\tbreak;\n"
-		       "\t}\n\n"
-		       );
-		break;
+static void generate_callback(const struct nb_callback_info *ncinfo,
+                              const char *cb_name)
+{
+       if (f_python_output) {
+               printf("def %s(args):\n", cb_name);
+               printf("\t\"\"\"TODO: implement me.\"\"\"\n");
 
-	default:
-		printf("\t/* TODO: implement me. */\n");
-		break;
-	}
+               switch (ncinfo->operation) {
+               case NB_CB_CREATE:
+               case NB_CB_MODIFY:
+               case NB_CB_DESTROY:
+               case NB_CB_MOVE:
+                       printf("\t# handle args.event here\n");
+                       break;
+               default:
+                       break;
+               }
 
-	printf("\treturn %s;\n}\n\n", ncinfo->return_value);
+               if (ncinfo->return_value[0])
+                       printf("\treturn %s\n\n", python_return_value(ncinfo->return_value));
+               else
+                       printf("\n");
+               return;
+       }
+
+       printf("%s%s%s(%s)\n{\n", f_static_cbs ? "static " : "", ncinfo->return_type, cb_name,
+              ncinfo->arguments);
+
+       switch (ncinfo->operation) {
+       case NB_CB_CREATE:
+       case NB_CB_MODIFY:
+       case NB_CB_DESTROY:
+       case NB_CB_MOVE:
+               printf("\tswitch (args->event) {\n"
+                      "\tcase NB_EV_VALIDATE:\n"
+                      "\tcase NB_EV_PREPARE:\n"
+                      "\tcase NB_EV_ABORT:\n"
+                      "\tcase NB_EV_APPLY:\n"
+                      "\t\t/* TODO: implement me. */\n"
+                      "\t\tbreak;\n"
+                      "\t}\n\n");
+               break;
+
+       default:
+               printf("\t/* TODO: implement me. */\n");
+               break;
+       }
+
+       printf("\treturn %s;\n}\n\n", ncinfo->return_value);
 }
 
 static void generate_config_write_callback(const struct nb_callback_info *ncinfo,
-					   const char *cb_name)
+                                           const char *cb_name)
 {
-	printf("%s%s%s(%s)\n{\n", f_static_cbs ? "static " : "", ncinfo->return_type, cb_name,
-	       ncinfo->arguments);
+       if (f_python_output) {
+               printf("def %s(vty, dnode, show_defaults):\n", cb_name);
+               printf("\t# TODO: this cli callback is optional; the cli output may not need to be done at each node.\n\n");
+               return;
+       }
 
-	/* Add a comment, since these callbacks may not all be needed. */
-	printf("\t/* TODO: this cli callback is optional; the cli output may not need to be done at each node. */\n");
+       printf("%s%s%s(%s)\n{\n", f_static_cbs ? "static " : "", ncinfo->return_type, cb_name,
+              ncinfo->arguments);
 
-	printf("}\n\n");
+       /* Add a comment, since these callbacks may not all be needed. */
+       printf("\t/* TODO: this cli callback is optional; the cli output may not need to be done at each node. */\n");
+
+       printf("}\n\n");
 }
 
 static int generate_callbacks(const struct lysc_node *snode, void *arg)
@@ -324,18 +364,21 @@ static int generate_callbacks(const struct lysc_node *snode, void *arg)
 		    || !nb_cb_operation_is_valid(cb->operation, snode))
 			continue;
 
-		if (first) {
-			char xpath[XPATH_MAXLEN];
+               if (first) {
+                       char xpath[XPATH_MAXLEN];
 
-			yang_snode_get_path(snode, YANG_PATH_DATA, xpath,
-					    sizeof(xpath));
+                       yang_snode_get_path(snode, YANG_PATH_DATA, xpath,
+                                           sizeof(xpath));
 
-			printf("/*\n"
-			       " * XPath: %s\n"
-			       " */\n",
-			       xpath);
-			first = false;
-		}
+                       if (f_python_output)
+                               printf("# XPath: %s\n", xpath);
+                       else
+                               printf("/*\n"
+                                      " * XPath: %s\n"
+                                      " */\n",
+                                      xpath);
+                       first = false;
+               }
 
 		if (f_new_cbs && cb->operation == NB_CB_GET_NEXT && snode->nodetype == LYS_LEAFLIST)
 			continue;
@@ -391,50 +434,70 @@ static int generate_nb_nodes(const struct lysc_node *snode, void *arg)
 		    || !nb_cb_operation_is_valid(cb->operation, snode))
 			continue;
 
-		if (config_pass) {
-			if (first) {
-				yang_snode_get_path(snode, YANG_PATH_DATA, xpath,
-						    sizeof(xpath));
+               if (config_pass) {
+                       if (first) {
+                               yang_snode_get_path(snode, YANG_PATH_DATA, xpath,
+                                                   sizeof(xpath));
 
-				printf("\t\t{\n"
-				       "\t\t\t.xpath = \"%s\",\n",
-				       xpath);
-				printf("\t\t\t.cbs = {\n");
-				first = false;
-			}
-			if (f_new_cbs && cb->operation == NB_CB_GET_NEXT &&
-			    snode->nodetype == LYS_LEAFLIST)
-				continue;
+                               if (f_python_output) {
+                                       printf("        {\n            \"xpath\": \"%s\",\n            \"cbs\": {\n",
+                                              xpath);
+                               } else {
+                                       printf("\t\t{\n"
+                                              "\t\t\t.xpath = \"%s\",\n",
+                                              xpath);
+                                       printf("\t\t\t.cbs = {\n");
+                               }
+                               first = false;
+                       }
+                       if (f_new_cbs && cb->operation == NB_CB_GET_NEXT &&
+                           snode->nodetype == LYS_LEAFLIST)
+                               continue;
 
-			generate_callback_name(snode, cb->operation, cb_name,
-					       sizeof(cb_name));
-			printf("\t\t\t\t.%s = %s,\n", __operation_name(cb->operation), cb_name);
-		} else if (cb->need_config_write && need_config_write) {
-			if (first) {
-				yang_snode_get_path(snode,
-						    YANG_PATH_DATA,
-						    xpath,
-						    sizeof(xpath));
+                       generate_callback_name(snode, cb->operation, cb_name,
+                                              sizeof(cb_name));
+                       if (f_python_output)
+                               printf("                \"%s\": %s,\n", __operation_name(cb->operation), cb_name);
+                       else
+                               printf("\t\t\t\t.%s = %s,\n", __operation_name(cb->operation), cb_name);
+               } else if (cb->need_config_write && need_config_write) {
+                       if (first) {
+                               yang_snode_get_path(snode,
+                                                   YANG_PATH_DATA,
+                                                   xpath,
+                                                   sizeof(xpath));
 
-				printf("\t\t{\n"
-				       "\t\t\t.xpath = \"%s\",\n",
-				       xpath);
-				printf("\t\t\t.cbs = {\n");
-				first = false;
-			}
+                               if (f_python_output) {
+                                       printf("        {\n            \"xpath\": \"%s\",\n            \"cbs\": {\n",
+                                              xpath);
+                               } else {
+                                       printf("\t\t{\n"
+                                              "\t\t\t.xpath = \"%s\",\n",
+                                              xpath);
+                                       printf("\t\t\t.cbs = {\n");
+                               }
+                               first = false;
+                       }
 
-			generate_config_write_cb_name(snode, cb_name,
-						      sizeof(cb_name));
-			printf("\t\t\t\t.cli_show = %s,\n", cb_name);
+                       generate_config_write_cb_name(snode, cb_name,
+                                                     sizeof(cb_name));
+                       if (f_python_output)
+                               printf("                \"cli_show\": %s,\n", cb_name);
+                       else
+                               printf("\t\t\t\t.cli_show = %s,\n", cb_name);
 
-			need_config_write = false;
-		}
+                       need_config_write = false;
+               }
 	}
 
-	if (!first) {
-		printf("\t\t\t}\n");
-		printf("\t\t},\n");
-	}
+       if (!first) {
+               if (f_python_output) {
+                       printf("            }\n        },\n");
+               } else {
+                       printf("\t\t\t}\n");
+                       printf("\t\t},\n");
+               }
+       }
 
 	return YANG_ITER_CONTINUE;
 }
@@ -449,7 +512,7 @@ int main(int argc, char *argv[])
 	int opt;
 	bool config_pass;
 
-	while ((opt = getopt(argc, argv, "hnp:s")) != -1) {
+       while ((opt = getopt(argc, argv, "hnp:sy")) != -1) {
 		switch (opt) {
 		case 'h':
 			usage(EXIT_SUCCESS);
@@ -472,11 +535,14 @@ int main(int argc, char *argv[])
 
 			*darr_append(search_paths) = darr_strdup(optarg);
 			break;
-		case 's':
-			f_static_cbs = true;
-			break;
-		default:
-			usage(EXIT_FAILURE);
+                case 's':
+                        f_static_cbs = true;
+                        break;
+               case 'y':
+                       f_python_output = true;
+                       break;
+                default:
+                        usage(EXIT_FAILURE);
 			/* NOTREACHED */
 		}
 	}
@@ -515,12 +581,12 @@ int main(int argc, char *argv[])
 	 */
 	printf("// SPDX-" "License-Identifier: GPL-2.0-or-later\n\n");
 
-	/* Generate callback prototypes. */
-	if (!f_static_cbs) {
-		printf("/* prototypes */\n");
-		yang_snodes_iterate(module->info, generate_prototypes, 0, NULL);
-		printf("\n");
-	}
+       /* Generate callback prototypes. */
+       if (!f_static_cbs && !f_python_output) {
+               printf("/* prototypes */\n");
+               yang_snodes_iterate(module->info, generate_prototypes, 0, NULL);
+               printf("\n");
+       }
 
 	/* Generate callback functions. */
 	yang_snodes_iterate(module->info, generate_callbacks, 0, NULL);
@@ -535,37 +601,53 @@ int main(int argc, char *argv[])
 	 * config-output-oriented callbacks.
 	 */
 
-	/* Generate frr_yang_module_info array, with config-handling callbacks */
-	config_pass = true;
-	printf("/* clang-format off */\n"
-	       "const struct frr_yang_module_info %s_nb_info = {\n"
-	       "\t.name = \"%s\",\n"
-	       "\t.nodes = {\n",
-	       module_name_underscores, module->name);
-	yang_snodes_iterate(module->info, generate_nb_nodes, 0, &config_pass);
+       if (f_python_output) {
+               /* Generate Python structures with callbacks */
+               config_pass = true;
+               printf("%s_nb_info = {\n    \"name\": \"%s\",\n    \"nodes\": [\n",
+                      module_name_underscores, module->name);
+               yang_snodes_iterate(module->info, generate_nb_nodes, 0, &config_pass);
+               printf("    ]\n}\n");
 
-	/* Emit terminator element */
-	printf("\t\t{\n"
-	       "\t\t\t.xpath = NULL,\n"
-	       "\t\t},\n");
-	printf("\t}\n"
-	       "};\n");
+               /* Generate second array, with output-oriented callbacks. */
+               config_pass = false;
+               printf("\n%s_cli_info = {\n    \"name\": \"%s\",\n    \"nodes\": [\n",
+                      module_name_underscores, module->name);
+               yang_snodes_iterate(module->info, generate_nb_nodes, 0, &config_pass);
+               printf("    ]\n}\n");
+       } else {
+               /* Generate frr_yang_module_info array, with config-handling callbacks */
+               config_pass = true;
+               printf("/* clang-format off */\n"
+                      "const struct frr_yang_module_info %s_nb_info = {\n"
+                      "\t.name = \"%s\",\n"
+                      "\t.nodes = {\n",
+                      module_name_underscores, module->name);
+               yang_snodes_iterate(module->info, generate_nb_nodes, 0, &config_pass);
 
-	/* Generate second array, with output-oriented callbacks. */
-	config_pass = false;
-	printf("\n/* clang-format off */\n"
-	       "const struct frr_yang_module_info %s_cli_info = {\n"
-	       "\t.name = \"%s\",\n"
-	       "\t.nodes = {\n",
-	       module_name_underscores, module->name);
-	yang_snodes_iterate(module->info, generate_nb_nodes, 0, &config_pass);
+               /* Emit terminator element */
+               printf("\t\t{\n"
+                      "\t\t\t.xpath = NULL,\n"
+                      "\t\t},\n");
+               printf("\t}\n"
+                      "};\n");
 
-	/* Emit terminator element */
-	printf("\t\t{\n"
-	       "\t\t\t.xpath = NULL,\n"
-	       "\t\t},\n");
-	printf("\t}\n"
-	       "};\n");
+               /* Generate second array, with output-oriented callbacks. */
+               config_pass = false;
+               printf("\n/* clang-format off */\n"
+                      "const struct frr_yang_module_info %s_cli_info = {\n"
+                      "\t.name = \"%s\",\n"
+                      "\t.nodes = {\n",
+                      module_name_underscores, module->name);
+               yang_snodes_iterate(module->info, generate_nb_nodes, 0, &config_pass);
+
+               /* Emit terminator element */
+               printf("\t\t{\n"
+                      "\t\t\t.xpath = NULL,\n"
+                      "\t\t},\n");
+               printf("\t}\n"
+                      "};\n");
+       }
 
 	/* Cleanup and exit. */
 	nb_nodes_delete();
