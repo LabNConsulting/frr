@@ -3,7 +3,9 @@
     "interface": [
       {
         "name": "r1-eth0",
-        "vrf": "default"
+        "state": {
+          "mtu": "rubout"
+        }
       }
     ]
   }

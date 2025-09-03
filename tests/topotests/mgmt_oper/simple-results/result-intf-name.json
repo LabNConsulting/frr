@@ -2,13 +2,22 @@
   "frr-interface:lib": {
     "interface": [
       {
+        "name": "erspan0"
+      },
+      {
+        "name": "gre0"
+      },
+      {
+        "name": "gretap0"
+      },
+      {
         "name": "lo"
       },
       {
-        "name": "r1-eth0"
+        "name": "lo-red"
       },
       {
-        "name": "lo-red"
+        "name": "r1-eth0"
       },
       {
         "name": "r1-eth1"
@@ -19,3 +28,4 @@
     ]
   }
 }
+
