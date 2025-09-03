@@ -6,6 +6,7 @@
 # Copyright (c) 2023, LabN Consulting, L.L.C.
 #
 
+import copy
 import datetime
 import ipaddress
 import json
@@ -62,6 +63,17 @@ def disable_debug(router):
     router.vtysh_cmd("no debug northbound callbacks configuration")
 
 
+def clean_json(j):
+    rm_ifs = ("erspan0", "gre0", "gretap0")
+    try:
+        j = copy.deepcopy(j)
+        iflist = j["frr-interface:lib"]["interface"]
+        nl = [x for x in iflist if x.name not in rm_ifs]
+        j["frr-interface:lib"]["interface"] = nl
+    finally:
+        return j
+
+
 @retry(retry_timeout=30, initial_wait=0.1)
 def _do_oper_test(tgen, qr, exact, seconds_left=None):
     r1 = tgen.gears["r1"].net
@@ -105,6 +117,11 @@ def _do_oper_test(tgen, qr, exact, seconds_left=None):
         )
         diag("FILE: {}".format(qr[1]))
         raise
+
+    # Remove values that are inconsistent between machines
+    ojson = clean_json(ojson)
+    ejson = clean_json(ejson)
+    ejson_alt = clean_json(ejson_alt) if ejson_alt is not None else None
 
     if dd_json_cmp:
         cmpout = json_cmp(ojson, ejson, exact_match=exact)
