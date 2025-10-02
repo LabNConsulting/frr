@@ -8,19 +8,21 @@ Topotests is a suite of topology tests for FRR built on top of micronet.
 Installation and Setup
 ----------------------
 
-Topotests run under python3.
+Topotests require python3.9 or greater.
 
-Tested with Ubuntu 22.04,Ubuntu 20.04, and Debian 12.
+Tested with Ubuntu 24.04, Ubuntu 22.04, and Debian 12. The following
+instructions are the same for these setups.
 
-Python protobuf version < 4 is required b/c python protobuf >= 4 requires a
-protoc >= 3.19, and older package versions are shipped by in the above distros.
+As an additional reference the docker builds defined in `docker/ubuntu-*` are
+intended to track the setup instructions found in this documentation. These
+images are then used to run topotest in github CI.
 
-Instructions are the same for all setups. However, ExaBGP is only used for
-BGP tests.
+Dependency notes:
 
-Tshark is only required if you enable any packet captures on test runs.
-
-Valgrind is only required if you enable valgrind on test runs.
+- ExaBGP is only used in BGP tests.
+- Valgrind is only required to enable valgrind on test runs.
+- Tshark is only required to enable packet captures on test runs.
+- GRPC requirements are listed in a separate section below.
 
 Using multipath values of 256 is recommended due to tests starting to utilize
 greater values of ecmp.  There are some tests that require 512 but they are
@@ -42,14 +44,20 @@ Installing Topotest Requirements
        valgrind \
        ssmping
    python3 -m pip install wheel
-   python3 -m pip install 'pytest>=8.3.2' 'pytest-asyncio>=0.24.0' 'pytest-xdist>=3.6.1'
+   python3 -m pip install 'pytest>=8.4.2' 'pytest-asyncio>=1.2.0' 'pytest-xdist>=3.8.0'
    python3 -m pip install 'scapy>=2.4.5'
    python3 -m pip install pyyaml xmltodict
    python3 -m pip install git+https://github.com/Exa-Networks/exabgp@0659057837cd6c6351579e9f0fa47e9fb7de7311
    useradd -d /var/run/exabgp/ -s /bin/false exabgp
 
-The version of protobuf package that is installed on your system will determine
-which versions of the python protobuf packages you need to install.
+
+Installing GRPC Specific Requirements
+"""""""""""""""""""""""""""""""""""""
+
+Python `protobuf` is required to test grpc. The version of the protobuf package
+that is installed on your system will determine which versions of the python
+protobuf packages you need to install. Due to the way protobuf is versioned,
+future protobuf releases may require updating these instructions.
 
 .. code:: shell
 
