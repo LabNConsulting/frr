@@ -1,0 +1,112 @@
+// SPDX-License-Identifier: BSD-2-Clause
+module frr-extensions {
+  yang-version 1.1;
+  namespace "http://frrouting.org/yang/extensions";
+  prefix frr-ext;
+
+  organization
+    "FRRouting";
+  contact
+    "FRR Users List:       <mailto:frog@lists.frrouting.org>
+     FRR Development List: <mailto:dev@lists.frrouting.org>";
+  description
+    "This module defines a model for FRR backend management.
+
+     Copyright (c) 2025, LabN Consulting, L.L.C.
+
+     Redistribution and use in source and binary forms, with or without
+     modification, are permitted provided that the following conditions
+     are met:
+
+     1. Redistributions of source code must retain the above copyright notice,
+     this list of conditions and the following disclaimer.
+
+     2. Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in the
+     documentation and/or other materials provided with the distribution.
+
+     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+     \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+     LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+     A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+     HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+     SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+     LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+     DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+     THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+     (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+     OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.";
+
+  revision 2025-10-04 {
+    description "Initial revision";
+    reference "FRR source code";
+  }
+
+  extension show-cli-cmd {
+    argument "cmd";
+    description
+      "Specifies a CLI show command for displaying the annotated Schema Node
+       data. The argument value is the same cli template string to pass to
+       DEFPY_YANG() which will define the show command. Supported
+       sub-statements:
+
+         - frr-ext:cli-cmd-help (required)
+         - frr-ext:cli-cmd-finish
+         - frr-ext:cli-cmd-format-arg
+         - frr-ext:cli-arg-map";
+  }
+
+  extension cli-cmd-help {
+    argument "text";
+    description
+      "Annotates a node with help text for the CLI command. The content is
+       passed directly to DEFPY_YANG() in the help argument.";
+  }
+
+  extension cli-cmd-finish {
+    argument "text";
+    description
+      "Indicate a function to call with the queried result when the CLI command
+       is complete. The argument value is the name of a C function with the
+       prototype:
+
+           void func(struct vty *vty, LYD_FORMAT format,
+                     const char *result, int len);
+
+       The `result` argument is a JSON or XML string (depending on the
+       `format` argument) containing the queried data. The `len` argument is
+       the length of the `result` string. The `format` will be as requested in
+       the original CLI handler which by default is JSON
+
+       When this extension is specified the generator will include a file based
+       on the generated file name `xxxx_custom.h` that should include a
+       prototype for each finish function.";
+
+  }
+
+  extension cli-cmd-format-arg {
+    argument "text";
+    description
+      'Indicates the C variable to check for the format to use for the result.
+       The variable should be a string containing the value `json` or `xml`.
+       For example if the command template is:
+
+           "show somecmd [json|xml]$format"
+
+       then the C-variable would be `const char *format` so:
+
+           frr-ext:cli-cmd-format-arg "format";';
+  }
+
+
+  extension cli-arg-map {
+    argument "map";
+    description
+      "Define how to map a CLI argument to a YANG key-value. For example, if
+       the key leaf is named `name` and the CLI arg is given as `VRF` in the
+       template (so its provided as `vrf` in the C handler) , then this map
+       value should be `name=vrf`. Using the same identifiers, but the list
+       node is actually the parent of the current node, then the map value
+       should be `../name=vrf`";
+  }
+}
