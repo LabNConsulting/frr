@@ -1,0 +1,12 @@
+restconfd=1
+ripd=1
+staticd=1
+vtysh_enable=1
+watchfrr_enable=1
+zebra=1
+
+restconfd_options="--log=file:/var/log/frr/restconfd.log"
+ripd_options="--log=file:/var/log/frr/ripd.log"
+staticd_options="--log=file:/var/log/frr/staticd.log"
+restconfd_options="--log=file:/var/log/frr/restconfd.log"
+zebra_options="--log=file:/var/log/frr/zebra.log"
