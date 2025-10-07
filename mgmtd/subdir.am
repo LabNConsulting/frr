@@ -10,8 +10,18 @@ vtysh_daemons += mgmtd
 # man8 += $(MANBUILD)/frr-mgmtd.8
 # endif
 
+yang_cli_modules = \
+	yang/frr-extensions.yang \
+	yang/frr-backend.yang \
+	yang/frr-zebra.yang \
+	# end
+
+mgmtd/yang_cli.c: python/gen_yang_cli.py $(yang_cli_modules)
+	$(PYTHON) $(top_srcdir)/python/gen_yang_cli.py --yang-path=$(top_srcdir)/yang --verbose --rel-path=$@ --output=$@ $(yang_cli_modules)
+
 clippy_scan += \
 	mgmtd/mgmt_vty.c \
+	mgmtd/yang_cli.c \
 	# end
 
 lib_LTLIBRARIES += mgmtd/libmgmt_be_nb.la
@@ -35,6 +45,8 @@ mgmtd_libmgmtd_a_SOURCES = \
 	mgmtd/mgmt_memory.c \
 	mgmtd/mgmt_txn.c \
 	mgmtd/mgmt_vty.c \
+	mgmtd/yang_cli.c \
+	mgmtd/yang_cli_custom.c \
 	# end
 
 noinst_HEADERS += \
@@ -45,6 +57,7 @@ noinst_HEADERS += \
 	mgmtd/mgmt_history.h \
 	mgmtd/mgmt_memory.h \
 	mgmtd/mgmt_txn.h \
+	mgmtd/yang_cli_custom.h \
 	zebra/zebra_cli.h \
 	# end
 

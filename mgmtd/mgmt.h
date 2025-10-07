@@ -100,5 +100,6 @@ extern void mgmt_master_init(struct event_loop *master, const int buffer_size);
 
 extern void mgmt_init(void);
 extern void mgmt_vty_init(void);
+extern void yang_cli_init(void);
 
 #endif /* _FRR_MGMTD_H */

@@ -1,8 +1,12 @@
 // SPDX-License-Identifier: BSD-2-Clause
 module frr-backend {
   yang-version 1.1;
-  namespace "http://frrouting.org/yang/oper";
+  namespace "http://frrouting.org/yang/backend";
   prefix frr-backend;
+
+  import frr-extensions {
+    prefix frr-ext;
+  }
 
   organization
     "FRRouting";
@@ -42,6 +46,12 @@ module frr-backend {
     reference "FRR source code";
   }
 
+  // frr-ext:show-cli-cmd "show mgmt backends" {
+  //   frr-ext:cli-cmd-help 'SHOW_STR
+  //                         MGMT_STR
+  //                         "show all backend\n"';
+  // }
+
   container clients {
     config false;
     description "The backend clients";
@@ -49,6 +59,18 @@ module frr-backend {
     list client {
       key name;
       description "A backend client";
+
+      frr-ext:show-cli-cmd "show mgmt backend [CLIENT] [json|xml]$format" {
+        frr-ext:cli-cmd-help 'SHOW_STR
+                              MGMTD_STR
+                              "backend client info\n"
+                              "a backend client name\n"
+                              "output result in json\n"
+                              "output result in xml\n"';
+        frr-ext:cli-arg-map "name=client";
+        frr-ext:cli-cmd-finish "yang_frr_backend_client_finish_show";
+        frr-ext:cli-cmd-format-arg "format";
+      }
 
       leaf name {
         type string;

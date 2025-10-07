@@ -28,6 +28,10 @@ module frr-zebra {
     prefix rt-types;
   }
 
+  import frr-extensions {
+    prefix frr-ext;
+  }
+
   import frr-nexthop {
     prefix frr-nh;
   }
@@ -643,6 +647,18 @@ module frr-zebra {
           
           description
             "List of routes, each with a specific prefix.";
+
+          frr-ext:show-cli-cmd
+            "show route [vrf VRF_NAME] [table (0-4294967295)] [<A.B.C.D/M|X:X::X:X/M>$prefix]";
+          frr-ext:cli-cmd-help 'SHOW_STR
+                                "IP routing table\n"
+                                VRF_FULL_CMD_HELP_STR
+                                "Table to display summary for\n"
+                                "The table number\n"
+                                "Prefix of route to display\n"';
+          frr-ext:cli-arg-map "../../../../name=vrf_name";
+          frr-ext:cli-arg-map "../table-id=table_str";
+          frr-ext:cli-arg-map "prefix=prefix_str";
 
           leaf prefix {
             type inet:ip-prefix;
@@ -3067,7 +3083,15 @@ module frr-zebra {
           }
       }
 
-      uses ribs;
+      uses ribs {
+        refine "ribs/rib/route" {
+          // must "../../../../frr-vrf:name != 'default' or . != 'vrf'" {
+          //   error-message
+          //     "Cannot configure static routes in the default VRF";
+          // }
+          frr-ext:cli-arg-map "../../../../frr-vrf:name=vrf_name";
+        }
+      }
 
       uses vrf-vni-mapping;
     }

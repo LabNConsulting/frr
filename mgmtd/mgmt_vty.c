@@ -661,6 +661,7 @@ void mgmt_vty_init(void)
 
 	install_element(ENABLE_NODE, &show_debugging_mgmt_cmd);
 
+	yang_cli_init();
 	mgmt_fe_client_lib_vty_init();
 	/*
 	 * TODO: Register and handlers for auto-completion here.
