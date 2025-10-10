@@ -229,6 +229,8 @@ struct vty {
 	 * vty user. */
 	const char *mgmt_req_pending_cmd;
 	uintptr_t mgmt_req_pending_data;
+	int (*mgmt_req_pending_cb)(struct vty *vty, LYD_FORMAT result_type, const char *result,
+				   int len);
 	bool mgmt_locked_candidate_ds;
 	bool mgmt_locked_running_ds;
 	/* Incremental write/flush limit and current accumulator. When

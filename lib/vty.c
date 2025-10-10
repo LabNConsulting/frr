@@ -3813,6 +3813,12 @@ static int vty_mgmt_get_tree_result_notified(struct mgmt_fe_client *client, uint
 	assert(result_type == LYD_LYB ||
 	       result_type == vty->mgmt_req_pending_data);
 
+	if (vty->mgmt_req_pending_cb) {
+		ret = vty->mgmt_req_pending_cb(vty, result_type, result, len);
+		goto done;
+	}
+
+	/* XXX this is never set, we should get rid of it */
 	if (vty->mgmt_req_pending_data == LYD_XML && partial_error)
 		vty_out(vty,
 			"<!-- some errors occurred gathering results -->\n");
@@ -3840,9 +3846,10 @@ static int vty_mgmt_get_tree_result_notified(struct mgmt_fe_client *client, uint
 		vty_out(vty, "%.*s\n", (int)len - 1, (const char *)result);
 	}
 
+done:
 	vty_mgmt_resume_response(vty, ret);
 
-	return 0;
+	return ret;
 }
 
 static int vty_mgmt_edit_result_notified(struct mgmt_fe_client *client,
