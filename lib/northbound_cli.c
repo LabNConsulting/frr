@@ -22,9 +22,9 @@
 #include "northbound_db.h"
 #include "lib/northbound_cli_clippy.c"
 
-struct debug nb_dbg_cbs_config = { 0, "debug northbound callbacks configuration",
+struct debug nb_dbg_cbs_config = { DEBUG_MODE_ALL, "debug northbound callbacks configuration",
 				   "Northbound callbacks: configuration" };
-struct debug nb_dbg_cbs_state = { 0, "debug northbound callbacks state",
+struct debug nb_dbg_cbs_state = { DEBUG_MODE_ALL, "debug northbound callbacks state",
 				  "Northbound callbacks: state" };
 struct debug nb_dbg_cbs_rpc = { 0, "debug northbound callbacks rpc",
 				"Northbound callbacks: RPCs" };
@@ -32,9 +32,8 @@ struct debug nb_dbg_cbs_notify = { 0, "debug northbound callbacks notify",
 				   "Northbound callbacks: notifications" };
 struct debug nb_dbg_notif = { 0, "debug northbound notifications",
 			      "Northbound notifications" };
-struct debug nb_dbg_events = { 0, "debug northbound events",
-			       "Northbound events" };
-struct debug nb_dbg_libyang = { 0, "debug northbound libyang", "libyang" };
+struct debug nb_dbg_events = { DEBUG_MODE_ALL, "debug northbound events", "Northbound events" };
+struct debug nb_dbg_libyang = { DEBUG_MODE_ALL, "debug northbound libyang", "libyang" };
 
 struct nb_config *vty_shared_candidate_config;
 static struct event_loop *master;

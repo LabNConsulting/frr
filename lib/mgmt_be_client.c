@@ -76,6 +76,7 @@ struct mgmt_be_client {
 	frr_each_safe (mgmt_be_txns, &(client_ctx)->txn_head, (txn))
 
 struct debug mgmt_dbg_be_client = {
+	.flags = DEBUG_MODE_ALL,
 	.conf = "debug mgmt client backend",
 	.desc = "Management backend client operations",
 };
