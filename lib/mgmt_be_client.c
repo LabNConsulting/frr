@@ -333,6 +333,23 @@ static int mgmt_be_send_txn_reply(struct mgmt_be_client *client, uint64_t txn_id
 /* Create Transaction */
 /* ------------------ */
 
+static struct mgmt_be_txn_ctx *be_client_create_txn(struct mgmt_be_client *client, uint64_t txn_id)
+{
+	struct mgmt_be_txn_ctx *txn;
+
+	debug_be_client("Creating new txn-id %" PRIu64, txn_id);
+	txn = mgmt_be_txn_create(client, txn_id);
+	if (!txn) {
+		log_err_be_client("Failed to create txn-id: %" PRIu64 " for client %s", txn_id,
+				  client->name);
+		return NULL;
+	}
+	if (client->cbs.txn_notify)
+		(*client->cbs.txn_notify)(client, client->user_data, &txn->client_data, false);
+	return txn;
+}
+
+#if 0
 /*
  * Process transaction create message
  */
@@ -346,17 +363,11 @@ static void be_client_handle_txn_req(struct mgmt_be_client *client, uint64_t txn
 			msg->req_id);
 
 	if (msg->create) {
-		debug_be_client("Creating new txn-id %" PRIu64, txn_id);
-
-		txn = mgmt_be_txn_create(client, txn_id);
+		txn = be_client_create_txn(client, txn_id);
 		if (!txn) {
 			msg_conn_disconnect(&client->client.conn, true);
 			return;
 		}
-
-		if (client->cbs.txn_notify)
-			(*client->cbs.txn_notify)(client, client->user_data, &txn->client_data,
-						  false);
 	} else {
 		debug_be_client("Deleting txn-id: %" PRIu64, txn_id);
 		txn = mgmt_be_find_txn_by_id(client, txn_id, false);
@@ -366,6 +377,7 @@ static void be_client_handle_txn_req(struct mgmt_be_client *client, uint64_t txn
 
 	mgmt_be_send_txn_reply(client, txn_id, msg->create);
 }
+#endif
 
 /* ------------------------- */
 /* Receive Config from MgmtD */
@@ -515,7 +527,7 @@ static int mgmt_be_txn_cfg_prepare(struct mgmt_be_txn_ctx *txn, const char **con
 			log_err_be_client("Failed to update configs for txn-id: %" PRIu64
 					  " to candidate, err: '%s'",
 					  txn->txn_id, err_buf);
-			return -1;
+			return -1; /* we disconnect in this case */
 		}
 
 		gettimeofday(&edit_nb_cfg_end, NULL);
@@ -562,6 +574,7 @@ static int mgmt_be_txn_cfg_prepare(struct mgmt_be_txn_ctx *txn, const char **con
 					 (client_ctx->num_prep_nb_cfg + 1);
 	client_ctx->num_prep_nb_cfg++;
 
+	/* We should return an error after cleaning up below not 0, so that we disconnect */
 	mgmt_be_send_cfg_reply(client_ctx, txn->txn_id, !error, error ? err_buf : NULL);
 
 	debug_be_client("Avg-nb-edit-duration %Lu uSec, nb-prep-duration %lu (avg: %Lu) uSec, batch size %u",
@@ -583,9 +596,19 @@ static void be_client_handle_cfg(struct mgmt_be_client *client, uint64_t txn_id,
 
 	debug_be_client("Got CFG_DATA_REQ txn-id: %Lu", txn_id);
 
-	txn = mgmt_be_find_txn_by_id(client, txn_id, true);
+#if 0
+	txn = mgmt_be_find_txn_by_id(client, txn_id, false);
+	if (txn) {
+		/* XXX this is OK it would be for multiple CFG_REQs per txn? */
+		/* XXXadd */
+		log_err_be_client("TXN already exists for txn_id: %Lu", txn_id);
+		goto failed;
+	}
+#endif
+	debug_be_client("Creating new txn-id %Lu", txn_id);
+	txn = be_client_create_txn(client, txn_id);
 	if (!txn) {
-		log_err_be_client("Can't find TXN for txn_id: %Lu", txn_id);
+		log_err_be_client("Failed to create txn for txn_id: %Lu", txn_id);
 		goto failed;
 	}
 
@@ -612,9 +635,8 @@ failed:
 /* Apply Config Message Handling */
 /* ----------------------------- */
 
-static int mgmt_be_send_apply_reply(struct mgmt_be_client *client_ctx,
-				    uint64_t txn_id, bool success,
-				    const char *error_if_any)
+static int mgmt_be_send_apply_reply(struct mgmt_be_client *client_ctx, uint64_t txn_id,
+				    bool success, const char *error_if_any)
 {
 	struct mgmt_msg_cfg_apply_reply *msg;
 	int ret;
@@ -648,13 +670,14 @@ static int mgmt_be_txn_proc_cfgapply(struct mgmt_be_txn_ctx *txn)
 	 * Now apply all the batches we have applied in one go.
 	 */
 	gettimeofday(&apply_nb_cfg_start, NULL);
-	(void)nb_candidate_commit_apply(txn->nb_txn, true, &txn->nb_txn_id,
-					err_buf, sizeof(err_buf) - 1);
+	(void)nb_candidate_commit_apply(txn->nb_txn, true, &txn->nb_txn_id, err_buf,
+					sizeof(err_buf) - 1);
 	gettimeofday(&apply_nb_cfg_end, NULL);
 
 	apply_nb_cfg_tm = timeval_elapsed(apply_nb_cfg_end, apply_nb_cfg_start);
 	client_ctx->avg_apply_nb_cfg_tm =
-		((client_ctx->avg_apply_nb_cfg_tm * client_ctx->num_apply_nb_cfg) + apply_nb_cfg_tm) /
+		((client_ctx->avg_apply_nb_cfg_tm * client_ctx->num_apply_nb_cfg) +
+		 apply_nb_cfg_tm) /
 		(client_ctx->num_apply_nb_cfg + 1);
 	client_ctx->num_apply_nb_cfg++;
 	txn->nb_txn = NULL;
@@ -689,8 +712,8 @@ struct be_client_tree_data_batch_args {
 /*
  * Process the get-tree request on our local oper state
  */
-static enum nb_error be_client_send_tree_data_batch(const struct lyd_node *tree,
-						    void *arg, enum nb_error ret)
+static enum nb_error be_client_send_tree_data_batch(const struct lyd_node *tree, void *arg,
+						    enum nb_error ret)
 {
 	struct be_client_tree_data_batch_args *args = arg;
 	struct mgmt_be_client *client = args->client;
@@ -730,8 +753,7 @@ static enum nb_error be_client_send_tree_data_batch(const struct lyd_node *tree,
 		/* We will be called again to send the error */
 		return NB_ERR;
 	}
-	(void)be_client_send_native_msg(client, tree_msg,
-					mgmt_msg_native_get_msg_len(tree_msg),
+	(void)be_client_send_native_msg(client, tree_msg, mgmt_msg_native_get_msg_len(tree_msg),
 					false);
 	mgmt_msg_native_free_msg(tree_msg);
 done:
@@ -1009,7 +1031,8 @@ static void be_client_handle_native_msg(struct mgmt_be_client *client,
 
 	switch (msg->code) {
 	case MGMT_MSG_CODE_TXN_REQ:
-		be_client_handle_txn_req(client, txn_id, msg, msg_len);
+		// be_client_handle_txn_req(client, txn_id, msg, msg_len);
+		assert(0);
 		break;
 	case MGMT_MSG_CODE_CFG_REQ:
 		be_client_handle_cfg(client, txn_id, msg, msg_len);
