@@ -93,6 +93,8 @@ DECLARE_LIST(mgmt_be_adapters, struct mgmt_be_client_adapter, list_linkage);
 
 #define IS_IDBIT_SET(v, id)   (!IS_IDBIT_UNSET(v, id))
 #define IS_IDBIT_UNSET(v, id) (!((v) & (1ull << (id))))
+#define SET_IDBIT(v, id)      ((v) |= (1ull << (id)))
+#define UNSET_IDBIT(v, id)    ((v) &= ~(1ull << (id)))
 
 #define _GET_NEXT_SET(id, bits)                                                                    \
 	({                                                                                         \

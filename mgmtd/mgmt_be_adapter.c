@@ -655,7 +655,6 @@ static void be_adapter_handle_native_msg(struct mgmt_be_client_adapter *adapter,
 {
 	struct mgmt_msg_subscribe *subr_msg;
 	struct mgmt_msg_notify_data *notify_msg;
-	struct mgmt_msg_txn_reply *txn_msg;
 	struct mgmt_msg_error *error_msg;
 
 	/* get the transaction */
@@ -671,20 +670,14 @@ static void be_adapter_handle_native_msg(struct mgmt_be_client_adapter *adapter,
 		break;
 
 	case MGMT_MSG_CODE_TXN_REPLY:
-		txn_msg = (typeof(txn_msg))msg;
-		_dbg("Got TXN_REPLY from '%s' txn-id %Lu successfully '%s'", adapter->name,
-		     txn_msg->refer_id, txn_msg->created ? "Created" : "Deleted");
-		/*
-		 * Forward the TXN_REPLY to txn module.
-		 */
-		mgmt_txn_notify_be_txn_reply(txn_msg->refer_id, txn_msg->created, true, adapter);
+		assert(0);
 		break;
 	case MGMT_MSG_CODE_CFG_REPLY:
 		_dbg("Got successful CFG_REPLY from '%s' txn-id %Lu", adapter->name, msg->refer_id);
 		/*
 		 * Forward the CGFData-create reply to txn module.
 		 */
-		mgmt_txn_notify_be_cfg_reply(msg->refer_id, true, NULL, adapter);
+		mgmt_txn_notify_be_cfg_reply(msg->refer_id, adapter);
 		break;
 	case MGMT_MSG_CODE_CFG_APPLY_REPLY:
 		_dbg("Got successful CFG_APPLY_REPLY from '%s' txn-id %Lu", adapter->name,
@@ -692,7 +685,7 @@ static void be_adapter_handle_native_msg(struct mgmt_be_client_adapter *adapter,
 		/*
 		 * Forward the CGFData-apply reply to txn module.
 		 */
-		mgmt_txn_notify_be_cfg_apply_reply(msg->refer_id, true, NULL, adapter);
+		mgmt_txn_notify_be_cfg_apply_reply(msg->refer_id, adapter);
 		break;
 
 	case MGMT_MSG_CODE_ERROR:
