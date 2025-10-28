@@ -53,7 +53,6 @@ struct mgmt_be_client_adapter {
 	struct event *conn_init_ev;
 
 	enum mgmt_be_client_id id;
-	uint32_t flags;
 	char name[MGMTD_CLIENT_NAME_MAX_LEN];
 
 	int refcount;
@@ -69,8 +68,6 @@ struct mgmt_be_client_adapter {
 
 	struct mgmt_be_adapters_item list_linkage;
 };
-
-#define MGMTD_BE_ADAPTER_FLAGS_CFG_SYNCED (1U << 0)
 
 DECLARE_LIST(mgmt_be_adapters, struct mgmt_be_client_adapter, list_linkage);
 

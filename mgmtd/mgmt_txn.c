@@ -1102,9 +1102,6 @@ static int mgmt_txn_send_be_cfg_apply(struct mgmt_txn_ctx *txn)
 				return -1;
 			}
 			cmtcfg_req->cmt_stats->last_num_apply_reqs++;
-
-			UNSET_FLAG(adapter->flags,
-				   MGMTD_BE_ADAPTER_FLAGS_CFG_SYNCED);
 		}
 	}
 
@@ -1479,8 +1476,6 @@ int mgmt_txn_notify_be_adapter_conn(struct mgmt_be_client_adapter *adapter,
 		/* Get config for this single backend client */
 		mgmt_be_get_adapter_config(adapter, &adapter_cfgs);
 		if (!adapter_cfgs || RB_EMPTY(nb_config_cbs, adapter_cfgs)) {
-			SET_FLAG(adapter->flags,
-				 MGMTD_BE_ADAPTER_FLAGS_CFG_SYNCED);
 			mgmt_ds_unlock(ds_ctx);
 			return 0;
 		}
@@ -1654,15 +1649,12 @@ int mgmt_txn_notify_be_cfg_apply_reply(uint64_t txn_id, bool success,
 		return 0;
 	}
 
-	cmtcfg_req->be_phase[adapter->id] = MGMTD_COMMIT_PHASE_TXN_DELETE;
-
 	/*
 	 * All configuration for the specific backend has been applied.
 	 * Send TXN-DELETE to wrap up the transaction for this backend.
 	 */
-	SET_FLAG(adapter->flags, MGMTD_BE_ADAPTER_FLAGS_CFG_SYNCED);
-	mgmt_txn_send_be_txn_delete(txn, adapter);
 
+	cmtcfg_req->be_phase[adapter->id] = MGMTD_COMMIT_PHASE_TXN_DELETE;
 	mgmt_try_move_commit_to_next_phase(txn, cmtcfg_req);
 	if (mm->perf_stats_en)
 		gettimeofday(&cmtcfg_req->cmt_stats->apply_cfg_end, NULL);
