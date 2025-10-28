@@ -769,9 +769,11 @@ struct mgmt_be_get_adapter_config_params {
 static void mgmt_be_adapter_conn_init(struct event *thread)
 {
 	struct mgmt_be_client_adapter *adapter;
+	enum mgmt_be_client_id id;
 
 	adapter = (struct mgmt_be_client_adapter *)EVENT_ARG(thread);
 	assert(adapter && adapter->conn->fd >= 0);
+	id = adapter->id;
 
 	/*
 	 * Notify TXN module to create a CONFIG transaction and
@@ -781,9 +783,11 @@ static void mgmt_be_adapter_conn_init(struct event *thread)
 	 * transaction in progress.
 	 */
 	if (mgmt_txn_notify_be_adapter_conn(adapter, true) != 0) {
-		zlog_err("XXX txn in progress, retry init");
+		/* Deal with a disconnect happening */
+		if (!mgmt_be_adapters_by_id[id])
+			return;
+		_log_err("Couldn't send intial config to adapter: %s", adapter->name);
 		mgmt_be_adapter_sched_init_event(adapter);
-		return;
 	}
 }
 
