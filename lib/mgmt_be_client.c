@@ -567,6 +567,7 @@ static void be_client_handle_cfg(struct mgmt_be_client *client, uint64_t txn_id,
 
 failed:
 	darr_free_free(config);
+	log_err_be_client("Disconnecting client %s due to error handling CFG_REQ", client->name);
 	msg_conn_disconnect(&client->client.conn, true);
 }
 
@@ -1112,8 +1113,12 @@ static int _notify_conenct_disconnect(struct msg_client *msg_client,
 	if (connected) {
 		assert(msg_client->conn.fd != -1);
 		ret = mgmt_be_send_subscribe(client);
-		if (ret)
+		if (ret) {
+			log_err_be_client("Failed to send subscribe on connect: %s", client->name);
 			return ret;
+		}
+		debug_be_client("Sent subscribe on connect: %s: fd: %d", client->name,
+				msg_client->conn.fd);
 	}
 
 	/* Notify BE client through registered callback (if any) */
