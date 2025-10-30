@@ -1015,8 +1015,7 @@ static void mgmt_txn_send_be_cfg_apply(struct mgmt_txn_ctx *txn)
 		 * If this was a validate-only request, return success.
 		 * Set the wait bits again so that we send TXN DELETEs to all
 		 */
-		// XXXchopps BUG
-		// cmtcfg_req->clients_wait = cmtcfg_req->clients;
+		cmtcfg_req->clients_wait = cmtcfg_req->clients;
 		(void)txn_finish_commit(txn->commit_cfg_req, MGMTD_SUCCESS, NULL);
 		return;
 	}
