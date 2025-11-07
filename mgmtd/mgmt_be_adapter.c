@@ -636,7 +636,7 @@ static void be_adapter_handle_native_msg(struct mgmt_be_client_adapter *adapter,
 		/*
 		 * Forward the CGFData-create reply to txn module.
 		 */
-		mgmt_txn_notify_be_cfg_reply(msg->refer_id, adapter);
+		mgmt_txn_cfg_handle_cfg_reply(msg->refer_id, adapter);
 		return;
 	case MGMT_MSG_CODE_CFG_APPLY_REPLY:
 		_dbg("Got successful CFG_APPLY_REPLY from '%s' txn-id %Lu", adapter->name,
@@ -644,7 +644,7 @@ static void be_adapter_handle_native_msg(struct mgmt_be_client_adapter *adapter,
 		/*
 		 * Forward the CGFData-apply reply to txn module.
 		 */
-		mgmt_txn_notify_be_cfg_apply_reply(msg->refer_id, adapter);
+		mgmt_txn_cfg_handle_apply_reply(msg->refer_id, adapter);
 		return;
 	case MGMT_MSG_CODE_ERROR:
 		error_msg = (typeof(error_msg))msg;

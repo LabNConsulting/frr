@@ -261,13 +261,13 @@ mgmt_txn_notify_be_txn_reply(uint64_t txn_id, bool create, bool success,
 /*
  * Reply to backend adapater with config data create request.
  */
-extern void mgmt_txn_notify_be_cfg_reply(uint64_t txn_id, struct mgmt_be_client_adapter *adapter);
+extern void mgmt_txn_cfg_handle_cfg_reply(uint64_t txn_id, struct mgmt_be_client_adapter *adapter);
 
 /*
  * Reply to backend adapater with config data apply request.
  */
-extern void mgmt_txn_notify_be_cfg_apply_reply(uint64_t txn_id,
-					       struct mgmt_be_client_adapter *adapter);
+extern void mgmt_txn_cfg_handle_apply_reply(uint64_t txn_id,
+					    struct mgmt_be_client_adapter *adapter);
 
 
 /**
