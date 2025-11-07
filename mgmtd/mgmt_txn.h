@@ -262,13 +262,13 @@ mgmt_txn_notify_be_txn_reply(uint64_t txn_id, bool create, bool success,
 /*
  * Reply to backend adapater with config data create request.
  */
-extern void mgmt_txn_notify_be_cfg_reply(uint64_t txn_id, struct mgmt_be_client_adapter *adapter);
+extern void mgmt_txn_cfg_handle_cfg_reply(uint64_t txn_id, struct mgmt_be_client_adapter *adapter);
 
 /*
  * Reply to backend adapater with config data apply request.
  */
-extern void mgmt_txn_notify_be_cfg_apply_reply(uint64_t txn_id,
-					       struct mgmt_be_client_adapter *adapter);
+extern void mgmt_txn_cfg_handle_apply_reply(uint64_t txn_id,
+					    struct mgmt_be_client_adapter *adapter);
 
 
 /**
@@ -281,8 +281,8 @@ extern void mgmt_txn_notify_be_cfg_apply_reply(uint64_t txn_id,
  *	error: the integer error value (negative)
  *	errstr: the string description of the error.
  */
-void mgmt_txn_notify_error(struct mgmt_be_client_adapter *adapter, uint64_t txn_id,
-			   uint64_t req_id, int error, const char *errstr);
+void mgmt_txn_handle_error_reply(struct mgmt_be_client_adapter *adapter, uint64_t txn_id,
+				 uint64_t req_id, int error, const char *errstr);
 
 /**
  * Process a reply from a backend client to our get-tree request
@@ -293,9 +293,8 @@ void mgmt_txn_notify_error(struct mgmt_be_client_adapter *adapter, uint64_t txn_
  *	msg_len: Total length of the message.
  */
 
-extern int mgmt_txn_notify_tree_data_reply(struct mgmt_be_client_adapter *adapter,
-					   struct mgmt_msg_tree_data *data_msg,
-					   size_t msg_len);
+extern int mgmt_txn_handle_tree_data_reply(struct mgmt_be_client_adapter *adapter,
+					   struct mgmt_msg_tree_data *data_msg, size_t msg_len);
 
 /**
  * Process a reply from a backend client to our RPC request
@@ -305,9 +304,8 @@ extern int mgmt_txn_notify_tree_data_reply(struct mgmt_be_client_adapter *adapte
  *	reply_msg: The message from the backend.
  *	msg_len: Total length of the message.
  */
-extern int mgmt_txn_notify_rpc_reply(struct mgmt_be_client_adapter *adapter,
-				     struct mgmt_msg_rpc_reply *reply_msg,
-				     size_t msg_len);
+extern int mgmt_txn_handle_rpc_reply(struct mgmt_be_client_adapter *adapter,
+				     struct mgmt_msg_rpc_reply *reply_msg, size_t msg_len);
 
 /*
  * Dump transaction status to vty.

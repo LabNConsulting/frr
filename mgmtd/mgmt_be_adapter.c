@@ -636,7 +636,7 @@ static void be_adapter_handle_native_msg(struct mgmt_be_client_adapter *adapter,
 		/*
 		 * Forward the CGFData-create reply to txn module.
 		 */
-		mgmt_txn_notify_be_cfg_reply(msg->refer_id, adapter);
+		mgmt_txn_cfg_handle_cfg_reply(msg->refer_id, adapter);
 		return;
 	case MGMT_MSG_CODE_CFG_APPLY_REPLY:
 		_dbg("Got successful CFG_APPLY_REPLY from '%s' txn-id %Lu", adapter->name,
@@ -644,29 +644,29 @@ static void be_adapter_handle_native_msg(struct mgmt_be_client_adapter *adapter,
 		/*
 		 * Forward the CGFData-apply reply to txn module.
 		 */
-		mgmt_txn_notify_be_cfg_apply_reply(msg->refer_id, adapter);
+		mgmt_txn_cfg_handle_apply_reply(msg->refer_id, adapter);
 		return;
 	case MGMT_MSG_CODE_ERROR:
 		error_msg = (typeof(error_msg))msg;
 		_dbg("Got ERROR from '%s' txn-id %Lu", adapter->name, msg->refer_id);
 
 		/* Forward the reply to the txn module */
-		mgmt_txn_notify_error(adapter, msg->refer_id, msg->req_id,
-				      error_msg->error, error_msg->errstr);
+		mgmt_txn_handle_error_reply(adapter, msg->refer_id, msg->req_id, error_msg->error,
+					    error_msg->errstr);
 		return;
 	case MGMT_MSG_CODE_TREE_DATA:
 		/* tree data from a backend client */
 		_dbg("Got TREE_DATA from '%s' txn-id %" PRIu64, adapter->name, msg->refer_id);
 
 		/* Forward the reply to the txn module */
-		mgmt_txn_notify_tree_data_reply(adapter, (struct mgmt_msg_tree_data *)msg, msg_len);
+		mgmt_txn_handle_tree_data_reply(adapter, (struct mgmt_msg_tree_data *)msg, msg_len);
 		return;
 	case MGMT_MSG_CODE_RPC_REPLY:
 		/* RPC reply from a backend client */
 		_dbg("Got RPC_REPLY from '%s' txn-id %" PRIu64, adapter->name, msg->refer_id);
 
 		/* Forward the reply to the txn module */
-		mgmt_txn_notify_rpc_reply(adapter, (struct mgmt_msg_rpc_reply *)msg, msg_len);
+		mgmt_txn_handle_rpc_reply(adapter, (struct mgmt_msg_rpc_reply *)msg, msg_len);
 		return;
 	case MGMT_MSG_CODE_NOTIFY:
 		/*
