@@ -20,19 +20,21 @@
 #include "mgmtd/mgmt_txn_priv.h"
 #include "mgmtd/mgmt_be_adapter.h"
 
-#define MGMTD_TXN_INCREF(txn)		    mgmt_txn_incref(txn, __FILE__, __LINE__)
-#define MGMTD_TXN_DECREF(txn, in_hash_free) mgmt_txn_decref(txn, in_hash_free, __FILE__, __LINE__)
+#define MGMTD_TXN_INCREF(txn)		    txn_incref(txn, __FILE__, __LINE__)
+#define MGMTD_TXN_DECREF(txn, in_hash_free) txn_decref(txn, in_hash_free, __FILE__, __LINE__)
 
 #define FOREACH_TXN_IN_LIST(mm, txn) frr_each_safe (mgmt_txns, &(mm)->txn_list, (txn))
 
-static void mgmt_txn_incref(struct mgmt_txn_ctx *txn, const char *file, int line);
-static void mgmt_txn_decref(struct mgmt_txn_ctx **txn, bool in_hash_free, const char *file,
-			    int line);
+static void txn_incref(struct mgmt_txn_ctx *txn, const char *file, int line);
+static void txn_decref(struct mgmt_txn_ctx **txn, bool in_hash_free, const char *file, int line);
 
 static struct mgmt_master *mgmt_txn_mm;
 
 struct event_loop *mgmt_txn_tm;
 
+/*
+ * Create a transaction request (work) under a transaction.
+ */
 struct mgmt_txn_req *mgmt_txn_req_alloc(struct mgmt_txn_ctx *txn, uint64_t req_id,
 					enum mgmt_txn_req_type req_type)
 {
@@ -80,6 +82,9 @@ struct mgmt_txn_req *mgmt_txn_req_alloc(struct mgmt_txn_ctx *txn, uint64_t req_i
 	return txn_req;
 }
 
+/*
+ * Free a transaction request from under a transaction
+ */
 void mgmt_txn_req_free(struct mgmt_txn_req **txn_req)
 {
 	struct mgmt_txn_ctx *txn = (*txn_req)->txn;
@@ -122,139 +127,8 @@ void mgmt_txn_req_free(struct mgmt_txn_req **txn_req)
 	*txn_req = NULL;
 }
 
-static int txn_get_tree_data_done(struct mgmt_txn_ctx *txn,
-				  struct mgmt_txn_req *txn_req)
-{
-	struct txn_req_get_tree *get_tree = txn_req->req.get_tree;
-	uint64_t req_id = txn_req->req_id;
-	struct lyd_node *result;
-	int ret = NB_OK;
-
-	/* cancel timer and send reply onward */
-	event_cancel(&txn->get_tree_timeout);
-
-	if (!get_tree->simple_xpath && get_tree->client_results) {
-		/*
-		 * We have a complex query so Filter results by the xpath query.
-		 */
-		if (yang_lyd_trim_xpath(&get_tree->client_results,
-					txn_req->req.get_tree->xpath))
-			ret = NB_ERR;
-	}
-
-	result = get_tree->client_results;
-
-	if (ret == NB_OK && result && get_tree->exact)
-		result = yang_dnode_get(result, get_tree->xpath);
-
-	if (ret == NB_OK)
-		ret = mgmt_fe_adapter_send_tree_data(txn->session_id,
-						     txn->txn_id,
-						     txn_req->req_id,
-						     get_tree->result_type,
-						     get_tree->wd_options,
-						     result,
-						     get_tree->partial_error,
-						     false);
-
-	/* we're done with the request */
-	mgmt_txn_req_free(&txn_req);
-
-	if (ret) {
-		_log_err("Error sending the results of GETTREE for txn-id %" PRIu64
-			 " req_id %" PRIu64 " to requested type %u",
-			 txn->txn_id, req_id, get_tree->result_type);
-
-		(void)mgmt_fe_adapter_txn_error(txn->txn_id, req_id, false,
-						errno_from_nb_error(ret),
-						"Error converting results of GETTREE");
-	}
-
-	return ret;
-}
-
-static int txn_rpc_done(struct mgmt_txn_ctx *txn, struct mgmt_txn_req *txn_req)
-{
-	struct txn_req_rpc *rpc = txn_req->req.rpc;
-	uint64_t req_id = txn_req->req_id;
-
-	/* cancel timer and send reply onward */
-	event_cancel(&txn->rpc_timeout);
-
-	if (rpc->errstr)
-		mgmt_fe_adapter_txn_error(txn->txn_id, req_id, false, -EINVAL,
-					  rpc->errstr);
-	else if (mgmt_fe_adapter_send_rpc_reply(txn->session_id, txn->txn_id,
-						req_id, rpc->result_type,
-						rpc->client_results)) {
-		_log_err("Error sending the results of RPC for txn-id %" PRIu64 " req_id %" PRIu64
-			 " to requested type %u",
-			 txn->txn_id, req_id, rpc->result_type);
-
-		(void)mgmt_fe_adapter_txn_error(txn->txn_id, req_id, false,
-						-EINVAL,
-						"Error converting results of RPC");
-	}
-
-	/* we're done with the request */
-	mgmt_txn_req_free(&txn_req);
-
-	return 0;
-}
-
-static void txn_get_tree_timeout(struct event *event)
-{
-	struct mgmt_txn_ctx *txn;
-	struct mgmt_txn_req *txn_req;
-
-	txn_req = (struct mgmt_txn_req *)EVENT_ARG(event);
-	txn = txn_req->txn;
-
-	assert(txn);
-	assert(txn->type == MGMTD_TXN_TYPE_SHOW);
-
-
-	_log_err("Backend timeout txn-id: %" PRIu64 " ending get-tree", txn->txn_id);
-
-	/*
-	 * Send a get-tree data reply.
-	 *
-	 * NOTE: The transaction cleanup will be triggered from Front-end
-	 * adapter.
-	 */
-
-	txn_req->req.get_tree->partial_error = -ETIMEDOUT;
-	txn_get_tree_data_done(txn, txn_req);
-}
-
-static void txn_rpc_timeout(struct event *event)
-{
-	struct mgmt_txn_ctx *txn;
-	struct mgmt_txn_req *txn_req;
-
-	txn_req = (struct mgmt_txn_req *)EVENT_ARG(event);
-	txn = txn_req->txn;
-
-	assert(txn);
-	assert(txn->type == MGMTD_TXN_TYPE_RPC);
-
-	_log_err("Backend timeout txn-id: %" PRIu64 " ending rpc", txn->txn_id);
-
-	/*
-	 * Send a get-tree data reply.
-	 *
-	 * NOTE: The transaction cleanup will be triggered from Front-end
-	 * adapter.
-	 */
-
-	txn_req->req.rpc->errstr =
-		XSTRDUP(MTYPE_MGMTD_ERR, "Operation on the backend timed-out");
-	txn_rpc_done(txn, txn_req);
-}
-
-static struct mgmt_txn_ctx *
-mgmt_fe_find_txn_by_session_id(struct mgmt_master *cm, uint64_t session_id,
-			       enum mgmt_txn_type type)
+static struct mgmt_txn_ctx *txn_lookup_by_session_id(struct mgmt_master *cm, uint64_t session_id,
+						     enum mgmt_txn_type type)
 {
 	struct mgmt_txn_ctx *txn;
 
@@ -274,7 +148,7 @@ struct mgmt_txn_ctx *mgmt_txn_create_new(uint64_t session_id, enum mgmt_txn_type
 	if (type == MGMTD_TXN_TYPE_CONFIG && mgmt_config_txn_in_progress())
 		return NULL;
 
-	txn = mgmt_fe_find_txn_by_session_id(mgmt_txn_mm, session_id, type);
+	txn = txn_lookup_by_session_id(mgmt_txn_mm, session_id, type);
 	if (!txn) {
 		txn = XCALLOC(MTYPE_MGMTD_TXN, sizeof(struct mgmt_txn_ctx));
 		assert(txn);
@@ -307,7 +181,7 @@ static void mgmt_txn_delete(struct mgmt_txn_ctx **txn, bool in_hash_free)
 	MGMTD_TXN_DECREF(txn, in_hash_free);
 }
 
-static unsigned int mgmt_txn_hash_key(const void *data)
+static unsigned int txn_hash_key(const void *data)
 {
 	const struct mgmt_txn_ctx *txn = data;
 
@@ -315,7 +189,7 @@ static unsigned int mgmt_txn_hash_key(const void *data)
 		      sizeof(txn->txn_id) / sizeof(uint32_t), 0);
 }
 
-static bool mgmt_txn_hash_cmp(const void *d1, const void *d2)
+static bool txn_hash_cmp(const void *d1, const void *d2)
 {
 	const struct mgmt_txn_ctx *txn1 = d1;
 	const struct mgmt_txn_ctx *txn2 = d2;
@@ -323,28 +197,27 @@ static bool mgmt_txn_hash_cmp(const void *d1, const void *d2)
 	return (txn1->txn_id == txn2->txn_id);
 }
 
-static void mgmt_txn_hash_free(void *data)
+static void txn_hash_free(void *data)
 {
 	struct mgmt_txn_ctx *txn = data;
 
 	mgmt_txn_delete(&txn, true);
 }
 
-static void mgmt_txn_hash_init(void)
+static void txn_hash_init(void)
 {
 	if (!mgmt_txn_mm || mgmt_txn_mm->txn_hash)
 		return;
 
-	mgmt_txn_mm->txn_hash = hash_create(mgmt_txn_hash_key, mgmt_txn_hash_cmp,
-					    "MGMT Transactions");
+	mgmt_txn_mm->txn_hash = hash_create(txn_hash_key, txn_hash_cmp, "MGMT Transactions");
 }
 
-static void mgmt_txn_hash_destroy(void)
+static void txn_hash_destroy(void)
 {
 	if (!mgmt_txn_mm || !mgmt_txn_mm->txn_hash)
 		return;
 
-	hash_clean(mgmt_txn_mm->txn_hash, mgmt_txn_hash_free);
+	hash_clean(mgmt_txn_mm->txn_hash, txn_hash_free);
 	hash_free(mgmt_txn_mm->txn_hash);
 	mgmt_txn_mm->txn_hash = NULL;
 }
@@ -370,15 +243,14 @@ uint64_t mgmt_txn_get_session_id(uint64_t txn_id)
 	return txn ? txn->session_id : MGMTD_SESSION_ID_NONE;
 }
 
-static void mgmt_txn_incref(struct mgmt_txn_ctx *txn, const char *file, int line)
+static void txn_incref(struct mgmt_txn_ctx *txn, const char *file, int line)
 {
 	txn->refcount++;
 	_dbg("%s:%d --> INCREF %s txn-id: %" PRIu64 " refcnt: %d", file, line,
 	     mgmt_txn_type2str(txn->type), txn->txn_id, txn->refcount);
 }
 
-static void mgmt_txn_decref(struct mgmt_txn_ctx **txn, bool in_hash_free, const char *file,
-			    int line)
+static void txn_decref(struct mgmt_txn_ctx **txn, bool in_hash_free, const char *file, int line)
 {
 	assert(*txn && (*txn)->refcount);
 
@@ -413,7 +285,7 @@ void mgmt_txn_cleanup_txn(struct mgmt_txn_ctx **txn)
 	mgmt_txn_delete(txn, false);
 }
 
-static void mgmt_txn_cleanup_all_txns(void)
+static void txn_cleanup_all_txns(void)
 {
 	struct mgmt_txn_ctx *txn;
 
@@ -432,7 +304,7 @@ int mgmt_txn_init(struct mgmt_master *m, struct event_loop *loop)
 	mgmt_txn_mm = m;
 	mgmt_txn_tm = loop;
 	mgmt_txns_init(&m->txn_list);
-	mgmt_txn_hash_init();
+	txn_hash_init();
 	assert(!m->cfg_txn);
 	m->cfg_txn = NULL;
 
@@ -441,8 +313,8 @@ int mgmt_txn_init(struct mgmt_master *m, struct event_loop *loop)
 
 void mgmt_txn_destroy(void)
 {
-	mgmt_txn_cleanup_all_txns();
-	mgmt_txn_hash_destroy();
+	txn_cleanup_all_txns();
+	txn_hash_destroy();
 }
 
 bool mgmt_config_txn_in_progress(void)
@@ -494,6 +366,150 @@ int mgmt_txn_notify_be_adapter_conn(struct mgmt_be_client_adapter *adapter,
 	}
 
 	return 0;
+}
+
+/* =========================== */
+/* GET TREE (data) BACKEND TXN */
+/* =========================== */
+
+static int txn_get_tree_data_done(struct mgmt_txn_ctx *txn, struct mgmt_txn_req *txn_req)
+{
+	struct txn_req_get_tree *get_tree = txn_req->req.get_tree;
+	uint64_t req_id = txn_req->req_id;
+	struct lyd_node *result;
+	int ret = NB_OK;
+
+	/* cancel timer and send reply onward */
+	event_cancel(&txn->get_tree_timeout);
+
+	if (!get_tree->simple_xpath && get_tree->client_results) {
+		/*
+		 * We have a complex query so Filter results by the xpath query.
+		 */
+		if (yang_lyd_trim_xpath(&get_tree->client_results, txn_req->req.get_tree->xpath))
+			ret = NB_ERR;
+	}
+
+	result = get_tree->client_results;
+
+	if (ret == NB_OK && result && get_tree->exact)
+		result = yang_dnode_get(result, get_tree->xpath);
+
+	if (ret == NB_OK)
+		ret = mgmt_fe_adapter_send_tree_data(txn->session_id, txn->txn_id, txn_req->req_id,
+						     get_tree->result_type, get_tree->wd_options,
+						     result, get_tree->partial_error, false);
+
+	/* we're done with the request */
+	mgmt_txn_req_free(&txn_req);
+
+	if (ret) {
+		_log_err("Error sending the results of GETTREE for txn-id %" PRIu64
+			 " req_id %" PRIu64 " to requested type %u",
+			 txn->txn_id, req_id, get_tree->result_type);
+
+		(void)mgmt_fe_adapter_txn_error(txn->txn_id, req_id, false,
+						errno_from_nb_error(ret),
+						"Error converting results of GETTREE");
+	}
+
+	return ret;
+}
+
+/*
+ * Get-tree data from the backend client.
+ */
+int mgmt_txn_handle_tree_data_reply(struct mgmt_be_client_adapter *adapter,
+				    struct mgmt_msg_tree_data *data_msg, size_t msg_len)
+{
+	uint64_t txn_id = data_msg->refer_id;
+	uint64_t req_id = data_msg->req_id;
+
+	enum mgmt_be_client_id id = adapter->id;
+	struct mgmt_txn_ctx *txn = txn_lookup(txn_id);
+	struct mgmt_txn_req *txn_req;
+	struct txn_req_get_tree *get_tree;
+	struct lyd_node *tree = NULL;
+	LY_ERR err;
+
+	if (!txn) {
+		_log_err("GETTREE reply from %s for a missing txn-id %" PRIu64, adapter->name,
+			 txn_id);
+		return -1;
+	}
+
+	/* Find the request. */
+	FOREACH_TXN_REQ_IN_LIST (&txn->reqs, txn_req)
+		if (txn_req->req_id == req_id)
+			break;
+	if (!txn_req) {
+		_log_err("GETTREE reply from %s for txn-id %" PRIu64 " missing req_id %" PRIu64,
+			 adapter->name, txn_id, req_id);
+		return -1;
+	}
+
+	get_tree = txn_req->req.get_tree;
+
+	/* store the result */
+	err = lyd_parse_data_mem(ly_native_ctx, (const char *)data_msg->result,
+				 data_msg->result_type, LYD_PARSE_STRICT | LYD_PARSE_ONLY,
+				 0 /*LYD_VALIDATE_OPERATIONAL*/, &tree);
+	if (err) {
+		_log_err("GETTREE reply from %s for txn-id %" PRIu64 " req_id %" PRIu64
+			 " error parsing result of type %u",
+			 adapter->name, txn_id, req_id, data_msg->result_type);
+	}
+	if (!err) {
+		/* TODO: we could merge ly_errs here if it's not binary */
+
+		if (!get_tree->client_results)
+			get_tree->client_results = tree;
+		else
+			err = lyd_merge_siblings(&get_tree->client_results, tree,
+						 LYD_MERGE_DESTRUCT);
+		if (err) {
+			_log_err("GETTREE reply from %s for txn-id %" PRIu64 " req_id %" PRIu64
+				 " error merging result",
+				 adapter->name, txn_id, req_id);
+		}
+	}
+	if (!get_tree->partial_error)
+		get_tree->partial_error = (data_msg->partial_error ? data_msg->partial_error
+								   : (int)err);
+
+	if (!data_msg->more)
+		get_tree->recv_clients |= (1u << id);
+
+	/* check if done yet */
+	if (get_tree->recv_clients != get_tree->sent_clients)
+		return 0;
+
+	return txn_get_tree_data_done(txn, txn_req);
+}
+
+static void txn_get_tree_timeout(struct event *event)
+{
+	struct mgmt_txn_ctx *txn;
+	struct mgmt_txn_req *txn_req;
+
+	txn_req = (struct mgmt_txn_req *)EVENT_ARG(event);
+	txn = txn_req->txn;
+
+	assert(txn);
+	assert(txn->type == MGMTD_TXN_TYPE_SHOW);
+
+
+	_log_err("Backend timeout txn-id: %" PRIu64 " ending get-tree", txn->txn_id);
+
+	/*
+	 * Send a get-tree data reply.
+	 *
+	 * NOTE: The transaction cleanup will be triggered from Front-end
+	 * adapter.
+	 */
+
+	txn_req->req.get_tree->partial_error = -ETIMEDOUT;
+	txn_get_tree_data_done(txn, txn_req);
 }
 
 /**
@@ -622,9 +638,129 @@ state:
 	return 0;
 }
 
-int mgmt_txn_send_rpc(uint64_t txn_id, uint64_t req_id, uint64_t clients,
-		      LYD_FORMAT result_type, const char *xpath,
-		      const char *data, size_t data_len)
+/* =============== */
+/* RPC BACKEND TXN */
+/* =============== */
+
+/*
+ * RPC txn has completed
+ */
+static int txn_rpc_done(struct mgmt_txn_ctx *txn, struct mgmt_txn_req *txn_req)
+{
+	struct txn_req_rpc *rpc = txn_req->req.rpc;
+	uint64_t req_id = txn_req->req_id;
+
+	/* cancel timer and send reply onward */
+	event_cancel(&txn->rpc_timeout);
+
+	if (rpc->errstr)
+		mgmt_fe_adapter_txn_error(txn->txn_id, req_id, false, -EINVAL, rpc->errstr);
+	else if (mgmt_fe_adapter_send_rpc_reply(txn->session_id, txn->txn_id, req_id,
+						rpc->result_type, rpc->client_results)) {
+		_log_err("Error sending the results of RPC for txn-id %" PRIu64 " req_id %" PRIu64
+			 " to requested type %u",
+			 txn->txn_id, req_id, rpc->result_type);
+
+		(void)mgmt_fe_adapter_txn_error(txn->txn_id, req_id, false, -EINVAL,
+						"Error converting results of RPC");
+	}
+
+	/* we're done with the request */
+	mgmt_txn_req_free(&txn_req);
+
+	return 0;
+}
+
+int mgmt_txn_handle_rpc_reply(struct mgmt_be_client_adapter *adapter,
+			      struct mgmt_msg_rpc_reply *reply_msg, size_t msg_len)
+{
+	uint64_t txn_id = reply_msg->refer_id;
+	uint64_t req_id = reply_msg->req_id;
+	enum mgmt_be_client_id id = adapter->id;
+	struct mgmt_txn_ctx *txn = txn_lookup(txn_id);
+	struct mgmt_txn_req *txn_req;
+	struct txn_req_rpc *rpc;
+	struct lyd_node *tree;
+	size_t data_len = msg_len - sizeof(*reply_msg);
+	LY_ERR err = LY_SUCCESS;
+
+	if (!txn) {
+		_log_err("RPC reply from %s for a missing txn-id %" PRIu64, adapter->name, txn_id);
+		return -1;
+	}
+
+	/* Find the request. */
+	FOREACH_TXN_REQ_IN_LIST (&txn->reqs, txn_req)
+		if (txn_req->req_id == req_id)
+			break;
+	if (!txn_req) {
+		_log_err("RPC reply from %s for txn-id %" PRIu64 " missing req_id %" PRIu64,
+			 adapter->name, txn_id, req_id);
+		return -1;
+	}
+
+	rpc = txn_req->req.rpc;
+
+	tree = NULL;
+	if (data_len)
+		err = yang_parse_rpc(rpc->xpath, reply_msg->result_type, reply_msg->data, true,
+				     &tree);
+	if (err) {
+		_log_err("RPC reply from %s for txn-id %" PRIu64 " req_id %" PRIu64
+			 " error parsing result of type %u: %s",
+			 adapter->name, txn_id, req_id, reply_msg->result_type, ly_strerrcode(err));
+	}
+	if (!err && tree) {
+		if (!rpc->client_results)
+			rpc->client_results = tree;
+		else
+			err = lyd_merge_siblings(&rpc->client_results, tree, LYD_MERGE_DESTRUCT);
+		if (err) {
+			_log_err("RPC reply from %s for txn-id %" PRIu64 " req_id %" PRIu64
+				 " error merging result: %s",
+				 adapter->name, txn_id, req_id, ly_strerrcode(err));
+		}
+	}
+	if (err) {
+		XFREE(MTYPE_MGMTD_ERR, rpc->errstr);
+		rpc->errstr = XSTRDUP(MTYPE_MGMTD_ERR, "Cannot parse result from the backend");
+	}
+
+	rpc->recv_clients |= (1u << id);
+
+	/* check if done yet */
+	if (rpc->recv_clients != rpc->sent_clients)
+		return 0;
+
+	return txn_rpc_done(txn, txn_req);
+}
+
+static void txn_rpc_timeout(struct event *event)
+{
+	struct mgmt_txn_ctx *txn;
+	struct mgmt_txn_req *txn_req;
+
+	txn_req = (struct mgmt_txn_req *)EVENT_ARG(event);
+	txn = txn_req->txn;
+
+	assert(txn);
+	assert(txn->type == MGMTD_TXN_TYPE_RPC);
+
+	_log_err("Backend timeout txn-id: %" PRIu64 " ending rpc", txn->txn_id);
+
+	/*
+	 * Send a get-tree data reply.
+	 *
+	 * NOTE: The transaction cleanup will be triggered from Front-end
+	 * adapter.
+	 */
+
+	txn_req->req.rpc->errstr = XSTRDUP(MTYPE_MGMTD_ERR, "Operation on the backend timed-out");
+	txn_rpc_done(txn, txn_req);
+}
+
+int mgmt_txn_send_rpc(uint64_t txn_id, uint64_t req_id, uint64_t clients, LYD_FORMAT result_type,
+		      const char *xpath, const char *data, size_t data_len)
 {
 	struct mgmt_be_client_adapter *adapter;
 	struct mgmt_txn_ctx *txn;
@@ -671,6 +807,10 @@ int mgmt_txn_send_rpc(uint64_t txn_id, uint64_t req_id, uint64_t clients,
 	return 0;
 }
 
+/* =================== */
+/* SEND NOTIFY BACKEND */
+/* =================== */
+
 int mgmt_txn_send_notify_selectors(uint64_t req_id, uint64_t session_id, uint64_t clients,
 				   const char **selectors)
 {
@@ -709,6 +849,10 @@ int mgmt_txn_send_notify_selectors(uint64_t req_id, uint64_t session_id, uint64_
 
 	return 0;
 }
+
+/* ============== */
+/* ERROR HANDLING */
+/* ============== */
 
 /*
  * Error reply from the backend client.
@@ -777,145 +921,6 @@ void mgmt_txn_handle_error_reply(struct mgmt_be_client_adapter *adapter, uint64_
 	default:
 		assert(!"non-native req type in native error path");
 	}
-}
-
-/*
- * Get-tree data from the backend client.
- */
-int mgmt_txn_handle_tree_data_reply(struct mgmt_be_client_adapter *adapter,
-				    struct mgmt_msg_tree_data *data_msg, size_t msg_len)
-{
-	uint64_t txn_id = data_msg->refer_id;
-	uint64_t req_id = data_msg->req_id;
-
-	enum mgmt_be_client_id id = adapter->id;
-	struct mgmt_txn_ctx *txn = txn_lookup(txn_id);
-	struct mgmt_txn_req *txn_req;
-	struct txn_req_get_tree *get_tree;
-	struct lyd_node *tree = NULL;
-	LY_ERR err;
-
-	if (!txn) {
-		_log_err("GETTREE reply from %s for a missing txn-id %" PRIu64, adapter->name,
-			 txn_id);
-		return -1;
-	}
-
-	/* Find the request. */
-	FOREACH_TXN_REQ_IN_LIST (&txn->reqs, txn_req)
-		if (txn_req->req_id == req_id)
-			break;
-	if (!txn_req) {
-		_log_err("GETTREE reply from %s for txn-id %" PRIu64 " missing req_id %" PRIu64,
-			 adapter->name, txn_id, req_id);
-		return -1;
-	}
-
-	get_tree = txn_req->req.get_tree;
-
-	/* store the result */
-	err = lyd_parse_data_mem(ly_native_ctx, (const char *)data_msg->result,
-				 data_msg->result_type,
-				 LYD_PARSE_STRICT | LYD_PARSE_ONLY,
-				 0 /*LYD_VALIDATE_OPERATIONAL*/, &tree);
-	if (err) {
-		_log_err("GETTREE reply from %s for txn-id %" PRIu64 " req_id %" PRIu64
-			 " error parsing result of type %u",
-			 adapter->name, txn_id, req_id, data_msg->result_type);
-	}
-	if (!err) {
-		/* TODO: we could merge ly_errs here if it's not binary */
-
-		if (!get_tree->client_results)
-			get_tree->client_results = tree;
-		else
-			err = lyd_merge_siblings(&get_tree->client_results,
-						 tree, LYD_MERGE_DESTRUCT);
-		if (err) {
-			_log_err("GETTREE reply from %s for txn-id %" PRIu64 " req_id %" PRIu64
-				 " error merging result",
-				 adapter->name, txn_id, req_id);
-		}
-	}
-	if (!get_tree->partial_error)
-		get_tree->partial_error = (data_msg->partial_error
-						   ? data_msg->partial_error
-						   : (int)err);
-
-	if (!data_msg->more)
-		get_tree->recv_clients |= (1u << id);
-
-	/* check if done yet */
-	if (get_tree->recv_clients != get_tree->sent_clients)
-		return 0;
-
-	return txn_get_tree_data_done(txn, txn_req);
-}
-
-int mgmt_txn_handle_rpc_reply(struct mgmt_be_client_adapter *adapter,
-			      struct mgmt_msg_rpc_reply *reply_msg, size_t msg_len)
-{
-	uint64_t txn_id = reply_msg->refer_id;
-	uint64_t req_id = reply_msg->req_id;
-	enum mgmt_be_client_id id = adapter->id;
-	struct mgmt_txn_ctx *txn = txn_lookup(txn_id);
-	struct mgmt_txn_req *txn_req;
-	struct txn_req_rpc *rpc;
-	struct lyd_node *tree;
-	size_t data_len = msg_len - sizeof(*reply_msg);
-	LY_ERR err = LY_SUCCESS;
-
-	if (!txn) {
-		_log_err("RPC reply from %s for a missing txn-id %" PRIu64, adapter->name, txn_id);
-		return -1;
-	}
-
-	/* Find the request. */
-	FOREACH_TXN_REQ_IN_LIST (&txn->reqs, txn_req)
-		if (txn_req->req_id == req_id)
-			break;
-	if (!txn_req) {
-		_log_err("RPC reply from %s for txn-id %" PRIu64 " missing req_id %" PRIu64,
-			 adapter->name, txn_id, req_id);
-		return -1;
-	}
-
-	rpc = txn_req->req.rpc;
-
-	tree = NULL;
-	if (data_len)
-		err = yang_parse_rpc(rpc->xpath, reply_msg->result_type,
-				     reply_msg->data, true, &tree);
-	if (err) {
-		_log_err("RPC reply from %s for txn-id %" PRIu64 " req_id %" PRIu64
-			 " error parsing result of type %u: %s",
-			 adapter->name, txn_id, req_id, reply_msg->result_type, ly_strerrcode(err));
-	}
-	if (!err && tree) {
-		if (!rpc->client_results)
-			rpc->client_results = tree;
-		else
-			err = lyd_merge_siblings(&rpc->client_results, tree,
-						 LYD_MERGE_DESTRUCT);
-		if (err) {
-			_log_err("RPC reply from %s for txn-id %" PRIu64 " req_id %" PRIu64
-				 " error merging result: %s",
-				 adapter->name, txn_id, req_id, ly_strerrcode(err));
-		}
-	}
-	if (err) {
-		XFREE(MTYPE_MGMTD_ERR, rpc->errstr);
-		rpc->errstr = XSTRDUP(MTYPE_MGMTD_ERR,
-				      "Cannot parse result from the backend");
-	}
-
-	rpc->recv_clients |= (1u << id);
-
-	/* check if done yet */
-	if (rpc->recv_clients != rpc->sent_clients)
-		return 0;
-
-	return txn_rpc_done(txn, txn_req);
 }
 
 void mgmt_txn_status_write(struct vty *vty)
