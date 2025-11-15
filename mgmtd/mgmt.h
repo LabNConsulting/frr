@@ -95,4 +95,27 @@ extern void mgmt_master_init(struct event_loop *master, const int buffer_size);
 extern void mgmt_init(void);
 extern void mgmt_vty_init(void);
 
+/*
+ * mgmt vty
+ */
+
+extern void vty_init_mgmt_fe(void);
+extern bool vty_mgmt_fe_enabled(void);
+
+extern bool mgmt_vty_read_configs(void);
+extern int vty_mgmt_send_commit_config(struct vty *vty, bool validate_only, bool abort,
+				       bool unlock);
+extern int vty_mgmt_send_get_data_req(struct vty *vty, uint8_t datastore, LYD_FORMAT result_type,
+				      uint8_t flags, uint8_t defaults, const char *xpath);
+extern int vty_mgmt_send_edit_req(struct vty *vty, uint8_t datastore, LYD_FORMAT request_type,
+				  uint8_t flags, uint8_t operation, const char *xpath,
+				  const char *data);
+extern void vty_mgmt_resume_response(struct vty *vty, int ret);
+
+
+extern int vty_mgmt_send_config_data(struct vty *vty, const char *xpath_base, bool implicit_commit);
+extern int vty_mgmt_send_rpc_req(struct vty *vty, LYD_FORMAT request_type, const char *xpath,
+				 const char *data);
+extern bool vty_mgmt_should_process_cli_apply_changes(struct vty *vty);
+
 #endif /* _FRR_MGMTD_H */

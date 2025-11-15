@@ -233,6 +233,8 @@ DEFUN_NOSH(start_config, start_config_cmd, "XFRR_start_configuration",
 
 	vty->pending_allowed = 1;
 
+	vty_start_config_mgmt(vty);
+
 	if (callback.start_config)
 		(*callback.start_config)();
 
@@ -259,14 +261,7 @@ DEFUN_NOSH(end_config, end_config_cmd, "XFRR_end_configuration",
 	zlog_debug("%s: VTY:%p, pending SET-CFG: %u", __func__, vty,
 		   (uint32_t)vty->mgmt_num_pending_setcfg);
 
-	/*
-	 * If (and only if) we have sent any CLI config commands to MGMTd
-	 * FE interface using vty_mgmt_send_config_data() without implicit
-	 * commit before, should we need to send an explicit COMMIT-REQ now
-	 * to apply all those commands at once.
-	 */
-	if (vty->mgmt_num_pending_setcfg && vty_mgmt_fe_enabled())
-		vty_mgmt_send_commit_config(vty, false, false, false);
+	vty_end_config_mgmt(vty);
 
 	if (callback.end_config)
 		(*callback.end_config)();

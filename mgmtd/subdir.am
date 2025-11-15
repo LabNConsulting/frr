@@ -31,6 +31,7 @@ mgmtd_libmgmtd_a_SOURCES = \
 	mgmtd/mgmt_ds.c \
 	mgmtd/mgmt_be_adapter.c \
 	mgmtd/mgmt_fe_adapter.c \
+	mgmtd/mgmt_fe_client_vty.c \
 	mgmtd/mgmt_history.c \
 	mgmtd/mgmt_memory.c \
 	mgmtd/mgmt_txn.c \
