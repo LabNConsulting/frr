@@ -574,6 +574,8 @@ static struct ospf_if_params *ospf_new_if_params(void)
 	UNSET_IF_PARAM(oip, keychain_name);
 	UNSET_IF_PARAM(oip, nbr_filter_name);
 	UNSET_IF_PARAM(oip, dead_timer_any);
+	UNSET_IF_PARAM(oip, dscp_ospf_all);
+	UNSET_IF_PARAM(oip, dscp_low_control);
 
 	oip->auth_crypt = list_new();
 
@@ -585,8 +587,9 @@ static struct ospf_if_params *ospf_new_if_params(void)
 	oip->opaque_capable = OSPF_OPAQUE_CAPABLE_DEFAULT;
 	/* RFC4222 timers */
 	oip->dead_timer_any = false;
-
-
+	/* RFC4222 dscp Priority */
+	oip->dscp_ospf_all = IPTOS_PREC_INTERNETCONTROL >> 2;	 /* upper 6 bits */
+	oip->dscp_low_control = IPTOS_PREC_INTERNETCONTROL >> 2; /* Default feature is off */
 	return oip;
 }
 
@@ -635,6 +638,8 @@ void ospf_free_if_params(struct interface *ifp, struct in_addr addr)
 	    !OSPF_IF_PARAM_CONFIGURED(oip, keychain_name) &&
 	    !OSPF_IF_PARAM_CONFIGURED(oip, nbr_filter_name) &&
 	    !OSPF_IF_PARAM_CONFIGURED(oip, dead_timer_any) &&
+	    !OSPF_IF_PARAM_CONFIGURED(oip, dscp_ospf_all) &&
+	    !OSPF_IF_PARAM_CONFIGURED(oip, dscp_low_control) &&
 	    listcount(oip->auth_crypt) == 0) {
 		ospf_del_if_params(ifp, oip);
 		rn->info = NULL;
@@ -748,6 +753,8 @@ int ospf_if_new_hook(struct interface *ifp)
 	IF_DEF_PARAMS(ifp)->opaque_capable = OSPF_OPAQUE_CAPABLE_DEFAULT;
 
 	IF_DEF_PARAMS(ifp)->prefix_suppression = OSPF_PREFIX_SUPPRESSION_DEFAULT;
+
+	/* RFC4222 parameters intentionally left out here. */
 
 	rc = ospf_opaque_new_if(ifp);
 	return rc;
