@@ -228,20 +228,13 @@ static int nb_node_validate_cb(const struct nb_node *nb_node,
 	valid = nb_cb_operation_is_valid(operation, nb_node->snode);
 
 	/*
-	 * Add an exception for operational data callbacks. A rw list usually
-	 * doesn't need any associated operational data callbacks. But if this
-	 * rw list is augmented by another module which adds state nodes under
-	 * it, then this list will need to have the 'get_next()', 'get_keys()'
-	 * and 'lookup_entry()' callbacks. As such, never log a warning when
-	 * these callbacks are implemented when they are not needed, since this
-	 * depends on context (e.g. some daemons might augment "frr-interface"
-	 * while others don't).
+	 * We allow oper-state callbacks for config true nodes, so only warn if
+	 * we have config callbacks for config false nodes.
 	 */
-	if (!valid && callback_implemented && operation != NB_CB_GET_NEXT &&
-	    operation != NB_CB_GET_KEYS && operation != NB_CB_LIST_ENTRY_DONE &&
-	    operation != NB_CB_LOOKUP_ENTRY)
-		flog_warn(EC_LIB_NB_CB_UNNEEDED,
-			  "unneeded '%s' callback for '%s'",
+	if (!valid && callback_implemented &&
+	    (operation == NB_CB_CREATE || operation == NB_CB_MODIFY ||
+	     operation == NB_CB_DESTROY || operation == NB_CB_MOVE))
+		flog_warn(EC_LIB_NB_CB_UNNEEDED, "unneeded '%s' callback for '%s'",
 			  nb_cb_operation_name(operation), nb_node->xpath);
 
 	if (!optional && valid && !callback_implemented) {
@@ -1788,9 +1781,12 @@ struct yang_data *nb_callback_get_elem(const struct nb_node *nb_node,
 	       "northbound callback (get_elem): xpath [%s] list_entry [%p]",
 	       xpath, list_entry);
 
-	args.xpath = xpath;
-	args.list_entry = list_entry;
-	return nb_node->cbs.get_elem(&args);
+	if (nb_node->cbs.get_elem) {
+		args.xpath = xpath;
+		args.list_entry = list_entry;
+		return nb_node->cbs.get_elem(&args);
+	}
+	return NULL;
 }
 
 const void *nb_callback_get_next(const struct nb_node *nb_node,
@@ -1806,9 +1802,12 @@ const void *nb_callback_get_next(const struct nb_node *nb_node,
 	       "northbound callback (get_next): node [%s] parent_list_entry [%p] list_entry [%p]",
 	       nb_node->xpath, parent_list_entry, list_entry);
 
-	args.parent_list_entry = parent_list_entry;
-	args.list_entry = list_entry;
-	return nb_node->cbs.get_next(&args);
+	if (nb_node->cbs.get_next) {
+		args.parent_list_entry = parent_list_entry;
+		args.list_entry = list_entry;
+		return nb_node->cbs.get_next(&args);
+	}
+	return NULL;
 }
 
 int nb_callback_get_keys(const struct nb_node *nb_node, const void *list_entry,
